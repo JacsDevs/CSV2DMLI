@@ -1,0 +1,61 @@
+{
+  "colunas": {
+    "obrigatorias": ["ITEM_LEXICAL"],
+    "mapeamento": {
+      "ITEM_LEXICAL": "ITEM_LEXICAL",
+      "CLASSE_GRAMATICAL": "CLASSE_GRAMATICAL",
+      "CAMPO_SEMANTICO": "CAMPO_SEMANTICO",
+      "SUB_CAMPO_SEMANTICO": "SUB_CAMPO_SEMANTICO",
+      "ITENS_RELACIONADOS": "ITENS_RELACIONADOS",
+      "ARQUIVO_SONORO": "ARQUIVO_SONORO",
+      "TRANSCRICAO_FONEMICA": "TRANSCRICAO_FONEMICA",
+      "TRANSCRICAO_FONETICA": "TRANSCRICAO_FONETICA",
+      "TRADUCAO_SIGNIFICADO": "TRADUCAO_SIGNIFICADO",
+      "DESCRICAO": "DESCRICAO",
+      "ARQUIVO_SONORO_EXEMPLO": "ARQUIVO_SONORO_EXEMPLO",
+      "TRANSCRICAO_EXEMPLO": "TRANSCRICAO_EXEMPLO",
+      "TRADUCAO_EXEMPLO": "TRADUCAO_EXEMPLO",
+      "IMAGEM": "IMAGEM",
+      "LEGENDA_IMAGEM": "LEGENDA_IMAGEM",
+      "ARQUIVO_VIDEO": "ARQUIVO_VIDEO",
+      "TEXTO": "TEXTO"
+    }
+  },
+  
+  "midias": {
+    "audio": {
+      "extensoes": ["mp3", "wav", "ogg", "m4a", "flac", "wma"],
+      "tamanhoMaximoMB": 200,
+      "pastas": ["audio", "audios", "som", "midia/audio"]
+    },
+    "imagem": {
+      "extensoes": ["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"],
+      "tamanhoMaximoMB": 100,
+      "pastas": ["foto", "fotos", "imagem", "imagens", "img", "pictures"]
+    },
+    "video": {
+      "extensoes": ["mp4", "webm", "avi", "mov", "mkv", "m4v"],
+      "tamanhoMaximoMB": 1000,
+      "pastas": ["video", "videos", "vid", "midia/video"]
+    }
+  },
+  
+  "arquivos": {
+    "planilha": {
+      "nomes": ["dicionario.csv", "dicionario.xlsx", "dados.csv", "lexico.csv", "planilha.csv"],
+      "obrigatorio": true
+    },
+    "textos": {
+      "nomes": ["textos.json", "textos_estruturados.json", "dicionario_textos.json"],
+      "obrigatorio": false
+    },
+    "configuracao": {
+      "nomes": ["config_local.json", "configuracao.json"],
+      "obrigatorio": false
+    },
+    "metadados": {
+      "nomes": ["metadados.json", "info.json"],
+      "obrigatorio": false
+    }
+  }
+}

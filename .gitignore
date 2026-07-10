@@ -1,0 +1,31 @@
+# Dependências Node
+node_modules/
+
+# Build Rust/Tauri
+src-tauri/target/
+src-tauri/gen/
+
+# Recursos pesados gerados pelo prepare-resources (não commitar)
+src-tauri/resources/jre/
+src-tauri/resources/bundletool.jar
+
+# Keystore de assinatura Android (chave privada — NUNCA commitar)
+src-tauri/resources/*.jks
+src-tauri/resources/*.keystore
+
+# Artefatos de build local
+dist/
+dist-desktop/
+
+# Build Android (android-template/)
+android-template/.gradle/
+android-template/.idea/
+android-template/build/
+android-template/app/build/
+android-template/local.properties
+android-template/gradle/wrapper/gradle-wrapper.jar
+
+# Temporários do sistema
+.DS_Store
+Thumbs.db
+*.tmp

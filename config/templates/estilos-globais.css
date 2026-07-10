@@ -1,0 +1,22 @@
+/* ===== VARIÁVEIS E RESET (DESIGN TOKENS GLOBAIS) ===== */
+:root {
+    --cor-fundo: #f8fafc;
+    --cor-texto: #1e293b;
+    --cor-primaria: #0f172a;
+    --cor-secundaria: #3b82f6;
+    --cor-borda: #e2e8f0;
+    --cor-card: #ffffff;
+    
+    /* Variantes de cores */
+    --cor-sucesso: #10b981;
+    --cor-alerta: #f59e0b;
+    --cor-erro: #ef4444;
+    
+    /* Sombras */
+    --sombra-card: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --sombra-modal: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    
+    /* Outros globais */
+    --transicao: all 0.2s ease;
+    --raio-borda: 12px;
+}

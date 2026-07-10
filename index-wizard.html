@@ -1,0 +1,2362 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV2DMLI - Assistente</title>    
+    <!-- Papa Parse -->
+    <script src="vendor/papaparse.min.js"></script>
+    <!-- JSZip -->
+    <script src="vendor/jszip.min.js"></script>
+    <!-- Fontes (Inter + Fira Code, vendorizadas) -->
+    <link href="vendor/fonts/fonts.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="vendor/font-awesome/css/all.min.css">
+    <!-- Estilo Principal -->
+    <link rel="stylesheet" href="static/css/style.css">
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="CSV2DMLI">
+    <link rel="apple-touch-icon" href="static/icons/icon-192.png">
+    
+    <style>
+        /* Estilos Exclusivos do Assistente (Wizard) */
+        .wizard-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            min-height: 70%;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+        
+        .wizard-stepper {
+            display: flex;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .step-indicator {
+            flex: 1;
+            text-align: center;
+            padding: 16px 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            user-select: none;
+        }
+        
+        .step-indicator:hover {
+            background: rgba(0,0,0,0.02);
+        }
+        
+        .step-indicator.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            background: white;
+        }
+        
+        .wizard-body {
+            padding: 30px;
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .wizard-step {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+        
+        .wizard-step.active {
+            display: block;
+        }
+        
+        .wizard-footer {
+            padding: 20px 30px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        
+        
+        .step-title-large {
+            font-size: 1.5em;
+            color: var(--text-main);
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* =====================================================
+           WIZARD GERADOR DE APK / AAB
+        ===================================================== */
+        .apk-wizard-overlay {
+            position: fixed; inset: 0;
+            background: rgba(15,23,42,0.55);
+            z-index: 1100;
+            display: none;
+            align-items: stretch;
+            justify-content: stretch;
+        }
+        .apk-wizard-box {
+            width: 100vw; height: 100vh;
+            background: #fff;
+            display: flex; flex-direction: column;
+            overflow: hidden;
+        }
+        .apk-wizard-header {
+            padding: 18px 40px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex; align-items: center; justify-content: space-between;
+            background: var(--bg-secondary);
+            flex-shrink: 0;
+        }
+        .apk-stepper {
+            display: flex;
+            padding: 0 40px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+        .apk-step-tab {
+            padding: 12px 22px;
+            font-size: 0.85em; font-weight: 600;
+            color: var(--text-muted);
+            border-bottom: 3px solid transparent;
+            cursor: default; user-select: none;
+            transition: color 0.2s, border-color 0.2s;
+            white-space: nowrap;
+        }
+        .apk-step-tab.active  { color: var(--primary); border-bottom-color: var(--primary); }
+        .apk-step-tab.done    { color: var(--success); }
+
+        .apk-wizard-body {
+            flex: 1; overflow-y: auto;
+            padding: 32px 40px;
+        }
+        .apk-step-content { display: none; animation: fadeIn 0.3s ease; }
+        .apk-step-content.active { display: block; }
+
+        .apk-step-intro { margin-bottom: 24px; }
+        .apk-step-intro h2 { font-size: 1.25em; color: var(--text-main); margin-bottom: 6px; }
+        .apk-step-intro p  { color: var(--text-muted); font-size: 0.9em; }
+
+        .apk-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .apk-field { display: flex; flex-direction: column; gap: 6px; }
+        .apk-field label {
+            font-size: 0.78em; font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: .04em;
+        }
+        .apk-field input {
+            padding: 9px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.92em; font-family: inherit;
+            outline: none; transition: border-color 0.2s;
+            width: 100%; box-sizing: border-box;
+        }
+        .apk-field input:focus { border-color: var(--primary); }
+        .apk-field small { font-size: 0.75em; color: var(--text-muted); }
+        .required { color: var(--error); }
+
+        .apk-icon-picker {
+            border: 2px dashed var(--border-color);
+            border-radius: 10px;
+            min-height: 96px;
+            display: flex; align-items: center; gap: 16px;
+            padding: 16px; cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .apk-icon-picker:hover { border-color: var(--primary); background: var(--primary-light); }
+        #apkIconPlaceholder {
+            display: flex; align-items: center; gap: 12px;
+            color: var(--text-muted); font-size: 0.88em;
+        }
+
+        .apk-ks-block {
+            border: 1px solid var(--border-color);
+            border-radius: 12px; overflow: hidden;
+        }
+        .apk-ks-option {
+            display: flex; align-items: flex-start; gap: 10px;
+            padding: 14px 16px; cursor: pointer;
+        }
+        .apk-ks-option.selected { background: var(--primary-light); }
+        .apk-ks-fields {
+            padding: 0 16px 16px;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+        }
+
+        /* Step 4 – processamento */
+        .apk-spinner {
+            width: 52px; height: 52px;
+            border: 4px solid var(--primary-light);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: apk-spin 0.85s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes apk-spin { to { transform: rotate(360deg); } }
+
+        .apk-prog-step {
+            display: flex; align-items: center; gap: 10px;
+            padding: 8px 12px; border-radius: 8px;
+            margin-bottom: 6px; font-size: 0.88em;
+            transition: all 0.3s;
+        }
+        .apk-prog-step.pending { color: var(--text-muted); }
+        .apk-prog-step.running { color: var(--primary); background: var(--primary-light); font-weight: 600; }
+        .apk-prog-step.done    { color: var(--success); }
+        .apk-prog-step.error   { color: var(--error); }
+
+        .apk-result-row {
+            display: flex; align-items: flex-start; gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .apk-result-row:last-child { border-bottom: none; }
+
+        .apk-wizard-footer {
+            padding: 14px 40px;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            display: flex; justify-content: space-between; align-items: center;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-layout">
+    <main class="main-panel">
+        <header class="app-header">
+            <h1>CSV2DMLI <span class="badge">Assistente</span></h1>
+            <div class="header-actions">
+                <button class="btn btn-sm btn-custom" onclick="document.getElementById('modalCustomizacao').showModal()">⚙️ Customização</button>
+            </div>
+        </header>
+
+        <div class="scroll-content">
+            <!-- Status Geral -->
+            <div class="status-grid">
+                <div class="status-card" id="statusCsvCard"><span class="label">📊 Base</span><span class="value" id="statusCsv">Pendente</span></div>
+                <div class="status-card" id="statusAudioCard"><span class="label">🎵 Áudios</span><span class="value" id="statusAudio">0</span></div>
+                <div class="status-card" id="statusImagemCard"><span class="label">🖼️ Imagens</span><span class="value" id="statusImagem">0</span></div>
+                <div class="status-card" id="statusVideoCard"><span class="label">🎬 Vídeos</span><span class="value" id="statusVideo">0</span></div>
+            </div>
+
+            <!-- WIZARD CONTAINER -->
+            <div class="wizard-container">
+                
+                <!-- Stepper Superior -->
+                <div class="wizard-stepper">
+                    <div class="step-indicator active" id="indicator1" onclick="window.irParaPasso(1)">1. Fonte de Dados</div>
+                    <div class="step-indicator" id="indicator2" onclick="window.irParaPasso(2)">2. Mídias e Validação</div>
+                    <div class="step-indicator" id="indicator3" onclick="window.irParaPasso(3)">3. Metadados</div>
+                    <div class="step-indicator" id="indicator4" onclick="window.irParaPasso(4)">4. Estrutura</div>
+                    <div class="step-indicator" id="indicator5" onclick="window.irParaPasso(5)">5. Exportar</div>
+                </div>
+                
+                <!-- Corpo das Etapas -->
+                <div class="wizard-body">
+                    
+                    <!-- PASSO 1 -->
+                    <div class="wizard-step active" id="step1">
+                        <h2 class="step-title-large">📊 <span id="badgeCsv" class="step-badge" style="font-size: 0.5em; vertical-align: middle;">Pendente</span> Fonte de Dados</h2>
+                        <p class="step-desc" style="margin-bottom: 20px;">Selecione a pasta do projeto (recomendado) ou apenas o arquivo CSV.</p>
+                        
+                        <div class="drop-zone drop-zone-highlight" id="pastaProjetoDropZone">
+                            <p>📁 <b>Selecionar Pasta do Projeto</b></p>
+                            <p class="drop-desc">Carrega CSV, mídias e configurações automaticamente</p>
+                            <input type="file" id="filePastaProjeto" webkitdirectory multiple style="display:none">
+                        </div>
+
+                        <div class="divider-text" style="margin: 20px 0;"><span>ou</span></div>
+
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 15px;">
+                            <div class="drop-zone" id="csvDropZone">
+                                <p>📄 Arraste o <b>dicionario.csv</b> aqui</p>
+                                <input type="file" id="fileCsv" accept=".csv" style="display:none">
+                            </div>
+                        </div>
+                        
+                        <div class="mini-stats" style="margin-top: 15px;">
+                            <span id="csvLinhas">0 linhas</span>
+                            <span id="csvColunas">0 colunas</span>
+                            <span id="csvCategorias">0 categorias</span>
+                        </div>
+                    </div>
+
+                    <!-- PASSO 2 -->
+                    <div class="wizard-step" id="step2">
+                        <h2 class="step-title-large">📁 <span id="badgeMidias" class="step-badge" style="font-size: 0.5em; vertical-align: middle;">Pendente</span> Mídias e Validação</h2>
+                        <p class="step-desc" style="margin-bottom: 20px;">Adicione recursos multimídia ou valide sua base de dados atual.</p>
+                        
+                        <div class="media-grid-simple">
+                            <div class="media-panel" id="panelAudio" onclick="carregarPasta('audio')">
+                                <span class="media-icon">🎵</span><span class="media-title">Áudio</span><span class="media-count" id="countAudio">0</span><span class="media-label">arquivos</span>
+                            </div>
+                            <div class="media-panel" id="panelImagem" onclick="carregarPasta('imagem')">
+                                <span class="media-icon">🖼️</span><span class="media-title">Imagens</span><span class="media-count" id="countImagem">0</span><span class="media-label">arquivos</span>
+                            </div>
+                            <div class="media-panel" id="panelVideo" onclick="carregarPasta('video')">
+                                <span class="media-icon">🎬</span><span class="media-title">Vídeos</span><span class="media-count" id="countVideo">0</span><span class="media-label">arquivos</span>
+                            </div>
+                        </div>
+                        
+
+
+                        <div style="display: flex; gap: 10px; margin-top: 15px; background: #f8fafc; padding: 15px; border-radius: 8px;">
+                            <div style="flex: 1;">
+                                <strong>Checagem do Dicionário (Validador de Dados)</strong>
+                                <p style="font-size: 12px; color: var(--text-muted); margin: 5px 0;">Identifique referências quebradas e erros estruturais.</p>
+                            </div>
+                            <button class="btn btn-outline" onclick="validarTudo()" style="border-color: #3b82f6; color: #3b82f6;">🔍 Gerar Relatório</button>
+                        </div>
+                    </div>
+
+                    <!-- PASSO 3 -->
+                    <div class="wizard-step" id="step3">
+                        <h2 class="step-title-large">📝 <span id="badgeMeta" class="step-badge" style="font-size: 0.5em; vertical-align: middle;">Pendente</span> Metadados Básicos</h2>
+                        <p class="step-desc" style="margin-bottom: 20px;">Preencha as informações do produto final.</p>
+                        
+                        <div class="form-grid-2">
+                            <div class="form-group">
+                                <label>Título do Site (HTML)</label>
+                                <input type="text" id="metaHtml" value="Meu Dicionário Interativo">
+                            </div>
+                            <div class="form-group">
+                                <label>Título do PDF / Livro</label>
+                                <input type="text" id="metaPdf" value="Meu Dicionário">
+                            </div>
+                            <div class="form-group">
+                                <label>Autor(es)</label>
+                                <input type="text" id="metaAutor">
+                            </div>
+                            <div class="form-group">
+                                <label>Ano</label>
+                                <input type="text" id="metaAno">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group" style="margin-top: 15px;">
+                            <!-- Toast UI Editor (avaliação em andamento) - textarea original preservado comentado abaixo para reverter -->
+                            <label>Introdução</label>
+                            <div id="introMarkdownEditor" style="margin-top: 5px;"></div>
+                            <!--
+                            <label>Introdução (Markdown)</label>
+                            <textarea id="introMarkdown" placeholder="Escreva a introdução em Markdown..." rows="8" style="font-family: 'Fira Code', monospace; font-size: 13px;"></textarea>
+                            -->
+                        </div>
+                    </div>
+
+                    <!-- PASSO 4 -->
+                    <div class="wizard-step" id="step4">
+                        <h2 class="step-title-large">🗂️ <span id="badgeEstrutura" class="step-badge" style="font-size: 0.5em; vertical-align: middle;">Automático</span> Estrutura & Ordenação</h2>
+                        <p class="step-desc" style="margin-bottom: 20px;">Configure a organização das entradas no layout de saída.</p>
+                        
+                        <div class="estrutura-grid">
+                            <div class="estrutura-card">
+                                <h4>Ordem Alfabética</h4>
+                                <label class="toggle-label" style="margin-bottom: 10px;">
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="swAlpha" checked>
+                                        <div class="toggle-slider"></div>
+                                    </div>
+                                    Automático em todos os campos
+                                </label>
+                                <div id="containerAlpha" style="display: none;">
+                                    <p style="font-size: 0.9em; color: #666; margin: 5px 0 10px 0;">Desmarque os campos que devem manter a <b>ordem original do CSV</b>:</p>
+                                    <label class="checkbox-tag select-all-tag" style="margin-bottom: 10px; font-weight: bold; background: #f1f5f9;">
+                                        <input type="checkbox" id="chkSelectAllAlpha" checked> Selecionar / Deselecionar Todos
+                                    </label>
+                                    <div class="checkbox-grid" id="gridAlpha"><span class="placeholder-text">Carregue o CSV primeiro</span></div>
+                                </div>
+                            </div>
+                            <div class="estrutura-card">
+                                <h4>Ordem dos Capítulos</h4>
+                                <label class="toggle-label" style="margin-bottom: 10px;">
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="swSemantic" checked>
+                                        <div class="toggle-slider"></div>
+                                    </div>
+                                    Ordem padrão do projeto
+                                </label>
+                                <div id="containerSemantic" style="display: none;">
+                                    <p style="font-size: 0.9em; color: #666; margin: 5px 0 10px 0;">Segure e arraste o ícone (☰) para personalizar a ordem dos campos semânticos:</p>                            
+                                    <div class="sortable-list" id="gridSemantic"><span class="placeholder-text">Carregue o CSV primeiro</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PASSO 5 -->
+                    <div class="wizard-step" id="step5">
+                        <h2 class="step-title-large">✅ Exportação</h2>
+                        <p class="step-desc" style="margin-bottom: 20px;">Escolha o formato no qual deseja compilar seus dados.</p>
+                        
+                        <div class="export-options" style="margin-bottom: 25px;">
+                            <!-- Seleção de Template -->
+                            <div class="form-group" style="margin-bottom: 20px; background: white; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
+                                <label style="display: flex; align-items: center; gap: 8px; color: var(--primary);">
+                                    <i class="fas fa-palette"></i> Escolha o Layout Visual (Template)
+                                </label>
+                                <p style="font-size: 0.85em; color: var(--text-muted); margin-bottom: 12px;">Selecione como as informações serão estruturadas nos arquivos HTML finais.</p>
+                                <select id="templateExportacaoSelect" style="border-color: #cbd5e1;">
+                                    <option value="card">🃏 Visualização em Cards (Blocos independentes)</option>
+                                    <option value="linear">📜 Visualização Linear (Dicionário Clássico/Lista)</option>
+                                </select>
+                            </div>
+
+                            <label class="toggle-label mb-3" style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; margin-bottom: 20px;">
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="swMidia" checked>
+                                    <div class="toggle-slider"></div>
+                                </div>
+                                <div>
+                                    <strong>📦 Embutir mídias no HTML (Base64)</strong>
+                                    <p style="font-size: 0.85em; color: #0369a1; margin: 4px 0 0 0;">Ideal para compartilhar o site como arquivo único sem precisar enviar pastas separadas.</p>
+                                </div>
+                            </label>
+                        </div>
+                          
+                          <div class="export-grid">
+                            <button class="export-btn export-html" onclick="gerarExportacao('html')"><span class="export-icon">🌐</span><span class="export-label">Gerar Site HTML</span></button>
+                            <button class="export-btn export-typst" onclick="gerarExportacao('typst')"><span class="export-icon">📘</span><span class="export-label">Gerar Typst</span></button>
+                            <button class="export-btn export-pdf" onclick="gerarExportacao('pdf')"><span class="export-icon">📑</span><span class="export-label">Gerar PDF</span></button>
+                            <button class="export-btn export-android" onclick="abrirModalAndroid()"><span class="export-icon">📱</span><span class="export-label">Gerar Aplicativo</span></button>
+                          </div>
+                    </div>
+                    
+                </div>
+                
+                <!-- Footer Actions -->
+                <div class="wizard-footer">
+                    <button id="btnPrev" class="btn btn-secondary" onclick="window.passoAnterior()" disabled>← Anterior</button>
+                    <button id="btnNext" class="btn btn-primary" onclick="window.proximoPasso()">Próximo Passo →</button>
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <!-- ============================================ -->
+    <!-- PAINEL DIREITO (TERMINAL) -->
+    <!-- ============================================ -->
+    <button class="terminal-toggle-tab" id="terminalToggleTab" onclick="window.toggleTerminal()" title="Abrir/Fechar Terminal">
+        <span class="terminal-toggle-icon">💻</span>
+        <span class="terminal-badge" id="terminalBadge" style="display:none;">0</span>
+    </button>
+
+    <aside class="terminal-panel" id="terminalPanel">
+        <div class="terminal-header">
+            <h3><span class="terminal-dot">●</span> Terminal</h3>
+            <div class="terminal-actions">
+                <span onclick="copiarTerminal()">Copiar</span>
+                <span onclick="limparTerminal()">Limpar</span>
+                <span onclick="window.toggleTerminal()" title="Fechar">✕</span>
+            </div>
+        </div>
+        <div class="terminal" id="terminal"></div>
+    </aside>
+</div>
+
+<!-- Controle de Zoom -->
+<div class="zoom-control">
+    <button onclick="ajustarZoom(-0.1)">🔍−</button>
+    <span class="zoom-level" id="zoomLevel">100%</span>
+    <button onclick="ajustarZoom(0.1)">🔍+</button>
+    <button onclick="resetZoom()">↺</button>
+</div>
+
+<!-- MODAL CUSTOMIZAÇÃO E EDITOR (Escondidos mas mantidos para compatibilidade) -->
+<dialog id="modalCustomizacao" class="modal-custom">
+    <!-- ... Todo o seu modal de customização antigo permanece inalterado para não quebrar IDs ... -->
+    <div class="modal-custom-header">
+        <h2>⚙️ Customização Avançada e Templates</h2>
+        <button class="btn-close" onclick="document.getElementById('modalCustomizacao').close()">✕</button>
+    </div>
+    <div class="modal-custom-body">
+        <div class="custom-tabs">
+            <button class="custom-tab active" onclick="switchCustomTab(event, 'tab-html')">🌐 HTML</button>
+            <button class="custom-tab" onclick="switchCustomTab(event, 'tab-typst')">📘 Typst</button>
+            <button class="custom-tab" onclick="switchCustomTab(event, 'tab-geral')">⚙️ Geral</button>
+            <button class="custom-tab" onclick="switchCustomTab(event, 'tab-download')">📥 Download</button>
+        </div>
+        <div id="tab-html" class="custom-tab-content active">
+            <div class="form-group">
+                <label>Estilo de Exibição</label>
+                <select id="templateEntradaSelect" onchange="templateEntradaAtivo = this.value; localStorage.setItem('csv2dmli_templateEntradaAtivo', this.value);" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--border-color);">
+                    <option value="card">🃏 Cards</option>
+                    <option value="linear">📜 Linear</option>
+                </select>
+            </div>
+            <!-- Templates DropZones -->
+            <div class="drop-zone" id="templateHtmlZone"><p><strong>HTML Base (Cards)</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste o template.html</span></p><input type="file" id="fileTemplateHtml" accept=".html" style="display:none"><div id="templateHtmlStatus"></div></div>
+            <div class="drop-zone" id="templateEntradaHtmlZone"><p><strong>Entrada (Cards)</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste o entrada.html</span></p><input type="file" id="fileTemplateEntradaCardHtml" accept=".html" style="display:none"><div id="templateEntradaCardHtmlStatus"></div></div>
+            
+            <div class="drop-zone" id="templateHtmlLinearZone"><p><strong>HTML Base (Linear)</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste o template.html</span></p><input type="file" id="fileTemplateHtmlLinear" accept=".html" style="display:none"><div id="templateHtmlLinearStatus"></div></div>
+            <div class="drop-zone" id="templateEntradaLinearHtmlZone"><p><strong>Entrada (Linear)</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste o entrada.html</span></p><input type="file" id="fileTemplateEntradaLinearHtml" accept=".html" style="display:none"><div id="templateEntradaLinearHtmlStatus"></div></div>
+            
+            <div class="drop-zone" id="templateCssCardZone"><p><strong>Estilos Globais (CSS)</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste estilos-globais.css</span></p><input type="file" id="fileTemplateCssCard" accept=".css" style="display:none"><div id="templateCssCardStatus"></div></div>
+            <div class="drop-zone" id="templateCssLinearZone" style="display:none;"><input type="file" id="fileTemplateCssLinear" accept=".css" style="display:none"><div id="templateCssLinearStatus"></div></div>
+        </div>
+        <div id="tab-typst" class="custom-tab-content">
+            <h3 style="margin-bottom: 15px; color: var(--text-main);">📘 Templates Typst (Para PDFs)</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="drop-zone" id="templateTypstZone"><p><strong>Template Principal (Typst)</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste o template.typ</span></p><input type="file" id="fileTemplateTypst" accept=".typ" style="display:none"><div id="templateTypstStatus"></div></div>
+                <div class="drop-zone" id="templateEntradaTypstZone"><p><strong>Entrada (Typst)</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste o entrada.typ</span></p><input type="file" id="fileTemplateEntradaTypst" accept=".typ" style="display:none"><div id="templateEntradaTypstStatus"></div></div>
+            </div>
+        </div>
+        <div id="tab-geral" class="custom-tab-content">
+            <h3 style="margin-bottom: 15px; color: var(--text-main);">⚙️ Configurações Gerais e Metadados</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="drop-zone" id="configFullDropZone"><p><strong>Configuração Completa</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Importar arquivo config.json</span></p><input type="file" id="fileConfigFull" accept=".json" style="display:none"></div>
+                <div class="drop-zone" id="textosDropZone"><p><strong>Textos de Interface</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Importar arquivo textos.json</span></p><input type="file" id="fileTextos" accept=".json" style="display:none"></div>
+                <div class="drop-zone" id="introHtmlDropZone"><p><strong>Introdução do Dicionário (HTML)</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Documento .md ou .html</span></p><input type="file" id="fileIntroHtml" accept=".html,.md" style="display:none"></div>
+                <div class="drop-zone" id="introPdfDropZone"><p><strong>Introdução do Dicionário (PDF)</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Documento Typst para o inicio do PDF</span></p><input type="file" id="fileIntroPdf" accept=".typ" style="display:none"></div>
+                <div class="drop-zone" id="referenciaDropZone"><p><strong>Referências Bibliográficas</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Importar referências</span></p><input type="file" id="fileReferencia" style="display:none"></div>
+                <div class="drop-zone" id="alfabetoDropZone"><p><strong>Ordem Alfabética Customizada</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Defina o próprio alfabeto para ordenação</span></p><input type="file" id="fileAlfabeto" style="display:none"><div id="alfabetoPreview" style="display:none;"></div><div id="alfabetoActions" style="display:none;"></div></div>
+            </div>
+        </div>
+        <div id="tab-download" class="custom-tab-content">
+            <h3 style="margin-bottom: 15px; color: var(--text-main);">📥 Baixar Templates Originais</h3>
+            <p style="font-size: 0.9em; color: var(--text-muted); margin-bottom: 20px;">Você pode baixar os templates padrão do sistema, editá-los em seu computador e depois fazer o upload nas abas "HTML" e "Typst".</p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/estilos-globais.css', 'estilos-globais.css')">🎨 Estilos Globais (CSS)</button>
+                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/html-cards/template.html', 'cards-template.html')">🃏 Cards: template.html</button>
+                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/html-cards/entrada.html', 'cards-entrada.html')">🃏 Cards: entrada.html</button>
+                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/html-linear/template.html', 'linear-template.html')">📜 Linear: template.html</button>
+                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/html-linear/entrada.html', 'linear-entrada.html')">📜 Linear: entrada.html</button>
+                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/typst/template.typ', 'typst-template.typ')">📘 Typst: template.typ</button>
+                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/typst/entrada.typ', 'typst-entrada.typ')">📘 Typst: entrada.typ</button>
+            </div>
+        </div>
+    </div>
+</dialog>
+
+<!-- ========================================================
+     WIZARD GERADOR DE APK / AAB  (multi-step)
+======================================================== -->
+<div class="apk-wizard-overlay" id="modalAndroid">
+  <div class="apk-wizard-box">
+
+    <!-- Cabeçalho -->
+    <div class="apk-wizard-header">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span style="font-size:1.6em;">📱</span>
+        <div>
+          <div style="font-size:1.05em; font-weight:700; color:var(--primary);">Gerar Aplicativo Android</div>
+          <div style="font-size:0.78em; color:var(--text-muted); margin-top:1px;">Gera .aab (Play Store) e .apk (instalação direta), assinados e prontos para publicação.</div>
+          <span id="apkModoBadge" style="display:inline-block; margin-top:4px; font-size:0.72em; font-weight:600; padding:2px 8px; border-radius:10px; background:#e0f2fe; color:#0369a1;"></span>
+        </div>
+      </div>
+      <button onclick="fecharModalAndroid()" style="background:none;border:none;font-size:1.4em;cursor:pointer;color:var(--text-muted);line-height:1;padding:4px;">✕</button>
+    </div>
+
+    <!-- Indicadores de passo -->
+    <div class="apk-stepper">
+      <div class="apk-step-tab active" id="apkTab1" data-step="1">1. Identificação</div>
+      <div class="apk-step-tab"        id="apkTab2" data-step="2">2. Aplicativo</div>
+      <div class="apk-step-tab"        id="apkTab3" data-step="3">3. Assinatura</div>
+      <div class="apk-step-tab"        id="apkTab4" data-step="4">4. Gerar</div>
+    </div>
+
+    <!-- Corpo -->
+    <div class="apk-wizard-body">
+
+      <!-- PASSO 1 — Identificação do Desenvolvedor -->
+      <div class="apk-step-content active" id="apkStep1">
+        <div class="apk-step-intro">
+          <h2>👤 Identificação do Desenvolvedor</h2>
+          <p>Estas informações serão incorporadas ao certificado digital (Keystore) que assina o aplicativo.</p>
+        </div>
+        <div class="apk-grid-2">
+          <div class="apk-field">
+            <label>Nome / Responsável <span class="required">*</span></label>
+            <input id="apkNomeResponsavel" type="text" placeholder="Ex: João Silva">
+          </div>
+          <div class="apk-field">
+            <label>Organização <span class="required">*</span></label>
+            <input id="apkOrganizacao" type="text" placeholder="Ex: Universidade Federal" oninput="apkAtualizarPackageName()">
+          </div>
+          <div class="apk-field">
+            <label>Cidade</label>
+            <input id="apkCidade" type="text" placeholder="Ex: São Paulo">
+          </div>
+          <div class="apk-field">
+            <label>Estado</label>
+            <input id="apkEstado" type="text" placeholder="Ex: SP">
+          </div>
+          <div class="apk-field">
+            <label>País (código ISO)</label>
+            <input id="apkPais" type="text" placeholder="BR" maxlength="2" style="text-transform:uppercase;">
+          </div>
+        </div>
+
+      </div>
+
+      <!-- PASSO 2 — Dados do Aplicativo -->
+      <div class="apk-step-content" id="apkStep2">
+        <div class="apk-step-intro">
+          <h2>📱 Dados do Aplicativo</h2>
+          <p>Configure as informações públicas que identificam seu aplicativo na loja e no dispositivo.</p>
+        </div>
+        <div class="apk-grid-2">
+          <div class="apk-field">
+            <label>Nome do App <span class="required">*</span></label>
+            <input id="apkNomeApp" type="text" placeholder="Meu Dicionário" oninput="apkAtualizarPackageName()">
+          </div>
+          <div class="apk-field">
+            <label>Package Name</label>
+            <input id="apkPackageName" type="text" placeholder="com.organizacao.meu_dicionario">
+            <small>Gerado automaticamente — você pode editar livremente.</small>
+          </div>
+          <div class="apk-field">
+            <label>Versão</label>
+            <input id="apkVersao" type="text" value="1.0.0" placeholder="1.0.0">
+          </div>
+          <div class="apk-field">
+            <label>Ícone do App</label>
+            <div class="apk-icon-picker" id="apkIconPicker" onclick="apkEscolherIcone()">
+              <img id="apkIconPreview" style="display:none; width:72px; height:72px; border-radius:12px; object-fit:cover; flex-shrink:0;">
+              <div id="apkIconPlaceholder">
+                <span style="font-size:2em;">🖼️</span>
+                <span>Clique para escolher<br><small>PNG ou JPG · 512×512 recomendado</small></span>
+              </div>
+            </div>
+            <input type="file" id="apkIconeInput" accept="image/*" style="display:none" onchange="apkPreviewIcone(this)">
+          </div>
+        </div>
+
+        <div style="margin-top:20px;">
+          <label style="font-size:0.78em; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.04em;">Conteúdo do Dicionário</label>
+          <div class="apk-ks-block" style="margin-top:6px;">
+            <label class="apk-ks-option selected" id="apkLabelFonteProjeto">
+              <input type="radio" name="apkFonteHtml" value="projeto" checked style="margin-top:3px; accent-color:var(--primary);" onchange="apkAtualizarFonteHtml()">
+              <div>
+                <div style="font-weight:700; font-size:0.92em; color:var(--primary);">📂 Usar o projeto carregado agora</div>
+                <div style="font-size:0.78em; color:var(--text-muted); margin-top:2px;">Gera o HTML a partir da planilha/pasta importada nesta sessão.</div>
+              </div>
+            </label>
+
+            <label class="apk-ks-option" id="apkLabelFontePronto" style="border-top:1px solid var(--border-color);">
+              <input type="radio" name="apkFonteHtml" value="pronto" style="margin-top:3px; accent-color:var(--primary);" onchange="apkAtualizarFonteHtml()">
+              <div>
+                <div style="font-weight:700; font-size:0.92em;">📄 Usar um HTML já pronto</div>
+                <div style="font-size:0.78em; color:var(--text-muted); margin-top:2px;">Um arquivo exportado anteriormente em "Gerar Site HTML" com a opção "embutir mídias" marcada.</div>
+              </div>
+            </label>
+
+            <div id="apkHtmlProntoFields" style="display:none;" class="apk-ks-fields">
+              <div class="apk-icon-picker" id="apkHtmlProntoPicker" onclick="document.getElementById('apkHtmlProntoInput').click()" style="margin-top:14px; min-height:auto; padding:14px;">
+                <div id="apkHtmlProntoPlaceholder" style="display:flex; align-items:center; gap:12px; color:var(--text-muted); font-size:0.88em;">
+                  <span style="font-size:1.8em;">📄</span>
+                  <span>Clique para escolher o arquivo .html<br><small>Deve conter as mídias embutidas em base64</small></span>
+                </div>
+                <div id="apkHtmlProntoSelecionado" style="display:none; align-items:center; gap:12px;">
+                  <span style="font-size:1.8em;">✅</span>
+                  <div>
+                    <div style="font-weight:600; font-size:0.9em; color:var(--text-main);" id="apkHtmlProntoNome"></div>
+                    <div style="font-size:0.78em; color:var(--text-muted);">Clique para trocar o arquivo</div>
+                  </div>
+                </div>
+              </div>
+              <input type="file" id="apkHtmlProntoInput" accept=".html" style="display:none" onchange="apkSelecionarHtmlPronto(this)">
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- PASSO 3 — Segurança & Assinatura -->
+      <div class="apk-step-content" id="apkStep3">
+        <div class="apk-step-intro">
+          <h2>🔑 Segurança e Assinatura (Keystore)</h2>
+          <p>O Keystore é o certificado digital que autoriza a publicação e a atualização do aplicativo na Play Store.</p>
+        </div>
+
+        <!-- Gerenciamento de chave de assinatura (IndexedDB no dispositivo) -->
+        <div id="apkKsBrowserSection">
+
+          <div id="apkKsBrowserPwa" style="margin-top:8px;">
+
+            <!-- Estado: sem chave -->
+            <div id="apkKsBrNoKey">
+              <div style="padding:16px; background:#fff3e0; border:1px solid #ffcc80; border-radius:10px; margin-bottom:14px;">
+                <strong>🔑 Nenhuma chave encontrada neste navegador.</strong>
+                <p style="font-size:0.84em; margin:6px 0 0 0; color:#e65100;">Crie uma chave de assinatura ou importe um arquivo .p12 existente.</p>
+              </div>
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button onclick="apkKsBrCriarChave()" class="btn btn-primary" style="font-size:0.88em;">+ Criar nova chave</button>
+                <button onclick="apkKsBrImportarP12()" class="btn btn-outline" style="font-size:0.88em;">📥 Importar .p12</button>
+              </div>
+            </div>
+
+            <!-- Estado: chave presente -->
+            <div id="apkKsBrHasKey" style="display:none;">
+              <div style="padding:16px; background:#f0fdf4; border:1px solid #86efac; border-radius:10px; margin-bottom:14px;">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                  <span style="font-size:1.2em;">🔑</span>
+                  <strong id="apkKsBrAliasLabel" style="color:#166534;"></strong>
+                </div>
+                <div style="font-size:0.82em; color:#166534;" id="apkKsBrInfoLabel"></div>
+              </div>
+              <div style="margin-bottom:14px;">
+                <label style="font-weight:600; font-size:0.88em;">Senha da chave <span class="required">*</span></label>
+                <input id="apkKsBrSenha" type="password" placeholder="Informe a senha para assinar" style="margin-top:6px;">
+              </div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button onclick="apkKsBrExportarP12()" class="btn btn-outline" style="font-size:0.85em;">📤 Exportar .p12</button>
+                <button onclick="apkKsBrSubstituir()" class="btn btn-outline" style="font-size:0.85em; color:#c2410c; border-color:#c2410c;">↺ Substituir chave</button>
+              </div>
+              <div style="margin-top:10px; padding:10px 12px; background:#fefce8; border-radius:8px; border:1px solid #fef08a; font-size:0.79em; color:#854d0e;">
+                <strong>⚠️</strong> Guarde o backup .p12 da sua chave. Ele é necessário para enviar atualizações ao Google Play. Sem ele, não será possível atualizar o app após publicação.
+              </div>
+            </div>
+
+            <!-- Formulário criar chave (inline) -->
+            <div id="apkKsBrFormCriar" style="display:none; margin-top:16px; padding:16px; background:#f8fafc; border:1px solid var(--border-color); border-radius:10px;">
+              <h4 style="margin:0 0 14px 0; font-size:0.95em;">Nova chave de assinatura</h4>
+              <div class="apk-grid-2">
+                <div class="apk-field">
+                  <label>Alias <span class="required">*</span></label>
+                  <input id="apkKsBrAlias" type="text" value="upload" autocomplete="off" spellcheck="false">
+                </div>
+                <div class="apk-field">
+                  <label>Nome / CN <span class="required">*</span></label>
+                  <input id="apkKsBrCn" type="text" placeholder="Ex: João Silva">
+                </div>
+                <div class="apk-field">
+                  <label>Organização <span class="required">*</span></label>
+                  <input id="apkKsBrOrg" type="text" placeholder="Ex: Universidade Federal">
+                </div>
+                <div class="apk-field">
+                  <label>País (ISO)</label>
+                  <input id="apkKsBrPais" type="text" value="BR" maxlength="2" style="text-transform:uppercase;">
+                </div>
+                <div class="apk-field">
+                  <label>Senha <span class="required">*</span></label>
+                  <input id="apkKsBrNovaSenha" type="password" placeholder="Mínimo 6 caracteres">
+                </div>
+                <div class="apk-field">
+                  <label>Confirmar senha <span class="required">*</span></label>
+                  <input id="apkKsBrNovaSenhaConfirm" type="password" placeholder="Repita a senha">
+                </div>
+              </div>
+              <div style="display:flex; gap:8px; margin-top:14px;">
+                <button onclick="apkKsBrSalvarNovaChave()" class="btn btn-primary" style="font-size:0.88em;">Criar e salvar chave</button>
+                <button onclick="apkKsBrCancelarFormulario()" class="btn btn-outline" style="font-size:0.88em;">Cancelar</button>
+              </div>
+            </div>
+
+            <!-- Input oculto para importar .p12 -->
+            <input type="file" id="apkKsBrP12Input" accept=".p12,.pfx" style="display:none" onchange="apkKsBrProcessarP12(this)">
+
+          </div><!-- /apkKsBrowserPwa -->
+        </div><!-- /apkKsBrowserSection -->
+
+      </div>
+
+      <!-- PASSO 4 — Processamento e Resultados -->
+      <div class="apk-step-content" id="apkStep4">
+
+        <!-- Estado: processando -->
+        <div id="apkProcessando" style="text-align:center; padding:48px 0;">
+          <div class="apk-spinner"></div>
+          <div id="apkStatusTitle" style="font-size:1.2em; font-weight:700; color:var(--primary); margin:20px 0 8px;">Gerando aplicativo…</div>
+          <div id="apkStatusDesc" style="color:var(--text-muted); font-size:0.88em;">Aguarde enquanto o aplicativo é compilado e assinado.</div>
+          <div id="apkProgressSteps" style="margin-top:28px; text-align:left; max-width:420px; margin-left:auto; margin-right:auto;"></div>
+        </div>
+
+        <!-- Estado: sucesso -->
+        <div id="apkSucesso" style="display:none;">
+          <div style="text-align:center; padding:28px 0 32px;">
+            <div style="font-size:3.5em; margin-bottom:12px;">✅</div>
+            <h2 style="color:var(--success); margin-bottom:8px;">Aplicativo gerado com sucesso!</h2>
+            <p id="apkSucessoDesc" style="color:var(--text-muted);">Os arquivos foram gerados e assinados.</p>
+          </div>
+
+          <div id="apkOnlineResultados" style="margin-bottom:24px;">
+            <h3 style="font-size:0.95em; color:var(--success); margin-bottom:10px;">⬇️ Arquivos gerados:</h3>
+            <div id="apkOnlineDownloadLinks" style="display:flex; flex-direction:column; gap:8px;"></div>
+          </div>
+
+          <div style="display:flex; gap:10px; justify-content:center;">
+            <button onclick="fecharModalAndroid()" class="btn btn-outline">Fechar</button>
+          </div>
+        </div>
+
+        <!-- Estado: erro -->
+        <div id="apkErro" style="display:none; text-align:center; padding:28px 0;">
+          <div style="font-size:3em; margin-bottom:12px;">❌</div>
+          <h2 style="color:var(--error); margin-bottom:14px;">Erro ao gerar aplicativo</h2>
+          <div id="apkErroMsg" style="background:#fef2f2; border:1px solid #fca5a5; border-radius:8px; padding:14px 16px; text-align:left; font-size:0.82em; font-family:monospace; white-space:pre-wrap; word-break:break-all; max-height:220px; overflow-y:auto; margin-bottom:20px; color:#991b1b;"></div>
+          <div style="display:flex; gap:10px; justify-content:center;">
+            <button onclick="apkIrParaPasso(3)" class="btn btn-outline">← Voltar e Corrigir</button>
+            <button onclick="apkGerarAplicativo()" class="btn btn-primary">Tentar Novamente</button>
+          </div>
+        </div>
+
+      </div><!-- /apkStep4 -->
+    </div><!-- /apk-wizard-body -->
+
+    <!-- Rodapé de navegação -->
+    <div class="apk-wizard-footer" id="apkFooter">
+      <button id="apkBtnPrev" onclick="apkPassoAnterior()" class="btn btn-secondary" disabled>← Anterior</button>
+      <span id="apkStepLabel" style="font-size:0.83em; color:var(--text-muted);">Passo 1 de 3</span>
+      <button id="apkBtnNext" onclick="apkProximoPasso()" class="btn btn-primary">Próximo →</button>
+    </div>
+
+  </div><!-- /apk-wizard-box -->
+</div><!-- /modalAndroid -->
+
+
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal-box" id="modalBox" style="display: flex; flex-direction: column; max-height: 90vh; overflow: hidden;">
+        <div style="flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 15px;">
+            <h3 id="modalTitle" style="margin: 0; color: var(--primary);"></h3>
+            <button onclick="document.getElementById('modalOverlay').style.display='none'" style="background:none; border:none; font-size: 20px; cursor:pointer;">✕</button>
+        </div>
+        <div id="modalContent" style="font-family: 'Inter', sans-serif; flex-grow: 1; display: flex; flex-direction: column; overflow: hidden;"></div>
+    </div>
+</div>
+
+<div class="loader-overlay" id="globalLoader" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999999;">
+    <div class="loader-box">
+        <div class="loader-spinner"></div>
+        <div class="loader-title" id="loaderTitle">Carregando...</div>
+        <div class="loader-text" id="loaderDesc" style="color: #64748b; font-size: 14px;">Aguarde um momento.</div>
+    </div>
+</div>
+
+<!-- Logger do Terminal -->
+<script>
+    window.mostrarLoader = function(titulo = 'Processando...', descricao = 'Por favor, aguarde.') {
+        const loader = document.getElementById('globalLoader');
+        if (loader) {
+            document.getElementById('loaderTitle').textContent = titulo;
+            document.getElementById('loaderDesc').textContent = descricao;
+            loader.style.display = 'flex';
+        }
+    };
+    
+    window.ocultarLoader = function() {
+        const loader = document.getElementById('globalLoader');
+        if (loader) loader.style.display = 'none';
+    };
+    function formatarMensagem(msg) {
+        if (typeof msg === 'object') {
+            try { return JSON.stringify(msg, null, 2); } catch(e) { return String(msg); }
+        }
+        return String(msg);
+    }
+    
+    let terminalLogsNaoLidos = 0;
+
+    function adicionarLogAoTerminal(msg, tipo = 'info') {
+        const terminal = document.getElementById('terminal');
+        if (!terminal) return;
+
+        let color = '#a3a3a3'; // info
+        if (tipo === 'error') color = '#ef4444';
+        else if (tipo === 'warn') color = '#f59e0b';
+        else if (tipo === 'success') color = '#22c55e';
+
+        const linha = document.createElement('div');
+        linha.style.color = color;
+        linha.style.marginBottom = '4px';
+        linha.style.fontFamily = 'monospace';
+        linha.style.whiteSpace = 'pre-wrap';
+        linha.style.wordBreak = 'break-word';
+
+        const tempo = new Date().toLocaleTimeString('pt-BR');
+        linha.innerHTML = `<span style="color: #666; font-size: 0.85em;">[${tempo}]</span> ${formatarMensagem(msg)}`;
+
+        terminal.appendChild(linha);
+        terminal.scrollTop = terminal.scrollHeight;
+
+        const painel = document.getElementById('terminalPanel');
+        if (painel && !painel.classList.contains('open')) {
+            terminalLogsNaoLidos++;
+            const badge = document.getElementById('terminalBadge');
+            if (badge) {
+                badge.textContent = terminalLogsNaoLidos > 99 ? '99+' : String(terminalLogsNaoLidos);
+                badge.style.display = 'flex';
+            }
+        }
+    }
+
+    // Expor função globalmente para uso manual em etapas específicas
+    window.adicionarLogAoTerminal = adicionarLogAoTerminal;
+
+    window.toggleTerminal = function() {
+        const painel = document.getElementById('terminalPanel');
+        const tab = document.getElementById('terminalToggleTab');
+        const zoom = document.querySelector('.zoom-control');
+        if (!painel) return;
+
+        const abrindo = painel.classList.toggle('open');
+        if (tab) tab.classList.toggle('open', abrindo);
+        if (zoom) zoom.classList.toggle('terminal-open', abrindo);
+
+        if (abrindo) {
+            terminalLogsNaoLidos = 0;
+            const badge = document.getElementById('terminalBadge');
+            if (badge) badge.style.display = 'none';
+        }
+    };
+
+    window.limparTerminal = function() {
+        const terminal = document.getElementById('terminal');
+        if (terminal) terminal.innerHTML = '';
+        console.log("Terminal limpo.");
+    };
+
+    window.copiarTerminal = async function() {
+        const terminal = document.getElementById('terminal');
+        if (terminal) {
+            await navigator.clipboard.writeText(terminal.innerText);
+            alert("Terminal copiado!");
+        }
+    };
+</script>
+
+<!-- Dependências Externas (vendorizadas) -->
+<script src="vendor/marked.min.js"></script>
+<script type="module">
+    try {
+        const module = await import('./vendor/markdown2typst.esm.js');
+        window.markdown2typst = module.default || module.markdown2typst;
+    } catch (err) {}
+</script>
+
+<!-- Toast UI Editor (avaliação em andamento - editor WYSIWYG p/ introdução).
+     Para reverter: remover este <link> e o <script> abaixo. -->
+<link rel="stylesheet" href="vendor/toastui-editor.min.css">
+<script src="vendor/toastui-editor-all.min.js"></script>
+
+<script type="module">
+    import GerenciadorDados from './packages/core/gerenciadorDados.js';
+    import CarregadorPasta from './packages/core/carregadorPasta.js';
+    import ModuloExportacao from './packages/exporters/moduloExportacao.js';
+    import ValidadorDados from './packages/exporters/validadorDados.js';
+    import Configurador from './packages/core/configurador.js';
+    import { platform } from './packages/platform/index.js';
+
+    
+    // 1. Criar instâncias do sistema modular
+    window.configurador = new Configurador();
+    await window.configurador.carregar();
+    window.sistema = new GerenciadorDados(window.configurador);
+    window.carregadorPasta = null;
+    window.exportador = null;
+    window.validador = new ValidadorDados(window.sistema);
+    
+    // 2. Funções Globais de Compatibilidade para a Interface do Assistente
+
+    
+    window.baixarArquivoPadrao = async function(url, nomeSalvo) {
+        try {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error('Arquivo não encontrado no servidor local.');
+            const blob = await res.blob();
+            await platform.salvarArquivo(nomeSalvo, blob);
+        } catch(e) {
+            alert('Não foi possível baixar o template: ' + e.message);
+        }
+    };
+    
+    window.validarTudo = function() {
+        const diagnostico = window.validador.diagnosticar();
+        const html = window.validador.gerarRelatorioHtml(diagnostico);
+        
+        let relatorioTxt = "Relatório não gerado.";
+        if (typeof window.validador.gerarRelatorioTexto === 'function') {
+            relatorioTxt = window.validador.gerarRelatorioTexto(diagnostico);
+        }
+        
+        window._ultimoRelatorioTxt = relatorioTxt;
+        
+        const btnDownload = `
+            <div style="margin-top: 20px; text-align: center;">
+                <button class="btn btn-primary" onclick="window.exportador.salvarArquivo(window._ultimoRelatorioTxt, 'relatorio_validacao.txt', 'text/plain')">
+                    💾 Baixar Relatório (TXT)
+                </button>
+            </div>
+        `;
+        
+        document.getElementById('modalTitle').textContent = 'Relatório de Validação e Cruzamento';
+        document.getElementById('modalContent').innerHTML = html + btnDownload;
+        document.getElementById('modalOverlay').style.display = 'flex';
+    };
+    
+
+
+
+    // Toast UI Editor (avaliação em andamento) - editor WYSIWYG do campo de introdução.
+    // Para reverter: remover este bloco e voltar a ler/escrever direto em document.getElementById('introMarkdown').value
+    // (código antigo preservado comentado em preencherUIComMetadados/coletarMetadadosExportacao abaixo).
+    window._introEditor = null;
+
+    window.inicializarIntroEditor = function() {
+        if (window._introEditor) return; // já inicializado
+        const container = document.getElementById('introMarkdownEditor');
+        if (!container || typeof toastui === 'undefined') return;
+        window._introEditor = new toastui.Editor({
+            el: container,
+            height: '320px',
+            initialEditType: 'wysiwyg',
+            previewStyle: 'tab',
+        });
+    };
+
+    window.obterIntroMarkdown = function() {
+        if (window._introEditor) return window._introEditor.getMarkdown().trim();
+        return '';
+    };
+
+    window.definirIntroMarkdown = function(md) {
+        if (window._introEditor) {
+            window._introEditor.setMarkdown(md || '');
+        } else {
+            // editor ainda não foi inicializado (usuário não passou pelo passo 3 ainda) - guarda para aplicar depois
+            window._introMarkdownPendente = md || '';
+        }
+    };
+
+    window.preencherUIComMetadados = function() {
+        const sis = window.sistema;
+        if (!sis) return;
+
+        const config = sis.configurador ? sis.configurador.getConfig() : {};
+        const meta = (config && config.metadados) || {};
+
+        if (meta.html) document.getElementById('metaHtml').value = meta.html;
+        if (meta.pdf) document.getElementById('metaPdf').value = meta.pdf;
+        if (meta.autor) document.getElementById('metaAutor').value = meta.autor;
+        if (meta.ano) document.getElementById('metaAno').value = meta.ano;
+
+        if (sis.introHtml) {
+            window.definirIntroMarkdown(sis.introHtml);
+        } else if (sis.introPdf) {
+            window.definirIntroMarkdown(sis.introPdf);
+        }
+        // Código antigo (textarea direto) - reverter para isto se abandonar o Toast UI Editor:
+        // if (sis.introHtml) {
+        //     document.getElementById('introMarkdown').value = sis.introHtml;
+        // } else if (sis.introPdf) {
+        //     document.getElementById('introMarkdown').value = sis.introPdf;
+        // }
+    };
+    // Ouvinte do Web Worker (Passo 3)
+    window.addEventListener('exportacaoProgresso', (e) => {
+        const { progresso, total } = e.detail;
+        const loaderDesc = document.getElementById('loaderDesc');
+        const loader = document.getElementById('globalLoader');
+        
+        const percent = Math.round((progresso / total) * 100);
+        if (loader && loader.style.display !== 'none' && loaderDesc) {
+            loaderDesc.textContent = `Processando mídias (Base64): ${progresso}/${total} (${percent}%)`;
+        }
+    });
+    
+
+    
+    window.carregarPasta = function(tipo) {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.multiple = true;
+        if (tipo === 'audio') input.accept = 'audio/*';
+        if (tipo === 'imagem') input.accept = 'image/*';
+        if (tipo === 'video') input.accept = 'video/*';
+        
+        input.onchange = e => {
+            const files = e.target.files;
+            window.sistema.carregarPastaVirtual(tipo, Array.from(files));
+        };
+        input.click();
+    };
+
+    // Prevenção de perda de dados ao recarregar a página
+    window.addEventListener('beforeunload', function (e) {
+        // Apenas avisa se houver dados carregados no sistema
+        if (window.sistema && window.sistema.dadosPlanilha && window.sistema.dadosPlanilha.length > 0) {
+            // A mensagem customizada geralmente é ignorada pelos navegadores modernos,
+            // mas o preventDefault() e o returnValue ativam a janela de confirmação padrão do navegador.
+            e.preventDefault();
+            e.returnValue = 'Você tem dados carregados que não foram exportados. Tem certeza que deseja sair e perder as alterações?';
+        }
+    });
+    
+    function coletarMetadadosExportacao() {
+        const config = window.configurador ? window.configurador.getConfig() : {};
+        const existente = (config && config.metadados) || {};
+        const introMd = window.obterIntroMarkdown ? window.obterIntroMarkdown() : '';
+        // Código antigo (textarea direto) - reverter para isto se abandonar o Toast UI Editor:
+        // const introMd = document.getElementById('introMarkdown')?.value.trim() || '';
+
+        let introHtml = '';
+        let introPdf = '';
+        if (introMd) {
+            try {
+                introHtml = window.marked ? window.marked.parse(introMd) : introMd;
+            } catch (e) {
+                console.error('Erro ao converter introdução (Markdown → HTML):', e);
+                introHtml = introMd;
+            }
+            try {
+                introPdf = window.markdown2typst ? window.markdown2typst(introMd) : '';
+            } catch (e) {
+                console.error('Erro ao converter introdução (Markdown → Typst):', e);
+            }
+        }
+
+        return {
+            tituloHtml: document.getElementById('metaHtml')?.value.trim() || existente.html || 'Dicionário',
+            tituloPdf:  document.getElementById('metaPdf')?.value.trim()  || existente.pdf  || 'Dicionário',
+            autor:      document.getElementById('metaAutor')?.value.trim() || existente.autor || '',
+            ano:        document.getElementById('metaAno')?.value.trim()   || existente.ano  || '',
+            versao:     existente.versao || '1.0',
+            introHtml,
+            introPdf,
+        };
+    }
+
+    window.gerarExportacao = async function(tipo) {
+        if (!window.exportador) return alert('Exportador não inicializado!');
+
+        let modalTitle = '';
+        let previewContentHtml = '';
+        let conteudoParaBaixar = null;
+        let nomeArquivo = '';
+        let mimeType = 'text/plain;charset=utf-8';
+        
+        if (tipo === 'html') {
+            const swMidia = document.getElementById('swMidia');
+            const embutir = swMidia ? swMidia.checked : false;
+            const selectWizard = document.getElementById('templateExportacaoSelect');
+            const selectCustom = document.getElementById('templateEntradaSelect');
+            const formato = selectWizard ? selectWizard.value : (selectCustom ? selectCustom.value : 'card');
+            
+            window.mostrarLoader('Gerando HTML', 'Construindo páginas e processando mídias...');
+            try {
+                let htmlGerado;
+                const metadadosExport = coletarMetadadosExportacao();
+                if (formato === 'linear') {
+                    htmlGerado = await window.exportador.exportarHtmlLinear({ embutirMidias: embutir, metadados: metadadosExport });
+                    nomeArquivo = embutir ? 'dicionario-linear-embutido.html' : 'dicionario-linear.zip';
+                } else {
+                    htmlGerado = await window.exportador.exportarHtmlCards({ embutirMidias: embutir, metadados: metadadosExport });
+                    nomeArquivo = embutir ? 'dicionario-cards-embutido.html' : 'dicionario-cards.zip';
+                }
+                
+                let htmlPreview = htmlGerado;
+                
+                if (!embutir) {
+                    if (typeof JSZip === 'undefined') throw new Error("Biblioteca JSZip não encontrada!");
+                    const zip = new JSZip();
+                    zip.file(formato === 'linear' ? 'dicionario-linear.html' : 'dicionario-cards.html', htmlGerado);
+                    
+                    const tiposM = ['audio', 'imagem', 'video'];
+                    for (const tipoM of tiposM) {
+                        const arquivos = window.sistema.vfs.obterTodosArquivos(tipoM);
+                        const nomes = window.sistema.vfs.obterTodosNomes(tipoM);
+                        const dirName = tipoM === 'imagem' ? 'foto' : tipoM;
+                        for (let i = 0; i < arquivos.length; i++) {
+                            zip.file(`${dirName}/${nomes[i]}`, arquivos[i]);
+                        }
+                    }
+                    conteudoParaBaixar = await zip.generateAsync({ type: 'blob' });
+                    mimeType = 'application/zip';
+                    
+                    // Remove o atributo loading="lazy" do HTML como string ANTES de ir pro DOM, para evitar a intervenção do Chrome
+                    let htmlSemLazy = htmlGerado.replace(/\sloading=["']?lazy["']?/gi, '');
+                    
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(htmlSemLazy, 'text/html');
+                    
+                    doc.querySelectorAll('img, audio, source, video').forEach(el => {
+                        const src = el.getAttribute('src');
+                        if (src && !src.startsWith('data:') && !src.startsWith('blob:') && !src.startsWith('http')) {
+                            try {
+                                const nomeRaw = src.split('/').pop();
+                                const nomeLimpo = decodeURIComponent(nomeRaw);
+                                let tipoF = 'imagem';
+                                if (el.tagName === 'AUDIO' || el.tagName === 'SOURCE') tipoF = 'audio';
+                                if (el.tagName === 'VIDEO') tipoF = 'video';
+                                
+                                const keys = Array.from(window.sistema.vfs[tipoF].keys());
+                                const match = keys.find(k => k.toLowerCase() === nomeLimpo.toLowerCase() || k.toLowerCase() === nomeRaw.toLowerCase());
+                                if (match) {
+                                    el.src = window.sistema.vfs.obterUrl(tipoF, match);
+                                } else {
+                                    console.warn('Mídia não encontrada no VFS para preview:', nomeRaw);
+                                }
+                            } catch (e) { console.error('Erro resolver mídia preview', e); }
+                        }
+                    });
+                    
+                    // 3. Script para injetar os blob URLs nos dados do script JS (caso existam)
+                    const tiposMidia = ['audio', 'imagem', 'video'];
+                    let blobMap = {};
+                    for (const tipoMidia of tiposMidia) {
+                        for (const key of window.sistema.vfs.obterTodosNomes(tipoMidia)) {
+                            const arquivo = window.sistema.vfs.obterArquivo(tipoMidia, key);
+                            blobMap[key.toLowerCase()] = URL.createObjectURL(arquivo);
+                        }
+                    }
+                    
+                    const injecaoScript = doc.createElement('script');
+                    injecaoScript.textContent = `
+                        (function() {
+                            const bMap = ${JSON.stringify(blobMap)};
+                            if (window.dadosDicionarioLexical) {
+                                const processObj = (obj) => {
+                                    if (Array.isArray(obj)) {
+                                        obj.forEach(processObj);
+                                    } else if (obj && typeof obj === 'object') {
+                                        for (let k in obj) {
+                                            if ((k === 'ARQUIVO' || k === 'AUDIO') && typeof obj[k] === 'string') {
+                                                let parts = obj[k].split('~').map(p => p.trim());
+                                                parts = parts.map(p => {
+                                                    let raw = p.split('/').pop().toLowerCase();
+                                                    return bMap[raw] ? bMap[raw] : p;
+                                                });
+                                                obj[k] = parts.join(' ~ ');
+                                            } else {
+                                                processObj(obj[k]);
+                                            }
+                                        }
+                                    }
+                                };
+                                processObj(window.dadosDicionarioLexical);
+                            }
+                        })();
+                    `;
+                    doc.body.appendChild(injecaoScript);
+                    
+                    htmlPreview = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
+                    modalTitle = 'Pré-visualização do Site HTML';
+                    const previewBlob = new Blob([htmlPreview], { type: 'text/html;charset=utf-8' });
+                    const previewUrl = URL.createObjectURL(previewBlob);
+                    previewContentHtml = `<iframe style="width: 100%; height: 100%; border: none; background: white;" src="${previewUrl}"></iframe>`;
+                } else {
+                    conteudoParaBaixar = htmlGerado;
+                    mimeType = 'text/html;charset=utf-8';
+                    modalTitle = 'Pré-visualização do Site HTML';
+                    const previewBlob = new Blob([htmlPreview], { type: 'text/html;charset=utf-8' });
+                    const previewUrl = URL.createObjectURL(previewBlob);
+                    previewContentHtml = `<iframe style="width: 100%; height: 100%; border: none; background: white;" src="${previewUrl}"></iframe>`;
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Erro ao gerar HTML: ' + e.message);
+                return;
+            } finally {
+                window.ocultarLoader();
+            }
+        } else if (tipo === 'typst') {
+            window.mostrarLoader('Gerando Typst', 'Escrevendo código fonte...');
+            try {
+                conteudoParaBaixar = await window.exportador.exportarTypst({ metadados: coletarMetadadosExportacao() });
+                nomeArquivo = 'dicionario.typ';
+                modalTitle = 'Código Typst Gerado';
+                previewContentHtml = `<textarea style="width: 100%; height: 100%; padding: 15px; font-family: monospace; border: none; background: var(--bg-secondary); color: var(--text-color); resize: none;" readonly>${conteudoParaBaixar}</textarea>`;
+            } catch (e) {
+                console.error(e);
+                alert('Erro ao gerar Typst: ' + e.message);
+                return;
+            } finally {
+                window.ocultarLoader();
+            }
+        } else if (tipo === 'pdf') {
+            window.mostrarLoader('Gerando PDF', 'Compilando via WebAssembly (isso pode demorar um pouco)...');
+            try {
+                const pdfBlob = await window.exportador.gerarPdfBlob({ metadados: coletarMetadadosExportacao() });
+                conteudoParaBaixar = pdfBlob;
+                nomeArquivo = 'dicionario.pdf';
+                modalTitle = 'PDF Gerado';
+                const pdfUrl = URL.createObjectURL(pdfBlob);
+                previewContentHtml = `<object data="${pdfUrl}#toolbar=0&view=FitH" type="application/pdf" style="width: 100%; height: 100%; border: none;"></object>`;
+            } catch (e) {
+                console.error(e);
+                alert('Erro ao compilar PDF: ' + e.message);
+                return;
+            } finally {
+                window.ocultarLoader();
+            }
+        }
+        
+        if (conteudoParaBaixar) {
+            window.arquivoParaBaixarAtual = { conteudo: conteudoParaBaixar, nomeArquivo, mimeType };
+            
+            document.getElementById('modalBox').style.width = '95vw';
+            document.getElementById('modalBox').style.maxWidth = '1400px';
+            document.getElementById('modalBox').style.height = '90vh';
+            
+            document.getElementById('modalTitle').textContent = modalTitle;
+            const modalContent = document.getElementById('modalContent');
+            
+            modalContent.innerHTML = `
+                <div style="flex-grow: 1; overflow: hidden; position: relative; border-radius: 8px; border: 1px solid var(--border-color);">
+                    ${previewContentHtml}
+                </div>
+                <div style="flex-shrink: 0; margin-top: 15px; display: flex; justify-content: flex-end; gap: 10px;">
+                    <button class="btn btn-outline" onclick="document.getElementById('modalOverlay').style.display='none'">Cancelar</button>
+                    <button class="btn btn-primary" onclick="window.baixarArquivoGerado()"><span style="margin-right: 8px;">📥</span> Baixar ${nomeArquivo}</button>
+                </div>
+            `;
+            document.getElementById('modalOverlay').style.display = 'flex';
+        }
+    };
+
+    window.baixarArquivoGerado = function() {
+        if (!window.arquivoParaBaixarAtual || !window.exportador) return;
+        const { conteudo, nomeArquivo, mimeType } = window.arquivoParaBaixarAtual;
+        
+        if (conteudo instanceof Blob) {
+            window.exportador.salvarArquivoBlob(conteudo, nomeArquivo);
+        } else {
+            window.exportador.salvarArquivo(conteudo, nomeArquivo, mimeType);
+        }
+        document.getElementById('modalOverlay').style.display = 'none';
+    };
+    
+    // 3. Inicialização do novo núcleo
+    async function iniciar() {
+        await window.sistema.inicializar();
+        window.carregadorPasta = new CarregadorPasta(window.sistema.configurador, window.sistema.vfs, window.sistema);
+        window.exportador = new ModuloExportacao(window.sistema);
+        window.sistema.obterTodosDadosBrutos = () => {
+            return (window.sistema.dadosPlanilha || []).map((linha, idx) => {
+                const varItem = linha.variacoes?.[0]?.item;
+                const item = varItem ? varItem : (linha.camposBasicos?.ITEM_LEXICAL || linha.ITEM_LEXICAL || '');
+                return {
+                    indice: idx,
+                    itemLexical: item ? item.split('|')[0].trim() : `Linha ${idx + 1}`
+                };
+            });
+        };
+        window.sistema.gerarPreview = async (dadosNormalizados, formato) => {
+            if (!window.exportador) return null;
+            
+            const variacoes = dadosNormalizados.variacoes || [];
+            const campos = dadosNormalizados.camposBasicos || {};
+            const exemplos = dadosNormalizados.exemplos || [];
+            const imagens = dadosNormalizados.imagens || [];
+            
+            const termos = variacoes.map(v => v.item).filter(Boolean);
+            const fonemicas = variacoes.map(v => v.fone).filter(Boolean);
+            const foneticas = variacoes.map(v => v.fonet).filter(Boolean);
+            const audios = variacoes.map(v => v.audio).filter(Boolean);
+            
+            let significado = {
+                NUMERO: '',
+                TRADUCAO: campos.TRADUCAO_SIGNIFICADO || '',
+                DESCRICAO: campos.DESCRICAO || '',
+                EXEMPLOS: exemplos.map(e => ({ TRANS: e.trans || '', TRAD: e.trad || '', AUDIO: e.audio || '' })),
+                IMAGENS: imagens.map(i => ({ ARQUIVO: i.img ? decodeURIComponent(i.img.split('/').pop().split('\\').pop()).replace(/[{}]/g, '').trim().toLowerCase() : '', LEGENDA: i.leg || '' })).filter(i => i.ARQUIVO),
+                VIDEOS: campos.ARQUIVO_VIDEO ? [{ARQUIVO: campos.ARQUIVO_VIDEO.split('/').pop().split('\\').pop()}] : [],
+                EXTRAS: []
+            };
+            
+            const itemProcessado = {
+                TERMO: termos.length > 0 ? termos.join(' ~ ') : (campos.ITEM_LEXICAL || '???'),
+                TERMO_PARENT: termos[0] || campos.ITEM_LEXICAL || '???',
+                CLASSE: campos.CLASSE_GRAMATICAL || '',
+                CAMPO_SEMANTICO: campos.CAMPO_SEMANTICO || '',
+                SUB_CAMPO_SEMANTICO: campos.SUB_CAMPO_SEMANTICO || '',
+                FONEMICA: fonemicas.join(' ~ '),
+                FONETICA: foneticas.join(' ~ '),
+                AUDIO: audios.join(' ~ '),
+                SIGNIFICADOS: [significado],
+                ITENS_RELACIONADOS: campos.ITENS_RELACIONADOS || '',
+                INDEX: campos.TRADUCAO_SIGNIFICADO || '',
+                TEXTOS_ESTRUTURADOS: []
+            };
+
+            const resolverMidiasVFS = (htmlRaw) => {
+                const template = document.createElement('template');
+                template.innerHTML = htmlRaw;
+                const frag = template.content;
+                const elements = frag.querySelectorAll('[data-dmli-media], img, audio, video, source');
+                
+                for (const el of elements) {
+                    let mediaName = el.getAttribute('data-dmli-media') || el.getAttribute('src');
+                    if (mediaName && !mediaName.startsWith('http') && !mediaName.startsWith('blob:') && !mediaName.startsWith('data:')) {
+                        mediaName = decodeURIComponent(mediaName.split('/').pop().split('\\').pop()).replace(/[{}]/g, '').trim();
+                        
+                        // Busca no VFS usando o nome do arquivo final
+                        const fileUrl = window.sistema.vfs.obterUrl('imagem', mediaName) || 
+                                        window.sistema.vfs.obterUrl('audio', mediaName) || 
+                                        window.sistema.vfs.obterUrl('video', mediaName);
+                        
+                        if (fileUrl) {
+                            el.src = fileUrl;
+                            if (el.tagName === 'AUDIO' || el.tagName === 'VIDEO') {
+                                el.load();
+                            } else if (el.tagName === 'SOURCE') {
+                                const parent = el.parentElement;
+                                if (parent && (parent.tagName === 'AUDIO' || parent.tagName === 'VIDEO')) {
+                                    parent.load();
+                                }
+                            }
+                        } else {
+                            el.removeAttribute('src'); // Prevent 404 if not in VFS
+                        }
+                    }
+                }
+                const divWrapper = document.createElement('div');
+                divWrapper.appendChild(frag.cloneNode(true));
+                return divWrapper.innerHTML;
+            };
+
+            if (formato === 'preview-html-card') {
+                const html = window.exportador.exportadorCards.processarTemplate(window.exportador.exportadorCards.templateEntrada, itemProcessado);
+                return resolverMidiasVFS(html);
+            } else if (formato === 'preview-html-linear') {
+                const html = window.exportador.exportadorLinear.processarTemplate(window.exportador.exportadorLinear.templateEntrada, itemProcessado);
+                return resolverMidiasVFS(html);
+            } else if (formato === 'preview-pdf') {
+                const strTypst = window.exportador.exportadorTypstModule.processarTemplate(window.exportador.exportadorTypstModule.templateEntrada, itemProcessado);
+                const docTypst = `#let index(..args) = {}\n#import "/in-dexter.typ": *\n#set page(width: 15cm, height: auto, margin: 10pt)\n#set text(font: ("Charis SIL", "Arial"), fallback: true)\n${strTypst}`;
+                console.log("=== CÓDIGO TYPST GERADO PARA O PREVIEW ===");
+                console.log(docTypst);
+                try {
+                    const blob = await window.exportador.compiladorPdf.gerarPdf(docTypst);
+                    return URL.createObjectURL(blob);
+                } catch(e) {
+                    console.error("Erro ao gerar preview PDF", e);
+                    return null;
+                }
+            }
+        };
+        
+        await window.exportador.inicializar();
+        
+        // Vincula botões HTML aos Eventos do Carregador de Arquivos (Upload)
+        const filePastaProj = document.getElementById('filePastaProjeto');
+        if (filePastaProj) {
+            filePastaProj.addEventListener('change', async e => {
+                if (e.target.files.length > 0) {
+                    window.mostrarLoader('Processando Projeto', 'Lendo a estrutura da pasta e arquivos...');
+                    try {
+                        const statusEl = document.getElementById('statusCsv');
+                        if(statusEl) statusEl.textContent = 'Processando pasta...';
+                        await window.carregadorPasta.carregarPasta(e.target.files);
+                        if(window.preencherUIComMetadados) window.preencherUIComMetadados();
+                    } finally {
+                        window.ocultarLoader();
+                    }
+                }
+            });
+        }
+        
+        const fileCsvIn = document.getElementById('fileCsv');
+        if (fileCsvIn) {
+            fileCsvIn.addEventListener('change', async e => {
+                if (e.target.files.length > 0) {
+                    window.mostrarLoader('Processando CSV', 'Lendo entradas do dicionário...');
+                    try {
+                        const statusEl = document.getElementById('statusCsv');
+                        if(statusEl) statusEl.textContent = 'Processando CSV...';
+                        await window.sistema.carregarPlanilha(e.target.files[0]);
+                    } finally {
+                        window.ocultarLoader();
+                    }
+                }
+            });
+        }
+
+        // --- SISTEMA DE TEMPLATES CUSTOMIZADOS ---
+        const templatesCustomizados = [
+            { id: 'fileTemplateHtml', key: 'csv2dmli_template_html' },
+            { id: 'fileTemplateEntradaCardHtml', key: 'csv2dmli_templateEntradaCardHtml' },
+            { id: 'fileTemplateHtmlLinear', key: 'csv2dmli_template_html-linear' },
+            { id: 'fileTemplateEntradaLinearHtml', key: 'csv2dmli_templateEntradaLinearHtml' },
+            { id: 'fileTemplateTypst', key: 'csv2dmli_template_typst' },
+            { id: 'fileTemplateEntradaTypst', key: 'csv2dmli_templateEntradaTypst' }
+        ];
+
+        templatesCustomizados.forEach(t => {
+            const el = document.getElementById(t.id);
+            if (el) {
+                // Ao clicar no DropZone, aciona o input oculto
+                const dropZone = document.getElementById(t.id.replace('file', '').charAt(0).toLowerCase() + t.id.replace('file', '').slice(1) + 'Zone');
+                if (dropZone) {
+                    dropZone.addEventListener('click', () => { el.value = null; el.click(); });
+                    el.addEventListener('click', e => e.stopPropagation());
+                }
+
+                el.addEventListener('change', async e => {
+                    if (e.target.files.length > 0) {
+                        const file = e.target.files[0];
+                        const text = await file.text();
+                        localStorage.setItem(t.key, text);
+                        console.log(`✅ Template customizado salvo: ${file.name}`);
+                        if (window.exportador) await window.exportador.inicializar();
+                        alert(`Template ${file.name} carregado com sucesso!`);
+                    }
+                });
+            }
+        });
+        // -----------------------------------------
+
+        // Função auxiliar para DropZones
+        function setupDropZone(zoneEl, callback) {
+            if (!zoneEl) return;
+            zoneEl.addEventListener('dragover', e => { 
+                e.preventDefault(); 
+                zoneEl.classList.add('dragover');
+                zoneEl.style.borderColor = 'var(--primary)';
+            });
+            zoneEl.addEventListener('dragleave', e => { 
+                e.preventDefault(); 
+                zoneEl.classList.remove('dragover');
+                zoneEl.style.borderColor = '';
+            });
+            zoneEl.addEventListener('drop', async e => {
+                e.preventDefault();
+                zoneEl.classList.remove('dragover');
+                zoneEl.style.borderColor = '';
+                
+                if (!e.dataTransfer) return;
+
+                if (e.dataTransfer.items) {
+                    let todosArquivos = [];
+                    let promessas = [];
+                    
+                    const lerEntrada = (entrada, caminhoRelativo = '') => {
+                        return new Promise((resolve) => {
+                            if (entrada.isFile) {
+                                entrada.file(file => {
+                                    if (caminhoRelativo) {
+                                        try {
+                                            Object.defineProperty(file, 'webkitRelativePath', {
+                                                value: caminhoRelativo + file.name,
+                                                writable: false
+                                            });
+                                        } catch (err) {
+                                            file.caminhoPersonalizado = caminhoRelativo + file.name;
+                                        }
+                                    }
+                                    resolve([file]);
+                                });
+                            } else if (entrada.isDirectory) {
+                                const leitorDir = entrada.createReader();
+                                const entradasLidas = [];
+                                
+                                const lerDir = () => {
+                                    leitorDir.readEntries(async (resultados) => {
+                                        if (resultados.length === 0) {
+                                            let arquivosDir = [];
+                                            for (let ext of entradasLidas) {
+                                                const subArquivos = await lerEntrada(ext, caminhoRelativo + entrada.name + '/');
+                                                arquivosDir = arquivosDir.concat(subArquivos);
+                                            }
+                                            resolve(arquivosDir);
+                                        } else {
+                                            entradasLidas.push(...resultados);
+                                            lerDir(); // Continua lendo até acabar (limite do Chrome)
+                                        }
+                                    });
+                                };
+                                lerDir();
+                            } else {
+                                resolve([]);
+                            }
+                        });
+                    };
+
+                    for (let i = 0; i < e.dataTransfer.items.length; i++) {
+                        const item = e.dataTransfer.items[i];
+                        if (item.kind === 'file') {
+                            const entrada = item.webkitGetAsEntry ? item.webkitGetAsEntry() : (item.getAsEntry ? item.getAsEntry() : null);
+                            if (entrada) {
+                                promessas.push(lerEntrada(entrada));
+                            } else {
+                                promessas.push(Promise.resolve([item.getAsFile()]));
+                            }
+                        }
+                    }
+                    
+                    const resultados = await Promise.all(promessas);
+                    for (const result of resultados) {
+                        todosArquivos = todosArquivos.concat(result);
+                    }
+                    
+                    if (todosArquivos.length > 0) {
+                        callback(todosArquivos);
+                    } else if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                        callback(e.dataTransfer.files);
+                    }
+                } else if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    callback(e.dataTransfer.files);
+                }
+            });
+        }
+
+        // Engatilha os inputs escondidos nas DropZones
+        const csvDrop = document.getElementById('csvDropZone');
+        if (csvDrop && fileCsvIn) {
+            csvDrop.addEventListener('click', () => { fileCsvIn.value = null; fileCsvIn.click(); });
+            fileCsvIn.addEventListener('click', e => e.stopPropagation());
+            setupDropZone(csvDrop, files => {
+                fileCsvIn.files = files;
+                fileCsvIn.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+        }
+
+        const pastaDrop = document.getElementById('pastaProjetoDropZone');
+        if (pastaDrop && filePastaProj) {
+            pastaDrop.addEventListener('click', () => { filePastaProj.value = null; filePastaProj.click(); });
+            filePastaProj.addEventListener('click', e => e.stopPropagation());
+            setupDropZone(pastaDrop, async files => {
+                // Emula o processo da pasta
+                window.mostrarLoader('Processando Projeto', 'Lendo a estrutura da pasta e arquivos...');
+                try {
+                    const statusEl = document.getElementById('statusCsv');
+                    if(statusEl) statusEl.textContent = 'Processando pasta...';
+                    await window.carregadorPasta.carregarPasta(files);
+                    if(window.preencherUIComMetadados) window.preencherUIComMetadados();
+                } finally {
+                    window.ocultarLoader();
+                }
+            });
+        }
+
+        // Configura áreas de mídia para aceitarem drop
+        setupDropZone(document.getElementById('panelAudio'), files => {
+            window.sistema.carregarPastaVirtual('audio', Array.from(files));
+        });
+        setupDropZone(document.getElementById('panelImagem'), files => {
+            window.sistema.carregarPastaVirtual('imagem', Array.from(files));
+        });
+        setupDropZone(document.getElementById('panelVideo'), files => {
+            window.sistema.carregarPastaVirtual('video', Array.from(files));
+        });
+        
+        // Atualizador de interface do Wizard (Polling)
+        setInterval(() => {
+            const stats = window.sistema.obterEstatisticas();
+            if (!stats) return;
+            
+            if (stats.disponivel) {
+                document.getElementById('statusCsv').textContent = `${stats.entradas || 0} entradas`;
+                document.getElementById('csvLinhas').textContent = `${stats.entradas || 0} linhas`;
+                document.getElementById('csvColunas').textContent = `${stats.colunas || 0} colunas`;
+                document.getElementById('csvCategorias').textContent = `${stats.categorias || 0} categorias`;
+                document.getElementById('badgeCsv').textContent = '✅ Carregado';
+                document.getElementById('badgeCsv').className = 'step-badge active badge-ok';
+                if (typeof popularEstrutura === 'function') popularEstrutura();
+            } else {
+                document.getElementById('statusCsv').textContent = 'Pendente';
+                document.getElementById('csvLinhas').textContent = '0 linhas';
+                document.getElementById('csvColunas').textContent = '0 colunas';
+                document.getElementById('csvCategorias').textContent = '0 categorias';
+                document.getElementById('badgeCsv').textContent = 'Pendente';
+                document.getElementById('badgeCsv').className = 'step-badge';
+            }
+            
+            const m = stats.midias || {};
+            const au = m.audio || 0, ig = m.imagem || 0, vi = m.video || 0;
+            
+            document.getElementById('countAudio').textContent = au;
+            document.getElementById('statusAudio').textContent = au;
+            document.getElementById('countImagem').textContent = ig;
+            document.getElementById('statusImagem').textContent = ig;
+            document.getElementById('countVideo').textContent = vi;
+            document.getElementById('statusVideo').textContent = vi;
+            
+            const totMidia = au + ig + vi;
+            const bm = document.getElementById('badgeMidias');
+            if (totMidia > 0) {
+                bm.textContent = `✅ ${totMidia} arquivos`;
+                bm.className = 'step-badge active badge-ok';
+            } else {
+                bm.textContent = 'Pendente';
+                bm.className = 'step-badge';
+            }
+        }, 1000);
+    }
+    
+    // -----------------------------------------------------------------------
+    // WIZARD GERADOR DE APK / AAB
+    // -----------------------------------------------------------------------
+
+    let _apkPasso = 1;
+    let _apkIconeBytes = [];
+    let _apkHtmlProntoArquivo = null;
+
+    window.apkAtualizarFonteHtml = function() {
+        const fonte = document.querySelector('input[name="apkFonteHtml"]:checked')?.value || 'projeto';
+        document.getElementById('apkHtmlProntoFields').style.display = fonte === 'pronto' ? 'block' : 'none';
+        document.getElementById('apkLabelFonteProjeto').classList.toggle('selected', fonte === 'projeto');
+        document.getElementById('apkLabelFontePronto').classList.toggle('selected', fonte === 'pronto');
+    };
+
+    window.apkSelecionarHtmlPronto = function(input) {
+        _apkHtmlProntoArquivo = input.files[0] || null;
+        document.getElementById('apkHtmlProntoPlaceholder').style.display = _apkHtmlProntoArquivo ? 'none' : 'flex';
+        document.getElementById('apkHtmlProntoSelecionado').style.display = _apkHtmlProntoArquivo ? 'flex' : 'none';
+        if (_apkHtmlProntoArquivo) {
+            document.getElementById('apkHtmlProntoNome').textContent = _apkHtmlProntoArquivo.name;
+        }
+    };
+
+    function apkSlugify(str) {
+        return (str || '')
+            .toLowerCase()
+            .normalize('NFD').replace(/[̀-ͯ]/g, '')
+            .replace(/[^a-z0-9]/g, '_')
+            .replace(/_+/g, '_')
+            .replace(/^_|_$/g, '') || 'app';
+    }
+
+    window.apkAtualizarPackageName = function() {
+        const nome = document.getElementById('apkNomeApp')?.value || '';
+        const org  = document.getElementById('apkOrganizacao')?.value || '';
+        document.getElementById('apkPackageName').value =
+            `com.${apkSlugify(org) || 'app'}.${apkSlugify(nome)}`;
+    };
+
+    function parseVersionCode(ver) {
+        if (!ver) return 1;
+        const parts = ver.replace(/[^0-9.]/g, '').split('.').map(p => parseInt(p) || 0);
+        const code = ((parts[0] || 0) * 10000) + ((parts[1] || 0) * 100) + (parts[2] || 0);
+        return Math.max(1, code);
+    }
+
+    window.apkEscolherIcone = function() {
+        document.getElementById('apkIconeInput').click();
+    };
+
+    window.apkPreviewIcone = async function(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            document.getElementById('apkIconPreview').src = e.target.result;
+            document.getElementById('apkIconPreview').style.display = 'block';
+            document.getElementById('apkIconPlaceholder').style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+        const buf = await file.arrayBuffer();
+        _apkIconeBytes = Array.from(new Uint8Array(buf));
+    };
+
+    function apkSetProg(id, estado, texto) {
+        const icons = { pending:'⬜', running:'🔄', done:'✅', error:'❌' };
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.className = `apk-prog-step ${estado}`;
+        el.innerHTML = `<span>${icons[estado]||'⬜'}</span><span>${texto}</span>`;
+    }
+
+    window.apkIrParaPasso = function(passo) {
+        document.querySelectorAll('.apk-step-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.apk-step-tab').forEach(el => {
+            const n = parseInt(el.dataset.step);
+            el.classList.remove('active','done');
+            if (n < passo) el.classList.add('done');
+        });
+        const stepEl = document.getElementById(`apkStep${passo}`);
+        const tabEl  = document.getElementById(`apkTab${passo}`);
+        if (stepEl) stepEl.classList.add('active');
+        if (tabEl)  tabEl.classList.add('active');
+        _apkPasso = passo;
+
+        const footer = document.getElementById('apkFooter');
+        const btnPrev = document.getElementById('apkBtnPrev');
+        const btnNext = document.getElementById('apkBtnNext');
+        const label   = document.getElementById('apkStepLabel');
+
+        if (passo === 4) {
+            footer.style.display = 'none';
+            return;
+        }
+        footer.style.display = 'flex';
+        btnPrev.disabled = passo === 1;
+        label.textContent = `Passo ${passo} de 3`;
+
+        if (passo === 3) {
+            btnNext.textContent = '📱 Gerar Aplicativo';
+            btnNext.onclick = apkGerarAplicativo;
+        } else {
+            btnNext.textContent = 'Próximo →';
+            btnNext.onclick = apkProximoPasso;
+        }
+    };
+
+    function apkValidarPasso(passo) {
+        if (passo === 1) {
+            if (!document.getElementById('apkNomeResponsavel').value.trim())
+                { alert('Informe o Nome / Responsável.'); return false; }
+            if (!document.getElementById('apkOrganizacao').value.trim())
+                { alert('Informe a Organização.'); return false; }
+            apkAtualizarPackageName();
+            return true;
+        }
+        if (passo === 2) {
+            if (!document.getElementById('apkNomeApp').value.trim())
+                { alert('Informe o Nome do Aplicativo.'); return false; }
+            return true;
+        }
+        return true;
+    }
+
+    window.apkProximoPasso = function() {
+        if (!apkValidarPasso(_apkPasso)) return;
+        if (_apkPasso < 3) apkIrParaPasso(_apkPasso + 1);
+    };
+
+    window.apkPassoAnterior = function() {
+        if (_apkPasso > 1) apkIrParaPasso(_apkPasso - 1);
+    };
+
+    window.apkGerarAplicativo = async function() {
+        apkIrParaPasso(4);
+        document.getElementById('apkProcessando').style.display = 'block';
+        document.getElementById('apkSucesso').style.display     = 'none';
+        document.getElementById('apkErro').style.display        = 'none';
+
+        try {
+            await _apkGerarBrowser();
+        } catch (err) {
+            const msg = typeof err === 'string' ? err : (err.message || JSON.stringify(err));
+            adicionarLogAoTerminal('Erro ao gerar APK: ' + msg, 'error');
+            document.getElementById('apkErroMsg').textContent = msg;
+            document.getElementById('apkProcessando').style.display = 'none';
+            document.getElementById('apkErro').style.display        = 'block';
+            document.getElementById('apkFooter').style.display      = 'flex';
+        }
+    };
+
+    window.abrirModalAndroid = async function() {
+        if (!window.exportador) return alert('Exportador não inicializado!');
+
+        // Resetar estado
+        _apkIconeBytes     = [];
+        _apkHtmlProntoArquivo = null;
+        document.getElementById('apkIconPreview').style.display    = 'none';
+        document.getElementById('apkIconPlaceholder').style.display = 'flex';
+        document.getElementById('apkProcessando').style.display     = 'block';
+        document.getElementById('apkSucesso').style.display         = 'none';
+        document.getElementById('apkErro').style.display            = 'none';
+        document.querySelector('input[name="apkFonteHtml"][value="projeto"]').checked = true;
+        document.getElementById('apkHtmlProntoFields').style.display = 'none';
+        document.getElementById('apkLabelFonteProjeto').classList.add('selected');
+        document.getElementById('apkLabelFontePronto').classList.remove('selected');
+        document.getElementById('apkHtmlProntoPlaceholder').style.display = 'flex';
+        document.getElementById('apkHtmlProntoSelecionado').style.display = 'none';
+        document.getElementById('apkHtmlProntoNome').textContent = '';
+        document.getElementById('apkHtmlProntoInput').value = '';
+
+        // Badge de ambiente (cosmético — a geração é sempre local, no dispositivo)
+        const badge = document.getElementById('apkModoBadge');
+        const noTauri = !!(window.__TAURI__ && window.__TAURI__.core);
+        badge.textContent = noTauri ? '💻 App Desktop' : '🌐 Navegador';
+        badge.style.background = '#f0fdf4'; badge.style.color = '#166534';
+
+        // Atualizar estado da chave de assinatura (IndexedDB)
+        await apkKsBrAtualizarEstado();
+
+        // Pré-preencher nome do app
+        const nomeDic = document.getElementById('metaHtml')?.value
+            || window.exportador?.nomeDicionario
+            || 'Dicionario';
+        document.getElementById('apkNomeApp').value = nomeDic;
+        apkAtualizarPackageName();
+
+        apkIrParaPasso(1);
+        document.getElementById('modalAndroid').style.display = 'flex';
+    };
+
+    window.fecharModalAndroid = function() {
+        document.getElementById('modalAndroid').style.display = 'none';
+    };
+
+    // ========================================================
+    // PWA — GERENCIAMENTO DE CHAVE E GERAÇÃO NO BROWSER
+    // ========================================================
+
+    let _exportadorAndroid = null;
+    async function _getExportador() {
+        if (!_exportadorAndroid) {
+            const { ExportadorAndroid } = await import('./packages/android/exportadorAndroid.js');
+            _exportadorAndroid = new ExportadorAndroid();
+        }
+        return _exportadorAndroid;
+    }
+
+    async function apkKsBrAtualizarEstado() {
+        try {
+            const exp  = await _getExportador();
+            const info = await exp.obterInfoChave();
+            const elNo  = document.getElementById('apkKsBrNoKey');
+            const elHas = document.getElementById('apkKsBrHasKey');
+            if (info) {
+                elNo.style.display  = 'none';
+                elHas.style.display = 'block';
+                document.getElementById('apkKsBrAliasLabel').textContent =
+                    `Chave: ${info.alias}`;
+                const criado = info.criadoEm ? new Date(info.criadoEm).toLocaleDateString('pt-BR') : '—';
+                const expira = info.expiraEm ? new Date(info.expiraEm).getFullYear() : '—';
+                document.getElementById('apkKsBrInfoLabel').textContent =
+                    `Criada em: ${criado}  ·  Válida até: ${expira}`;
+            } else {
+                elNo.style.display  = 'block';
+                elHas.style.display = 'none';
+            }
+        } catch (e) {
+            console.warn('Erro ao verificar chave:', e);
+        }
+    }
+
+    window.apkKsBrCriarChave = function() {
+        document.getElementById('apkKsBrFormCriar').style.display = 'block';
+        document.getElementById('apkKsBrNoKey').style.display = 'none';
+        // Pre-fill CN/Org from wizard fields
+        const cn  = document.getElementById('apkNomeResponsavel')?.value?.trim();
+        const org = document.getElementById('apkOrganizacao')?.value?.trim();
+        if (cn)  document.getElementById('apkKsBrCn').value  = cn;
+        if (org) document.getElementById('apkKsBrOrg').value = org;
+    };
+
+    window.apkKsBrCancelarFormulario = function() {
+        document.getElementById('apkKsBrFormCriar').style.display = 'none';
+        document.getElementById('apkKsBrNoKey').style.display = 'block';
+    };
+
+    window.apkKsBrSalvarNovaChave = async function() {
+        const alias  = document.getElementById('apkKsBrAlias').value.trim() || 'upload';
+        const cn     = document.getElementById('apkKsBrCn').value.trim();
+        const org    = document.getElementById('apkKsBrOrg').value.trim();
+        const pais   = (document.getElementById('apkKsBrPais').value.trim() || 'BR').toUpperCase().slice(0, 2);
+        const senha  = document.getElementById('apkKsBrNovaSenha').value;
+        const senha2 = document.getElementById('apkKsBrNovaSenhaConfirm').value;
+
+        if (!cn)  { alert('Informe o Nome / CN.'); return; }
+        if (!org) { alert('Informe a Organização.'); return; }
+        if (senha.length < 6) { alert('A senha deve ter pelo menos 6 caracteres.'); return; }
+        if (senha !== senha2)  { alert('As senhas não coincidem.'); return; }
+
+        try {
+            window.mostrarLoader('Gerando chave…', 'Gerando par RSA-2048 e certificado X.509…');
+            const exp = await _getExportador();
+            await exp.gerarNovaChave(senha, { alias, cn, org, pais });
+            document.getElementById('apkKsBrFormCriar').style.display = 'none';
+            // Pre-fill sign password field
+            document.getElementById('apkKsBrSenha').value = senha;
+            await apkKsBrAtualizarEstado();
+            window.ocultarLoader();
+        } catch (e) {
+            window.ocultarLoader();
+            alert('Erro ao criar chave: ' + e.message);
+        }
+    };
+
+    window.apkKsBrImportarP12 = function() {
+        document.getElementById('apkKsBrP12Input').click();
+    };
+
+    window.apkKsBrProcessarP12 = async function(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const senha = prompt('Senha do arquivo .p12:');
+        if (senha === null) return;
+        try {
+            window.mostrarLoader('Importando chave…', 'Validando e salvando .p12…');
+            const exp = await _getExportador();
+            await exp.importarP12(file, senha);
+            document.getElementById('apkKsBrSenha').value = senha;
+            await apkKsBrAtualizarEstado();
+            window.ocultarLoader();
+        } catch (e) {
+            window.ocultarLoader();
+            alert('Erro ao importar .p12: ' + e.message);
+        }
+        input.value = '';
+    };
+
+    window.apkKsBrExportarP12 = async function() {
+        const senha = document.getElementById('apkKsBrSenha').value;
+        if (!senha) { alert('Informe a senha da chave para exportar.'); return; }
+        try {
+            window.mostrarLoader('Exportando…', 'Gerando arquivo .p12…');
+            const exp  = await _getExportador();
+            const blob = await exp.exportarP12(senha);
+            const exp2 = await exp.obterInfoChave();
+            const nome = `chave_${(exp2?.alias || 'upload').replace(/\s+/g, '_')}.p12`;
+            const url  = URL.createObjectURL(blob);
+            const a    = document.createElement('a');
+            a.href = url; a.download = nome;
+            document.body.appendChild(a); a.click();
+            document.body.removeChild(a); URL.revokeObjectURL(url);
+            window.ocultarLoader();
+        } catch (e) {
+            window.ocultarLoader();
+            alert('Erro ao exportar: ' + e.message);
+        }
+    };
+
+    window.apkKsBrSubstituir = async function() {
+        if (!confirm('Substituir a chave atual? A chave atual será apagada permanentemente.')) return;
+        try {
+            const exp = await _getExportador();
+            await exp.deletarChave();
+            await apkKsBrAtualizarEstado();
+        } catch (e) {
+            alert('Erro: ' + e.message);
+        }
+    };
+
+    async function _apkGerarBrowser() {
+        const senha = document.getElementById('apkKsBrSenha')?.value || '';
+        if (!senha) { alert('Informe a senha da chave de assinatura.'); throw new Error('Senha não informada'); }
+
+        const nomeApp     = document.getElementById('apkNomeApp').value.trim();
+        const versaoStr   = document.getElementById('apkVersao')?.value.trim() || '1.0';
+        const packageName = document.getElementById('apkPackageName')?.value.trim() || 'br.com.csv2dmli.app';
+        const versionCode = parseVersionCode(versaoStr);
+
+        const progEl = document.getElementById('apkProgressSteps');
+        progEl.style.cssText = '';
+        progEl.innerHTML = `
+            <div class="apk-prog-step pending" id="apkPS1">⬜ Gerando HTML do dicionário…</div>
+            <div class="apk-prog-step pending" id="apkPS2">⬜ Carregando template AAB…</div>
+            <div class="apk-prog-step pending" id="apkPS3">⬜ Injetando conteúdo e patches…</div>
+            <div class="apk-prog-step pending" id="apkPS4">⬜ Assinando v1 + v2…</div>
+            <div class="apk-prog-step pending" id="apkPS5">⬜ Finalizando…</div>
+        `;
+
+        const fonteHtml = document.querySelector('input[name="apkFonteHtml"]:checked')?.value || 'projeto';
+
+        let htmlBytes, midias;
+        if (fonteHtml === 'pronto') {
+            apkSetProg('apkPS1', 'running', 'Lendo HTML pronto…');
+            document.getElementById('apkStatusDesc').textContent = 'Lendo arquivo HTML selecionado…';
+            if (!_apkHtmlProntoArquivo) { alert('Selecione o arquivo HTML pronto.'); throw new Error('HTML pronto não selecionado'); }
+            htmlBytes = new Uint8Array(await _apkHtmlProntoArquivo.arrayBuffer());
+            midias = new Map(); // mídias já embutidas em base64 no próprio HTML
+        } else {
+            apkSetProg('apkPS1', 'running', 'Gerando HTML do dicionário…');
+            document.getElementById('apkStatusDesc').textContent = 'Gerando HTML com caminhos relativos…';
+
+            const selectWizard = document.getElementById('templateExportacaoSelect');
+            const formato = selectWizard ? selectWizard.value : 'linear';
+            const htmlStr = formato === 'card'
+                ? await window.exportador.exportarHtmlCards({ embutirMidias: false, metadados: { tituloHtml: nomeApp } })
+                : await window.exportador.exportarHtmlLinear({ embutirMidias: false, metadados: { tituloHtml: nomeApp } });
+            htmlBytes = new TextEncoder().encode(htmlStr);
+
+            midias = new Map();
+            for (const tipo of ['audio', 'imagem', 'video']) {
+                const dirName = tipo === 'imagem' ? 'foto' : tipo;
+                const nomes   = window.sistema.vfs.obterTodosNomes(tipo);
+                const arqs    = window.sistema.vfs.obterTodosArquivos(tipo);
+                for (let i = 0; i < nomes.length; i++) {
+                    midias.set(`${dirName}/${nomes[i]}`, new Uint8Array(await arqs[i].arrayBuffer()));
+                }
+            }
+        }
+        apkSetProg('apkPS1', 'done', 'HTML gerado ✓');
+
+        apkSetProg('apkPS2', 'running', 'Carregando template AAB…');
+
+        const onProgress = (pct, msg) => {
+            document.getElementById('apkStatusDesc').textContent = msg;
+            if (pct >= 25 && pct < 55) {
+                apkSetProg('apkPS2', 'done', 'Template carregado ✓');
+                apkSetProg('apkPS3', 'running', msg);
+            } else if (pct >= 55 && pct < 75) {
+                apkSetProg('apkPS3', 'done', 'Conteúdo injetado ✓');
+                apkSetProg('apkPS4', 'running', msg);
+            } else if (pct >= 75 && pct < 95) {
+                apkSetProg('apkPS4', 'done', 'Assinado ✓');
+                apkSetProg('apkPS5', 'running', msg);
+            } else if (pct >= 95) {
+                apkSetProg('apkPS5', 'running', msg);
+            }
+        };
+
+        const exp = await _getExportador();
+        const arquivosGerados = await exp.gerarAmbos({
+            senha,
+            htmlBytes,
+            midias,
+            iconeBytes: _apkIconeBytes.length > 0 ? new Uint8Array(_apkIconeBytes) : null,
+            packageName,
+            appName: nomeApp,
+            versionName: versaoStr,
+            versionCode,
+            nomeResponsavel: document.getElementById('apkNomeResponsavel').value.trim(),
+            organizacao: document.getElementById('apkOrganizacao').value.trim(),
+            cidade: document.getElementById('apkCidade').value.trim(),
+            estado: document.getElementById('apkEstado').value.trim(),
+            pais: (document.getElementById('apkPais').value.trim() || 'BR').toUpperCase(),
+            onProgress,
+        });
+
+        apkSetProg('apkPS5', 'done', 'Concluído ✓');
+
+        document.getElementById('apkSucessoDesc').textContent =
+            `Arquivo baixado. Descompacte o zip para encontrar o AAB, o APK e o resumo das informações.`;
+
+        // Show zip info
+        const onlineLinkBox = document.getElementById('apkOnlineDownloadLinks');
+        onlineLinkBox.innerHTML = `
+            <div style="padding:12px 16px; background:#f0fdf4; border:1px solid #86efac; border-radius:8px;">
+              <div style="font-weight:700; color:#166534;">📦 ${arquivosGerados.zip}</div>
+              <div style="font-size:0.82em; color:#166534; margin-top:8px;">
+                Zip baixado automaticamente, contendo:<br>
+                - <b>${arquivosGerados.aab}</b>: envie ao Google Play Console para publicação.<br>
+                - <b>${arquivosGerados.apk}</b>: instalação direta e testes locais.<br>
+                - <b>informacoes.txt</b>: resumo dos dados preenchidos (inclui a senha da chave).<br>
+                Guarde o backup da sua chave .p12 — necessário para enviar atualizações.
+              </div>
+            </div>`;
+
+        document.getElementById('apkProcessando').style.display = 'none';
+        document.getElementById('apkSucesso').style.display     = 'block';
+    }
+
+    iniciar();
+</script>
+
+<!-- Lógica de Interface: Assistente (Wizard) & Zoom -->
+<script>
+    // ===================================
+    // LÓGICA DO ASSISTENTE
+    // ===================================
+    window.passoAtual = 1;
+    const totalPassos = 5;
+
+    window.irParaPasso = function(passo) {
+        // Esconde todos
+        document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.step-indicator').forEach(el => el.classList.remove('active'));
+        
+        // Mostra o atual
+        document.getElementById(`step${passo}`).classList.add('active');
+        document.getElementById(`indicator${passo}`).classList.add('active');
+
+        // Toast UI Editor (avaliação em andamento): inicializa de forma lazy só quando o
+        // passo 3 (Metadados/Introdução) fica visível pela 1ª vez - instanciar com o container
+        // em display:none faz o editor renderizar com altura colapsada.
+        if (passo === 3 && window.inicializarIntroEditor) {
+            window.inicializarIntroEditor();
+            if (window._introMarkdownPendente !== undefined) {
+                window.definirIntroMarkdown(window._introMarkdownPendente);
+                delete window._introMarkdownPendente;
+            }
+        }
+
+        // Controla botões
+        document.getElementById('btnPrev').disabled = (passo === 1);
+        
+        const btnNext = document.getElementById('btnNext');
+        if (passo === totalPassos) {
+            btnNext.style.display = 'none';
+        } else {
+            btnNext.style.display = 'inline-block';
+            btnNext.textContent = 'Próximo Passo →';
+        }
+        
+        window.passoAtual = passo;
+    }
+
+    window.proximoPasso = function() {
+        if(window.passoAtual < totalPassos) window.irParaPasso(window.passoAtual + 1);
+    }
+
+    window.passoAnterior = function() {
+        if(window.passoAtual > 1) window.irParaPasso(window.passoAtual - 1);
+    }
+    
+    // Intercepta alterações nas tabs do modal antigo
+    function switchCustomTab(evt, tabId) {
+        document.querySelectorAll('#modalCustomizacao .custom-tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('#modalCustomizacao .custom-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        evt.currentTarget.classList.add('active');
+    }
+
+    // Lógica de Zoom mantida
+    let zoomAtual = 1;
+    function ajustarZoom(delta) {
+        zoomAtual = Math.max(0.6, Math.min(2, zoomAtual + delta));
+        document.documentElement.style.setProperty('--zoom', zoomAtual);
+        document.getElementById('zoomLevel').textContent = Math.round(zoomAtual * 100) + '%';
+        try { localStorage.setItem('csv2dmli-zoom', zoomAtual); } catch(e) {}
+    }
+    function resetZoom() {
+        zoomAtual = 1;
+        document.documentElement.style.setProperty('--zoom', 1);
+        document.getElementById('zoomLevel').textContent = '100%';
+        try { localStorage.setItem('csv2dmli-zoom', 1); } catch(e) {}
+    }
+    (function() {
+        try {
+            const zoomSalvo = localStorage.getItem('csv2dmli-zoom');
+            if (zoomSalvo) {
+                zoomAtual = parseFloat(zoomSalvo);
+                document.documentElement.style.setProperty('--zoom', zoomAtual);
+                document.getElementById('zoomLevel').textContent = Math.round(zoomAtual * 100) + '%';
+            }
+        } catch(e) {
+            console.warn('localStorage bloqueado:', e);
+        }
+        // Inicia no passo 1
+        window.irParaPasso(1);
+
+        // Listeners para os toggles de estrutura
+        const swAlpha = document.getElementById('swAlpha');
+        const containerAlpha = document.getElementById('containerAlpha');
+        const swSemantic = document.getElementById('swSemantic');
+        const containerSemantic = document.getElementById('containerSemantic');
+        const chkSelectAllAlpha = document.getElementById('chkSelectAllAlpha');
+        
+        function atualizarVisibilidadeAlpha() {
+            if (swAlpha && swAlpha.checked) {
+                if (containerAlpha) containerAlpha.style.display = 'none';
+            } else {
+                if (containerAlpha) containerAlpha.style.display = 'block';
+            }
+        }
+
+        function atualizarVisibilidadeSemantic() {
+            if (swSemantic && swSemantic.checked) {
+                if (containerSemantic) containerSemantic.style.display = 'none';
+            } else {
+                if (containerSemantic) containerSemantic.style.display = 'block';
+            }
+        }
+
+        if (chkSelectAllAlpha) {
+            chkSelectAllAlpha.addEventListener('change', function() {
+                document.querySelectorAll('.cat-checkbox').forEach(chk => {
+                    chk.checked = chkSelectAllAlpha.checked;
+                });
+            });
+        }
+
+        if (swAlpha) swAlpha.addEventListener('change', atualizarVisibilidadeAlpha);
+        if (swSemantic) swSemantic.addEventListener('change', atualizarVisibilidadeSemantic);
+        
+        atualizarVisibilidadeAlpha();
+        atualizarVisibilidadeSemantic();
+    })();
+
+    let categoriasEstrutura = [];
+    function popularEstrutura() {
+        if (!window.sistema) return;
+        const arv = window.sistema.obterArvoreOrdenada();
+        if (!arv || !arv.categoriasRaizes || arv.categoriasRaizes.length === 0) return;
+        
+        const novasCats = arv.categoriasRaizes;
+        if (JSON.stringify(categoriasEstrutura) === JSON.stringify(novasCats)) return;
+        categoriasEstrutura = novasCats;
+        
+        const gridAlpha = document.getElementById('gridAlpha');
+        if (gridAlpha) {
+            gridAlpha.innerHTML = '';
+            categoriasEstrutura.forEach(cat => { 
+                gridAlpha.innerHTML += `<label class="checkbox-tag"><input type="checkbox" class="cat-checkbox" value="${cat}" checked>${cat}</label>`; 
+            });
+        }
+
+        const gridSemantic = document.getElementById('gridSemantic');
+        if (gridSemantic) {
+            gridSemantic.innerHTML = '';
+            categoriasEstrutura.forEach((cat, i) => {
+                const item = document.createElement('div');
+                item.className = 'sortable-item';
+                item.draggable = true;
+                item.dataset.category = cat;
+                item.innerHTML = `<span class="handle" style="cursor: grab;">☰</span><span>${cat}</span><span style="margin-left:auto;font-size:11px;color:var(--text-muted);">#${i + 1}</span>`;
+                
+                item.addEventListener('dragstart', e => {
+                    item.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', cat); // Necessário para o drag do WebView2 funcionar
+                });
+                
+                item.addEventListener('dragend', () => {
+                    item.classList.remove('dragging');
+                    atualizarIndices();
+                });
+
+                gridSemantic.appendChild(item);
+            });
+
+            if (!gridSemantic.dataset.dragAtivo) {
+                gridSemantic.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    const dragging = gridSemantic.querySelector('.dragging');
+                    if (!dragging) return;
+                    const after = getDragAfterElement(gridSemantic, e.clientY);
+                    if (after) {
+                        gridSemantic.insertBefore(dragging, after);
+                    } else {
+                        gridSemantic.appendChild(dragging);
+                    }
+                });
+                gridSemantic.dataset.dragAtivo = 'true';
+            }
+        }
+    }
+
+    function atualizarIndices() {
+        const grid = document.getElementById('gridSemantic');
+        if (!grid) return;
+        const items = grid.querySelectorAll('.sortable-item');
+        items.forEach((item, index) => {
+            const num = item.querySelector('span:last-child');
+            if (num) num.textContent = `#${index + 1}`;
+        });
+    }
+
+    function getDragAfterElement(container, y) {
+        const items = [...container.querySelectorAll('.sortable-item:not(.dragging)')];
+        return items.reduce((closest, child) => { 
+            const box = child.getBoundingClientRect(); 
+            const offset = y - box.top - box.height / 2; 
+            return (offset < 0 && offset > closest.offset) ? { offset, element: child } : closest; 
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+</script>
+
+<!-- Registro do Service Worker (PWA) -->
+<script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js')
+            .then(reg => console.log('SW registrado:', reg.scope))
+            .catch(err => console.warn('SW falhou:', err));
+    }
+</script>
+</body>
+</html>

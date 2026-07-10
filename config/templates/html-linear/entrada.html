@@ -1,0 +1,66 @@
+<div class="entry-linear">
+    <p class="linha-entrada">
+        <span class="termo">{{ TERMO }}</span>
+        {{#FONEMICA}}<span class="fonemica">  /{{ FONEMICA }}/</span>{{/FONEMICA}}
+        {{#FONETICA}}<span class="fonetica">[{{ FONETICA }}]</span>{{/FONETICA}}
+        {{#CLASSE}}<i class="classe"> {{ CLASSE }} </i>{{/CLASSE}}
+    </p>
+    
+    {{#AUDIO}}
+    <span class="audio-inline">
+        🔊 <audio controls style="display:inline-block;vertical-align:middle;height:22px;" data-src="{{{ AUDIO }}}">
+            <source data-src="{{{ AUDIO }}}" type="audio/mpeg">
+        </audio>
+    </span>
+    {{/AUDIO}}
+
+    {{#SIGNIFICADOS}}
+    <span class="significado-linear">
+        {{#NUMERO}}{{ NUMERO }}. {{/NUMERO}}
+        {{#TRADUCAO}}<strong>{{ TRADUCAO }}</strong>{{/TRADUCAO}}
+        {{#DESCRICAO}} - {{ DESCRICAO }}{{/DESCRICAO}}
+        
+        {{#EXEMPLOS}}
+        <span class="exemplo-inline">
+            {{#TRANS}}<p style="margin-bottom: 0.1px;"><b><i>"{{ TRANS }}"</i></b></p>{{/TRANS}}
+            {{#TRAD}}<p>({{ TRAD }})</p>{{/TRAD}}
+        </span>
+        {{/EXEMPLOS}}
+        
+        {{#IMAGENS}}
+        <figure class="figura-inline">
+            <img data-src="{{{ ARQUIVO }}}" alt="{{ LEGENDA }}" class="clickable-image" onclick="openModal(this.src || this.getAttribute('data-src'))">
+            {{#LEGENDA}}<figcaption>{{ LEGENDA }}</figcaption>{{/LEGENDA}}
+        </figure>
+        {{/IMAGENS}}
+        
+        {{#EXTRAS}}
+        <span class="extra-inline">{{ TEXTO }}</span>
+        {{/EXTRAS}}
+    </span>
+    {{/SIGNIFICADOS}}
+
+    {{#TEXTOS}}
+    <div class="textos-linear">
+        <strong>Texto: {{ TITULO_BASE }}</strong>
+        {{#TEXTO_NAO_LITERAL}}<br><em>{{{ TEXTO_NAO_LITERAL }}}</em>{{/TEXTO_NAO_LITERAL}}
+        
+        {{#VARIACOES}}
+            {{#FRASES}}
+            <div style="margin-top: 8px;">
+                <strong>{{ ORIGINAL }}</strong> 
+                {{#TRADUCAO}}({{ TRADUCAO }}){{/TRADUCAO}}
+                
+                {{#AUDIO_ARQUIVO}}
+                <audio controls data-src="{{{ AUDIO_ARQUIVO }}}" style="height: 20px; vertical-align: middle; margin-left: 5px; max-width: 150px; outline: none; border-radius: 4px;"></audio>
+                {{/AUDIO_ARQUIVO}}
+            </div>
+            {{/FRASES}}
+        {{/VARIACOES}}
+    </div>
+    {{/TEXTOS}}
+    
+    {{#ITENS_RELACIONADOS}}
+    <span class="relacionados-inline">• {{ ITENS_RELACIONADOS }}</span>
+    {{/ITENS_RELACIONADOS}}
+</div>

@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ metadados.html }}</title>
+    <!-- Fontes e ícones inline (sem CDN externo — compatível com APK offline) -->
+    <style>
+        /* ===== VARIÁVEIS E RESET ===== */
+        {{ estilos_globais }}
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+            background-color: var(--cor-fundo);
+            color: var(--cor-texto);
+            line-height: 1.5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .cabecalho {
+            background: var(--cor-card);
+            border-radius: 16px;
+            padding: 24px 32px;
+            margin-bottom: 24px;
+            box-shadow: var(--sombra-card);
+            border: 1px solid var(--cor-borda);
+        }
+
+        .cabecalho h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--cor-primaria);
+            margin-bottom: 8px;
+        }
+
+        .cabecalho .meta {
+            display: flex;
+            gap: 24px;
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+
+        .introducao {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--cor-borda);
+            color: #475569;
+        }
+
+        .barra-controle {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            background: var(--cor-card);
+            padding: 16px 24px;
+            border-radius: 16px;
+            box-shadow: var(--sombra-card);
+            border: 1px solid var(--cor-borda);
+        }
+
+        .busca-wrapper {
+            flex: 2;
+            min-width: 250px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .busca-wrapper input {
+            flex: 1;
+            padding: 10px 16px;
+            border: 1px solid var(--cor-borda);
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: var(--transicao);
+        }
+
+        .busca-wrapper input:focus {
+            outline: none;
+            border-color: var(--cor-secundaria);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .busca-wrapper button {
+            background: var(--cor-secundaria);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 0 20px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transicao);
+        }
+
+        .busca-wrapper button:hover {
+            background: #2563eb;
+        }
+
+        .filtros {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .filtro-select {
+            padding: 8px 12px;
+            border: 1px solid var(--cor-borda);
+            border-radius: 10px;
+            background: white;
+            font-size: 0.9rem;
+            cursor: pointer;
+            min-width: 160px;
+        }
+
+        .ordenacao {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        .ordenacao label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .contador {
+            background: #eef2ff;
+            color: var(--cor-secundaria);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .contador .progresso {
+            font-weight: 400;
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .card {
+            background: var(--cor-card);
+            border-radius: 12px;
+            box-shadow: var(--sombra-card);
+            border: 1px solid var(--cor-borda);
+            transition: var(--transicao);
+            cursor: pointer;
+            display: flex;
+            padding: 16px;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            border-color: var(--cor-secundaria);
+        }
+
+        .card-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .card-lexical {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--cor-primaria);
+            margin-bottom: 2px;
+            word-break: break-word;
+        }
+
+        .card-traducao {
+            font-size: 0.95rem;
+            color: #475569;
+            margin-bottom: 6px;
+            word-break: break-word;
+        }
+
+        .card-classe {
+            display: inline-block;
+            background: #eef2ff;
+            color: var(--cor-secundaria);
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .card-midia-indicador {
+            display: flex;
+            gap: 10px;
+            color: #64748b;
+            font-size: 0.75rem;
+        }
+
+        .card-img-wrapper {
+            flex-shrink: 0;
+            width: 70px;
+            height: 70px;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #333;
+        }
+
+        .card-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover .card-img-wrapper img {
+            transform: scale(1.05);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transicao);
+            padding: 20px;
+        }
+
+        .modal-overlay.ativo {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-conteudo {
+            background: var(--cor-card);
+            border-radius: 24px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--sombra-modal);
+            position: relative;
+        }
+
+        .modal-header {
+            position: sticky;
+            top: 0;
+            background: var(--cor-card);
+            padding: 20px 28px 16px;
+            border-bottom: 1px solid var(--cor-borda);
+            z-index: 5;
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .modal-header-titulo {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .modal-header h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--cor-primaria);
+            margin-right: 8px;
+        }
+
+        .modal-audio-btn {
+            background: var(--cor-secundaria);
+            color: white;
+            border: none;
+            border-radius: 40px;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transicao);
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .modal-audio-btn:hover {
+            background: #2563eb;
+            transform: scale(1.05);
+        }
+
+        .modal-nav {
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        .modal-nav-btn {
+            background: #f1f5f9;
+            border: none;
+            border-radius: 40px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transicao);
+            color: var(--cor-texto);
+            font-size: 1.2rem;
+        }
+
+        .modal-nav-btn:hover {
+            background: var(--cor-secundaria);
+            color: white;
+        }
+
+        .modal-nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .modal-fechar {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #64748b;
+            padding: 0 8px;
+            transition: var(--transicao);
+            line-height: 1;
+        }
+
+        .modal-fechar:hover {
+            color: var(--cor-primaria);
+        }
+
+        .modal-body {
+            padding: 24px 28px 32px;
+        }
+
+        .detalhe-secao {
+            margin-bottom: 28px;
+        }
+
+        .detalhe-titulo {
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            margin-bottom: 12px;
+            border-bottom: 1px solid var(--cor-borda);
+            padding-bottom: 6px;
+        }
+
+        .detalhe-valor {
+            font-size: 1.1rem;
+            color: var(--cor-texto);
+        }
+
+        .midia-galeria {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 16px;
+            margin-top: 12px;
+        }
+
+        .midia-item img, .midia-item video {
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid var(--cor-borda);
+        }
+
+        .audio-btn {
+            background: #f8fafc;
+            border: 1px solid var(--cor-borda);
+            border-radius: 30px;
+            padding: 10px 16px;
+            margin: 4px 4px 4px 0;
+            cursor: pointer;
+            transition: var(--transicao);
+            font-size: 0.9rem;
+        }
+
+        .audio-btn:hover {
+            background: var(--cor-secundaria);
+            color: white;
+            border-color: var(--cor-secundaria);
+        }
+
+        .audio-btn i {
+            margin-right: 8px;
+        }
+
+        .exemplo-item {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .exemplo-texto {
+            font-style: italic;
+            margin-bottom: 8px;
+        }
+
+        .exemplo-traducao {
+            color: #475569;
+        }
+
+        .texto-frase {
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px dashed var(--cor-borda);
+        }
+
+        .loading-indicator {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+
+        .sem-resultados {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            background: var(--cor-card);
+            border-radius: 16px;
+            border: 1px solid var(--cor-borda);
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 12px; }
+            .cabecalho { padding: 20px; }
+            .barra-controle { flex-direction: column; align-items: stretch; }
+            .ordenacao { margin-left: 0; justify-content: flex-end; }
+            .filtros { flex-direction: column; }
+            .filtro-select { width: 100%; }
+            .modal-header { flex-wrap: wrap; }
+        }
+
+        .texto-muted { color: #64748b; }
+        .mb-2 { margin-bottom: 8px; }
+        .mt-4 { margin-top: 24px; }
+
+        .midia-item img {
+            cursor: zoom-in;
+        }
+
+        .lightbox-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.92);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease;
+            padding: 20px;
+        }
+
+        .lightbox-overlay.ativo {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .lightbox-img {
+            max-width: 100%;
+            max-height: 90vh;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .lightbox-fechar {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 2.5rem;
+            cursor: pointer;
+            line-height: 1;
+            opacity: 0.8;
+        }
+
+        .lightbox-fechar:hover { opacity: 1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="cabecalho">
+            <h1>{{ metadados.html }}</h1>
+            <div class="meta">
+                <span>&#128100; {{ metadados.autor }}</span>
+                <span>&#128197; Versão {{ metadados.versao }}</span>
+            </div>
+            <div class="introducao">
+                {{ textos.intro_html | safe }}
+            </div>
+        </header>
+
+        <div class="barra-controle">
+            <div class="busca-wrapper">
+                <input type="text" id="search-input" placeholder="Pesquisar termo, tradução, descrição...">
+                <button id="search-button">&#128269; Buscar</button>
+            </div>
+            <div class="filtros">
+                <select id="filtro-semantico" class="filtro-select">
+                    <option value="">Todos os campos semânticos</option>
+                </select>
+                <select id="filtro-classe" class="filtro-select">
+                    <option value="">Todas as classes</option>
+                </select>
+            </div>
+            <div class="ordenacao">
+                <label>
+                    <input type="checkbox" id="ordenar-traducao"> Ordenar por tradução
+                </label>
+            </div>
+            <div class="contador" id="contador-itens">
+                <span id="loading-count">0</span> itens
+                <div id="progresso-carga" class="progresso"></div>
+            </div>
+        </div>
+
+        <div id="grid-container" class="grid-container">
+            <div class="loading-indicator">
+                &#9203; Carregando dados...
+            </div>
+        </div>
+
+        <div id="scroll-sentinela" style="height:1px; width:100%;"></div>
+    </div>
+
+    <div class="lightbox-overlay" id="lightbox-overlay">
+        <button class="lightbox-fechar" id="lightbox-fechar">&times;</button>
+        <img class="lightbox-img" id="lightbox-img" src="" alt="">
+    </div>
+
+    <div class="modal-overlay" id="modal-detalhes">
+        <div class="modal-conteudo">
+            <div class="modal-header">
+                <div class="modal-header-titulo">
+                    <h2 id="modal-titulo"></h2>
+                    <button class="modal-audio-btn" id="modal-audio-btn" style="display: none;" title="Ouvir pronúncia">
+                        🔊
+                    </button>
+                </div>
+                <div class="modal-nav">
+                    <button class="modal-nav-btn" id="modal-anterior" title="Anterior">&#8249;</button>
+                    <button class="modal-nav-btn" id="modal-proximo" title="Próximo">&#8250;</button>
+                </div>
+                <button class="modal-fechar" id="modal-fechar">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body"></div>
+        </div>
+    </div>
+
+    <script>
+        // ==============================================
+        // CONFIGURAÇÕES E VARIÁVEIS GLOBAIS
+        // ==============================================
+        window.TAMANHO_LOTE = 20;
+        let dadosFiltrados = [];
+        let itensExibidos = [];
+        let ultimoIndiceExibido = 0;
+        let carregandoDados = false;
+
+        // Elementos DOM
+        const gridContainer = document.getElementById('grid-container');
+        const searchInput = document.getElementById('search-input');
+        const searchButton = document.getElementById('search-button');
+        const filtroSemantico = document.getElementById('filtro-semantico');
+        const filtroClasse = document.getElementById('filtro-classe');
+        const ordenarTraducaoCheck = document.getElementById('ordenar-traducao');
+        const contadorSpan = document.getElementById('loading-count');
+        const progressoDiv = document.getElementById('progresso-carga');
+        const modalOverlay = document.getElementById('modal-detalhes');
+        const modalTitulo = document.getElementById('modal-titulo');
+        const modalAudioBtn = document.getElementById('modal-audio-btn');
+        const modalBody = document.getElementById('modal-body');
+        const modalFechar = document.getElementById('modal-fechar');
+        const modalAnterior = document.getElementById('modal-anterior');
+        const modalProximo = document.getElementById('modal-proximo');
+        const sentinela = document.getElementById('scroll-sentinela');
+
+        // Estado da busca/filtro
+        let termoBusca = '';
+        let ordenarPorTraducao = false;
+        let filtroSemanticoValor = '';
+        let filtroClasseValor = '';
+
+        let itemAtualNoModal = null;
+
+        // ==============================================
+        // FUNÇÕES AUXILIARES
+        // ==============================================
+        function resolverMidia(nomeArquivo, pasta) {
+            if (!nomeArquivo) return '';
+            
+            // Se já for um Base64 ou Blob URL, devolve direto
+            if (nomeArquivo.startsWith('data:') || nomeArquivo.startsWith('blob:')) {
+                return nomeArquivo;
+            }
+            
+            // Se já tiver a pasta no caminho (ex: foto/gato.jpg)
+            if (nomeArquivo.startsWith(pasta + '/')) {
+                return nomeArquivo;
+            }
+            
+            const midias = window.DicionarioMidias || {};
+            const fonte = midias[nomeArquivo];
+            
+            if (fonte) {
+                return fonte;
+            }
+            
+            // Fallback: caminho relativo
+            return `${pasta}/${nomeArquivo}`;
+        }
+
+        function criarCard(item) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.id = `card-${item.ID || item.TERMO}`;
+            
+            let temImagem = false;
+            let primeiraImagem = null;
+            let temAudio = item.AUDIO ? true : false;
+            let temVideo = false;
+            
+            if (item.SIGNIFICADOS && item.SIGNIFICADOS.length > 0) {
+                item.SIGNIFICADOS.forEach(sig => {
+                    if (sig.IMAGENS && sig.IMAGENS.length > 0) {
+                        temImagem = true;
+                        if (!primeiraImagem) primeiraImagem = sig.IMAGENS[0].ARQUIVO;
+                    }
+                    if (sig.VIDEOS && sig.VIDEOS.length > 0) {
+                        temVideo = true;
+                    }
+                });
+            }
+            
+            let html = `<div class="card-info">`;
+            html += `<div class="card-lexical">${item.TERMO || '???'}</div>`;
+            html += `<div class="card-traducao">${item.INDEX || ''}</div>`;
+            if (item.CLASSE) {
+                html += `<span class="card-classe">🏷️ ${item.CLASSE}</span>`;
+            }
+            html += `<div class="card-midia-indicador">`;
+            if (temImagem) html += `<span>🖼️</span>`;
+            if (temAudio) html += `<span>🔊</span>`;
+            if (temVideo) html += `<span>🎥</span>`;
+            html += `</div></div>`;
+            
+            if (primeiraImagem) {
+                const src = resolverMidia(primeiraImagem, 'foto');
+                html += `<div class="card-img-wrapper"><img src="${src}" alt="${item['ITEM_LEXICAL']}" loading="lazy"></div>`;
+            }
+            
+            card.innerHTML = html;
+            card.addEventListener('click', () => abrirModal(item));
+            return card;
+        }
+
+        function renderizarCards(itens) {
+            gridContainer.innerHTML = '';
+            if (!itens || itens.length === 0) {
+                gridContainer.innerHTML = `<div class="sem-resultados">
+                    <div style="font-size: 3rem; margin-bottom: 16px;">🔍</div>
+                    <h3>Nenhum item encontrado</h3>
+                    <p>Tente ajustar os filtros ou o termo de busca.</p>
+                </div>`;
+                return;
+            }
+            const fragment = document.createDocumentFragment();
+            itens.forEach(item => fragment.appendChild(criarCard(item)));
+            gridContainer.appendChild(fragment);
+        }
+
+        function atualizarProgresso() {
+            const total = dadosFiltrados.length;
+            const exibidos = itensExibidos.length;
+            contadorSpan.textContent = total;
+            progressoDiv.textContent = `${exibidos}/${total} carregados`;
+            if (exibidos < total) {
+                progressoDiv.textContent += ` (${total - exibidos} restantes)`;
+            }
+        }
+
+        // ==============================================
+        // CARREGAMENTO PROGRESSIVO (A PARTIR DA LISTA FILTRADA)
+        // ==============================================
+        function carregarLoteFiltrado(quantidade = window.TAMANHO_LOTE) {
+            if (carregandoDados || ultimoIndiceExibido >= dadosFiltrados.length) return;
+
+            carregandoDados = true;
+            const inicio = ultimoIndiceExibido;
+            const fim = Math.min(inicio + quantidade, dadosFiltrados.length);
+            const lote = dadosFiltrados.slice(inicio, fim);
+
+            itensExibidos.push(...lote);
+            ultimoIndiceExibido = fim;
+
+            renderizarCards(itensExibidos);
+            atualizarProgresso();
+            carregandoDados = false;
+        }
+
+        function setupIntersectionObserver() {
+            const observer = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting && !carregandoDados && ultimoIndiceExibido < dadosFiltrados.length) {
+                    carregarLoteFiltrado();
+                }
+            }, { rootMargin: '200px' });
+            observer.observe(sentinela);
+        }
+
+        // ==============================================
+        // FILTRAGEM E BUSCA (APLICADA SOBRE TODOS OS DADOS)
+        // ==============================================
+        function aplicarFiltrosEBusca() {
+            const termo = termoBusca.toLowerCase();
+            const semantico = filtroSemanticoValor;
+            const classe = filtroClasseValor;
+
+            const dicio = window.dadosDicionarioLexical || [];
+            let resultados = dicio.filter(item => {
+                const itemSemantico = item.CAMPO_SEMANTICO || '';
+                
+                if (semantico && itemSemantico !== semantico) return false;
+                if (classe && item.CLASSE !== classe) return false;
+                if (termo) {
+                    const campos = [
+                        item.TERMO,
+                        item.INDEX,
+                        item.CLASSE,
+                        itemSemantico,
+                        item.SUB_CAMPO_SEMANTICO || ''
+                    ];
+                    if (item.SIGNIFICADOS) {
+                        item.SIGNIFICADOS.forEach(sig => {
+                            campos.push(sig.TRADUCAO);
+                            campos.push(sig.DESCRICAO);
+                        });
+                    }
+                    return campos.some(c => c && c.toString().toLowerCase().includes(termo));
+                }
+                return true;
+            });
+
+            if (ordenarPorTraducao) {
+                resultados.sort((a, b) => (a.INDEX || '').localeCompare(b.INDEX || ''));
+            }
+
+            dadosFiltrados = resultados;
+            itensExibidos = [];
+            ultimoIndiceExibido = 0;
+
+            carregarLoteFiltrado();
+
+            if (modalOverlay.classList.contains('ativo') && itemAtualNoModal) {
+                const aindaPresente = resultados.includes(itemAtualNoModal);
+                if (!aindaPresente) fecharModal();
+                else atualizarEstadoNavegacao();
+            }
+        }
+
+        function inicializarFiltros() {
+            const dicio = window.dadosDicionarioLexical || [];
+            const semanticos = [...new Set(dicio.map(i => i.CAMPO_SEMANTICO).filter(Boolean))].sort();
+            const classes = [...new Set(dicio.map(i => i.CLASSE).filter(Boolean))].sort();
+            
+            filtroSemantico.innerHTML = '<option value="">Todos os campos semânticos</option>';
+            semanticos.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s;
+                opt.textContent = s;
+                filtroSemantico.appendChild(opt);
+            });
+            
+            filtroClasse.innerHTML = '<option value="">Todas as classes</option>';
+            classes.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = c;
+                filtroClasse.appendChild(opt);
+            });
+        }
+
+        // Event listeners
+        searchButton.addEventListener('click', () => {
+            termoBusca = searchInput.value;
+            aplicarFiltrosEBusca();
+        });
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                termoBusca = searchInput.value;
+                aplicarFiltrosEBusca();
+            }
+        });
+        filtroSemantico.addEventListener('change', (e) => {
+            filtroSemanticoValor = e.target.value;
+            aplicarFiltrosEBusca();
+        });
+        filtroClasse.addEventListener('change', (e) => {
+            filtroClasseValor = e.target.value;
+            aplicarFiltrosEBusca();
+        });
+        ordenarTraducaoCheck.addEventListener('change', (e) => {
+            ordenarPorTraducao = e.target.checked;
+            aplicarFiltrosEBusca();
+        });
+
+        // ==============================================
+        // MODAL (mantido igual)
+        // ==============================================
+        function abrirModal(item) {
+            itemAtualNoModal = item;
+            preencherModal(item);
+            modalOverlay.classList.add('ativo');
+            document.body.style.overflow = 'hidden';
+            atualizarEstadoNavegacao();
+        }
+
+        function preencherModal(item) {
+            modalTitulo.textContent = item.TERMO || 'Item';
+            if (item.AUDIO) {
+                const audioSrc = resolverMidia(item.AUDIO.split('~')[0].trim(), 'audio');
+                modalAudioBtn.style.display = 'flex';
+                modalAudioBtn.onclick = () => tocarAudio(audioSrc);
+            } else {
+                modalAudioBtn.style.display = 'none';
+            }
+            let html = '';
+            html += `<div class="detalhe-secao"><div class="detalhe-titulo">ℹ️ Informações</div>`;
+            if (item.INDEX) html += `<div class="detalhe-valor mb-2"><strong>Tradução/Significado:</strong> ${item.INDEX}</div>`;
+            if (item.CLASSE) html += `<div class="detalhe-valor mb-2"><strong>Classe Gramatical:</strong> ${item.CLASSE}</div>`;
+            if (item.CAMPO_SEMANTICO) html += `<div class="detalhe-valor mb-2"><strong>Campo Semântico:</strong> ${item.CAMPO_SEMANTICO}</div>`;
+            if (item.SUB_CAMPO_SEMANTICO) html += `<div class="detalhe-valor mb-2"><strong>Subcampo:</strong> ${item.SUB_CAMPO_SEMANTICO}</div>`;
+            html += `</div>`;
+
+            if (item.FONEMICA || item.FONETICA) {
+                html += `<div class="detalhe-secao"><div class="detalhe-titulo">🔤 Pronúncia</div>`;
+                if (item.FONEMICA) html += `<div class="detalhe-valor mb-2"><strong>Fonêmica:</strong> ${item.FONEMICA}</div>`;
+                if (item.FONETICA) html += `<div class="detalhe-valor"><strong>Fonética:</strong> ${item.FONETICA}</div>`;
+                html += `</div>`;
+            }
+            if (item.AUDIO) {
+                const audios = item.AUDIO.split('~').map(a => a.trim()).filter(Boolean);
+                if (audios.length > 1) {
+                    html += `<div class="detalhe-secao"><div class="detalhe-titulo">🔊 Áudios adicionais</div>`;
+                    audios.slice(1).forEach(aud => { const src = resolverMidia(aud.trim(), 'audio'); html += `<button class="audio-btn" onclick="tocarAudio('${src}')">▶ Ouvir</button>`; });
+                    html += `</div>`;
+                }
+            }
+            if (item.SIGNIFICADOS && item.SIGNIFICADOS.length > 0) {
+                html += `<div class="detalhe-secao"><div class="detalhe-titulo">📖 Significados</div>`;
+                item.SIGNIFICADOS.forEach(sig => {
+                    html += `<div class="exemplo-item" style="background:transparent; border:1px solid var(--cor-borda); padding:16px; margin-bottom:12px;">`;
+                    if (sig.NUMERO) html += `<strong>${sig.NUMERO}. </strong>`;
+                    if (sig.TRADUCAO) html += `<strong class="traducao">${sig.TRADUCAO}</strong><br>`;
+                    if (sig.DESCRICAO) html += `<span class="descricao" style="color:#475569; display:block; margin-top:6px;">${sig.DESCRICAO}</span>`;
+                    
+                    if (sig.EXEMPLOS && sig.EXEMPLOS.length > 0) {
+                        html += `<div style="margin-top:12px;">`;
+                        sig.EXEMPLOS.forEach(ex => {
+                            html += `<div style="margin-bottom:8px; padding-left:12px; border-left:3px solid var(--cor-secundaria);">`;
+                            if (ex.TRANS) html += `<em style="color:#1e293b;">${ex.TRANS}</em><br>`;
+                            if (ex.TRAD) html += `<span style="color:#64748b;">"${ex.TRAD}"</span>`;
+                            html += `</div>`;
+                        });
+                        html += `</div>`;
+                    }
+                    
+                    if (sig.IMAGENS && sig.IMAGENS.length > 0) {
+                        html += `<div class="midia-galeria" style="margin-top:12px;">`;
+                        sig.IMAGENS.forEach(img => {
+                            const src = resolverMidia(img.ARQUIVO, 'foto');
+                            html += `<div class="midia-item"><img src="${src}" alt="${img.LEGENDA}" loading="lazy">${img.LEGENDA ? `<div class="texto-muted" style="margin-top:6px; font-size:12px;">${img.LEGENDA}</div>` : ''}</div>`; 
+                        });
+                        html += `</div>`;
+                    }
+                    
+                    if (sig.VIDEOS && sig.VIDEOS.length > 0) {
+                        html += `<div class="midia-galeria" style="margin-top:12px;">`;
+                        sig.VIDEOS.forEach(vid => {
+                            const src = resolverMidia(vid.ARQUIVO, 'video'); 
+                            html += `<div class="midia-item"><video controls><source src="${src}"></video></div>`; 
+                        });
+                        html += `</div>`;
+                    }
+
+                    if (sig.EXTRAS && sig.EXTRAS.length > 0) {
+                        html += `<div style="margin-top:12px; font-size:0.95em; color:#475569;">`;
+                        sig.EXTRAS.forEach(ex => {
+                            html += `<div style="margin-bottom:6px;">${ex.TEXTO}</div>`;
+                        });
+                        html += `</div>`;
+                    }
+
+                    html += `</div>`; 
+                });
+                html += `</div>`; 
+            }
+
+            if (item.ITENS_RELACIONADOS) {
+                html += `<div class="detalhe-secao"><div class="detalhe-titulo">🔗 Relacionados</div>`;
+                html += `<div class="detalhe-valor">${item.ITENS_RELACIONADOS}</div></div>`;
+            }
+
+            if (item.TEXTOS_ESTRUTURADOS && item.TEXTOS_ESTRUTURADOS.length > 0) {
+                html += `<div class="detalhe-secao"><div class="detalhe-titulo">¶ Textos Adicionais</div>`;
+                item.TEXTOS_ESTRUTURADOS.forEach(texto => {
+                    if (texto.TITULO_BASE) html += `<h3 style="margin-bottom:12px; color:var(--cor-primaria); font-size:1.1rem;">${texto.TITULO_BASE}</h3>`;
+                    
+                    if (texto.VARIACOES) {
+                        texto.VARIACOES.forEach(variacao => {
+                            if (variacao.FRASES) {
+                                variacao.FRASES.forEach(frase => {
+                                    html += `<div class="texto-frase">`;
+                                    if (frase.ORIGINAL) html += `<div><strong>Original:</strong> ${frase.ORIGINAL}</div>`;
+                                    if (frase.TRADUCAO) html += `<div class="texto-muted"><strong>Tradução:</strong> ${frase.TRADUCAO}</div>`;
+                                    if (frase.AUDIO_ARQUIVO) {
+                                        const src = resolverMidia(frase.AUDIO_ARQUIVO, 'audio');
+                                        html += `<button class="audio-btn" style="margin-top:6px;" onclick="tocarAudio('${src}')">▶ Ouvir</button>`;
+                                    }
+                                    html += `</div>`;
+                                });
+                            }
+                        });
+                    }
+                    if (texto.TEXTO_NAO_LITERAL) html += `<div class="mt-4 p-3" style="background:#f1f5f9; border-radius:12px;">${texto.TEXTO_NAO_LITERAL}</div>`;
+                });
+                html += `</div>`;
+            }
+            modalBody.innerHTML = html;
+        }
+
+        function atualizarEstadoNavegacao() {
+            if (!itemAtualNoModal) return;
+            const idx = dadosFiltrados.indexOf(itemAtualNoModal);
+            modalAnterior.disabled = (idx <= 0);
+            modalProximo.disabled = (idx >= dadosFiltrados.length - 1);
+        }
+
+        function navegarModal(direcao) {
+            if (!itemAtualNoModal) return;
+            let idx = dadosFiltrados.indexOf(itemAtualNoModal);
+            if (direcao === 'anterior' && idx > 0) idx--;
+            else if (direcao === 'proximo' && idx < dadosFiltrados.length - 1) idx++;
+            else return;
+            itemAtualNoModal = dadosFiltrados[idx];
+            preencherModal(itemAtualNoModal);
+            atualizarEstadoNavegacao();
+        }
+
+        function fecharModal() {
+            modalOverlay.classList.remove('ativo');
+            document.body.style.overflow = '';
+            itemAtualNoModal = null;
+        }
+
+        window.tocarAudio = function(src) {
+            const audio = new Audio(src);
+            audio.play().catch(e => console.warn('Erro ao tocar áudio:', e));
+        };
+
+        modalFechar.addEventListener('click', fecharModal);
+        modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) fecharModal(); });
+        modalAnterior.addEventListener('click', () => navegarModal('anterior'));
+        modalProximo.addEventListener('click', () => navegarModal('proximo'));
+
+        // Lightbox
+        const lightboxOverlay = document.getElementById('lightbox-overlay');
+        const lightboxImg = document.getElementById('lightbox-img');
+        document.getElementById('lightbox-fechar').addEventListener('click', () => lightboxOverlay.classList.remove('ativo'));
+        lightboxOverlay.addEventListener('click', (e) => { if (e.target === lightboxOverlay) lightboxOverlay.classList.remove('ativo'); });
+        modalBody.addEventListener('click', (e) => {
+            if (e.target.tagName === 'IMG' && e.target.closest('.midia-item')) {
+                lightboxImg.src = e.target.src;
+                lightboxImg.alt = e.target.alt || '';
+                lightboxOverlay.classList.add('ativo');
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (lightboxOverlay.classList.contains('ativo')) lightboxOverlay.classList.remove('ativo');
+                else if (modalOverlay.classList.contains('ativo')) fecharModal();
+            }
+        });
+
+        // ==============================================
+        // INICIALIZAÇÃO
+        // ==============================================
+        document.addEventListener("DOMContentLoaded", () => {
+            inicializarFiltros();
+            dadosFiltrados = [...(window.dadosDicionarioLexical || [])];
+            carregarLoteFiltrado();
+            setupIntersectionObserver();
+        });
+    </script>
+
+    {{ scripts_dados_js | safe }}
+</body>
+</html>

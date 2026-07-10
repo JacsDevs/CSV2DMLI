@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ metadados.html }}</title>
+    <style>
+        {{ estilos_globais }}
+
+        /* === Variáveis de cores e imagens (idênticas ao dicionario.html) === */
+        :root {
+            --cor-border: #4D4637;
+            --cor-fundo-h1: #82bfa0;
+            --cor-gradient-body: #fdf2c5;
+            --cor-scrollbar-bg: #D0D4CE;
+            --cor-scrollbar-thumb: #71806B;
+            --cor-hover: #1D8563;
+            --cor-menu-bg: #82bfa0;
+            --cor-menu-hover: #555;
+            --cor-menu-ativo: #1b1c1c;
+            --cor-texto: #444;
+            --cor-branco: #fff;
+        }
+
+        /* === Reset e body === */
+        body {
+            background: var(--cor-gradient-body);
+            color: var(--cor-texto);
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.5;
+            padding: 0;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        p { text-align: justify; }
+
+        /* === Cabeçalho === */
+        .cabecalho {
+            align-items: center;
+            margin-top: 100px;
+            text-align: center;
+            padding: 20px 0;
+        }
+        .cabecalho h1 {
+            text-align: center;
+            border-radius: 10px;
+            background-color: var(--cor-fundo-h1);
+            font-family: "Georgia", sans-serif;
+            font-size: 30px;
+            font-weight: bold;
+            line-height: 0.6;
+            padding: 10px;
+        }
+        .cabecalho .meta {
+            text-align: center;
+            font-weight: bold;
+            color: var(--cor-texto);
+        }
+        .cabecalho .meta span {
+            display: block;
+        }
+        .introducao {
+            overflow-x: auto;
+            text-align: justify;
+            margin-top: 10px;
+            padding: 0 18px;
+        }
+
+        /* === Conteúdo principal === */
+        .conteudo {
+            padding: 10px 20px;
+        }
+
+        /* === Título de categoria (equivale ao div h1 e .accordion do dicionário) === */
+        .categoria-titulo {
+            text-align: center;
+            border-radius: 10px;
+            background-color: var(--cor-fundo-h1);
+            font-family: "Georgia", sans-serif;
+            font-size: 30px;
+            font-weight: bold;
+            line-height: 0.6;
+            padding: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        /* === Subcategoria (equivale ao .sub-c) === */
+        .subcategoria-titulo {
+            width: 100%;
+            text-align: center;
+            margin: auto;
+            display: table;
+            font-size: 25px;
+            font-weight: bold;
+            font-family: "Georgia";
+            border-radius: 10px;
+            background-color: var(--cor-fundo-h1);
+        }
+
+        /* === Entrada lexical (equivale ao .entrada_lexical) === */
+        .entry-linear {
+            position: relative;
+            border-top: 1px solid var(--cor-fundo-h1);
+            border-bottom: 1px solid var(--cor-fundo-h1);
+            border-radius: 10px;
+            padding: 10px;
+            margin: 5px;
+        }
+
+        /* === Termo / palavra de entrada (equivale ao .palavra_entrada) === */
+        .entry-linear .termo {
+            font-family: "Georgia";
+            font-weight: bold;
+            line-height: 1.1;
+            color: inherit;
+            font-size: 30px;
+            margin-top: 22px;
+            margin-bottom: 11px;
+            display: inline;
+        }
+
+        /* === Fonética e fonêmica (equivale ao .entradalex) === */
+        .entry-linear .fonetica,
+        .entry-linear .fonemica {
+            font-weight: normal;
+            font-size: 16px;
+            color: var(--cor-texto);
+        }
+
+        /* === Classe gramatical === */
+        .entry-linear .classe {
+            font-weight: normal;
+            font-size: 16px;
+            font-style: italic;
+            color: var(--cor-texto);
+        }
+
+        /* === Significados === */
+        .entry-linear .significado-linear {
+            display: block;
+        }
+
+        /* === Exemplos === */
+        .entry-linear .exemplo-inline {
+            display: block;
+            margin: 0 0 11px;
+        }
+
+        /* === Imagens === */
+        .entry-linear .figura-inline {
+            text-align: center;
+        }
+        .entry-linear .figura-inline img {
+            display: inline-block;
+            margin: 0 auto;
+            max-width: 100%;
+            height: auto;
+            cursor: pointer;
+        }
+        .entry-linear .figura-inline figcaption {
+            display: block;
+            text-align: center;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+
+        /* === Áudio === */
+        .entry-linear .audio-inline {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        audio::-webkit-media-controls-enclosure {
+            background-color: #82bfa0;
+        }
+
+        /* === Textos === */
+        .textos-linear {
+            display: block;
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 16px;
+            color: var(--cor-texto);
+        }
+
+        /* === Itens relacionados === */
+        .entry-linear .relacionados-inline {
+            color: var(--cor-texto);
+            font-size: 16px;
+            display: block;
+            margin-top: 5px;
+        }
+
+        /* === Extras === */
+        .entry-linear .extra-inline {
+            display: block;
+        }
+
+        /* === Responsividade === */
+        @media (max-width: 700px) {
+            .cabecalho {
+                margin-top: 100px;
+            }
+            .conteudo {
+                padding: 10px;
+            }
+        }
+
+        /* === Estilos do Modal de Imagem === */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+        }
+        #imageModal-div {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        .modal-content {
+            display: block;
+            width: 100%;
+            max-width: 1200px;
+            max-height: 90vh;
+            object-fit: contain;
+        }
+        .close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        .close:hover,
+        .close:focus {
+            color: #bbb;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <header class="cabecalho">
+        <h1>{{ metadados.html }}</h1>
+        <div class="meta">
+            <span>{{ metadados.autor }}</span>
+            <span>Versão {{ metadados.versao }}</span>
+        </div>
+        <div class="introducao">{{ textos.intro_html | safe }}</div>
+    </header>
+
+    <div class="conteudo">
+        {{ corpo_dicionario | safe }}
+    </div>
+
+    <!-- Modal de Imagem -->
+    <div id="imageModal" class="modal" onclick="closeModalOnClickOutside(event)">
+        <div id="imageModal-div">
+            <button onclick="closeModal()" class="close">&times;</button>
+            <img class="modal-content" id="modalImage">
+        </div>
+    </div>
+
+    {{ scripts_dados_js | safe }}
+
+    <script>
+        // Função para abrir o modal e exibir a imagem ampliada
+        function openModal(src) {
+            var modal = document.getElementById("imageModal");
+            var modalImg = document.getElementById("modalImage");
+            modal.style.display = "flex";
+            modalImg.src = src;
+        }
+
+        // Função para fechar o modal
+        function closeModal() {
+            var modal = document.getElementById("imageModal");
+            modal.style.display = "none";
+        }
+
+        // Função para fechar o modal ao clicar fora da imagem
+        function closeModalOnClickOutside(event) {
+            var modalImg = document.getElementById("modalImage");
+            if (event.target !== modalImg && event.target.className !== 'close') {
+                closeModal();
+            }
+        }
+
+        // Lazy Loading de Mídias
+        document.addEventListener('DOMContentLoaded', function () {
+            const observer = new IntersectionObserver((entries, obs) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const el = entry.target;
+                        const src = el.getAttribute('data-src');
+                        if (src) {
+                            if (el.tagName === 'AUDIO' || el.tagName === 'VIDEO') {
+                                // Propaga src para todos os <source> filhos e recarrega
+                                el.querySelectorAll('source[data-src]').forEach(s => {
+                                    s.src = s.getAttribute('data-src');
+                                    s.removeAttribute('data-src');
+                                });
+                                el.load();
+                            } else {
+                                el.src = src;
+                            }
+                            el.removeAttribute('data-src');
+                        }
+                        obs.unobserve(el);
+                    }
+                });
+            });
+
+            document.querySelectorAll('img[data-src], audio[data-src]').forEach(el => observer.observe(el));
+        });
+    </script>
+</body>
+</html>

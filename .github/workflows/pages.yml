@@ -1,0 +1,49 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Preparar arquivos web
+        run: |
+          mkdir -p dist
+          cp index-wizard.html dist/index.html
+          cp manifest.json     dist/manifest.json
+          cp sw.js             dist/sw.js
+          cp -r packages dist/packages
+          cp -r static   dist/static
+          cp -r assets   dist/assets
+          cp -r config   dist/config
+          cp -r vendor   dist/vendor
+          # Desativa processamento Jekyll (necessário para arquivos com _ no nome)
+          touch dist/.nojekyll
+
+      - name: Upload artefato Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: Deploy no GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
