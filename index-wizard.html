@@ -297,6 +297,50 @@
         }
         .explorer-item:hover .explorer-item-remove { display: flex; }
         .explorer-item-remove:hover { color: var(--error); }
+
+        /* =====================================================
+           RESPONSIVIDADE MOBILE DO WIZARD
+        ===================================================== */
+        @media (max-width: 768px) {
+            /* Abas do stepper: só a ativa mostra o título, as demais só o número */
+            .step-indicator-title { display: none; }
+            .step-indicator.active .step-indicator-title { display: inline; }
+
+            /* Abas inativas mais estreitas, dando mais espaço ao título da ativa */
+            .step-indicator {
+                flex: 0.6;
+                padding-left: 4px;
+                padding-right: 4px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .step-indicator.active {
+                flex: 2;
+            }
+
+            /* Cabeçalho do passo: ícone + badge numa linha, título logo abaixo */
+            .step-title-large {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .step-title-top {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            /* Bloco "Checagem do Dicionário / Gerar Relatório" */
+            .gerar-relatorio-row {
+                flex-direction: column;
+            }
+
+            /* Footer do wizard: menos padding e espaço entre os botões */
+            .wizard-footer {
+                padding: 12px 16px;
+                gap: 10px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -316,11 +360,11 @@
                 
                 <!-- Stepper Superior -->
                 <div class="wizard-stepper">
-                    <div class="step-indicator active" id="indicator1" onclick="window.irParaPasso(1)">1. Fonte de Dados</div>
-                    <div class="step-indicator" id="indicator2" onclick="window.irParaPasso(2)">2. Mídias e Validação</div>
-                    <div class="step-indicator" id="indicator3" onclick="window.irParaPasso(3)">3. Metadados</div>
-                    <div class="step-indicator" id="indicator4" onclick="window.irParaPasso(4)">4. Estrutura</div>
-                    <div class="step-indicator" id="indicator5" onclick="window.irParaPasso(5)">5. Exportar</div>
+                    <div class="step-indicator active" id="indicator1" onclick="window.irParaPasso(1)"><span class="step-indicator-num">1.</span><span class="step-indicator-title"> Fonte de Dados</span></div>
+                    <div class="step-indicator" id="indicator2" onclick="window.irParaPasso(2)"><span class="step-indicator-num">2.</span><span class="step-indicator-title"> Mídias e Validação</span></div>
+                    <div class="step-indicator" id="indicator3" onclick="window.irParaPasso(3)"><span class="step-indicator-num">3.</span><span class="step-indicator-title"> Metadados</span></div>
+                    <div class="step-indicator" id="indicator4" onclick="window.irParaPasso(4)"><span class="step-indicator-num">4.</span><span class="step-indicator-title"> Estrutura</span></div>
+                    <div class="step-indicator" id="indicator5" onclick="window.irParaPasso(5)"><span class="step-indicator-num">5.</span><span class="step-indicator-title"> Exportar</span></div>
                 </div>
                 
                 <!-- Corpo das Etapas -->
@@ -328,7 +372,7 @@
                     
                     <!-- PASSO 1 -->
                     <div class="wizard-step active" id="step1">
-                        <h2 class="step-title-large">📊 <span id="badgeCsv" class="step-badge" style="font-size: 0.5em; vertical-align: middle;">Pendente</span> Fonte de Dados</h2>
+                        <h2 class="step-title-large"><span class="step-title-top">📊 <span id="badgeCsv" class="step-badge" style="font-size: 0.5em; vertical-align: middle;">Pendente</span></span> Fonte de Dados</h2>
                         <p class="step-desc" style="margin-bottom: 20px;">Selecione a pasta do projeto (recomendado) ou apenas o arquivo CSV.</p>
                         
                         <div class="drop-zone drop-zone-highlight" id="pastaProjetoDropZone">
@@ -337,7 +381,7 @@
                             <input type="file" id="filePastaProjeto" webkitdirectory multiple style="display:none">
                         </div>
 
-                        <div class="divider-text" style="margin: 20px 0;"><span>ou</span></div>
+                        <div class="divider-text" style="margin: 20px 0; text-align: center;"><span>ou</span></div>
 
                         <div style="display: grid; grid-template-columns: 1fr; gap: 15px;">
                             <div class="drop-zone" id="csvDropZone">
@@ -355,7 +399,7 @@
 
                     <!-- PASSO 2 -->
                     <div class="wizard-step" id="step2">
-                        <h2 class="step-title-large">📁 <span id="badgeMidias" class="step-badge" style="font-size: 0.5em; vertical-align: middle;">Pendente</span> Mídias e Validação</h2>
+                        <h2 class="step-title-large"><span class="step-title-top">📁 <span id="badgeMidias" class="step-badge" style="font-size: 0.5em; vertical-align: middle;">Pendente</span></span> Mídias e Validação</h2>
                         <p class="step-desc" style="margin-bottom: 20px;">Adicione recursos multimídia ou valide sua base de dados atual.</p>
                         
                         <div class="media-grid-simple">
@@ -375,7 +419,7 @@
                         
 
 
-                        <div style="display: flex; gap: 10px; margin-top: 15px; background: #f8fafc; padding: 15px; border-radius: 8px;">
+                        <div class="gerar-relatorio-row" style="display: flex; gap: 10px; margin-top: 15px; background: #f8fafc; padding: 15px; border-radius: 8px;">
                             <div style="flex: 1;">
                                 <strong>Checagem do Dicionário (Validador de Dados)</strong>
                                 <p style="font-size: 12px; color: var(--text-muted); margin: 5px 0;">Identifique referências quebradas e erros estruturais.</p>
@@ -386,7 +430,7 @@
 
                     <!-- PASSO 3 -->
                     <div class="wizard-step" id="step3">
-                        <h2 class="step-title-large">📝 <span id="badgeMeta" class="step-badge" style="font-size: 0.5em; vertical-align: middle;">Pendente</span> Metadados Básicos</h2>
+                        <h2 class="step-title-large"><span class="step-title-top">📝 <span id="badgeMeta" class="step-badge" style="font-size: 0.5em; vertical-align: middle;">Pendente</span></span> Metadados Básicos</h2>
                         <p class="step-desc" style="margin-bottom: 20px;">Preencha as informações do produto final.</p>
                         
                         <div class="form-grid-2">
@@ -421,7 +465,7 @@
 
                     <!-- PASSO 4 -->
                     <div class="wizard-step" id="step4">
-                        <h2 class="step-title-large">🗂️ <span id="badgeEstrutura" class="step-badge" style="font-size: 0.5em; vertical-align: middle;">Automático</span> Estrutura & Ordenação</h2>
+                        <h2 class="step-title-large"><span class="step-title-top">🗂️ <span id="badgeEstrutura" class="step-badge" style="font-size: 0.5em; vertical-align: middle;">Automático</span></span> Estrutura & Ordenação</h2>
                         <p class="step-desc" style="margin-bottom: 20px;">Configure a organização das entradas no layout de saída.</p>
                         
                         <div class="estrutura-grid">
