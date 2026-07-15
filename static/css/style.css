@@ -575,7 +575,10 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
    TERMINAL PANEL (Right Sidebar)
 ========================================= */
 .terminal-panel {
-    width: 380px;
+    /* Item flex real (não fixed): ao abrir, empurra o .main-panel em vez de
+       sobrepor a tela. Ver .app-layout (display:flex) no topo do arquivo. */
+    width: 0;
+    flex-shrink: 0;
     background: #0f172a;
     color: #e2e8f0;
     display: flex;
@@ -583,44 +586,40 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     border-left: 1px solid #1e293b;
     box-shadow: -4px 0 15px rgba(0,0,0,0.1);
     z-index: 20;
-    position: fixed;
-    top: 0;
-    right: 0;
-    height: 100vh;
-    transform: translateX(100%);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .terminal-panel.open {
-    transform: translateX(0);
+    width: 380px;
 }
 
 .terminal-toggle-tab {
-    position: fixed;
-    top: 50%;
-    right: 0;
-    transform: translateY(-50%);
+    position: relative;
     background: #0f172a;
     color: #e2e8f0;
     border: 1px solid #1e293b;
-    border-right: none;
-    border-radius: var(--radius-md) 0 0 var(--radius-md);
-    padding: 14px 10px;
+    border-radius: 999px;
+    width: 44px;
+    height: 44px;
+    padding: 0;
     cursor: pointer;
-    box-shadow: -2px 0 10px rgba(0,0,0,0.15);
-    z-index: 21;
+    box-shadow: var(--shadow-md);
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 4px;
-    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s, border-color 0.2s, transform 0.2s;
 }
 
-.terminal-toggle-tab:hover { background: #1e293b; }
-.terminal-toggle-tab.open { right: 380px; }
+.terminal-toggle-tab:hover { background: #1e293b; transform: scale(1.06); }
+.terminal-toggle-tab.open { background: var(--primary); border-color: var(--primary); }
 .terminal-toggle-icon { font-size: 1.2rem; }
 
 .terminal-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
     background: var(--error);
     color: white;
     font-size: 0.7rem;
@@ -632,6 +631,7 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     align-items: center;
     justify-content: center;
     padding: 0 4px;
+    border: 2px solid var(--bg-main);
 }
 
 .terminal-header {
@@ -703,10 +703,25 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
 /* =========================================
    MISCELLANEOUS
 ========================================= */
-.zoom-control {
+/* Container fixo que agrupa o botão do terminal e o controle de zoom lado a
+   lado, sempre flutuando no canto inferior direito. Quando o terminal abre,
+   o próprio wrapper desliza para a esquerda para não ficar em cima do painel. */
+.floating-controls {
     position: fixed;
     bottom: 24px;
     right: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 50;
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1), bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.floating-controls.terminal-open {
+    right: 404px; /* 380px do painel + 24px de respiro */
+}
+
+.zoom-control {
     background: var(--bg-card);
     padding: 8px 12px;
     border-radius: var(--radius-pill);
@@ -715,12 +730,6 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     align-items: center;
     gap: 12px;
     border: 1px solid var(--border-color);
-    z-index: 50;
-    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.zoom-control.terminal-open {
-    right: 404px; /* Left of open terminal */
 }
 
 .zoom-control button {
@@ -733,6 +742,39 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
 }
 .zoom-control button:hover { color: var(--primary); transform: scale(1.1); }
 .zoom-level { font-weight: 600; font-size: 0.9rem; color: var(--text-main); min-width: 45px; text-align: center; }
+
+/* =========================================
+   TERMINAL & CONTROLES FLUTUANTES — MOBILE
+   No mobile o painel vira uma gaveta que sobe da borda inferior
+   (ocupando menos da metade da tela) em vez de empurrar as laterais.
+========================================= */
+@media (max-width: 768px) {
+    .app-layout {
+        flex-direction: column;
+    }
+
+    .main-panel {
+        min-height: 0; /* permite encolher quando a gaveta do terminal cresce */
+    }
+
+    .terminal-panel {
+        width: 100%;
+        height: 0;
+        border-left: none;
+        border-top: 1px solid #1e293b;
+        transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .terminal-panel.open {
+        width: 100%;
+        height: 45vh; /* menos da metade da tela */
+    }
+
+    .floating-controls.terminal-open {
+        right: 16px; /* sem painel lateral no mobile, não desliza horizontalmente */
+        bottom: calc(45vh + 16px); /* sobe para não ficar coberto pela gaveta aberta */
+    }
+}
 
 /* Custom Scrollbars */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
