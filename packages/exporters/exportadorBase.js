@@ -180,30 +180,36 @@ class ExportadorBase {
             }
             
             if (arquivosParaConverter.length > 0) {
-                console.log(`⏳ Iniciando conversão de ${arquivosParaConverter.length} mídias via Web Worker...`);
+                console.log(`⏳ Iniciando conversão de ${arquivosParaConverter.length} mídias para Base64 na thread principal...`);
                 
-                await new Promise((resolve) => {
-                    const worker = new Worker(new URL('./workers/exportacaoWorker.js', import.meta.url).href);
-                    worker.onmessage = (e) => {
-                        const { tipo, convertidos, total, resultado } = e.data;
-                        if (tipo === 'progresso') {
-                            console.log(`  Progresso conversão: ${convertidos}/${total}`);
-                            // Opcional: disparar evento customizado para a UI pegar a barra de progresso
-                            const evento = new CustomEvent('exportacaoProgresso', { detail: { progresso: convertidos, total } });
-                            window.dispatchEvent(evento);
-                        } else if (tipo === 'concluido') {
-                            Object.assign(midias, resultado);
-                            worker.terminate();
-                            resolve();
-                        }
-                    };
-                    worker.onerror = (err) => {
-                        console.error('Erro no Worker de exportação:', err);
-                        worker.terminate();
-                        resolve(); // Resolve de qualquer forma para não travar
-                    };
-                    worker.postMessage({ id: 1, tipo: 'gerarBase64', arquivos: arquivosParaConverter });
+                const converterParaBase64 = (blob) => new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
                 });
+
+                let convertidos = 0;
+                for (const item of arquivosParaConverter) {
+                    try {
+                        const b64 = await converterParaBase64(item.arquivo);
+                        if (b64) {
+                            midias[item.nome] = b64;
+                        }
+                    } catch (err) {
+                        console.warn(`Falha ao converter mídia para Base64: ${item.nome}`, err);
+                        // Fallback para caminho relativo
+                        const tipo = item.arquivo.type.startsWith('audio') ? 'audio/' : (item.arquivo.type.startsWith('video') ? 'video/' : 'foto/');
+                        midias[item.nome] = tipo + item.nome;
+                    }
+                    convertidos++;
+                    if (convertidos % 5 === 0) {
+                        const evento = new CustomEvent('exportacaoProgresso', { detail: { progresso: convertidos, total: arquivosParaConverter.length } });
+                        window.dispatchEvent(evento);
+                        // Evita travamento da UI
+                        await new Promise(r => setTimeout(r, 10));
+                    }
+                }
                 
                 console.log('✅ Conversão concluída!');
             }
