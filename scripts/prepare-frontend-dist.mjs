@@ -13,7 +13,7 @@ const DIST = 'dist-desktop';
 await rm(DIST, { recursive: true, force: true });
 await mkdir(DIST, { recursive: true });
 
-await cp('index-wizard.html', `${DIST}/index.html`);
+await cp('index.html', `${DIST}/index.html`);
 
 for (const dir of ['packages', 'static', 'assets', 'config', 'vendor']) {
     if (existsSync(dir)) {
@@ -22,3 +22,4 @@ for (const dir of ['packages', 'static', 'assets', 'config', 'vendor']) {
 }
 
 console.log(`Frontend dist preparado em ${DIST}/`);
+

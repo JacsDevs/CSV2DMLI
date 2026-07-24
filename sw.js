@@ -1,12 +1,12 @@
 // const CACHE = 'csv2dmli-v2'; // versão anterior (antes do Toast UI Editor) - reverter para esta linha se abandonar o editor
-const CACHE = 'csv2dmli-v5';
+const CACHE = 'csv2dmli-v6';
 
 // Deriva o base path do próprio URL do SW.
 // Em GitHub Pages: '/CSV2RMD-teste'  |  Em localhost: ''
 const BASE = self.location.pathname.replace(/\/sw\.js$/, '');
 
 const PRE_CACHE = [
-  BASE + '/index-wizard.html',
+  BASE + '/index.html',
   BASE + '/manifest.json',
   BASE + '/static/icons/icon-192.png',
   BASE + '/static/icons/icon-512.png',
@@ -97,7 +97,7 @@ self.addEventListener('fetch', e => {
       
       // Se for uma tentativa de navegação de página e falhar, força o index-wizard
       if (e.request.mode === 'navigate') {
-        return caches.match(BASE + '/index-wizard.html', { ignoreSearch: true });
+        return caches.match(BASE + '/index.html', { ignoreSearch: true });
       }
       
       // Retorna uma resposta amigável para evitar travamentos
@@ -105,3 +105,4 @@ self.addEventListener('fetch', e => {
     })
   );
 });
+
