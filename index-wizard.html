@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -1007,13 +1007,12 @@
     // Expor função globalmente para uso manual em etapas específicas
     window.adicionarLogAoTerminal = adicionarLogAoTerminal;
 
-    // Espelha automaticamente todo console.log/info/warn/error no terminal da
-    // interface, para que ele sempre reflita o que o programa está fazendo
-    // (não só os pontos que chamam adicionarLogAoTerminal manualmente).
-    // O console real do navegador continua recebendo tudo normalmente.
-    ['log', 'info', 'warn', 'error'].forEach((metodo) => {
+    // Espelha automaticamente apenas avisos e erros no terminal da
+    // interface, para manter a visualização do usuário mais limpa.
+    // Mensagens de debug (console.log) aparecerão apenas no console do navegador (F12).
+    ['warn', 'error'].forEach((metodo) => {
         const original = console[metodo].bind(console);
-        const tipo = metodo === 'log' ? 'info' : metodo;
+        const tipo = metodo;
         console[metodo] = function(...args) {
             original(...args);
             adicionarLogAoTerminal(args.map(formatarMensagem).join(' '), tipo);
@@ -1674,12 +1673,29 @@
         if (filePastaProj) {
             filePastaProj.addEventListener('change', async e => {
                 if (e.target.files.length > 0) {
+                    const numArquivos = e.target.files.length;
                     window.mostrarLoader('Processando Projeto', 'Lendo a estrutura da pasta e arquivos...');
+                    // Permite que o navegador renderize o modal antes de travar a thread
+                    await new Promise(r => setTimeout(r, 50));
+                    
                     try {
                         await window.carregadorPasta.carregarPasta(e.target.files);
                         if(window.preencherUIComMetadados) window.preencherUIComMetadados();
+                        
+                        if (window.adicionarLogAoTerminal) {
+                            const stats = window.sistema ? window.sistema.obterEstatisticas() : null;
+                            const numRegistros = stats ? stats.totalBases : 0;
+                            window.adicionarLogAoTerminal(`✅ Passo 1 Concluído! Pasta processada (${numArquivos} arquivos, ${numRegistros} registros).`, 'info');
+                        }
+                        
+                        // Avança para a aba "Mídias e Validação"
+                        if (window.irParaPasso) {
+                            window.irParaPasso(2);
+                        }
+                        
                     } finally {
                         window.ocultarLoader();
+                        e.target.value = ''; // Limpa o input
                     }
                 }
             });
@@ -1690,10 +1706,22 @@
             fileCsvIn.addEventListener('change', async e => {
                 if (e.target.files.length > 0) {
                     window.mostrarLoader('Processando CSV', 'Lendo entradas do dicionário...');
+                    await new Promise(r => setTimeout(r, 50));
                     try {
                         await window.sistema.carregarPlanilha(e.target.files[0]);
+                        
+                        if (window.adicionarLogAoTerminal) {
+                            const stats = window.sistema ? window.sistema.obterEstatisticas() : null;
+                            const numRegistros = stats ? stats.totalBases : 0;
+                            window.adicionarLogAoTerminal(`✅ Passo 1 Concluído! Planilha carregada (${numRegistros} registros).`, 'info');
+                        }
+                        
+                        if (window.irParaPasso) {
+                            window.irParaPasso(2);
+                        }
                     } finally {
                         window.ocultarLoader();
+                        e.target.value = ''; // Limpa o input
                     }
                 }
             });
@@ -2347,7 +2375,11 @@
         document.getElementById('apkSucesso').style.display     = 'block';
     }
 
-    iniciar();
+    iniciar().then(() => {
+        if (window.adicionarLogAoTerminal) {
+            window.adicionarLogAoTerminal('✅ Módulos do sistema inicializados com sucesso! Aguardando seleção de arquivos (Passo 1).', 'info');
+        }
+    });
 </script>
 
 <!-- Lógica de Interface: Assistente (Wizard) & Zoom -->

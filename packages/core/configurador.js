@@ -11,7 +11,7 @@ class Configurador {
         try {
             const resposta = await fetch(caminho);
             this.config = await resposta.json();
-            console.log('✅ Configurações carregadas:', this.config);
+            // Removido console.log gigante
             return this.config;
         } catch (erro) {
             console.error('❌ Erro ao carregar configurações:', erro);
