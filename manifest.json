@@ -2,7 +2,7 @@
   "name": "CSV2DMLI",
   "short_name": "CSV2DMLI",
   "description": "Carregador de CSV e Mídias — exporta HTML, PDF, Typst e App Android",
-  "start_url": "index-wizard.html",
+  "start_url": "index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -13,3 +13,4 @@
     { "src": "static/icons/icon-512.png",  "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }
+

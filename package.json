@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "npx live-server --port=8080 --no-browser --open=index-wizard.html .",
+    "dev": "npx live-server --port=8080 --no-browser --open=index.html .",
     "build": "node scripts/prepare-frontend-dist.mjs",
     "build:vendor-android": "node scripts/build-vendor-android.mjs",
     "build:android-template": "node scripts/generate-mipmap-icons.mjs && cd android-template && ./gradlew :app:bundleDebug :app:assembleDebug && cp app/build/outputs/bundle/debug/app-debug.aab ../vendor/android/template.aab && cp app/build/outputs/apk/debug/app-debug.apk ../vendor/android/template.apk",
@@ -30,3 +30,4 @@
     "protobufjs": "^7.6.4"
   }
 }
+

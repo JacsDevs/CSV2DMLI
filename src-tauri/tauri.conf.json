@@ -5,7 +5,7 @@
   "identifier": "br.com.csv2dmli.dicionario",
   "build": {
     "frontendDist": "../dist-desktop",
-    "devUrl": "http://localhost:8080/index-wizard.html",
+    "devUrl": "http://localhost:8080/index.html",
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build"
   },
@@ -38,3 +38,4 @@
     ]
   }
 }
+
