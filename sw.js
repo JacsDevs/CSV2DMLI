@@ -75,16 +75,18 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Demais requisições — cache first, network fallback
+  // Demais requisições — Network First (busca sempre a versão online mais recente), fallback para o cache
   e.respondWith(
-    caches.match(e.request).then(cached => {
-      if (cached) return cached;
-      return fetch(e.request).then(r => {
-        if (!r || !r.ok || r.type === 'opaque') return r;
+    fetch(e.request).then(r => {
+      // Se a resposta online for válida, salva no cache e retorna
+      if (r && r.ok && r.type !== 'opaque') {
         const clone = r.clone();
         caches.open(CACHE).then(c => c.put(e.request, clone));
-        return r;
-      });
+      }
+      return r;
+    }).catch(() => {
+      // Se estiver offline ou a rede falhar, busca no cache
+      return caches.match(e.request);
     })
   );
 });
