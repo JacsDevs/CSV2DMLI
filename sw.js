@@ -1,5 +1,5 @@
 // const CACHE = 'csv2dmli-v2'; // versão anterior (antes do Toast UI Editor) - reverter para esta linha se abandonar o editor
-const CACHE = 'csv2dmli-v4';
+const CACHE = 'csv2dmli-v5';
 
 // Deriva o base path do próprio URL do SW.
 // Em GitHub Pages: '/CSV2RMD-teste'  |  Em localhost: ''
@@ -82,10 +82,16 @@ self.addEventListener('fetch', e => {
       if (r && r.ok && r.type !== 'opaque') {
         const clone = r.clone();
         caches.open(CACHE).then(c => c.put(e.request, clone));
+        return r;
+      }
+      // Se o servidor respondeu com 404 ou outro erro (mas estamos online), 
+      // força o fallback para o cache!
+      if (!r || !r.ok) {
+        throw new Error("Network response was not ok, falling back to cache");
       }
       return r;
     }).catch(async () => {
-      // Se estiver offline ou a rede falhar, busca no cache (ignorando ?query strings)
+      // Se estiver offline ou a rede falhar/retornar 404, busca no cache (ignorando ?query strings)
       const cachedResponse = await caches.match(e.request, { ignoreSearch: true });
       if (cachedResponse) return cachedResponse;
       
@@ -93,6 +99,9 @@ self.addEventListener('fetch', e => {
       if (e.request.mode === 'navigate') {
         return caches.match(BASE + '/index-wizard.html', { ignoreSearch: true });
       }
+      
+      // Retorna uma resposta amigável para evitar travamentos
+      return new Response("Recurso não encontrado offline.", { status: 404, statusText: "Not Found" });
     })
   );
 });
