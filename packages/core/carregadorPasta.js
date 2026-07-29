@@ -14,6 +14,7 @@ class CarregadorPasta {
             textos: null,
             configuracao: null,
             metadados: null,
+            icone: null,
             textosExtra: {
                 introHtml: null,
                 introPdf: null,
@@ -69,7 +70,13 @@ class CarregadorPasta {
             await this._carregarMetadados(organizados.metadados);
             this.arquivosEncontrados.metadados = organizados.metadados;
         }
-        
+
+        // 4.1 Carregar ícone do aplicativo (icone.png), se existir na raiz
+        if (organizados.icone) {
+            await this.gerenciador.setIcone(organizados.icone);
+            this.arquivosEncontrados.icone = organizados.icone;
+        }
+
         // 4.5 Carregar arquivos de textos TXT (legados)
         if (organizados.textosExtra.introHtml) {
             await this._carregarTextoGenerico(organizados.textosExtra.introHtml, conteudo => this.gerenciador.setIntroHtml(conteudo));
@@ -130,6 +137,7 @@ class CarregadorPasta {
         textos: null,
         configuracao: null,
         metadados: null,
+        icone: null,
         textosExtra: {
             introHtml: null,
             introPdf: null,
@@ -163,6 +171,7 @@ class CarregadorPasta {
     const nomesTextos = this.configurador.getNomesArquivo('textos');
     const nomesConfig = this.configurador.getNomesArquivo('configuracao');
     const nomesMetadados = this.configurador.getNomesArquivo('metadados');
+    const nomesIcone = this.configurador.getNomesArquivo('icone');
     
     for (const arquivo of arquivosLista) {
         const caminhoCompleto = arquivo.caminhoPersonalizado || arquivo.webkitRelativePath || arquivo.name;
@@ -208,6 +217,11 @@ class CarregadorPasta {
         else if (estaNaRaiz && nomesMetadados.includes(nomeArquivo.toLowerCase())) {
             resultado.metadados = arquivo;
             console.log(`📝 Metadados encontrados: ${nomeArquivo}`);
+        }
+        // Verificar se é o ícone do aplicativo (na raiz)
+        else if (estaNaRaiz && nomesIcone.includes(nomeArquivo.toLowerCase())) {
+            resultado.icone = arquivo;
+            console.log(`🖼️ Ícone do app encontrado: ${nomeArquivo}`);
         }
         // ARQUIVOS DE TEXTO LEGADOS DA RAIZ (app.js)
         else if (estaNaRaiz && nomeArquivo.toLowerCase() === 'intro_html.txt') {
@@ -387,6 +401,7 @@ class CarregadorPasta {
         console.log(`   - Textos: ${organizados.textos ? '✅' : '❌'}`);
         console.log(`   - Config local: ${organizados.configuracao ? '✅' : '❌'}`);
         console.log(`   - Metadados: ${organizados.metadados ? '✅' : '❌'}`);
+        console.log(`   - Ícone do app: ${organizados.icone ? '✅' : '❌'}`);
         console.log(`   - Áudios: ${organizados.audio.length} arquivos`);
         console.log(`   - Imagens: ${organizados.imagem.length} arquivos`);
         console.log(`   - Vídeos: ${organizados.video.length} arquivos`);

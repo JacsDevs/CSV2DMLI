@@ -188,7 +188,9 @@
             transition: border-color 0.2s, background 0.2s;
         }
         .apk-icon-picker:hover { border-color: var(--primary); background: var(--primary-light); }
-        #apkIconPlaceholder {
+        #metaIconGroup { display: flex; flex-direction: column; }
+        #metaIconGroup .apk-icon-picker { flex: 1; height: auto; }
+        #apkIconPlaceholder, #metaIconPlaceholder {
             display: flex; align-items: center; gap: 12px;
             color: var(--text-muted); font-size: 0.88em;
         }
@@ -432,23 +434,38 @@
                     <div class="wizard-step" id="step3">
                         <h2 class="step-title-large"><span class="step-title-top">📝 <span id="badgeMeta" class="step-badge" style="font-size: 0.5em; vertical-align: middle;">Pendente</span></span> Metadados Básicos</h2>
                         <p class="step-desc" style="margin-bottom: 20px;">Preencha as informações do produto final.</p>
-                        
                         <div class="form-grid-2">
-                            <div class="form-group">
-                                <label>Título do Site (HTML)</label>
-                                <input type="text" id="metaHtml" value="Meu Dicionário Interativo">
+                            <div>
+                                <div class="form-group">
+                                    <label>Título do Site (HTML)</label>
+                                    <input type="text" id="metaHtml" value="Meu Dicionário Interativo">
+                                </div>
+                                <div class="form-group">
+                                    <label>Título do PDF / Livro</label>
+                                    <input type="text" id="metaPdf" value="Meu Dicionário">
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label>Título do PDF / Livro</label>
-                                <input type="text" id="metaPdf" value="Meu Dicionário">
+                            <div>
+                                <div class="form-group">
+                                    <label>Autor(es)</label>
+                                    <input type="text" id="metaAutor">
+                                </div>
+                                <div class="form-group">
+                                    <label>Ano</label>
+                                    <input type="text" id="metaAno">
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label>Autor(es)</label>
-                                <input type="text" id="metaAutor">
-                            </div>
-                            <div class="form-group">
-                                <label>Ano</label>
-                                <input type="text" id="metaAno">
+                            <div class="form-group" id="metaIconGroup">
+                                <label>Ícone do Projeto</label>
+                                <div class="apk-icon-picker" id="metaIconPicker" onclick="metaIconeEscolher()">
+                                    <img id="metaIconPreview" style="display:none; width:56px; height:56px; border-radius:12px; object-fit:cover; flex-shrink:0;" alt="Ícone do aplicativo">
+                                    <div id="metaIconPlaceholder">
+                                        <span style="font-size:2em;">🖼️</span>
+                                        <span>Clique para escolher<br><small>Detectado automaticamente se houver um arquivo "icone.png" na raiz da pasta importada</small></span>
+                                    </div>
+                                    <button type="button" id="btnMetaIconeRemover" class="btn btn-sm btn-outline" style="display:none; margin-left:auto; flex-shrink:0;" onclick="event.stopPropagation(); metaIconeRemover()">Remover</button>
+                                </div>
+                                <input type="file" id="inputMetaIcone" accept="image/png,image/jpeg,image/webp" style="display:none" onchange="metaIconeSelecionar(this.files[0])">
                             </div>
                         </div>
                         
@@ -684,7 +701,7 @@
       <!-- PASSO 1 — Identificação do Desenvolvedor -->
       <div class="apk-step-content active" id="apkStep1">
         <div class="apk-step-intro">
-          <h2>👤 Identificação do Desenvolvedor</h2>
+          <h2>Identificação do Desenvolvedor</h2>
           <p>Estas informações serão incorporadas ao certificado digital (Keystore) que assina o aplicativo.</p>
         </div>
         <div class="apk-grid-2">
@@ -1311,6 +1328,48 @@
         _explorerRenderizar(tipo);
     };
 
+    // ==========================================
+    // ÍCONE DO APLICATIVO (Etapa 3 - Metadados)
+    // ==========================================
+
+    window.metaIconeEscolher = function() {
+        document.getElementById('inputMetaIcone').click();
+    };
+
+    window.metaIconeSelecionar = async function(file) {
+        if (!file || !window.sistema) return;
+        await window.sistema.setIcone(file);
+        document.getElementById('inputMetaIcone').value = '';
+        atualizarUIIconeApp();
+    };
+
+    window.metaIconeRemover = function() {
+        if (!window.sistema) return;
+        window.sistema.removerIcone();
+        document.getElementById('inputMetaIcone').value = '';
+        atualizarUIIconeApp();
+    };
+
+    function atualizarUIIconeApp() {
+        const icone = window.sistema && window.sistema.icone;
+        const temIcone = !!(icone && icone.dataUrl);
+        const preview = document.getElementById('metaIconPreview');
+        const placeholder = document.getElementById('metaIconPlaceholder');
+        const btnRemover = document.getElementById('btnMetaIconeRemover');
+        if (!preview) return; // etapa 3 ainda não renderizada no DOM
+        if (temIcone) {
+            preview.src = icone.dataUrl;
+            preview.style.display = 'block';
+            placeholder.style.display = 'none';
+            btnRemover.style.display = 'inline-flex';
+        } else {
+            preview.style.display = 'none';
+            placeholder.style.display = 'flex';
+            btnRemover.style.display = 'none';
+        }
+    }
+    window.atualizarUIIconeApp = atualizarUIIconeApp;
+
     // Prevenção de perda de dados ao recarregar a página
     window.addEventListener('beforeunload', function (e) {
         // Apenas avisa se houver dados carregados no sistema
@@ -1353,6 +1412,7 @@
             versao:     existente.versao || '1.0',
             introHtml,
             introPdf,
+            iconeDataUrl: (window.sistema && window.sistema.icone && window.sistema.icone.dataUrl) || null,
         };
     }
 
@@ -1681,7 +1741,8 @@
                     try {
                         await window.carregadorPasta.carregarPasta(e.target.files);
                         if(window.preencherUIComMetadados) window.preencherUIComMetadados();
-                        
+                        if(window.atualizarUIIconeApp) window.atualizarUIIconeApp();
+
                         if (window.adicionarLogAoTerminal) {
                             const stats = window.sistema ? window.sistema.obterEstatisticas() : null;
                             const numRegistros = stats ? stats.totalBases : 0;
@@ -1876,6 +1937,7 @@
                 try {
                     await window.carregadorPasta.carregarPasta(files);
                     if(window.preencherUIComMetadados) window.preencherUIComMetadados();
+                    if(window.atualizarUIIconeApp) window.atualizarUIIconeApp();
                 } finally {
                     window.ocultarLoader();
                 }
@@ -2090,10 +2152,20 @@
         if (!window.exportador) return alert('Exportador não inicializado!');
 
         // Resetar estado
-        _apkIconeBytes     = [];
         _apkHtmlProntoArquivo = null;
-        document.getElementById('apkIconPreview').style.display    = 'none';
-        document.getElementById('apkIconPlaceholder').style.display = 'flex';
+
+        // Pré-carrega o ícone já definido na Etapa 3 (ex: icone.png da pasta importada), se houver
+        const iconeAtual = window.sistema && window.sistema.icone;
+        if (iconeAtual && iconeAtual.dataUrl) {
+            _apkIconeBytes = iconeAtual.bytes.slice();
+            document.getElementById('apkIconPreview').src           = iconeAtual.dataUrl;
+            document.getElementById('apkIconPreview').style.display    = 'block';
+            document.getElementById('apkIconPlaceholder').style.display = 'none';
+        } else {
+            _apkIconeBytes = [];
+            document.getElementById('apkIconPreview').style.display    = 'none';
+            document.getElementById('apkIconPlaceholder').style.display = 'flex';
+        }
         document.getElementById('apkProcessando').style.display     = 'block';
         document.getElementById('apkSucesso').style.display         = 'none';
         document.getElementById('apkErro').style.display            = 'none';
@@ -2299,9 +2371,10 @@
 
             const selectWizard = document.getElementById('templateExportacaoSelect');
             const formato = selectWizard ? selectWizard.value : 'linear';
+            const iconeParaHtml = (window.sistema && window.sistema.icone && window.sistema.icone.dataUrl) || null;
             const htmlStr = formato === 'card'
-                ? await window.exportador.exportarHtmlCards({ embutirMidias: false, metadados: { tituloHtml: nomeApp } })
-                : await window.exportador.exportarHtmlLinear({ embutirMidias: false, metadados: { tituloHtml: nomeApp } });
+                ? await window.exportador.exportarHtmlCards({ embutirMidias: false, metadados: { tituloHtml: nomeApp, iconeDataUrl: iconeParaHtml } })
+                : await window.exportador.exportarHtmlLinear({ embutirMidias: false, metadados: { tituloHtml: nomeApp, iconeDataUrl: iconeParaHtml } });
             htmlBytes = new TextEncoder().encode(htmlStr);
 
             midias = new Map();

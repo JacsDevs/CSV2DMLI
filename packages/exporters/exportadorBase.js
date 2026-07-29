@@ -78,7 +78,14 @@ class ExportadorBase {
                 }
                 if (ac.EXEMPLOS_IDS) ac.EXEMPLOS_IDS.forEach(exId => {
                     const ex = banco.exemplos[exId];
-                    if (ex) significado.EXEMPLOS.push({ TRANS: ex.TRANSCRICAO_EXEMPLO || '', TRAD: ex.TRADUCAO_EXEMPLO || '' });
+                    if (ex) {
+                        let audioEx = '';
+                        if (ex.ARQUIVO_SONORO_EXEMPLO) {
+                            const raw = ex.ARQUIVO_SONORO_EXEMPLO.split(/[\/\\]/).pop();
+                            audioEx = (this.midiasGeradas && this.midiasGeradas[raw]) ? this.midiasGeradas[raw] : 'audio/' + raw;
+                        }
+                        significado.EXEMPLOS.push({ TRANS: ex.TRANSCRICAO_EXEMPLO || '', TRAD: ex.TRADUCAO_EXEMPLO || '', AUDIO: audioEx });
+                    }
                 });
                 if (ac.IMAGENS_IDS) ac.IMAGENS_IDS.forEach(imgId => {
                     const img = banco.imagens[imgId];

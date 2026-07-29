@@ -73,7 +73,7 @@ class ExportadorHtmlLinear extends ExportadorBase {
             ...s,
             TRADUCAO: this.escaparHTML(s.TRADUCAO),
             DESCRICAO: this.escaparHTML(s.DESCRICAO),
-            EXEMPLOS: s.EXEMPLOS.map(e => ({ TRANS: this.escaparHTML(e.TRANS), TRAD: this.escaparHTML(e.TRAD) })),
+            EXEMPLOS: s.EXEMPLOS.map(e => ({ TRANS: this.escaparHTML(e.TRANS), TRAD: this.escaparHTML(e.TRAD), AUDIO: this.escaparHTML(e.AUDIO) })),
             IMAGENS: s.IMAGENS.map(i => ({ ARQUIVO: this.escaparHTML(i.ARQUIVO), LEGENDA: this.escaparHTML(i.LEGENDA) })),
             VIDEOS: s.VIDEOS.map(v => ({ ARQUIVO: this.escaparHTML(v.ARQUIVO) })),
             EXTRAS: s.EXTRAS.map(e => ({ TEXTO: this.escaparHTML(e.TEXTO) }))

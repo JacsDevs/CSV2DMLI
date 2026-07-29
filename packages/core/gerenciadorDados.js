@@ -29,6 +29,7 @@ export default class GerenciadorDados {
         this.referencia = '';
         this.alfabetoCustomizado = '';
         this.configuracaoTextoLocal = {};
+        this.icone = { dataUrl: null, bytes: null, nome: null };
         
         // Opções
         this.silenciarAvisosMidia = false;
@@ -246,10 +247,33 @@ export default class GerenciadorDados {
     setReferencia(conteudo) { this.referencia = conteudo; }
     setAlfabetoCustomizado(conteudo) { this.alfabetoCustomizado = conteudo; }
     setConfiguracaoTextoLocal(config) { this.configuracaoTextoLocal = config; }
-    setMetadados(metadados) { 
+    setMetadados(metadados) {
         if(this.configurador && this.configurador.mesclarConfigLocal) {
             this.configurador.mesclarConfigLocal({ metadados });
         }
+    }
+
+    /**
+     * Define o ícone do aplicativo/site a partir de um arquivo de imagem.
+     * @param {File} arquivo - Imagem do ícone (ex: icone.png).
+     */
+    async setIcone(arquivo) {
+        const dataUrl = await this._lerArquivoComoDataURL(arquivo);
+        const buf = await arquivo.arrayBuffer();
+        this.icone = { dataUrl, bytes: Array.from(new Uint8Array(buf)), nome: arquivo.name };
+    }
+
+    removerIcone() {
+        this.icone = { dataUrl: null, bytes: null, nome: null };
+    }
+
+    _lerArquivoComoDataURL(arquivo) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(arquivo);
+        });
     }
 
     _reconstruirBanco() {
@@ -312,6 +336,7 @@ export default class GerenciadorDados {
         this.dadosPlanilha = [];
         this.colunasPlanilha = [];
         this._bancoConstruido = null;
+        this.icone = { dataUrl: null, bytes: null, nome: null };
         this.vfs.limpar();
         console.log('🧹 Dados limpos com sucesso.');
     }

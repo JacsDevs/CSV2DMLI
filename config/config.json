@@ -56,6 +56,10 @@
     "metadados": {
       "nomes": ["metadados.json", "info.json"],
       "obrigatorio": false
+    },
+    "icone": {
+      "nomes": ["icone.png"],
+      "obrigatorio": false
     }
   }
 }

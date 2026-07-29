@@ -8,8 +8,8 @@
     
     {{#AUDIO}}
     <span class="audio-inline">
-        🔊 <audio controls style="display:inline-block;vertical-align:middle;height:22px;" data-src="{{{ AUDIO }}}">
-            <source data-src="{{{ AUDIO }}}" type="audio/mpeg">
+        🔊 <audio controls style="display:inline-block;vertical-align:middle;height:22px;" data-src="{{ AUDIO }}">
+            <source data-src="{{ AUDIO }}" type="audio/mpeg">
         </audio>
     </span>
     {{/AUDIO}}
@@ -24,12 +24,13 @@
         <span class="exemplo-inline">
             {{#TRANS}}<p style="margin-bottom: 0.1px;"><b><i>"{{ TRANS }}"</i></b></p>{{/TRANS}}
             {{#TRAD}}<p>({{ TRAD }})</p>{{/TRAD}}
+            {{#AUDIO}}<audio controls data-src="{{ AUDIO }}" style="height: 20px; vertical-align: middle; margin-left: 5px; max-width: 220px; outline: none; border-radius: 4px;"><source data-src="{{ AUDIO }}" type="audio/mpeg"></audio>{{/AUDIO}}
         </span>
         {{/EXEMPLOS}}
         
         {{#IMAGENS}}
         <figure class="figura-inline">
-            <img data-src="{{{ ARQUIVO }}}" alt="{{ LEGENDA }}" class="clickable-image" onclick="openModal(this.src || this.getAttribute('data-src'))">
+            <img data-src="{{ ARQUIVO }}" alt="{{ LEGENDA }}" class="clickable-image" onclick="openModal(this.src || this.getAttribute('data-src'))">
             {{#LEGENDA}}<figcaption>{{ LEGENDA }}</figcaption>{{/LEGENDA}}
         </figure>
         {{/IMAGENS}}
@@ -43,7 +44,7 @@
     {{#TEXTOS}}
     <div class="textos-linear">
         <strong>Texto: {{ TITULO_BASE }}</strong>
-        {{#TEXTO_NAO_LITERAL}}<br><em>{{{ TEXTO_NAO_LITERAL }}}</em>{{/TEXTO_NAO_LITERAL}}
+        {{#TEXTO_NAO_LITERAL}}<br><em>{{ TEXTO_NAO_LITERAL }}</em>{{/TEXTO_NAO_LITERAL}}
         
         {{#VARIACOES}}
             {{#FRASES}}
@@ -52,7 +53,7 @@
                 {{#TRADUCAO}}({{ TRADUCAO }}){{/TRADUCAO}}
                 
                 {{#AUDIO_ARQUIVO}}
-                <audio controls data-src="{{{ AUDIO_ARQUIVO }}}" style="height: 20px; vertical-align: middle; margin-left: 5px; max-width: 150px; outline: none; border-radius: 4px;"></audio>
+                <audio controls data-src="{{ AUDIO_ARQUIVO }}" style="height: 20px; vertical-align: middle; margin-left: 5px; max-width: 150px; outline: none; border-radius: 4px;"><source data-src="{{ AUDIO_ARQUIVO }}" type="audio/mpeg"></audio>
                 {{/AUDIO_ARQUIVO}}
             </div>
             {{/FRASES}}

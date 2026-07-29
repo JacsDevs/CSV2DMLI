@@ -74,7 +74,7 @@ class ExportadorHtmlCards extends ExportadorBase {
             ...s,
             TRADUCAO: this.escaparHTML(s.TRADUCAO),
             DESCRICAO: this.escaparHTML(s.DESCRICAO),
-            EXEMPLOS: s.EXEMPLOS.map(e => ({ TRANS: this.escaparHTML(e.TRANS), TRAD: this.escaparHTML(e.TRAD) })),
+            EXEMPLOS: s.EXEMPLOS.map(e => ({ TRANS: this.escaparHTML(e.TRANS), TRAD: this.escaparHTML(e.TRAD), AUDIO: this.escaparHTML(e.AUDIO) })),
             IMAGENS: s.IMAGENS.map(i => ({ ARQUIVO: this.escaparHTML(i.ARQUIVO), LEGENDA: this.escaparHTML(i.LEGENDA) })),
             VIDEOS: s.VIDEOS.map(v => ({ ARQUIVO: this.escaparHTML(v.ARQUIVO) })),
             EXTRAS: s.EXTRAS.map(e => ({ TEXTO: this.escaparHTML(e.TEXTO) }))
@@ -138,8 +138,13 @@ class ExportadorHtmlCards extends ExportadorBase {
 
         const meta = opcoes.metadados || {};
 
+        const iconeHtml = meta.iconeDataUrl
+            ? `<img src="${this.escaparHTML(meta.iconeDataUrl)}" alt="Ícone do dicionário" class="dicionario-icone-img">`
+            : '📖';
+
         let html = this.templatePrincipal
             .replace(/\{\{\s*metadados\.html\s*\}\}/gi, meta.tituloHtml || 'Dicionário')
+            .replace(/\{\{\s*metadados\.icone_html\s*(\|\s*safe)?\s*\}\}/gi, iconeHtml)
             .replace(/\{\{\s*metadados\.pdf\s*\}\}/gi, meta.tituloPdf || 'Dicionário')
             .replace(/\{\{\s*metadados\.autor\s*\}\}/gi, meta.autor || '')
             .replace(/\{\{\s*metadados\.versao\s*\}\}/gi, meta.versao || '')
