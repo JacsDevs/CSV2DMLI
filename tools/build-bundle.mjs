@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Fase 3 — Gerador de web bundle canônico
-// Uso: node tools/build-bundle.mjs --in <dir-entrada> --out <dir-saida> [--template html-cards|html-linear]
+// Uso: node tools/build-bundle.mjs --in <dir-entrada> --out <dir-saida>
 // Requer Node.js 18+
 
 import { readFile, writeFile, mkdir, readdir, copyFile } from 'fs/promises';
@@ -24,11 +24,10 @@ for (let i = 2; i < process.argv.length; i++) {
         i++;
     }
 }
-const IN_DIR   = args.in       ? join(process.cwd(), args.in)  : process.cwd();
-const OUT_DIR  = args.out      ? join(process.cwd(), args.out) : join(ROOT, 'dist/bundle');
-const TEMPLATE = args.template ?? 'html-cards';
+const IN_DIR   = args.in  ? join(process.cwd(), args.in)  : process.cwd();
+const OUT_DIR  = args.out ? join(process.cwd(), args.out) : join(ROOT, 'dist/bundle');
 
-console.log(`build-bundle: ${IN_DIR} → ${OUT_DIR} [${TEMPLATE}]`);
+console.log(`build-bundle: ${IN_DIR} → ${OUT_DIR} [html-cards]`);
 
 // ── Config ─────────────────────────────────────────────────────────────────────
 let config = {};
@@ -185,8 +184,7 @@ function obterArvoreOrdenada() {
 }
 
 // ── Exporter ───────────────────────────────────────────────────────────────────
-const templateKey = TEMPLATE === 'html-linear' ? 'html-linear' : 'html-cards';
-const templateDir = join(ROOT, `config/templates/${templateKey}`);
+const templateDir = join(ROOT, 'config/templates/html-cards');
 
 const dbProxy = {
     bancoDados,
@@ -194,9 +192,7 @@ const dbProxy = {
     obterArvoreOrdenada
 };
 
-const modExporter = TEMPLATE === 'html-linear'
-    ? await import('../packages/exporters/exportadorHtmlLinear.js')
-    : await import('../packages/exporters/exportadorHtmlCards.js');
+const modExporter = await import('../packages/exporters/exportadorHtmlCards.js');
 const exporter = new modExporter.default(dbProxy);
 
 // Injeta templates direto do filesystem — bypassa localStorage/fetch usados no browser

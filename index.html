@@ -526,25 +526,13 @@
                         <p class="step-desc" style="margin-bottom: 20px;">Escolha o formato no qual deseja compilar seus dados.</p>
                         
                         <div class="export-options" style="margin-bottom: 25px;">
-                            <!-- Seleção de Template -->
-                            <div class="form-group" style="margin-bottom: 20px; background: white; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
-                                <label style="display: flex; align-items: center; gap: 8px; color: var(--primary);">
-                                    <i class="fas fa-palette"></i> Escolha o Layout Visual (Template)
-                                </label>
-                                <p style="font-size: 0.85em; color: var(--text-muted); margin-bottom: 12px;">Selecione como as informações serão estruturadas nos arquivos HTML finais.</p>
-                                <select id="templateExportacaoSelect" style="border-color: #cbd5e1;">
-                                    <option value="card">🃏 Visualização em Cards (Blocos independentes)</option>
-                                    <option value="linear">📜 Visualização Linear (Dicionário Clássico/Lista)</option>
-                                </select>
-                            </div>
-
                             <label class="toggle-label mb-3" style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; margin-bottom: 20px;">
                                 <div class="toggle-switch">
                                     <input type="checkbox" id="swMidia" checked>
                                     <div class="toggle-slider"></div>
                                 </div>
                                 <div>
-                                    <strong>📦 Embutir mídias no HTML (Base64)</strong>
+                                    <strong>Embutir mídias no HTML (Base64)</strong>
                                     <p style="font-size: 0.85em; color: #0369a1; margin: 4px 0 0 0;">Ideal para compartilhar o site como arquivo único sem precisar enviar pastas separadas.</p>
                                 </div>
                             </label>
@@ -616,22 +604,11 @@
             <button class="custom-tab" onclick="switchCustomTab(event, 'tab-download')">📥 Download</button>
         </div>
         <div id="tab-html" class="custom-tab-content active">
-            <div class="form-group">
-                <label>Estilo de Exibição</label>
-                <select id="templateEntradaSelect" onchange="templateEntradaAtivo = this.value; localStorage.setItem('csv2dmli_templateEntradaAtivo', this.value);" style="width:100%;padding:8px;border-radius:6px;border:1px solid var(--border-color);">
-                    <option value="card">🃏 Cards</option>
-                    <option value="linear">📜 Linear</option>
-                </select>
-            </div>
             <!-- Templates DropZones -->
-            <div class="drop-zone" id="templateHtmlZone"><p><strong>HTML Base (Cards)</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste o template.html</span></p><input type="file" id="fileTemplateHtml" accept=".html" style="display:none"><div id="templateHtmlStatus"></div></div>
-            <div class="drop-zone" id="templateEntradaHtmlZone"><p><strong>Entrada (Cards)</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste o entrada.html</span></p><input type="file" id="fileTemplateEntradaCardHtml" accept=".html" style="display:none"><div id="templateEntradaCardHtmlStatus"></div></div>
-            
-            <div class="drop-zone" id="templateHtmlLinearZone"><p><strong>HTML Base (Linear)</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste o template.html</span></p><input type="file" id="fileTemplateHtmlLinear" accept=".html" style="display:none"><div id="templateHtmlLinearStatus"></div></div>
-            <div class="drop-zone" id="templateEntradaLinearHtmlZone"><p><strong>Entrada (Linear)</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste o entrada.html</span></p><input type="file" id="fileTemplateEntradaLinearHtml" accept=".html" style="display:none"><div id="templateEntradaLinearHtmlStatus"></div></div>
+            <div class="drop-zone" id="templateHtmlZone"><p><strong>HTML Base</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste o template.html</span></p><input type="file" id="fileTemplateHtml" accept=".html" style="display:none"><div id="templateHtmlStatus"></div></div>
+            <div class="drop-zone" id="templateEntradaHtmlZone"><p><strong>Entrada  </strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste o entrada.html</span></p><input type="file" id="fileTemplateEntradaCardHtml" accept=".html" style="display:none"><div id="templateEntradaCardHtmlStatus"></div></div>
             
             <div class="drop-zone" id="templateCssCardZone"><p><strong>Estilos Globais (CSS)</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste estilos-globais.css</span></p><input type="file" id="fileTemplateCssCard" accept=".css" style="display:none"><div id="templateCssCardStatus"></div></div>
-            <div class="drop-zone" id="templateCssLinearZone" style="display:none;"><input type="file" id="fileTemplateCssLinear" accept=".css" style="display:none"><div id="templateCssLinearStatus"></div></div>
         </div>
         <div id="tab-typst" class="custom-tab-content">
             <h3 style="margin-bottom: 15px; color: var(--text-main);">📘 Templates Typst (Para PDFs)</h3>
@@ -657,10 +634,8 @@
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/estilos-globais.css', 'estilos-globais.css')">🎨 Estilos Globais (CSS)</button>
-                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/html-cards/template.html', 'cards-template.html')">🃏 Cards: template.html</button>
-                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/html-cards/entrada.html', 'cards-entrada.html')">🃏 Cards: entrada.html</button>
-                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/html-linear/template.html', 'linear-template.html')">📜 Linear: template.html</button>
-                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/html-linear/entrada.html', 'linear-entrada.html')">📜 Linear: entrada.html</button>
+                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/html-cards/template.html', 'cards-template.html')">🃏 template.html</button>
+                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/html-cards/entrada.html', 'cards-entrada.html')">🃏 entrada.html</button>
                 <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/typst/template.typ', 'typst-template.typ')">📘 Typst: template.typ</button>
                 <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/typst/entrada.typ', 'typst-entrada.typ')">📘 Typst: entrada.typ</button>
             </div>
@@ -1428,28 +1403,20 @@
         if (tipo === 'html') {
             const swMidia = document.getElementById('swMidia');
             const embutir = swMidia ? swMidia.checked : false;
-            const selectWizard = document.getElementById('templateExportacaoSelect');
-            const selectCustom = document.getElementById('templateEntradaSelect');
-            const formato = selectWizard ? selectWizard.value : (selectCustom ? selectCustom.value : 'card');
-            
+
             window.mostrarLoader('Gerando HTML', 'Construindo páginas e processando mídias...');
             try {
                 let htmlGerado;
                 const metadadosExport = coletarMetadadosExportacao();
-                if (formato === 'linear') {
-                    htmlGerado = await window.exportador.exportarHtmlLinear({ embutirMidias: embutir, metadados: metadadosExport });
-                    nomeArquivo = embutir ? 'dicionario-linear-embutido.html' : 'dicionario-linear.zip';
-                } else {
-                    htmlGerado = await window.exportador.exportarHtmlCards({ embutirMidias: embutir, metadados: metadadosExport });
-                    nomeArquivo = embutir ? 'dicionario-cards-embutido.html' : 'dicionario-cards.zip';
-                }
-                
+                htmlGerado = await window.exportador.exportarHtmlCards({ embutirMidias: embutir, metadados: metadadosExport });
+                nomeArquivo = embutir ? 'dicionario-cards-embutido.html' : 'dicionario-cards.zip';
+
                 let htmlPreview = htmlGerado;
-                
+
                 if (!embutir) {
                     if (typeof JSZip === 'undefined') throw new Error("Biblioteca JSZip não encontrada!");
                     const zip = new JSZip();
-                    zip.file(formato === 'linear' ? 'dicionario-linear.html' : 'dicionario-cards.html', htmlGerado);
+                    zip.file('dicionario-cards.html', htmlGerado);
                     
                     const tiposM = ['audio', 'imagem', 'video'];
                     for (const tipoM of tiposM) {
@@ -1708,9 +1675,6 @@
             if (formato === 'preview-html-card') {
                 const html = window.exportador.exportadorCards.processarTemplate(window.exportador.exportadorCards.templateEntrada, itemProcessado);
                 return resolverMidiasVFS(html);
-            } else if (formato === 'preview-html-linear') {
-                const html = window.exportador.exportadorLinear.processarTemplate(window.exportador.exportadorLinear.templateEntrada, itemProcessado);
-                return resolverMidiasVFS(html);
             } else if (formato === 'preview-pdf') {
                 const strTypst = window.exportador.exportadorTypstModule.processarTemplate(window.exportador.exportadorTypstModule.templateEntrada, itemProcessado);
                 const docTypst = `#let index(..args) = {}\n#import "/in-dexter.typ": *\n#set page(width: 15cm, height: auto, margin: 10pt)\n#set text(font: ("Charis SIL", "Arial"), fallback: true)\n${strTypst}`;
@@ -1792,8 +1756,6 @@
         const templatesCustomizados = [
             { id: 'fileTemplateHtml', key: 'csv2dmli_template_html' },
             { id: 'fileTemplateEntradaCardHtml', key: 'csv2dmli_templateEntradaCardHtml' },
-            { id: 'fileTemplateHtmlLinear', key: 'csv2dmli_template_html-linear' },
-            { id: 'fileTemplateEntradaLinearHtml', key: 'csv2dmli_templateEntradaLinearHtml' },
             { id: 'fileTemplateTypst', key: 'csv2dmli_template_typst' },
             { id: 'fileTemplateEntradaTypst', key: 'csv2dmli_templateEntradaTypst' }
         ];
@@ -2369,12 +2331,8 @@
             apkSetProg('apkPS1', 'running', 'Gerando HTML do dicionário…');
             document.getElementById('apkStatusDesc').textContent = 'Gerando HTML com caminhos relativos…';
 
-            const selectWizard = document.getElementById('templateExportacaoSelect');
-            const formato = selectWizard ? selectWizard.value : 'linear';
             const iconeParaHtml = (window.sistema && window.sistema.icone && window.sistema.icone.dataUrl) || null;
-            const htmlStr = formato === 'card'
-                ? await window.exportador.exportarHtmlCards({ embutirMidias: false, metadados: { tituloHtml: nomeApp, iconeDataUrl: iconeParaHtml } })
-                : await window.exportador.exportarHtmlLinear({ embutirMidias: false, metadados: { tituloHtml: nomeApp, iconeDataUrl: iconeParaHtml } });
+            const htmlStr = await window.exportador.exportarHtmlCards({ embutirMidias: false, metadados: { tituloHtml: nomeApp, iconeDataUrl: iconeParaHtml } });
             htmlBytes = new TextEncoder().encode(htmlStr);
 
             midias = new Map();

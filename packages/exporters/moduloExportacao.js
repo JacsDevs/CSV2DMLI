@@ -1,5 +1,4 @@
 import ExportadorHtmlCards from './exportadorHtmlCards.js';
-import ExportadorHtmlLinear from './exportadorHtmlLinear.js';
 import ExportadorTypst from './exportadorTypst.js';
 import ExportadorZip from './exportadorZip.js';
 import CompiladorPdf from '../pdf/compiladorPdf.js';
@@ -9,7 +8,6 @@ export default class ModuloExportacao {
     constructor(gerenciadorDados) {
         this.gerenciador = gerenciadorDados;
         this.exportadorCards = new ExportadorHtmlCards(this.gerenciador);
-        this.exportadorLinear = new ExportadorHtmlLinear(this.gerenciador);
         this.exportadorTypstModule = new ExportadorTypst(this.gerenciador);
         this.exportadorZipModule = new ExportadorZip(this.gerenciador);
         this.compiladorPdf = new CompiladorPdf(this.gerenciador);
@@ -19,7 +17,6 @@ export default class ModuloExportacao {
     async inicializar() {
         await Promise.all([
             this.exportadorCards.carregarTemplates(),
-            this.exportadorLinear.carregarTemplates(),
             this.exportadorTypstModule.carregarTemplates()
         ]);
         console.log('✅ Templates de exportação carregados.');
@@ -27,10 +24,6 @@ export default class ModuloExportacao {
 
     async exportarHtmlCards(opcoes = {}) {
         return await this.exportadorCards.exportar(opcoes);
-    }
-
-    async exportarHtmlLinear(opcoes = {}) {
-        return await this.exportadorLinear.exportar(opcoes);
     }
 
     exportarTypst(opcoes = {}) {
