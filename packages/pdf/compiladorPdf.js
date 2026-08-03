@@ -8,6 +8,14 @@ export default class CompiladorPdf {
         this.inicializado = false;
         this.recursosEstaticosInjetados = false;
         this.typstModule = null;
+        // Resolve a raiz do projeto a partir da localização deste módulo
+        // (em vez de caminhos absolutos "/..."), para funcionar tanto em
+        // localhost quanto em subpastas como o GitHub Pages (ex: /CSV2DMLI/).
+        this.baseUrl = new URL('../../', import.meta.url);
+    }
+
+    _resolverCaminho(caminhoRelativo) {
+        return new URL(caminhoRelativo, this.baseUrl).href;
     }
 
     async inicializar() {
@@ -19,15 +27,15 @@ export default class CompiladorPdf {
             // 1. Importa o wrapper dinamicamente
             let $typst;
             try {
-                const module = await import('/assets/typst/typst_wrapper.js');
+                const module = await import(this._resolverCaminho('assets/typst/typst_wrapper.js'));
                 $typst = module.$typst;
             } catch (err) {
                 throw new Error('Arquivo Javascript (typst_wrapper.js) ausente. Verifique se ele está na pasta assets/typst/.');
             }
-            
+
             // 2. Inicializa os WASMs apontando para os binários locais
             await $typst.setCompilerInitOptions({
-                getModule: () => '/assets/typst/typst_compiler.wasm'
+                getModule: () => this._resolverCaminho('assets/typst/typst_compiler.wasm')
             });
             
             this.typstModule = $typst;
@@ -47,7 +55,7 @@ export default class CompiladorPdf {
         const fontes = ['Charis-Regular.ttf', 'Charis-Bold.ttf', 'Charis-Italic.ttf', 'Charis-BoldItalic.ttf'];
         for (const fonte of fontes) {
             try {
-                const res = await fetch(`/assets/typst/fonts/${fonte}`);
+                const res = await fetch(this._resolverCaminho(`assets/typst/fonts/${fonte}`));
                 if (res.ok) {
                     const buffer = await res.arrayBuffer();
                     const uint8 = new Uint8Array(buffer);
@@ -68,7 +76,7 @@ export default class CompiladorPdf {
 
         // 2. Carrega o plugin binário do cmarker
         try {
-            const resPlugin = await fetch(`/assets/typst/plugin.wasm`);
+            const resPlugin = await fetch(this._resolverCaminho('assets/typst/plugin.wasm'));
             if (resPlugin.ok) {
                 const buffer = await resPlugin.arrayBuffer();
                 const uint8 = new Uint8Array(buffer);
@@ -88,7 +96,7 @@ export default class CompiladorPdf {
         const dependencias = ['in-dexter.typ', 'cmarker.typ'];
         for (const dep of dependencias) {
             try {
-                const res = await fetch(`/config/typst-deps/${dep}`);
+                const res = await fetch(this._resolverCaminho(`config/typst-deps/${dep}`));
                 if (res.ok) {
                     let conteudo = await res.text();
                     
