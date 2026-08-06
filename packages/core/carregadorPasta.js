@@ -71,7 +71,7 @@ class CarregadorPasta {
             this.arquivosEncontrados.metadados = organizados.metadados;
         }
 
-        // 4.1 Carregar ícone do aplicativo (icone.png), se existir na raiz
+        // 4.1 Carregar ícone do projeto (icone.png), se existir na raiz
         if (organizados.icone) {
             await this.gerenciador.setIcone(organizados.icone);
             this.arquivosEncontrados.icone = organizados.icone;
@@ -224,13 +224,13 @@ class CarregadorPasta {
             console.log(`🖼️ Ícone do app encontrado: ${nomeArquivo}`);
         }
         // ARQUIVOS DE TEXTO LEGADOS DA RAIZ (app.js)
-        else if (estaNaRaiz && nomeArquivo.toLowerCase() === 'intro_html.txt') {
+        else if (estaNaRaiz && nomeArquivo.toLowerCase() === 'intro.txt') {
             resultado.textosExtra.introHtml = arquivo;
-            console.log(`📄 Intro HTML encontrado: ${nomeArquivo}`);
+            console.log(`📄 Arquivo com texto de introdução encontrado: ${nomeArquivo}`);
         }
-        else if (estaNaRaiz && nomeArquivo.toLowerCase() === 'intro_pdf.txt') {
+        else if (estaNaRaiz && nomeArquivo.toLowerCase() === 'intro.md') {
             resultado.textosExtra.introPdf = arquivo;
-            console.log(`📄 Intro PDF encontrado: ${nomeArquivo}`);
+            console.log(`📄 Arquivo com texto de introdução encontrado: ${nomeArquivo}`);
         }
         else if (estaNaRaiz && nomeArquivo.toLowerCase() === 'referencia.txt') {
             resultado.textosExtra.referencia = arquivo;
