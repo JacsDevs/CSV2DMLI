@@ -242,7 +242,7 @@ class CarregadorPasta {
         }
         else if (estaNaRaiz && nomeArquivo.toLowerCase() === 'configuracao.txt') {
             resultado.textosExtra.configTxt = arquivo;
-            console.log(`⚙️ Configuração TXT antiga encontrada: ${nomeArquivo}`);
+            console.log(`⚙️ Configuração TXT encontrada: ${nomeArquivo}`);
         }
         // Verificar se é áudio
         else if (pastasAudio.some(p => pastaPai.toLowerCase().includes(p.toLowerCase()))) {
@@ -285,7 +285,7 @@ class CarregadorPasta {
 
             // Verifica se é o formato TXT antigo ou JSON novo
             if (arquivo.name.toLowerCase().endsWith('.txt')) {
-                console.log('🔄 Lendo arquivo de configuração antigo (.txt)...');
+                console.log('🔄 Lendo arquivo de configuração (.txt)...');
                 configLocal.metadados = {};
                 
                 const linhas = conteudo.split('\n');
@@ -299,7 +299,7 @@ class CarregadorPasta {
                         if (chave === 'Titulo-html') configLocal.metadados.html = valor;
                         if (chave === 'Titulo-pdf') configLocal.metadados.pdf = valor;
                         if (chave === 'Autor(es)') configLocal.metadados.autor = valor;
-                        if (chave === 'Data do Dicionário') configLocal.metadados.ano = valor;
+                        if (chave === 'Ano') configLocal.metadados.ano = valor;
                         if (chave === 'Versão') configLocal.metadados.versao = valor;
                     }
                 });
@@ -368,7 +368,7 @@ class CarregadorPasta {
                 }
             });
             this.gerenciador.setConfiguracaoTextoLocal(mapConfig);
-            console.log('⚙️ Configuracao.txt antigo lido com sucesso.');
+            console.log('⚙️ Configuracao.txt lido com sucesso.');
         } catch (erro) {
             console.error('❌ Erro ao ler configuracao.txt:', erro);
         }
