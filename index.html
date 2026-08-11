@@ -108,57 +108,76 @@
         .apk-wizard-overlay {
             position: fixed; inset: 0;
             background: rgba(15,23,42,0.55);
+            backdrop-filter: blur(8px);
             z-index: 1100;
             display: none;
-            align-items: stretch;
-            justify-content: stretch;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
         .apk-wizard-box {
-            width: 100vw; height: 100vh;
-            background: #fff;
+            position: relative;
+            width: 92%; max-width: 1180px;
+            height: 88vh;
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
             display: flex; flex-direction: column;
             overflow: hidden;
         }
         .apk-wizard-header {
-            padding: 18px 40px;
+            padding: 16px 28px;
             border-bottom: 1px solid var(--border-color);
             display: flex; align-items: center; justify-content: space-between;
             background: var(--bg-secondary);
             flex-shrink: 0;
         }
-        .apk-stepper {
-            display: flex;
-            padding: 0 40px;
+        .apk-preview-toggle-btn {
+            display: none;
+            align-items: center; gap: 6px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 0.8em; font-weight: 600;
+            color: var(--text-main);
+            cursor: pointer;
+        }
+
+        .apk-wizard-main {
+            flex: 1; min-height: 0;
+            display: grid;
+            grid-template-columns: minmax(420px, 1fr) 420px;
+        }
+        .apk-form-col {
+            overflow-y: auto;
+            padding: 24px 28px;
+            min-width: 0;
+        }
+        .apk-preview-col {
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: 14px;
+            padding: 24px 20px;
             background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border-color);
-            flex-shrink: 0;
+            border-left: 1px solid var(--border-color);
+            overflow: hidden;
         }
-        .apk-step-tab {
-            padding: 12px 22px;
-            font-size: 0.85em; font-weight: 600;
-            color: var(--text-muted);
-            border-bottom: 3px solid transparent;
-            cursor: default; user-select: none;
-            transition: color 0.2s, border-color 0.2s;
-            white-space: nowrap;
+        .apk-preview-hint {
+            font-size: 0.74em; color: var(--text-muted);
+            text-align: center;
         }
-        .apk-step-tab.active  { color: var(--primary); border-bottom-color: var(--primary); }
-        .apk-step-tab.done    { color: var(--success); }
+        .apk-preview-close-btn { display: none; }
 
-        .apk-wizard-body {
-            flex: 1; overflow-y: auto;
-            padding: 32px 40px;
-        }
-        .apk-step-content { display: none; animation: fadeIn 0.3s ease; }
-        .apk-step-content.active { display: block; }
-
-        .apk-step-intro { margin-bottom: 24px; }
-        .apk-step-intro h2 { font-size: 1.25em; color: var(--text-main); margin-bottom: 6px; }
-        .apk-step-intro p  { color: var(--text-muted); font-size: 0.9em; }
+        .apk-form-section { margin-bottom: 30px; }
+        .apk-form-section:last-child { margin-bottom: 0; }
+        .apk-section-title { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+        .apk-section-title h2 { font-size: 1.05em; color: var(--text-main); margin: 0; }
+        .apk-section-desc { color: var(--text-muted); font-size: 0.85em; margin: 0 0 18px 0; }
 
         .apk-grid-2 {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr;
             gap: 16px;
         }
         .apk-field { display: flex; flex-direction: column; gap: 6px; }
@@ -178,6 +197,13 @@
         .apk-field input:focus { border-color: var(--primary); }
         .apk-field small { font-size: 0.75em; color: var(--text-muted); }
         .required { color: var(--error); }
+        .apk-field-error {
+            display: none;
+            font-size: 0.72em; color: var(--error);
+            margin-top: 2px;
+        }
+        .apk-field.invalid input { border-color: var(--error); }
+        .apk-field.invalid .apk-field-error { display: block; }
 
         .apk-icon-picker {
             border: 2px dashed var(--border-color);
@@ -210,7 +236,25 @@
             background: var(--bg-secondary);
         }
 
-        /* Step 4 – processamento */
+        /* Botão de geração + status inline (substitui o antigo Passo 4) */
+        .apk-generate-btn {
+            width: 100%;
+            padding: 13px;
+            font-size: 0.98em;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .apk-btn-spinner {
+            width: 16px; height: 16px;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: apk-spin 0.7s linear infinite;
+            display: none;
+        }
+        .apk-generate-btn.loading .apk-btn-spinner { display: inline-block; }
+
+        .apk-status-inline { margin-top: 18px; animation: fadeIn 0.25s ease; }
+
         .apk-spinner {
             width: 52px; height: 52px;
             border: 4px solid var(--primary-light);
@@ -239,12 +283,44 @@
         }
         .apk-result-row:last-child { border-bottom: none; }
 
-        .apk-wizard-footer {
-            padding: 14px 40px;
-            border-top: 1px solid var(--border-color);
-            background: var(--bg-secondary);
-            display: flex; justify-content: space-between; align-items: center;
+        /* Mockup de celular — preview ao vivo do app */
+        .apk-phone-mockup {
+            position: relative;
+            width: 300px;
+            aspect-ratio: 9 / 19.5;
+            background: #111;
+            border: 10px solid #1a1a1a;
+            border-radius: 34px;
+            box-shadow: var(--shadow-lg);
             flex-shrink: 0;
+        }
+        .apk-phone-notch {
+            position: absolute;
+            top: 0; left: 50%; transform: translateX(-50%);
+            width: 84px; height: 16px;
+            background: #1a1a1a;
+            border-radius: 0 0 12px 12px;
+            z-index: 2;
+        }
+        .apk-phone-screen {
+            position: absolute; inset: 0;
+            border-radius: 24px;
+            overflow: hidden;
+            background: #fff;
+        }
+        .apk-phone-screen iframe {
+            /* Renderiza no tamanho real de um celular (como o modo dispositivo do Chrome);
+               o JS aplica um transform:scale() para caber visualmente no mockup. */
+            width: 390px; height: 844px;
+            border: none;
+            background: #fff;
+            transform-origin: top left;
+        }
+        .apk-phone-empty {
+            width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            text-align: center; padding: 20px;
+            color: var(--text-muted); font-size: 0.78em;
         }
 
         /* Card de Entradas (não-clicável) na aba Mídias e Validação */
@@ -341,6 +417,33 @@
             .wizard-footer {
                 padding: 12px 16px;
                 gap: 10px;
+            }
+        }
+
+        /* =====================================================
+           RESPONSIVIDADE — SPLIT VIEW DO GERADOR DE APLICATIVO
+        ===================================================== */
+        @media (max-width: 900px) {
+            .apk-wizard-box { width: 95vw; height: 92vh; max-width: 95vw; }
+            .apk-wizard-main { grid-template-columns: 1fr; }
+            .apk-preview-col { display: none; }
+            .apk-preview-toggle-btn { display: inline-flex; }
+
+            .apk-wizard-box.apk-preview-mobile-open .apk-preview-col {
+                display: flex;
+                position: absolute; inset: 0;
+                z-index: 5;
+                padding-top: 54px;
+            }
+            .apk-wizard-box.apk-preview-mobile-open .apk-preview-close-btn {
+                display: block;
+                position: absolute; top: 12px; right: 16px;
+                background: var(--bg-card);
+                border: 1px solid var(--border-color);
+                border-radius: 50%;
+                width: 32px; height: 32px;
+                font-size: 1em; cursor: pointer;
+                color: var(--text-muted);
             }
         }
     </style>
@@ -644,7 +747,7 @@
 </dialog>
 
 <!-- ========================================================
-     WIZARD GERADOR DE APK / AAB  (multi-step)
+     GERADOR DE APK / AAB  (split view: formulário + preview)
 ======================================================== -->
 <div class="apk-wizard-overlay" id="modalAndroid">
   <div class="apk-wizard-box">
@@ -659,262 +762,263 @@
           <span id="apkModoBadge" style="display:inline-block; margin-top:4px; font-size:0.72em; font-weight:600; padding:2px 8px; border-radius:10px; background:#e0f2fe; color:#0369a1;"></span>
         </div>
       </div>
-      <button onclick="fecharModalAndroid()" style="background:none;border:none;font-size:1.4em;cursor:pointer;color:var(--text-muted);line-height:1;padding:4px;">✕</button>
-    </div>
-
-    <!-- Indicadores de passo -->
-    <div class="apk-stepper">
-      <div class="apk-step-tab active" id="apkTab1" data-step="1">1. Identificação</div>
-      <div class="apk-step-tab"        id="apkTab2" data-step="2">2. Aplicativo</div>
-      <div class="apk-step-tab"        id="apkTab3" data-step="3">3. Assinatura</div>
-      <div class="apk-step-tab"        id="apkTab4" data-step="4">4. Gerar</div>
-    </div>
-
-    <!-- Corpo -->
-    <div class="apk-wizard-body">
-
-      <!-- PASSO 1 — Identificação do Desenvolvedor -->
-      <div class="apk-step-content active" id="apkStep1">
-        <div class="apk-step-intro">
-          <h2>Identificação do Desenvolvedor</h2>
-          <p>Estas informações serão incorporadas ao certificado digital (Keystore) que assina o aplicativo.</p>
-        </div>
-        <div class="apk-grid-2">
-          <div class="apk-field">
-            <label>Nome / Responsável <span class="required">*</span></label>
-            <input id="apkNomeResponsavel" type="text" placeholder="Ex: João Silva">
-          </div>
-          <div class="apk-field">
-            <label>Organização <span class="required">*</span></label>
-            <input id="apkOrganizacao" type="text" placeholder="Ex: Museu Goeldi" oninput="apkAtualizarPackageName()">
-          </div>
-          <div class="apk-field">
-            <label>Cidade</label>
-            <input id="apkCidade" type="text" placeholder="Ex: Belém">
-          </div>
-          <div class="apk-field">
-            <label>Estado</label>
-            <input id="apkEstado" type="text" placeholder="Ex: PA">
-          </div>
-          <div class="apk-field">
-            <label>País (código ISO)</label>
-            <input id="apkPais" type="text" placeholder="BR" maxlength="2" style="text-transform:uppercase;">
-          </div>
-        </div>
-
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button type="button" class="apk-preview-toggle-btn" onclick="apkTogglePreviewMobile(true)">👁 Preview</button>
+        <button onclick="fecharModalAndroid()" style="background:none;border:none;font-size:1.4em;cursor:pointer;color:var(--text-muted);line-height:1;padding:4px;">✕</button>
       </div>
+    </div>
 
-      <!-- PASSO 2 — Dados do Aplicativo -->
-      <div class="apk-step-content" id="apkStep2">
-        <div class="apk-step-intro">
-          <h2>Dados do Aplicativo</h2>
-          <p>Configure as informações públicas que identificam seu aplicativo na loja e no dispositivo.</p>
-        </div>
-        <div class="apk-grid-2">
-          <div class="apk-field">
-            <label>Nome do App <span class="required">*</span></label>
-            <input id="apkNomeApp" type="text" placeholder="Meu Dicionário" oninput="apkAtualizarPackageName()">
-          </div>
-          <div class="apk-field">
-            <label>Package Name</label>
-            <input id="apkPackageName" type="text" placeholder="com.organizacao.meu_dicionario">
-            <small>Gerado automaticamente — você pode editar livremente.</small>
-          </div>
-          <div class="apk-field">
-            <label>Versão</label>
-            <input id="apkVersao" type="text" value="1.0.0" placeholder="1.0.0">
-          </div>
-          <div class="apk-field">
-            <label>Ícone do App</label>
-            <div class="apk-icon-picker" id="apkIconPicker" onclick="apkEscolherIcone()">
-              <img id="apkIconPreview" style="display:none; width:72px; height:72px; border-radius:12px; object-fit:cover; flex-shrink:0;">
-              <div id="apkIconPlaceholder">
-                <span style="font-size:2em;">🖼️</span>
-                <span>Clique para escolher<br><small>PNG ou JPG · 512×512 recomendado</small></span>
-              </div>
+    <!-- Corpo: formulário + preview -->
+    <div class="apk-wizard-main">
+
+      <!-- Coluna esquerda: formulário setorizado -->
+      <div class="apk-form-col">
+
+        <!-- Seção: Identificação do Desenvolvedor -->
+        <div class="apk-form-section">
+          <div class="apk-section-title"><h2>Identificação do Desenvolvedor</h2></div>
+          <p class="apk-section-desc">Estas informações serão incorporadas ao certificado digital (Keystore) que assina o aplicativo.</p>
+          <div class="apk-grid-2">
+            <div class="apk-field" id="apkFieldNomeResponsavel">
+              <label>Nome / Responsável <span class="required">*</span></label>
+              <input id="apkNomeResponsavel" type="text" placeholder="Ex: João Silva" oninput="apkLimparErroCampo(this)">
+              <div class="apk-field-error">Informe o nome do responsável.</div>
             </div>
-            <input type="file" id="apkIconeInput" accept="image/*" style="display:none" onchange="apkPreviewIcone(this)">
+            <div class="apk-field" id="apkFieldOrganizacao">
+              <label>Organização <span class="required">*</span></label>
+              <input id="apkOrganizacao" type="text" placeholder="Ex: Museu Goeldi" oninput="apkAtualizarPackageName(); apkLimparErroCampo(this)">
+              <div class="apk-field-error">Informe a organização.</div>
+            </div>
+            <div class="apk-field">
+              <label>Cidade</label>
+              <input id="apkCidade" type="text" placeholder="Ex: Belém">
+            </div>
+            <div class="apk-field">
+              <label>Estado</label>
+              <input id="apkEstado" type="text" placeholder="Ex: PA">
+            </div>
+            <div class="apk-field">
+              <label>País (código ISO)</label>
+              <input id="apkPais" type="text" placeholder="BR" maxlength="2" style="text-transform:uppercase;">
+            </div>
           </div>
         </div>
 
-        <div style="margin-top:20px;">
-          <label style="font-size:0.78em; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.04em;">Conteúdo do Dicionário</label>
-          <div class="apk-ks-block" style="margin-top:6px;">
-            <label class="apk-ks-option selected" id="apkLabelFonteProjeto">
-              <input type="radio" name="apkFonteHtml" value="projeto" checked style="margin-top:3px; accent-color:var(--primary);" onchange="apkAtualizarFonteHtml()">
-              <div>
-                <div style="font-weight:700; font-size:0.92em; color:var(--primary);">📂 Usar o projeto carregado agora</div>
-                <div style="font-size:0.78em; color:var(--text-muted); margin-top:2px;">Gera o HTML a partir da planilha/pasta importada nesta sessão.</div>
-              </div>
-            </label>
-
-            <label class="apk-ks-option" id="apkLabelFontePronto" style="border-top:1px solid var(--border-color);">
-              <input type="radio" name="apkFonteHtml" value="pronto" style="margin-top:3px; accent-color:var(--primary);" onchange="apkAtualizarFonteHtml()">
-              <div>
-                <div style="font-weight:700; font-size:0.92em;">📄 Usar um HTML já pronto</div>
-                <div style="font-size:0.78em; color:var(--text-muted); margin-top:2px;">Um arquivo exportado anteriormente em "Gerar Site HTML" com a opção "embutir mídias" marcada.</div>
-              </div>
-            </label>
-
-            <div id="apkHtmlProntoFields" style="display:none;" class="apk-ks-fields">
-              <div class="apk-icon-picker" id="apkHtmlProntoPicker" onclick="document.getElementById('apkHtmlProntoInput').click()" style="margin-top:14px; min-height:auto; padding:14px;">
-                <div id="apkHtmlProntoPlaceholder" style="display:flex; align-items:center; gap:12px; color:var(--text-muted); font-size:0.88em;">
-                  <span style="font-size:1.8em;">📄</span>
-                  <span>Clique para escolher o arquivo .html<br><small>Deve conter as mídias embutidas em base64</small></span>
+        <!-- Seção: Dados do Aplicativo -->
+        <div class="apk-form-section">
+          <div class="apk-section-title"><h2>Dados do Aplicativo</h2></div>
+          <p class="apk-section-desc">Configure as informações públicas que identificam seu aplicativo na loja e no dispositivo.</p>
+          <div class="apk-grid-2">
+            <div class="apk-field" id="apkFieldNomeApp">
+              <label>Nome do App <span class="required">*</span></label>
+              <input id="apkNomeApp" type="text" placeholder="Meu Dicionário" oninput="apkAtualizarPackageName(); apkAgendarPreviewLeve(); apkLimparErroCampo(this)">
+              <div class="apk-field-error">Informe o nome do aplicativo.</div>
+            </div>
+            <div class="apk-field">
+              <label>Package Name</label>
+              <input id="apkPackageName" type="text" placeholder="com.organizacao.meu_dicionario">
+              <small>Gerado automaticamente — você pode editar livremente.</small>
+            </div>
+            <div class="apk-field">
+              <label>Versão</label>
+              <input id="apkVersao" type="text" value="1.0.0" placeholder="1.0.0">
+            </div>
+            <div class="apk-field">
+              <label>Ícone do App</label>
+              <div class="apk-icon-picker" id="apkIconPicker" onclick="apkEscolherIcone()">
+                <img id="apkIconPreview" style="display:none; width:72px; height:72px; border-radius:12px; object-fit:cover; flex-shrink:0;">
+                <div id="apkIconPlaceholder">
+                  <span style="font-size:2em;">🖼️</span>
+                  <span>Clique para escolher<br><small>PNG ou JPG · 512×512 recomendado</small></span>
                 </div>
-                <div id="apkHtmlProntoSelecionado" style="display:none; align-items:center; gap:12px;">
-                  <span style="font-size:1.8em;">✅</span>
-                  <div>
-                    <div style="font-weight:600; font-size:0.9em; color:var(--text-main);" id="apkHtmlProntoNome"></div>
-                    <div style="font-size:0.78em; color:var(--text-muted);">Clique para trocar o arquivo</div>
+              </div>
+              <input type="file" id="apkIconeInput" accept="image/*" style="display:none" onchange="apkPreviewIcone(this)">
+            </div>
+          </div>
+
+          <div style="margin-top:20px;">
+            <label style="font-size:0.78em; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.04em;">Conteúdo do Dicionário</label>
+            <div class="apk-ks-block" style="margin-top:6px;">
+              <label class="apk-ks-option selected" id="apkLabelFonteProjeto">
+                <input type="radio" name="apkFonteHtml" value="projeto" checked style="margin-top:3px; accent-color:var(--primary);" onchange="apkAtualizarFonteHtml()">
+                <div>
+                  <div style="font-weight:700; font-size:0.92em; color:var(--primary);">📂 Usar o projeto carregado agora</div>
+                  <div style="font-size:0.78em; color:var(--text-muted); margin-top:2px;">Gera o HTML a partir da planilha/pasta importada nesta sessão.</div>
+                </div>
+              </label>
+
+              <label class="apk-ks-option" id="apkLabelFontePronto" style="border-top:1px solid var(--border-color);">
+                <input type="radio" name="apkFonteHtml" value="pronto" style="margin-top:3px; accent-color:var(--primary);" onchange="apkAtualizarFonteHtml()">
+                <div>
+                  <div style="font-weight:700; font-size:0.92em;">📄 Usar um HTML já pronto</div>
+                  <div style="font-size:0.78em; color:var(--text-muted); margin-top:2px;">Um arquivo exportado anteriormente em "Gerar Site HTML" com a opção "embutir mídias" marcada.</div>
+                </div>
+              </label>
+
+              <div id="apkHtmlProntoFields" style="display:none;" class="apk-ks-fields">
+                <div class="apk-icon-picker" id="apkHtmlProntoPicker" onclick="document.getElementById('apkHtmlProntoInput').click()" style="margin-top:14px; min-height:auto; padding:14px;">
+                  <div id="apkHtmlProntoPlaceholder" style="display:flex; align-items:center; gap:12px; color:var(--text-muted); font-size:0.88em;">
+                    <span style="font-size:1.8em;">📄</span>
+                    <span>Clique para escolher o arquivo .html<br><small>Deve conter as mídias embutidas em base64</small></span>
+                  </div>
+                  <div id="apkHtmlProntoSelecionado" style="display:none; align-items:center; gap:12px;">
+                    <span style="font-size:1.8em;">✅</span>
+                    <div>
+                      <div style="font-weight:600; font-size:0.9em; color:var(--text-main);" id="apkHtmlProntoNome"></div>
+                      <div style="font-size:0.78em; color:var(--text-muted);">Clique para trocar o arquivo</div>
+                    </div>
                   </div>
                 </div>
+                <input type="file" id="apkHtmlProntoInput" accept=".html" style="display:none" onchange="apkSelecionarHtmlPronto(this)">
               </div>
-              <input type="file" id="apkHtmlProntoInput" accept=".html" style="display:none" onchange="apkSelecionarHtmlPronto(this)">
             </div>
           </div>
         </div>
 
+        <!-- Seção: Segurança & Assinatura -->
+        <div class="apk-form-section">
+          <div class="apk-section-title"><h2>Segurança e Assinatura (Keystore)</h2></div>
+          <p class="apk-section-desc">O Keystore é o certificado digital que autoriza a publicação e a atualização do aplicativo na Play Store.</p>
+
+          <!-- Gerenciamento de chave de assinatura (IndexedDB no dispositivo) -->
+          <div id="apkKsBrowserSection">
+
+            <div id="apkKsBrowserPwa" style="margin-top:8px;">
+
+              <!-- Estado: sem chave -->
+              <div id="apkKsBrNoKey">
+                <div style="padding:16px; background:#fff3e0; border:1px solid #ffcc80; border-radius:10px; margin-bottom:14px;">
+                  <strong>Nenhuma chave encontrada neste navegador.</strong>
+                  <p style="font-size:0.84em; margin:6px 0 0 0; color:#e65100;">Crie uma chave de assinatura ou importe um arquivo .p12 existente.</p>
+                </div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                  <button onclick="apkKsBrCriarChave()" class="btn btn-primary" style="font-size:0.88em;">+ Criar nova chave</button>
+                  <button onclick="apkKsBrImportarP12()" class="btn btn-outline" style="font-size:0.88em;">Importar chave existente</button>
+                </div>
+              </div>
+
+              <!-- Estado: chave presente -->
+              <div id="apkKsBrHasKey" style="display:none;">
+                <div style="padding:16px; background:#f0fdf4; border:1px solid #86efac; border-radius:10px; margin-bottom:14px;">
+                  <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                    <span style="font-size:1.2em;">🔑</span>
+                    <strong id="apkKsBrAliasLabel" style="color:#166534;"></strong>
+                  </div>
+                  <div style="font-size:0.82em; color:#166534;" id="apkKsBrInfoLabel"></div>
+                </div>
+                <div class="apk-field" id="apkFieldKsSenha" style="margin-bottom:14px;">
+                  <label style="font-weight:600; font-size:0.88em; text-transform:none; letter-spacing:normal;">Senha da chave <span class="required">*</span></label>
+                  <input id="apkKsBrSenha" type="password" placeholder="Informe a senha para assinar" style="margin-top:6px;" oninput="apkLimparErroCampo(this)">
+                  <div class="apk-field-error">Informe a senha da chave.</div>
+                </div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                  <button onclick="apkKsBrExportarP12()" class="btn btn-outline" style="font-size:0.85em;">Exportar .p12</button>
+                  <button onclick="apkKsBrSubstituir()" class="btn btn-outline" style="font-size:0.85em; color:#c2410c; border-color:#c2410c;">↺ Substituir chave</button>
+                </div>
+                <div style="margin-top:10px; padding:10px 12px; background:#fefce8; border-radius:8px; border:1px solid #fef08a; font-size:0.79em; color:#854d0e;">
+                  <strong>⚠️</strong> Guarde o backup .p12 da sua chave. Ele é necessário para enviar atualizações ao Google Play. Sem ele, não será possível atualizar o app após publicação.
+                </div>
+              </div>
+
+              <!-- Formulário criar chave (inline) -->
+              <div id="apkKsBrFormCriar" style="display:none; margin-top:16px; padding:16px; background:#f8fafc; border:1px solid var(--border-color); border-radius:10px;">
+                <h4 style="margin:0 0 14px 0; font-size:0.95em;">Nova chave de assinatura</h4>
+                <div class="apk-grid-2">
+                  <div class="apk-field">
+                    <label>Alias <span class="required">*</span></label>
+                    <input id="apkKsBrAlias" type="text" value="upload" autocomplete="off" spellcheck="false">
+                  </div>
+                  <div class="apk-field">
+                    <label>Nome / CN <span class="required">*</span></label>
+                    <input id="apkKsBrCn" type="text" placeholder="Ex: João Silva">
+                  </div>
+                  <div class="apk-field">
+                    <label>Organização <span class="required">*</span></label>
+                    <input id="apkKsBrOrg" type="text" placeholder="Ex: Universidade Federal">
+                  </div>
+                  <div class="apk-field">
+                    <label>País (ISO)</label>
+                    <input id="apkKsBrPais" type="text" value="BR" maxlength="2" style="text-transform:uppercase;">
+                  </div>
+                  <div class="apk-field">
+                    <label>Senha <span class="required">*</span></label>
+                    <input id="apkKsBrNovaSenha" type="password" placeholder="Mínimo 6 caracteres">
+                  </div>
+                  <div class="apk-field">
+                    <label>Confirmar senha <span class="required">*</span></label>
+                    <input id="apkKsBrNovaSenhaConfirm" type="password" placeholder="Repita a senha">
+                  </div>
+                </div>
+                <div style="display:flex; gap:8px; margin-top:14px;">
+                  <button onclick="apkKsBrSalvarNovaChave()" class="btn btn-primary" style="font-size:0.88em;">Criar e salvar chave</button>
+                  <button onclick="apkKsBrCancelarFormulario()" class="btn btn-outline" style="font-size:0.88em;">Cancelar</button>
+                </div>
+              </div>
+
+              <!-- Input oculto para importar .p12 -->
+              <input type="file" id="apkKsBrP12Input" accept=".p12,.pfx" style="display:none" onchange="apkKsBrProcessarP12(this)">
+
+            </div><!-- /apkKsBrowserPwa -->
+          </div><!-- /apkKsBrowserSection -->
+        </div>
+
+        <!-- Seção: Gerar -->
+        <div class="apk-form-section">
+          <button id="apkBtnGerar" class="btn btn-primary apk-generate-btn" onclick="apkGerarAplicativo()">
+            <span class="apk-btn-spinner"></span>
+            <span id="apkBtnGerarLabel">Gerar Aplicativo</span>
+          </button>
+
+          <div class="apk-status-inline" id="apkStatusInline" style="display:none;">
+
+            <!-- Estado: processando -->
+            <div id="apkProcessando" style="text-align:center; padding:24px 0;">
+              <div class="apk-spinner"></div>
+              <div id="apkStatusTitle" style="font-size:1.1em; font-weight:700; color:var(--primary); margin:16px 0 6px;">Gerando aplicativo…</div>
+              <div id="apkStatusDesc" style="color:var(--text-muted); font-size:0.85em;">Aguarde enquanto o aplicativo é compilado e assinado.</div>
+              <div id="apkProgressSteps" style="margin-top:20px; text-align:left; max-width:420px; margin-left:auto; margin-right:auto;"></div>
+            </div>
+
+            <!-- Estado: sucesso -->
+            <div id="apkSucesso" style="display:none;">
+              <div style="text-align:center; padding:16px 0 24px;">
+                <div style="font-size:2.8em; margin-bottom:10px;">✅</div>
+                <h2 style="color:var(--success); margin-bottom:6px; font-size:1.1em;">Aplicativo gerado com sucesso!</h2>
+                <p id="apkSucessoDesc" style="color:var(--text-muted); font-size:0.88em;">Os arquivos foram gerados e assinados.</p>
+              </div>
+
+              <div id="apkOnlineResultados" style="margin-bottom:16px;">
+                <h3 style="font-size:0.92em; color:var(--success); margin-bottom:10px;">⬇️ Arquivos gerados:</h3>
+                <div id="apkOnlineDownloadLinks" style="display:flex; flex-direction:column; gap:8px;"></div>
+              </div>
+            </div>
+
+            <!-- Estado: erro -->
+            <div id="apkErro" style="display:none; text-align:center; padding:16px 0;">
+              <div style="font-size:2.5em; margin-bottom:10px;">❌</div>
+              <h2 style="color:var(--error); margin-bottom:12px; font-size:1.05em;">Erro ao gerar aplicativo</h2>
+              <div id="apkErroMsg" style="background:#fef2f2; border:1px solid #fca5a5; border-radius:8px; padding:14px 16px; text-align:left; font-size:0.82em; font-family:monospace; white-space:pre-wrap; word-break:break-all; max-height:220px; overflow-y:auto; color:#991b1b;"></div>
+            </div>
+
+          </div><!-- /apkStatusInline -->
+        </div>
+
+      </div><!-- /apk-form-col -->
+
+      <!-- Coluna direita: preview mobile fixo -->
+      <div class="apk-preview-col" id="apkPreviewCol">
+        <button type="button" class="apk-preview-close-btn" onclick="apkTogglePreviewMobile(false)">✕</button>
+        <div class="apk-phone-mockup">
+          <div class="apk-phone-notch"></div>
+          <div class="apk-phone-screen">
+            <iframe id="apkPreviewFrame" title="Preview do aplicativo" style="display:none;"></iframe>
+            <div id="apkPreviewEmpty" class="apk-phone-empty">Preencha os dados para ver a prévia do app aqui.</div>
+          </div>
+        </div>
+        <div class="apk-preview-hint">Prévia do aplicativo</div>
       </div>
 
-      <!-- PASSO 3 — Segurança & Assinatura -->
-      <div class="apk-step-content" id="apkStep3">
-        <div class="apk-step-intro">
-          <h2>🔑 Segurança e Assinatura (Keystore)</h2>
-          <p>O Keystore é o certificado digital que autoriza a publicação e a atualização do aplicativo na Play Store.</p>
-        </div>
-
-        <!-- Gerenciamento de chave de assinatura (IndexedDB no dispositivo) -->
-        <div id="apkKsBrowserSection">
-
-          <div id="apkKsBrowserPwa" style="margin-top:8px;">
-
-            <!-- Estado: sem chave -->
-            <div id="apkKsBrNoKey">
-              <div style="padding:16px; background:#fff3e0; border:1px solid #ffcc80; border-radius:10px; margin-bottom:14px;">
-                <strong>🔑 Nenhuma chave encontrada neste navegador.</strong>
-                <p style="font-size:0.84em; margin:6px 0 0 0; color:#e65100;">Crie uma chave de assinatura ou importe um arquivo .p12 existente.</p>
-              </div>
-              <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                <button onclick="apkKsBrCriarChave()" class="btn btn-primary" style="font-size:0.88em;">+ Criar nova chave</button>
-                <button onclick="apkKsBrImportarP12()" class="btn btn-outline" style="font-size:0.88em;">📥 Importar .p12</button>
-              </div>
-            </div>
-
-            <!-- Estado: chave presente -->
-            <div id="apkKsBrHasKey" style="display:none;">
-              <div style="padding:16px; background:#f0fdf4; border:1px solid #86efac; border-radius:10px; margin-bottom:14px;">
-                <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-                  <span style="font-size:1.2em;">🔑</span>
-                  <strong id="apkKsBrAliasLabel" style="color:#166534;"></strong>
-                </div>
-                <div style="font-size:0.82em; color:#166534;" id="apkKsBrInfoLabel"></div>
-              </div>
-              <div style="margin-bottom:14px;">
-                <label style="font-weight:600; font-size:0.88em;">Senha da chave <span class="required">*</span></label>
-                <input id="apkKsBrSenha" type="password" placeholder="Informe a senha para assinar" style="margin-top:6px;">
-              </div>
-              <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                <button onclick="apkKsBrExportarP12()" class="btn btn-outline" style="font-size:0.85em;">📤 Exportar .p12</button>
-                <button onclick="apkKsBrSubstituir()" class="btn btn-outline" style="font-size:0.85em; color:#c2410c; border-color:#c2410c;">↺ Substituir chave</button>
-              </div>
-              <div style="margin-top:10px; padding:10px 12px; background:#fefce8; border-radius:8px; border:1px solid #fef08a; font-size:0.79em; color:#854d0e;">
-                <strong>⚠️</strong> Guarde o backup .p12 da sua chave. Ele é necessário para enviar atualizações ao Google Play. Sem ele, não será possível atualizar o app após publicação.
-              </div>
-            </div>
-
-            <!-- Formulário criar chave (inline) -->
-            <div id="apkKsBrFormCriar" style="display:none; margin-top:16px; padding:16px; background:#f8fafc; border:1px solid var(--border-color); border-radius:10px;">
-              <h4 style="margin:0 0 14px 0; font-size:0.95em;">Nova chave de assinatura</h4>
-              <div class="apk-grid-2">
-                <div class="apk-field">
-                  <label>Alias <span class="required">*</span></label>
-                  <input id="apkKsBrAlias" type="text" value="upload" autocomplete="off" spellcheck="false">
-                </div>
-                <div class="apk-field">
-                  <label>Nome / CN <span class="required">*</span></label>
-                  <input id="apkKsBrCn" type="text" placeholder="Ex: João Silva">
-                </div>
-                <div class="apk-field">
-                  <label>Organização <span class="required">*</span></label>
-                  <input id="apkKsBrOrg" type="text" placeholder="Ex: Universidade Federal">
-                </div>
-                <div class="apk-field">
-                  <label>País (ISO)</label>
-                  <input id="apkKsBrPais" type="text" value="BR" maxlength="2" style="text-transform:uppercase;">
-                </div>
-                <div class="apk-field">
-                  <label>Senha <span class="required">*</span></label>
-                  <input id="apkKsBrNovaSenha" type="password" placeholder="Mínimo 6 caracteres">
-                </div>
-                <div class="apk-field">
-                  <label>Confirmar senha <span class="required">*</span></label>
-                  <input id="apkKsBrNovaSenhaConfirm" type="password" placeholder="Repita a senha">
-                </div>
-              </div>
-              <div style="display:flex; gap:8px; margin-top:14px;">
-                <button onclick="apkKsBrSalvarNovaChave()" class="btn btn-primary" style="font-size:0.88em;">Criar e salvar chave</button>
-                <button onclick="apkKsBrCancelarFormulario()" class="btn btn-outline" style="font-size:0.88em;">Cancelar</button>
-              </div>
-            </div>
-
-            <!-- Input oculto para importar .p12 -->
-            <input type="file" id="apkKsBrP12Input" accept=".p12,.pfx" style="display:none" onchange="apkKsBrProcessarP12(this)">
-
-          </div><!-- /apkKsBrowserPwa -->
-        </div><!-- /apkKsBrowserSection -->
-
-      </div>
-
-      <!-- PASSO 4 — Processamento e Resultados -->
-      <div class="apk-step-content" id="apkStep4">
-
-        <!-- Estado: processando -->
-        <div id="apkProcessando" style="text-align:center; padding:48px 0;">
-          <div class="apk-spinner"></div>
-          <div id="apkStatusTitle" style="font-size:1.2em; font-weight:700; color:var(--primary); margin:20px 0 8px;">Gerando aplicativo…</div>
-          <div id="apkStatusDesc" style="color:var(--text-muted); font-size:0.88em;">Aguarde enquanto o aplicativo é compilado e assinado.</div>
-          <div id="apkProgressSteps" style="margin-top:28px; text-align:left; max-width:420px; margin-left:auto; margin-right:auto;"></div>
-        </div>
-
-        <!-- Estado: sucesso -->
-        <div id="apkSucesso" style="display:none;">
-          <div style="text-align:center; padding:28px 0 32px;">
-            <div style="font-size:3.5em; margin-bottom:12px;">✅</div>
-            <h2 style="color:var(--success); margin-bottom:8px;">Aplicativo gerado com sucesso!</h2>
-            <p id="apkSucessoDesc" style="color:var(--text-muted);">Os arquivos foram gerados e assinados.</p>
-          </div>
-
-          <div id="apkOnlineResultados" style="margin-bottom:24px;">
-            <h3 style="font-size:0.95em; color:var(--success); margin-bottom:10px;">⬇️ Arquivos gerados:</h3>
-            <div id="apkOnlineDownloadLinks" style="display:flex; flex-direction:column; gap:8px;"></div>
-          </div>
-
-          <div style="display:flex; gap:10px; justify-content:center;">
-            <button onclick="fecharModalAndroid()" class="btn btn-outline">Fechar</button>
-          </div>
-        </div>
-
-        <!-- Estado: erro -->
-        <div id="apkErro" style="display:none; text-align:center; padding:28px 0;">
-          <div style="font-size:3em; margin-bottom:12px;">❌</div>
-          <h2 style="color:var(--error); margin-bottom:14px;">Erro ao gerar aplicativo</h2>
-          <div id="apkErroMsg" style="background:#fef2f2; border:1px solid #fca5a5; border-radius:8px; padding:14px 16px; text-align:left; font-size:0.82em; font-family:monospace; white-space:pre-wrap; word-break:break-all; max-height:220px; overflow-y:auto; margin-bottom:20px; color:#991b1b;"></div>
-          <div style="display:flex; gap:10px; justify-content:center;">
-            <button onclick="apkIrParaPasso(3)" class="btn btn-outline">← Voltar e Corrigir</button>
-            <button onclick="apkGerarAplicativo()" class="btn btn-primary">Tentar Novamente</button>
-          </div>
-        </div>
-
-      </div><!-- /apkStep4 -->
-    </div><!-- /apk-wizard-body -->
-
-    <!-- Rodapé de navegação -->
-    <div class="apk-wizard-footer" id="apkFooter">
-      <button id="apkBtnPrev" onclick="apkPassoAnterior()" class="btn btn-secondary" disabled>← Anterior</button>
-      <span id="apkStepLabel" style="font-size:0.83em; color:var(--text-muted);">Passo 1 de 3</span>
-      <button id="apkBtnNext" onclick="apkProximoPasso()" class="btn btn-primary">Próximo →</button>
-    </div>
+    </div><!-- /apk-wizard-main -->
 
   </div><!-- /apk-wizard-box -->
 </div><!-- /modalAndroid -->
@@ -1962,15 +2066,29 @@
     // WIZARD GERADOR DE APK / AAB
     // -----------------------------------------------------------------------
 
-    let _apkPasso = 1;
     let _apkIconeBytes = [];
     let _apkHtmlProntoArquivo = null;
+    let _apkPreviewUrl = null;
+    let _apkPreviewLeveTimer = null;
+
+    // Dimensões reais de um celular médio (iPhone 12/13) — o app é renderizado
+    // nesse tamanho de verdade e depois escalado visualmente, igual ao modo
+    // dispositivo do Chrome DevTools. Evita que @media/rem/vw quebrem o layout.
+    const APK_DEVICE_W = 390;
+    const APK_DEVICE_H = 844;
 
     window.apkAtualizarFonteHtml = function() {
         const fonte = document.querySelector('input[name="apkFonteHtml"]:checked')?.value || 'projeto';
         document.getElementById('apkHtmlProntoFields').style.display = fonte === 'pronto' ? 'block' : 'none';
         document.getElementById('apkLabelFonteProjeto').classList.toggle('selected', fonte === 'projeto');
         document.getElementById('apkLabelFontePronto').classList.toggle('selected', fonte === 'pronto');
+        if (fonte === 'projeto') {
+            apkGerarPreviewCompleto();
+        } else if (_apkHtmlProntoArquivo) {
+            apkPreviewDeArquivoPronto(_apkHtmlProntoArquivo);
+        } else {
+            apkLimparPreview();
+        }
     };
 
     window.apkSelecionarHtmlPronto = function(input) {
@@ -1979,8 +2097,98 @@
         document.getElementById('apkHtmlProntoSelecionado').style.display = _apkHtmlProntoArquivo ? 'flex' : 'none';
         if (_apkHtmlProntoArquivo) {
             document.getElementById('apkHtmlProntoNome').textContent = _apkHtmlProntoArquivo.name;
+            apkPreviewDeArquivoPronto(_apkHtmlProntoArquivo);
+        } else {
+            apkLimparPreview();
         }
     };
+
+    window.apkLimparErroCampo = function(el) {
+        el.closest('.apk-field')?.classList.remove('invalid');
+    };
+
+    window.apkTogglePreviewMobile = function(abrir) {
+        document.querySelector('#modalAndroid .apk-wizard-box')?.classList.toggle('apk-preview-mobile-open', abrir);
+        if (abrir) requestAnimationFrame(apkAtualizarEscalaPreview);
+    };
+
+    // --------------------------------------------------------
+    // Preview ao vivo (mockup de celular)
+    // --------------------------------------------------------
+    window.apkAgendarPreviewLeve = function() {
+        clearTimeout(_apkPreviewLeveTimer);
+        _apkPreviewLeveTimer = setTimeout(() => {
+            const fonte = document.querySelector('input[name="apkFonteHtml"]:checked')?.value || 'projeto';
+            if (fonte === 'projeto') apkGerarPreviewCompleto();
+        }, 500);
+    };
+
+    async function apkGerarPreviewCompleto() {
+        if (!window.exportador || !window.sistema) { apkLimparPreview(); return; }
+        try {
+            const nomeApp = document.getElementById('apkNomeApp')?.value.trim() || 'Dicionário';
+            const iconPreviewEl = document.getElementById('apkIconPreview');
+            const iconeDataUrl = iconPreviewEl && iconPreviewEl.style.display !== 'none'
+                ? iconPreviewEl.src
+                : ((window.sistema.icone && window.sistema.icone.dataUrl) || null);
+            const htmlStr = await window.exportador.exportarHtmlCards({
+                embutirMidias: true,
+                metadados: { tituloHtml: nomeApp, iconeDataUrl }
+            });
+            apkExibirPreviewHtml(htmlStr);
+        } catch (e) {
+            console.error('Erro ao gerar preview do app:', e);
+            apkLimparPreview();
+        }
+    }
+
+    async function apkPreviewDeArquivoPronto(file) {
+        try {
+            apkExibirPreviewHtml(await file.text());
+        } catch (e) {
+            console.error('Erro ao ler HTML pronto para preview:', e);
+            apkLimparPreview();
+        }
+    }
+
+    function apkExibirPreviewHtml(htmlStr) {
+        const frame = document.getElementById('apkPreviewFrame');
+        const empty = document.getElementById('apkPreviewEmpty');
+        if (_apkPreviewUrl) URL.revokeObjectURL(_apkPreviewUrl);
+        const blob = new Blob([htmlStr], { type: 'text/html;charset=utf-8' });
+        _apkPreviewUrl = URL.createObjectURL(blob);
+        frame.src = _apkPreviewUrl;
+        frame.style.display = 'block';
+        empty.style.display = 'none';
+    }
+
+    function apkAtualizarEscalaPreview() {
+        const tela  = document.querySelector('#modalAndroid .apk-phone-screen');
+        const frame = document.getElementById('apkPreviewFrame');
+        if (!tela || !frame) return;
+        const larguraDisponivel = tela.clientWidth;
+        if (!larguraDisponivel) return; // mockup ainda oculto (display:none) — nada a escalar
+        const escala = larguraDisponivel / APK_DEVICE_W;
+        frame.style.transform = `scale(${escala})`;
+    }
+
+    // Recalcula a escala sempre que o mockup muda de tamanho (abrir o modal,
+    // redimensionar a janela, alternar o drawer de preview no mobile).
+    // ResizeObserver só dispara em mudanças reais de tamanho — sem custo em idle.
+    if ('ResizeObserver' in window) {
+        const _apkPreviewObserver = new ResizeObserver(() => apkAtualizarEscalaPreview());
+        const _apkTelaEl = document.querySelector('#modalAndroid .apk-phone-screen');
+        if (_apkTelaEl) _apkPreviewObserver.observe(_apkTelaEl);
+    }
+
+    function apkLimparPreview() {
+        const frame = document.getElementById('apkPreviewFrame');
+        const empty = document.getElementById('apkPreviewEmpty');
+        if (_apkPreviewUrl) { URL.revokeObjectURL(_apkPreviewUrl); _apkPreviewUrl = null; }
+        frame.removeAttribute('src');
+        frame.style.display = 'none';
+        empty.style.display = 'flex';
+    }
 
     function apkSlugify(str) {
         return (str || '')
@@ -2017,6 +2225,7 @@
             document.getElementById('apkIconPreview').src = e.target.result;
             document.getElementById('apkIconPreview').style.display = 'block';
             document.getElementById('apkIconPlaceholder').style.display = 'none';
+            apkAgendarPreviewLeve();
         };
         reader.readAsDataURL(file);
         const buf = await file.arrayBuffer();
@@ -2031,82 +2240,73 @@
         el.innerHTML = `<span>${icons[estado]||'⬜'}</span><span>${texto}</span>`;
     }
 
-    window.apkIrParaPasso = function(passo) {
-        document.querySelectorAll('.apk-step-content').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.apk-step-tab').forEach(el => {
-            const n = parseInt(el.dataset.step);
-            el.classList.remove('active','done');
-            if (n < passo) el.classList.add('done');
-        });
-        const stepEl = document.getElementById(`apkStep${passo}`);
-        const tabEl  = document.getElementById(`apkTab${passo}`);
-        if (stepEl) stepEl.classList.add('active');
-        if (tabEl)  tabEl.classList.add('active');
-        _apkPasso = passo;
-
-        const footer = document.getElementById('apkFooter');
-        const btnPrev = document.getElementById('apkBtnPrev');
-        const btnNext = document.getElementById('apkBtnNext');
-        const label   = document.getElementById('apkStepLabel');
-
-        if (passo === 4) {
-            footer.style.display = 'none';
-            return;
-        }
-        footer.style.display = 'flex';
-        btnPrev.disabled = passo === 1;
-        label.textContent = `Passo ${passo} de 3`;
-
-        if (passo === 3) {
-            btnNext.textContent = '📱 Gerar Aplicativo';
-            btnNext.onclick = apkGerarAplicativo;
-        } else {
-            btnNext.textContent = 'Próximo →';
-            btnNext.onclick = apkProximoPasso;
-        }
-    };
-
-    function apkValidarPasso(passo) {
-        if (passo === 1) {
-            if (!document.getElementById('apkNomeResponsavel').value.trim())
-                { alert('Informe o Nome / Responsável.'); return false; }
-            if (!document.getElementById('apkOrganizacao').value.trim())
-                { alert('Informe a Organização.'); return false; }
-            apkAtualizarPackageName();
-            return true;
-        }
-        if (passo === 2) {
-            if (!document.getElementById('apkNomeApp').value.trim())
-                { alert('Informe o Nome do Aplicativo.'); return false; }
-            return true;
-        }
-        return true;
+    function apkMarcarCampo(fieldId, invalido) {
+        document.getElementById(fieldId)?.classList.toggle('invalid', invalido);
     }
 
-    window.apkProximoPasso = function() {
-        if (!apkValidarPasso(_apkPasso)) return;
-        if (_apkPasso < 3) apkIrParaPasso(_apkPasso + 1);
-    };
+    function apkValidarFormulario() {
+        let valido = true;
+        let primeiroInvalidoId = null;
+        const marcarPrimeiro = (id) => { if (!primeiroInvalidoId) primeiroInvalidoId = id; };
 
-    window.apkPassoAnterior = function() {
-        if (_apkPasso > 1) apkIrParaPasso(_apkPasso - 1);
-    };
+        const nomeResp = document.getElementById('apkNomeResponsavel').value.trim();
+        apkMarcarCampo('apkFieldNomeResponsavel', !nomeResp);
+        if (!nomeResp) { valido = false; marcarPrimeiro('apkFieldNomeResponsavel'); }
+
+        const org = document.getElementById('apkOrganizacao').value.trim();
+        apkMarcarCampo('apkFieldOrganizacao', !org);
+        if (!org) { valido = false; marcarPrimeiro('apkFieldOrganizacao'); }
+
+        const nomeApp = document.getElementById('apkNomeApp').value.trim();
+        apkMarcarCampo('apkFieldNomeApp', !nomeApp);
+        if (!nomeApp) { valido = false; marcarPrimeiro('apkFieldNomeApp'); }
+
+        const temChave = document.getElementById('apkKsBrHasKey').style.display !== 'none';
+        if (!temChave) {
+            valido = false;
+            marcarPrimeiro('apkKsBrowserSection');
+            alert('Crie ou importe uma chave de assinatura antes de gerar o aplicativo.');
+        } else {
+            const senha = document.getElementById('apkKsBrSenha').value;
+            apkMarcarCampo('apkFieldKsSenha', !senha);
+            if (!senha) { valido = false; marcarPrimeiro('apkFieldKsSenha'); }
+        }
+
+        if (!valido && primeiroInvalidoId) {
+            document.getElementById(primeiroInvalidoId)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        if (valido) apkAtualizarPackageName();
+        return valido;
+    }
 
     window.apkGerarAplicativo = async function() {
-        apkIrParaPasso(4);
-        document.getElementById('apkProcessando').style.display = 'block';
-        document.getElementById('apkSucesso').style.display     = 'none';
-        document.getElementById('apkErro').style.display        = 'none';
+        if (!apkValidarFormulario()) return;
+
+        const btn      = document.getElementById('apkBtnGerar');
+        const btnLabel = document.getElementById('apkBtnGerarLabel');
+        btn.classList.add('loading');
+        btn.disabled = true;
+        btnLabel.textContent = 'Gerando…';
+
+        document.getElementById('apkStatusInline').style.display = 'block';
+        document.getElementById('apkProcessando').style.display  = 'block';
+        document.getElementById('apkSucesso').style.display      = 'none';
+        document.getElementById('apkErro').style.display         = 'none';
+        document.getElementById('apkStatusInline').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
         try {
             await _apkGerarBrowser();
+            btnLabel.textContent = '🔁 Gerar novamente';
         } catch (err) {
             const msg = typeof err === 'string' ? err : (err.message || JSON.stringify(err));
             adicionarLogAoTerminal('Erro ao gerar APK: ' + msg, 'error');
             document.getElementById('apkErroMsg').textContent = msg;
             document.getElementById('apkProcessando').style.display = 'none';
             document.getElementById('apkErro').style.display        = 'block';
-            document.getElementById('apkFooter').style.display      = 'flex';
+            btnLabel.textContent = '🔁 Tentar novamente';
+        } finally {
+            btn.classList.remove('loading');
+            btn.disabled = false;
         }
     };
 
@@ -2128,9 +2328,18 @@
             document.getElementById('apkIconPreview').style.display    = 'none';
             document.getElementById('apkIconPlaceholder').style.display = 'flex';
         }
-        document.getElementById('apkProcessando').style.display     = 'block';
-        document.getElementById('apkSucesso').style.display         = 'none';
-        document.getElementById('apkErro').style.display            = 'none';
+        // Reset do bloco de status e do botão de geração
+        document.getElementById('apkStatusInline').style.display = 'none';
+        document.getElementById('apkProcessando').style.display  = 'block';
+        document.getElementById('apkSucesso').style.display      = 'none';
+        document.getElementById('apkErro').style.display         = 'none';
+        document.getElementById('apkBtnGerarLabel').textContent  = '📱 Gerar Aplicativo';
+        document.getElementById('apkBtnGerar').disabled          = false;
+        document.getElementById('apkBtnGerar').classList.remove('loading');
+
+        // Limpar marcações de campos inválidos de uma sessão anterior
+        document.querySelectorAll('#modalAndroid .apk-field.invalid').forEach(el => el.classList.remove('invalid'));
+
         document.querySelector('input[name="apkFonteHtml"][value="projeto"]').checked = true;
         document.getElementById('apkHtmlProntoFields').style.display = 'none';
         document.getElementById('apkLabelFonteProjeto').classList.add('selected');
@@ -2143,7 +2352,7 @@
         // Badge de ambiente (cosmético — a geração é sempre local, no dispositivo)
         const badge = document.getElementById('apkModoBadge');
         const noTauri = !!(window.__TAURI__ && window.__TAURI__.core);
-        badge.textContent = noTauri ? '💻 App Desktop' : '🌐 Navegador';
+        badge.textContent = noTauri ? 'App Desktop' : 'Navegador';
         badge.style.background = '#f0fdf4'; badge.style.color = '#166534';
 
         // Atualizar estado da chave de assinatura (IndexedDB)
@@ -2156,12 +2365,16 @@
         document.getElementById('apkNomeApp').value = nomeDic;
         apkAtualizarPackageName();
 
-        apkIrParaPasso(1);
+        document.querySelector('#modalAndroid .apk-wizard-box')?.classList.remove('apk-preview-mobile-open');
         document.getElementById('modalAndroid').style.display = 'flex';
+        requestAnimationFrame(apkAtualizarEscalaPreview);
+
+        apkGerarPreviewCompleto();
     };
 
     window.fecharModalAndroid = function() {
         document.getElementById('modalAndroid').style.display = 'none';
+        apkLimparPreview();
     };
 
     // ========================================================
