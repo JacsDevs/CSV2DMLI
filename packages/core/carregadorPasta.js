@@ -42,21 +42,23 @@ class CarregadorPasta {
         // Mostrar o que foi encontrado
         this._exibirResumo(organizados);
         
-        // 1. Carregar o pacote mestre (Projeto JSON) ou Planilha base
+        // 1. Carregar o pacote mestre (Projeto JSON) ou Planilha base e textos
         if (organizados.projeto) {
             await this.gerenciador.carregarProjeto(organizados.projeto);
             this.arquivosEncontrados.projeto = organizados.projeto;
-        } else if (organizados.planilha) {
-            await this.gerenciador.carregarPlanilha(organizados.planilha);
-            this.arquivosEncontrados.planilha = organizados.planilha;
         } else {
-            console.warn('⚠️ Nenhuma planilha ou projeto.json encontrado na pasta');
-        }
-        
-        // 2. Carregar textos estruturados (JSON)
-        if (organizados.textos) {
-            await this._carregarTextos(organizados.textos);
-            this.arquivosEncontrados.textos = organizados.textos;
+            // É fundamental carregar os textos ANTES da planilha para evitar avisos falsos de "texto não encontrado"
+            if (organizados.textos) {
+                await this._carregarTextos(organizados.textos);
+                this.arquivosEncontrados.textos = organizados.textos;
+            }
+
+            if (organizados.planilha) {
+                await this.gerenciador.carregarPlanilha(organizados.planilha);
+                this.arquivosEncontrados.planilha = organizados.planilha;
+            } else {
+                console.warn('⚠️ Nenhuma planilha ou projeto.json encontrado na pasta');
+            }
         }
         
         // 3. Carregar configuração local (se existir)
