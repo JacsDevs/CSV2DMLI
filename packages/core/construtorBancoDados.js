@@ -137,8 +137,9 @@ class ConstrutorBancoDados {
 
             // ========== TEXTOS ESTRUTURADOS ==========
             const titulosBusca = limparListaPipe(camposBasicos.TEXTO || '');
+            const titulosPersonalizados = limparListaPipe(camposBasicos.TITULO_TEXTO || '');
 
-            titulosBusca.forEach(tit => {
+            titulosBusca.forEach((tit, index) => {
                 if (!tit) return;
 
                 const fonteTextos = this.vfs.textosExtra;
@@ -149,11 +150,15 @@ class ConstrutorBancoDados {
                     return;
                 }
 
-                const jaExiste = entrada.TEXTOS_ESTRUTURADOS.some(t => t.TITULO_BASE === textoMatch.titulo_base);
-                if (jaExiste) return;
+                // const jaExiste = entrada.TEXTOS_ESTRUTURADOS.some(t => t.TITULO_BASE === textoMatch.titulo_base);
+                // if (jaExiste) return;
+
+                const tituloPersonalizado = titulosPersonalizados[index];
 
                 const textoFormatado = {
+                    ID_TEXTO: tit,
                     TITULO_BASE: textoMatch.titulo_base,
+                    TITULO_EXIBICAO: tituloPersonalizado || '',
                     TEXTO_NAO_LITERAL: textoMatch.texto_nao_literal || '',
                     VARIACOES: []
                 };
@@ -164,7 +169,12 @@ class ConstrutorBancoDados {
                         if (v.frases && Array.isArray(v.frases)) {
                             v.frases.forEach(f => {
                                 const audioFrase = f.audio?.arquivo || '';
-                                const audioDados = f.audio?.dados || '';
+                                let audioDados = f.audio?.dados || '';
+                                
+                                if (audioDados && !audioDados.startsWith('data:')) {
+                                    const formato = f.audio?.formato || 'mp3';
+                                    audioDados = `data:audio/${formato};base64,${audioDados}`;
+                                }
 
                                 let audioExiste = true;
                                 let audioFinal = audioDados || audioFrase;
@@ -206,14 +216,14 @@ class ConstrutorBancoDados {
                     EXEMPLOS_IDS: [],
                     IMAGENS_IDS: [],
                     VIDEOS_IDS: [],
-                    EXTRAS: []
+                    EXTRAS: (linhaNormalizada.extras || []).map(e => ({ TEXTO: `<b>${e.chave}:</b> ${e.valor}` }))
                 };
                 entrada.ACEPCOES.push({
                     SIGNIFICADO_ID: idAcepcao,
                     EXEMPLOS_IDS: [],
                     IMAGENS_IDS: [],
                     VIDEOS_IDS: [],
-                    EXTRAS: []
+                    EXTRAS: (linhaNormalizada.extras || []).map(e => ({ TEXTO: `<b>${e.chave}:</b> ${e.valor}` }))
                 });
             }
             

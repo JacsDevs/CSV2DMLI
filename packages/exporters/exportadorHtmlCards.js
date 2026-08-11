@@ -83,7 +83,9 @@ class ExportadorHtmlCards extends ExportadorBase {
         if (dados.TEXTOS_ESTRUTURADOS) {
             dados.TEXTOS_ESTRUTURADOS = dados.TEXTOS_ESTRUTURADOS.map(t => ({
                 ...t,
+                ID_TEXTO: this.escaparHTML(t.ID_TEXTO),
                 TITULO_BASE: this.escaparHTML(t.TITULO_BASE),
+                TITULO_EXIBICAO: t.TITULO_EXIBICAO ? this.escaparHTML(t.TITULO_EXIBICAO) : '',
                 TEXTO_NAO_LITERAL: this.escaparHTML(t.TEXTO_NAO_LITERAL),
                 VARIACOES: (t.VARIACOES || []).map(v => ({
                     ...v,

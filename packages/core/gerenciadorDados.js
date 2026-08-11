@@ -149,6 +149,7 @@ export default class GerenciadorDados {
                     CAMPO_SEMANTICO: linhaMesclada.CAMPO_SEMANTICO || '',
                     SUB_CAMPO_SEMANTICO: linhaMesclada.SUB_CAMPO_SEMANTICO || '',
                     TEXTO: linhaMesclada.TEXTO || '',
+                    TITULO_TEXTO: linhaMesclada.TITULO_TEXTO || '',
                     TRADUCAO_SIGNIFICADO: linhaMesclada.TRADUCAO_SIGNIFICADO || '',
                     ITENS_RELACIONADOS: linhaMesclada.ITENS_RELACIONADOS || '',
                     DESCRICAO: linhaMesclada.DESCRICAO || '',
@@ -158,6 +159,31 @@ export default class GerenciadorDados {
                 exemplos,
                 imagens
             };
+            
+            const colunasConhecidas = [
+                'CLASSE_GRAMATICAL', 'CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO', 
+                'TEXTO', 'TITULO_TEXTO', 'TRADUCAO_SIGNIFICADO', 'ITENS_RELACIONADOS', 
+                'DESCRICAO', 'ARQUIVO_VIDEO', 'ITEM_LEXICAL', 'ARQUIVO_SONORO', 
+                'TRANSCRICAO_FONEMICA', 'TRANSCRICAO_FONETICA', 'ARQUIVO_SONORO_EXEMPLO', 
+                'TRANSCRICAO_EXEMPLO', 'TRADUCAO_EXEMPLO', 'IMAGEM', 'LEGENDA_IMAGEM'
+            ];
+            const extras = [];
+            Object.keys(linhaMesclada).forEach(col => {
+                if (col.startsWith('#')) return;
+                if (colunasConhecidas.includes(col)) return;
+                if (col.match(/^VAR_\d+/)) return;
+                if (col.match(/^EX_\d+/)) return;
+                if (col.match(/^IMAGEM_\d+/)) return;
+                if (col.match(/^LEGENDA_\d+/)) return;
+                
+                const val = linhaMesclada[col];
+                if (val !== undefined && val !== null && String(val).trim() !== '') {
+                    extras.push({ chave: col, valor: String(val).trim() });
+                }
+            });
+            linhaNormalizada.extras = extras;
+
+            return linhaNormalizada;
         });
 
         this.colunasPlanilha = resultado.colunas;

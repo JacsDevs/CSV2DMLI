@@ -377,8 +377,27 @@ class SistemaArquivosVirtual {
             }
         }
         
-        const novosTextos = { ...this.textosExtra, ...dadosJson };
-        const qtdAdicionada = Object.keys(dadosJson).length;
+        let formatado = {};
+        let listaTextos = [];
+        
+        if (Array.isArray(dadosJson)) {
+            listaTextos = dadosJson;
+        } else if (dadosJson && Array.isArray(dadosJson.textos)) {
+            listaTextos = dadosJson.textos;
+        } else {
+            formatado = dadosJson;
+        }
+        
+        if (listaTextos.length > 0) {
+            listaTextos.forEach(item => {
+                if (item.titulo_base) {
+                    formatado[item.titulo_base] = item;
+                }
+            });
+        }
+        
+        const novosTextos = { ...this.textosExtra, ...formatado };
+        const qtdAdicionada = Object.keys(formatado).length;
         
         this.textosExtra = novosTextos;
         
@@ -387,7 +406,7 @@ class SistemaArquivosVirtual {
         
         this.salvarCache();
         this._notificarMudanca('textos', qtdAdicionada, { 
-            titulos: Object.keys(dadosJson) 
+            titulos: Object.keys(formatado) 
         });
         
         return true;

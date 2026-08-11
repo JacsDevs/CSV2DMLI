@@ -53,24 +53,31 @@
     </div>
     {{/SIGNIFICADOS}}
     
-    {{#TEXTOS}}
-    <div class="texto-estruturado" style="margin-top: 15px; padding: 12px; background: #f8fafc; border-left: 4px solid #3b82f6; border-radius: 6px;">
-        <h3 style="margin: 0 0 8px 0; color: #0f172a; font-size: 1.1em;">{{ TITULO_BASE }}</h3>
-        {{#TEXTO_NAO_LITERAL}}<div style="margin-bottom: 10px; font-style: italic; color: #475569;">{{ TEXTO_NAO_LITERAL }}</div>{{/TEXTO_NAO_LITERAL}}
+    {{#TEXTOS_ESTRUTURADOS}}
+    <div class="texto-estruturado" id="texto_{{ ID_TEXTO }}" style="margin-top: 15px; padding: 12px; background: #f8fafc; border-radius: 6px; text-align: center;">
+        <div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 12px;">
+            {{#TITULO_EXIBICAO}}<h3 style="margin: 0; color: #0f172a; font-size: 1.1em;">{{ TITULO_EXIBICAO }}</h3>{{/TITULO_EXIBICAO}}
+            <button class="toca-texto-btn" onclick='tocaTexto(this, "texto_{{ ID_TEXTO }}")' style="background: none; border: 1px solid #16a34a; border-radius: 4px; cursor: pointer; color: #16a34a; font-size: 1em; padding: 2px 8px;" title="Tocar texto completo">&#9654;</button>
+        </div>
+        {{#TEXTO_NAO_LITERAL}}<div style="margin-bottom: 12px; font-style: italic; color: #475569;">{{ TEXTO_NAO_LITERAL }}</div>{{/TEXTO_NAO_LITERAL}}
         
         {{#VARIACOES}}
-        <div class="texto-variacao" style="margin-top: 8px;">
+        <div class="texto-variacao" style="font-size: 0.95em;">
             {{#FRASES}}
-            <p style="margin: 6px 0;"><strong>Original:</strong> {{ ORIGINAL }}</p>
-            <p style="margin: 6px 0; color: #64748b;"><strong>Tradução:</strong> {{ TRADUCAO }}</p>
-            {{#AUDIO_ARQUIVO}}
-            <audio controls src="{{ AUDIO_ARQUIVO }}" style="height: 30px; width: 100%; max-width: 300px; margin-top: 4px; outline: none; border-radius: 4px;"></audio>
-            {{/AUDIO_ARQUIVO}}
+            <div class="frase-item" onclick="playAudio_frase(this)" style="cursor: pointer; padding: 8px; border-radius: 4px; transition: background-color 0.2s; margin-bottom: 12px; display: block;">
+                {{#AUDIO_ARQUIVO}}
+                <audio src="{{ AUDIO_ARQUIVO }}" type="audio/mp3" preload="none" style="display: none;"></audio>
+                {{/AUDIO_ARQUIVO}}
+                <div class="texto-frase" style="margin-bottom: 4px;">{{ ORIGINAL }}</div>
+                {{#TRADUCAO}}
+                <div class="texto-traducao" style="color: #64748b; font-size: 0.85em;">{{ TRADUCAO }}</div>
+                {{/TRADUCAO}}
+            </div>
             {{/FRASES}}
         </div>
         {{/VARIACOES}}
     </div>
-    {{/TEXTOS}}
+    {{/TEXTOS_ESTRUTURADOS}}
     
     {{#ITENS_RELACIONADOS}}
     <div class="relacionados">

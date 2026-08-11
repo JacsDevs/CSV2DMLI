@@ -1236,6 +1236,16 @@
                 scroll-behavior: auto !important;
             }
         }
+        .frase-item:hover {
+            background-color: #e2e8f0;
+        }
+        .texto-frase.destaque {
+            font-weight: bold;
+            color: #15803d;
+            background-color: #dcfce7;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
     </style>
 </head>
 
@@ -1965,26 +1975,37 @@
             }
 
             if (item.TEXTOS_ESTRUTURADOS && item.TEXTOS_ESTRUTURADOS.length > 0) {
-                html += `<div style="margin-top: 16px; border-top: 1px dashed #ddd; padding-top: 16px;">`;
+                html += `<div style="margin-top: 16px; border-top: 1px dashed #ddd; padding-top: 16px; text-align: center;">`;
+                html += `<div style="font-weight: bold; margin-bottom: 8px;">¶ Textos Adicionais</div>`;
                 item.TEXTOS_ESTRUTURADOS.forEach(texto => {
-                    if (texto.TITULO_BASE) html += `<h4 style="color:var(--cor-primaria); margin-bottom:8px;">${texto.TITULO_BASE}</h4>`;
+                    const idTexto = 'lista_texto_' + texto.ID_TEXTO.replace(/\s+/g, '_');
+                    html += `<div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 12px;">`;
+                    if (texto.TITULO_EXIBICAO) {
+                        html += `<h4 style="color:var(--cor-primaria); margin:0;">${texto.TITULO_EXIBICAO}</h4>`;
+                    }
+                    html += `<button class="toca-texto-btn" onclick='tocaTexto(this, "${idTexto}")' style="background: none; border: 1px solid #16a34a; border-radius: 4px; cursor: pointer; color: #16a34a; font-size: 1em; padding: 2px 8px;" title="Tocar texto completo">&#9654;</button>`;
+                    html += `</div>`;
                     
+                    html += `<div id="${idTexto}">`;
                     if (texto.VARIACOES) {
                         texto.VARIACOES.forEach(variacao => {
                             if (variacao.FRASES) {
+                                html += `<div class="texto-variacao" style="font-size: 0.95em;">`;
                                 variacao.FRASES.forEach(frase => {
-                                    html += `<div style="margin-bottom: 12px; padding-left: 12px; border-left: 3px solid #eee;">`;
-                                    if (frase.ORIGINAL) html += `<div><strong>Original:</strong> ${frase.ORIGINAL}</div>`;
-                                    if (frase.TRADUCAO) html += `<div class="texto-muted"><strong>Tradução:</strong> ${frase.TRADUCAO}</div>`;
+                                    html += `<div class="frase-item" onclick="playAudio_frase(this)" style="cursor: pointer; padding: 8px; border-radius: 4px; transition: background-color 0.2s; margin-bottom: 12px; display: block;">`;
                                     if (frase.AUDIO_ARQUIVO) {
                                         const src = resolverMidia(frase.AUDIO_ARQUIVO, 'audio');
-                                        html += `<button type="button" class="audio-btn" style="margin-top:6px; padding:4px 10px; font-size:0.8rem;" onclick="tocarAudio('${src}', this)">▶ Ouvir</button>`;
+                                        html += `<audio src="${src}" type="audio/mp3" preload="none" style="display: none;"></audio>`;
                                     }
+                                    if (frase.ORIGINAL) html += `<div class="texto-frase" style="margin-bottom: 4px;">${frase.ORIGINAL}</div>`;
+                                    if (frase.TRADUCAO) html += `<div class="texto-traducao texto-muted" style="color: #64748b; font-size: 0.85em;">${frase.TRADUCAO}</div>`;
                                     html += `</div>`;
                                 });
+                                html += `</div>`;
                             }
                         });
                     }
+                    html += `</div>`;
                     if (texto.TEXTO_NAO_LITERAL) html += `<div style="margin-top: 8px; font-style: italic; color: #555;">${texto.TEXTO_NAO_LITERAL}</div>`;
                 });
                 html += `</div>`;
@@ -2028,35 +2049,37 @@
             const fragment = document.createDocumentFragment();
             itens.forEach(item => {
                 if (modoVisualizacao === 'cards' || modoVisualizacao === 'lista') {
-                    const chavesSemanticas = [
-                        'CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO_1', 
-                        'SUB_CAMPO_SEMANTICO_2', 'SUB_CAMPO_SEMANTICO_3', 'SUB_CAMPO_SEMANTICO_4', 
-                        'SUB_CAMPO_SEMANTICO_5', 'SUB_CAMPO_SEMANTICO_6'
-                    ];
-                    
-                    let mudouNivel = -1;
-                    
-                    for (let i = 0; i < chavesSemanticas.length; i++) {
-                        const val = item[chavesSemanticas[i]] || (i === 0 ? 'Outros' : '');
-                        if (val !== (ultimosCamposSemanticos[i] || '')) {
-                            if (mudouNivel === -1) mudouNivel = i;
+                    if (!ordenarPorTraducao) {
+                        const chavesSemanticas = [
+                            'CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO_1', 
+                            'SUB_CAMPO_SEMANTICO_2', 'SUB_CAMPO_SEMANTICO_3', 'SUB_CAMPO_SEMANTICO_4', 
+                            'SUB_CAMPO_SEMANTICO_5', 'SUB_CAMPO_SEMANTICO_6'
+                        ];
+                        
+                        let mudouNivel = -1;
+                        
+                        for (let i = 0; i < chavesSemanticas.length; i++) {
+                            const val = item[chavesSemanticas[i]] || (i === 0 ? 'Outros' : '');
+                            if (val !== (ultimosCamposSemanticos[i] || '')) {
+                                if (mudouNivel === -1) mudouNivel = i;
+                            }
+                            ultimosCamposSemanticos[i] = val;
                         }
-                        ultimosCamposSemanticos[i] = val;
-                    }
-                    
-                    if (mudouNivel !== -1) {
-                        for (let i = mudouNivel; i < chavesSemanticas.length; i++) {
-                            const val = ultimosCamposSemanticos[i];
-                            if (val && val !== 'Geral') {
-                                const header = document.createElement(i === 0 ? 'h2' : 'h3');
-                                header.className = i === 0 ? 'header-campo-semantico' : 'header-sub-campo';
-                                header.id = val;
-                                if (i > 0) {
-                                    header.style.fontSize = Math.max(1, 1.3 - (i * 0.05)) + 'rem';
-                                    header.style.color = '#555';
+                        
+                        if (mudouNivel !== -1) {
+                            for (let i = mudouNivel; i < chavesSemanticas.length; i++) {
+                                const val = ultimosCamposSemanticos[i];
+                                if (val && val !== 'Geral') {
+                                    const header = document.createElement(i === 0 ? 'h2' : 'h3');
+                                    header.className = i === 0 ? 'header-campo-semantico' : 'header-sub-campo';
+                                    header.id = val;
+                                    if (i > 0) {
+                                        header.style.fontSize = Math.max(1, 1.3 - (i * 0.05)) + 'rem';
+                                        header.style.color = '#555';
+                                    }
+                                    header.textContent = val;
+                                    fragment.appendChild(header);
                                 }
-                                header.textContent = val;
-                                fragment.appendChild(header);
                             }
                         }
                     }
@@ -2178,7 +2201,13 @@
                 return true;
             });
 
-            if (modoVisualizacao === 'lista' || modoVisualizacao === 'cards') {
+            if (ordenarPorTraducao) {
+                resultados.sort((a, b) => {
+                    const textA = (a.INDEX || '').toLowerCase();
+                    const textB = (b.INDEX || '').toLowerCase();
+                    return textA.localeCompare(textB, 'pt-BR');
+                });
+            } else {
                 const chavesSemanticas = [
                     'CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO_1', 
                     'SUB_CAMPO_SEMANTICO_2', 'SUB_CAMPO_SEMANTICO_3', 'SUB_CAMPO_SEMANTICO_4', 
@@ -2188,14 +2217,12 @@
                     for (let i = 0; i < chavesSemanticas.length; i++) {
                         const valA = a[chavesSemanticas[i]] || (i === 0 ? 'Outros' : '');
                         const valB = b[chavesSemanticas[i]] || (i === 0 ? 'Outros' : '');
-                        if (valA !== valB) return valA.localeCompare(valB);
+                        if (valA !== valB) return valA.localeCompare(valB, 'pt-BR');
                     }
                     const termA = a.TERMO || '';
                     const termB = b.TERMO || '';
-                    return termA.localeCompare(termB);
+                    return termA.localeCompare(termB, 'pt-BR');
                 });
-            } else if (ordenarPorTraducao) {
-                resultados.sort((a, b) => (a.INDEX || '').localeCompare(b.INDEX || ''));
             }
 
             dadosFiltrados = resultados;
@@ -2395,26 +2422,36 @@
             }
 
             if (item.TEXTOS_ESTRUTURADOS && item.TEXTOS_ESTRUTURADOS.length > 0) {
-                html += `<div class="detalhe-secao"><div class="detalhe-titulo">¶ Textos Adicionais</div>`;
+                html += `<div class="detalhe-secao" style="text-align: center;"><div class="detalhe-titulo">¶ Textos Adicionais</div>`;
                 item.TEXTOS_ESTRUTURADOS.forEach(texto => {
-                    if (texto.TITULO_BASE) html += `<h3 style="margin-bottom:12px; color:var(--cor-primaria); font-size:1.1rem;">${texto.TITULO_BASE}</h3>`;
+                    const idTexto = 'modal_texto_' + texto.ID_TEXTO.replace(/\s+/g, '_');
+                    html += `<div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 12px;">`;
+                    if (texto.TITULO_EXIBICAO) {
+                        html += `<h3 style="margin: 0; color:var(--cor-primaria); font-size:1.1rem;">${texto.TITULO_EXIBICAO}</h3>`;
+                    }
+                    html += `<button class="toca-texto-btn" onclick='tocaTexto(this, "${idTexto}")' style="background: none; border: 1px solid #16a34a; border-radius: 4px; cursor: pointer; color: #16a34a; font-size: 1em; padding: 2px 8px;" title="Tocar texto completo">&#9654;</button>`;
+                    html += `</div>`;
                     
+                    html += `<div id="${idTexto}">`;
                     if (texto.VARIACOES) {
                         texto.VARIACOES.forEach(variacao => {
                             if (variacao.FRASES) {
+                                html += `<div class="texto-variacao" style="font-size: 0.95em;">`;
                                 variacao.FRASES.forEach(frase => {
-                                    html += `<div class="texto-frase">`;
-                                    if (frase.ORIGINAL) html += `<div><strong>Original:</strong> ${frase.ORIGINAL}</div>`;
-                                    if (frase.TRADUCAO) html += `<div class="texto-muted"><strong>Tradução:</strong> ${frase.TRADUCAO}</div>`;
+                                    html += `<div class="frase-item" onclick="playAudio_frase(this)" style="cursor: pointer; padding: 8px; border-radius: 4px; transition: background-color 0.2s; margin-bottom: 12px; display: block;">`;
                                     if (frase.AUDIO_ARQUIVO) {
                                         const src = resolverMidia(frase.AUDIO_ARQUIVO, 'audio');
-                                        html += `<button type="button" class="audio-btn" style="margin-top:6px;" onclick="tocarAudio('${src}', this)">▶ Ouvir</button>`;
+                                        html += `<audio src="${src}" type="audio/mp3" preload="none" style="display: none;"></audio>`;
                                     }
+                                    if (frase.ORIGINAL) html += `<div class="texto-frase" style="margin-bottom: 4px;">${frase.ORIGINAL}</div>`;
+                                    if (frase.TRADUCAO) html += `<div class="texto-traducao texto-muted" style="color: #64748b; font-size: 0.85em;">${frase.TRADUCAO}</div>`;
                                     html += `</div>`;
                                 });
+                                html += `</div>`;
                             }
                         });
                     }
+                    html += `</div>`;
                     if (texto.TEXTO_NAO_LITERAL) html += `<div class="mt-4 p-3" style="background:#f1f5f9; border-radius:12px;">${texto.TEXTO_NAO_LITERAL}</div>`;
                 });
                 html += `</div>`;
@@ -2908,5 +2945,98 @@
         }
     </script>
     <!-- FIM DO VLIBRAS -->
+    
+    <!-- INÍCIO SCRIPT AUDIO TEXTOS -->
+    <script>
+        let audioElementsTexto = [];
+        let audioPlayingTexto = false;
+        let currentAudioIndexTexto = -1;
+
+        function tocaTexto(botao, idTexto) {
+            const divTexto = document.getElementById(idTexto);
+            if (!divTexto) return;
+            
+            const divsFrases = divTexto.querySelectorAll(".frase-item");
+            audioElementsTexto = Array.from(divTexto.querySelectorAll("audio"));
+            
+            function destacaFrase(index) {
+                divsFrases.forEach((frase, i) => {
+                    const textoFrase = frase.querySelector(".texto-frase");
+                    if (!textoFrase) return;
+                    if (i === index) {
+                        textoFrase.classList.add("destaque");
+                    } else {
+                        textoFrase.classList.remove("destaque");
+                    }
+                });
+            }
+
+            function playAudio(index) {
+                if (index < audioElementsTexto.length) {
+                    const audio = audioElementsTexto[index];
+                    audio.play();
+                    currentAudioIndexTexto = index;
+
+                    audio.onended = function () {
+                        destacaFrase(-1);
+                        if (index + 1 < audioElementsTexto.length) {
+                            destacaFrase(index + 1);
+                            playAudio(index + 1);
+                        } else {
+                            audioPlayingTexto = false;
+                            currentAudioIndexTexto = -1; 
+                            botao.innerHTML = '&#9654;';
+                        }
+                    };
+                }
+            }
+
+            if (!audioPlayingTexto) {
+                audioPlayingTexto = true;
+                playAudio(0);
+                destacaFrase(0);
+                botao.innerHTML = '&#9632;';
+            } else {
+                if (currentAudioIndexTexto !== -1 && audioElementsTexto[currentAudioIndexTexto]) {
+                    audioElementsTexto[currentAudioIndexTexto].pause();
+                    audioElementsTexto[currentAudioIndexTexto].currentTime = 0;
+                }
+                audioElementsTexto = [];
+                audioPlayingTexto = false;
+                currentAudioIndexTexto = -1;
+                botao.innerHTML = '&#9654;';
+                destacaFrase(-1);
+            }
+        }
+
+        function playAudio_frase(clickedElement) {
+            const allAudios = document.querySelectorAll('audio');
+            allAudios.forEach(audio => {
+                if (!audio.paused) {
+                    audio.pause();
+                }
+            });
+
+            if (audioPlayingTexto) {
+                audioPlayingTexto = false;
+                document.querySelectorAll('.toca-texto-btn').forEach(btn => btn.innerHTML = '&#9654;');
+                document.querySelectorAll('.texto-frase.destaque').forEach(el => el.classList.remove('destaque'));
+            }
+
+            const audio = clickedElement.querySelector("audio");
+            if (!audio) return;
+            
+            const frase = clickedElement.querySelector(".texto-frase");
+
+            audio.play();
+            if (frase) {
+                frase.classList.add("destaque");
+                audio.onended = function() {
+                    frase.classList.remove("destaque");
+                };
+            }
+        }
+    </script>
+    <!-- FIM SCRIPT AUDIO TEXTOS -->
 </body>
 </html>
