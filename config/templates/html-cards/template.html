@@ -369,21 +369,6 @@
             letter-spacing: 0.4px;
             margin-bottom: 6px;
         }
-        .card-midia-indicador {
-            display: flex;
-            gap: 12px;
-            color: var(--cor-texto-secundario);
-            font-size: 1.1rem;
-            margin-top: 16px;
-        }
-        .card-midia-indicador span {
-            transition: transform 0.2s ease;
-        }
-        .card:hover .card-midia-indicador span {
-            transform: scale(1.1);
-            color: var(--cor-primaria);
-        }
-
         .card-img-wrapper {
             flex: 0 0 40%;
             align-self: flex-start;
@@ -1450,6 +1435,10 @@
                 </div>
             </div>
         </div>
+        
+        <div id="acoes-salvos-container" style="display: none; padding: 0 20px 16px 20px; text-align: right;">
+            <button onclick="apagarTodosSalvos()" class="filtro-select" style="border: 1px solid #ef4444; color: #ef4444; background: transparent; padding: 6px 12px; border-radius: var(--raio-borda); font-weight: 600; cursor: pointer; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#fef2f2'" onmouseout="this.style.backgroundColor='transparent'">🗑️ Apagar todos os itens salvos</button>
+        </div>
 
         <div id="grid-container" class="grid-container">
             <div class="loading-indicator">
@@ -1727,7 +1716,52 @@
         function atualizarContagemSalvos() {
             const span = document.getElementById('contagem-salvos');
             if (span) span.textContent = window.itensSalvos.size;
+
+            const acoesSalvosContainer = document.getElementById('acoes-salvos-container');
+            if (acoesSalvosContainer) {
+                acoesSalvosContainer.style.display = (modoVisualizacao === 'salvos' && window.itensSalvos.size > 0) ? 'block' : 'none';
+            }
         }
+
+        window.categoriasColapsadas = new Set();
+
+        window.alternarColapsoCategoria = function(caminho, headerEl) {
+            if (window.categoriasColapsadas.has(caminho)) {
+                window.categoriasColapsadas.delete(caminho);
+                headerEl.classList.remove('colapsado');
+                const icon = headerEl.querySelector('.toggle-icon');
+                if (icon) icon.textContent = '▼ ';
+            } else {
+                window.categoriasColapsadas.add(caminho);
+                headerEl.classList.add('colapsado');
+                const icon = headerEl.querySelector('.toggle-icon');
+                if (icon) icon.textContent = '▶ ';
+            }
+            
+            const container = document.getElementById('grid-container');
+            const items = container.children;
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                if (!item.dataset.caminho) continue;
+                
+                if (item.tagName === 'H2' || item.tagName === 'H3') {
+                    const parts = item.dataset.caminho.split('|');
+                    let hideHeader = false;
+                    for (let j = 1; j < parts.length; j++) {
+                        const parentPath = parts.slice(0, j).join('|');
+                        if (window.categoriasColapsadas.has(parentPath)) {
+                            hideHeader = true;
+                            break;
+                        }
+                    }
+                    item.style.display = hideHeader ? 'none' : '';
+                } else {
+                    const c = item.dataset.caminho;
+                    const hideItem = Array.from(window.categoriasColapsadas).some(colap => c === colap || c.startsWith(colap + '|'));
+                    item.style.display = hideItem ? 'none' : '';
+                }
+            }
+        };
 
         window.itensSalvos = carregarSalvosPersistidos();
 
@@ -1750,6 +1784,20 @@
             persistirSalvos();
             mostrarToast(mensagem);
             if (modoVisualizacao === 'salvos') aplicarFiltrosEBusca();
+        }
+
+        function apagarTodosSalvos() {
+            if (window.itensSalvos.size === 0) return;
+            if (confirm('Tem certeza que deseja apagar todos os itens salvos?')) {
+                window.itensSalvos.clear();
+                persistirSalvos();
+                if (modoVisualizacao === 'salvos') {
+                    aplicarFiltrosEBusca();
+                }
+                mostrarToast('Todos os itens salvos foram apagados.');
+                const btnSalvos = document.getElementById('acoes-salvos-container');
+                if (btnSalvos) btnSalvos.style.display = 'none';
+            }
         }
 
         function toggleBuscaMobile() {
@@ -1802,6 +1850,7 @@
             ultimoIndiceExibido = 0;
             gridContainer.innerHTML = '';
             itensExibidos = [];
+            atualizarContagemSalvos();
             aplicarFiltrosEBusca();
         }
 
@@ -1841,19 +1890,12 @@
             const nomeAcessivel = item.TERMO + (item.INDEX ? `, ${item.INDEX}` : '');
             card.setAttribute('aria-label', `${nomeAcessivel}. Abrir detalhes`);
 
-            let temImagem = false;
             let primeiraImagem = null;
-            let temAudio = item.AUDIO ? true : false;
-            let temVideo = false;
             
             if (item.SIGNIFICADOS && item.SIGNIFICADOS.length > 0) {
                 item.SIGNIFICADOS.forEach(sig => {
                     if (sig.IMAGENS && sig.IMAGENS.length > 0) {
-                        temImagem = true;
                         if (!primeiraImagem) primeiraImagem = sig.IMAGENS[0].ARQUIVO;
-                    }
-                    if (sig.VIDEOS && sig.VIDEOS.length > 0) {
-                        temVideo = true;
                     }
                 });
             }
@@ -1862,16 +1904,18 @@
             if (modoVisualizacao === 'salvos' && item.CAMPO_SEMANTICO) {
                 html += `<div class="card-categoria">${item.CAMPO_SEMANTICO}</div>`;
             }
-            html += `<div class="card-lexical">${item.TERMO || '???'}</div>`;
+            html += `<div class="card-lexical" style="display: flex; align-items: center; gap: 8px;">`;
+            html += `<span>${item.TERMO || '???'}</span>`;
+            if (item.AUDIO) {
+                const audioSrc = resolverMidia(item.AUDIO.split('~')[0].trim(), 'audio');
+                html += `<button type="button" class="modal-audio-btn" style="width: 32px; height: 32px; font-size: 0.9rem; flex-shrink: 0;" title="Ouvir pronúncia" aria-label="Ouvir pronúncia" onclick="event.stopPropagation(); window.tocarAudio('${audioSrc}', this)">🔊</button>`;
+            }
+            html += `</div>`;
             html += `<div class="card-traducao">${item.INDEX || ''}</div>`;
             if (item.CLASSE) {
                 html += `<span class="card-classe">${item.CLASSE}</span>`;
             }
-            html += `<div class="card-midia-indicador" aria-hidden="true">`;
-            if (temImagem) html += `<span>🖼️</span>`;
-            if (temAudio) html += `<span>🔊</span>`;
-            if (temVideo) html += `<span>🎥</span>`;
-            html += `</div></div>`;
+            html += `</div>`;
 
             if (primeiraImagem) {
                 const src = resolverMidia(primeiraImagem, 'foto');
@@ -2073,11 +2117,38 @@
                                     const header = document.createElement(i === 0 ? 'h2' : 'h3');
                                     header.className = i === 0 ? 'header-campo-semantico' : 'header-sub-campo';
                                     header.id = val;
+                                    
+                                    const idCaminho = ultimosCamposSemanticos.slice(0, i + 1).filter(Boolean).join('|');
+                                    header.dataset.caminho = idCaminho;
+                                    header.style.cursor = 'pointer';
+                                    header.style.userSelect = 'none';
+                                    
+                                    const icone = document.createElement('span');
+                                    icone.className = 'toggle-icon';
+                                    icone.textContent = window.categoriasColapsadas.has(idCaminho) ? '▶ ' : '▼ ';
+                                    header.appendChild(icone);
+                                    
+                                    const textoNode = document.createTextNode(val);
+                                    header.appendChild(textoNode);
+                                    
+                                    header.onclick = () => alternarColapsoCategoria(idCaminho, header);
+
+                                    const paiCaminho = ultimosCamposSemanticos.slice(0, i).filter(Boolean).join('|');
+                                    let hideHeader = false;
+                                    const parts = idCaminho.split('|');
+                                    for (let j = 1; j < parts.length; j++) {
+                                        const parentPath = parts.slice(0, j).join('|');
+                                        if (window.categoriasColapsadas.has(parentPath)) {
+                                            hideHeader = true;
+                                            break;
+                                        }
+                                    }
+                                    if (hideHeader) header.style.display = 'none';
+
                                     if (i > 0) {
                                         header.style.fontSize = Math.max(1, 1.3 - (i * 0.05)) + 'rem';
                                         header.style.color = '#555';
                                     }
-                                    header.textContent = val;
                                     fragment.appendChild(header);
                                 }
                             }
@@ -2085,11 +2156,23 @@
                     }
                 }
 
+                let element;
                 if (modoVisualizacao === 'lista') {
-                    fragment.appendChild(criarItemLinear(item));
+                    element = criarItemLinear(item);
                 } else {
-                    fragment.appendChild(criarCard(item));
+                    element = criarCard(item);
                 }
+                
+                if (modoVisualizacao === 'cards' || modoVisualizacao === 'lista') {
+                    if (!ordenarPorTraducao) {
+                        const caminhoCard = ultimosCamposSemanticos.filter(Boolean).join('|');
+                        element.dataset.caminho = caminhoCard;
+                        const hideItem = Array.from(window.categoriasColapsadas).some(colap => caminhoCard === colap || caminhoCard.startsWith(colap + '|'));
+                        if (hideItem) element.style.display = 'none';
+                    }
+                }
+                
+                fragment.appendChild(element);
             });
             gridContainer.appendChild(fragment);
         }
@@ -2851,6 +2934,11 @@
             if (btnCards) btnCards.classList.toggle('ativo', modo === 'cards');
             if (btnLista) btnLista.classList.toggle('ativo', modo === 'lista');
             if (btnSalvos) btnSalvos.classList.toggle('ativo', modo === 'salvos');
+
+            const acoesSalvosContainer = document.getElementById('acoes-salvos-container');
+            if (acoesSalvosContainer) {
+                acoesSalvosContainer.style.display = (modo === 'salvos' && window.itensSalvos.size > 0) ? 'block' : 'none';
+            }
         };
 
         // ==============================================
