@@ -643,22 +643,6 @@
             box-shadow: var(--sombra-suave);
         }
 
-        .audio-btn {
-            background: #f8f9fa;
-            border: none;
-            border-radius: var(--raio-pilula);
-            padding: 8px 16px;
-            margin: 4px 4px 4px 0;
-            cursor: pointer;
-            transition: var(--transicao);
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--cor-texto);
-            box-shadow: var(--sombra-suave);
-        }
-        .audio-btn:hover { background: var(--cor-primaria); color: #fff; }
-        .audio-btn.tocando { background: var(--cor-primaria); color: #fff; }
-
         .exemplo-item {
             background: #f8f9fa;
             border-radius: var(--raio);
@@ -1948,7 +1932,7 @@
                 const audios = item.AUDIO.split('~').map(a => a.trim()).filter(Boolean);
                 audios.forEach(aud => {
                     const srcAudio = resolverMidia(aud, 'audio');
-                    html += `<button type="button" class="audio-btn" style="margin-left:8px; padding:2px 8px; font-size:0.8rem; vertical-align: middle;" onclick="tocarAudio('${srcAudio}', this)">▶ Ouvir</button>`;
+                    html += `<button type="button" class="modal-audio-btn" style="width: 32px; height: 32px; font-size: 0.9rem; margin-left: 8px; vertical-align: middle;" title="Ouvir pronúncia" aria-label="Ouvir pronúncia" onclick="tocarAudio('${srcAudio}', this)">🔊</button>`;
                 });
             }
             html += `</span><div class="entrada_div"><div class="info_entrada">`;
@@ -1984,7 +1968,7 @@
                                 const audios = exAudio.split('~').map(a => a.trim()).filter(Boolean);
                                 audios.forEach(aud => {
                                     const srcEx = resolverMidia(aud, 'audio');
-                                    html += `<button type="button" class="audio-btn" style="margin-left:8px; padding:2px 8px; font-size:0.75rem;" onclick="tocarAudio('${srcEx}', this)">▶ Ouvir</button>`;
+                                    html += `<button type="button" class="modal-audio-btn" style="width: 24px; height: 24px; font-size: 0.7rem; margin-left: 8px; vertical-align: middle;" title="Ouvir pronúncia" aria-label="Ouvir pronúncia" onclick="tocarAudio('${srcEx}', this)">🔊</button>`;
                                 });
                             }
                             html += `</div>`;
@@ -2434,7 +2418,7 @@
                 const audios = item.AUDIO.split('~').map(a => a.trim()).filter(Boolean);
                 if (audios.length > 1) {
                     html += `<div class="detalhe-secao"><div class="detalhe-titulo">🔊 Áudios adicionais</div>`;
-                    audios.slice(1).forEach(aud => { const src = resolverMidia(aud.trim(), 'audio'); html += `<button type="button" class="audio-btn" onclick="tocarAudio('${src}', this)">▶ Ouvir</button>`; });
+                    audios.slice(1).forEach(aud => { const src = resolverMidia(aud.trim(), 'audio'); html += `<button type="button" class="modal-audio-btn" style="width: 32px; height: 32px; font-size: 0.9rem; display: inline-flex; margin-right: 8px;" title="Ouvir pronúncia" aria-label="Ouvir pronúncia" onclick="tocarAudio('${src}', this)">🔊</button>`; });
                     html += `</div>`;
                 }
             }
@@ -2457,7 +2441,7 @@
                                 const audios = exAudio.split('~').map(a => a.trim()).filter(Boolean);
                                 audios.forEach(aud => {
                                     const srcEx = resolverMidia(aud, 'audio');
-                                    html += `<button type="button" class="audio-btn" style="margin:0; padding:2px 8px; font-size:0.75rem;" onclick="tocarAudio('${srcEx}', this)">▶ Ouvir</button>`;
+                                    html += `<button type="button" class="modal-audio-btn" style="width: 24px; height: 24px; font-size: 0.7rem; margin-left: 8px; vertical-align: middle; display: inline-flex;" title="Ouvir pronúncia" aria-label="Ouvir pronúncia" onclick="tocarAudio('${srcEx}', this)">🔊</button>`;
                                 });
                             }
                             html += `</div>`;
