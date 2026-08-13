@@ -1,5 +1,5 @@
 // const CACHE = 'csv2dmli-v2'; // versão anterior (antes do Toast UI Editor) - reverter para esta linha se abandonar o editor
-const CACHE = 'csv2dmli-v8';
+const CACHE = 'csv2dmli-v7';
 
 // Deriva o base path do próprio URL do SW.
 // Em GitHub Pages: '/CSV2DMLI'  |  Em localhost: ''
