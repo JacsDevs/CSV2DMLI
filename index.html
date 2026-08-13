@@ -132,12 +132,13 @@
         }
         .apk-preview-toggle-btn {
             display: none;
-            align-items: center; gap: 6px;
+            width: 100%;
+            padding: 13px;
+            margin-bottom: 13px;
+            gap: 6px;
             background: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 6px 14px;
-            font-size: 0.8em; font-weight: 600;
+            font-size: 0.98em;
             color: var(--text-main);
             cursor: pointer;
         }
@@ -336,6 +337,25 @@
             text-align: center; padding: 20px;
             color: var(--text-muted); font-size: 0.78em;
         }
+        .apk-preview-loader {
+            position: absolute; inset: 0;
+            z-index: 3;
+            display: none;
+            flex-direction: column; align-items: center; justify-content: center;
+            gap: 10px;
+            background: #fff;
+            text-align: center; padding: 20px;
+            color: var(--text-muted); font-size: 0.78em;
+        }
+        .apk-preview-loader.ativo { display: flex; }
+        .apk-preview-loader-spinner {
+            width: 30px; height: 30px;
+            border: 3px solid rgba(0,0,0,0.1);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: apkPreviewSpin 0.8s linear infinite;
+        }
+        @keyframes apkPreviewSpin { to { transform: rotate(360deg); } }
 
         /* Card de Entradas (não-clicável) na aba Mídias e Validação */
         #panelEntradas:hover { transform: none; box-shadow: none; border-color: var(--border-color); }
@@ -776,7 +796,6 @@
         </div>
       </div>
       <div style="display:flex; align-items:center; gap:10px;">
-        <button type="button" class="apk-preview-toggle-btn" onclick="apkTogglePreviewMobile(true)">👁 Preview</button>
         <button onclick="fecharModalAndroid()" style="background:none;border:none;font-size:1.4em;cursor:pointer;color:var(--text-muted);line-height:1;padding:4px;">✕</button>
       </div>
     </div>
@@ -980,11 +999,14 @@
         </div>
 
         <!-- Seção: Gerar -->
-        <div class="apk-form-section">
-          <button id="apkBtnGerar" class="btn btn-primary apk-generate-btn" onclick="apkGerarAplicativo()">
-            <span class="apk-btn-spinner"></span>
-            <span id="apkBtnGerarLabel">Gerar Aplicativo</span>
-          </button>
+        <div>
+            <div id="apkFormActions">
+                <button type="button" class="btn apk-preview-toggle-btn" onclick="apkTogglePreviewMobile(true)">Visualizar prévia</button>
+                <button id="apkBtnGerar" class="btn btn-primary apk-generate-btn" onclick="apkGerarAplicativo()">
+                    <span class="apk-btn-spinner"></span>
+                    <span id="apkBtnGerarLabel">Gerar Aplicativo</span>
+                </button>
+            </div>
 
           <div class="apk-status-inline" id="apkStatusInline" style="display:none;">
 
@@ -1008,6 +1030,11 @@
                 <h3 style="font-size:0.92em; color:var(--success); margin-bottom:10px;">⬇️ Arquivos gerados:</h3>
                 <div id="apkOnlineDownloadLinks" style="display:flex; flex-direction:column; gap:8px;"></div>
               </div>
+
+              <div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
+                <button type="button" class="btn btn-outline" onclick="apkVoltarFormulario()">← Voltar</button>
+                <button type="button" class="btn btn-primary" onclick="fecharModalAndroid()">Concluir</button>
+              </div>
             </div>
 
             <!-- Estado: erro -->
@@ -1015,6 +1042,10 @@
               <div style="font-size:2.5em; margin-bottom:10px;">❌</div>
               <h2 style="color:var(--error); margin-bottom:12px; font-size:1.05em;">Erro ao gerar aplicativo</h2>
               <div id="apkErroMsg" style="background:#fef2f2; border:1px solid #fca5a5; border-radius:8px; padding:14px 16px; text-align:left; font-size:0.82em; font-family:monospace; white-space:pre-wrap; word-break:break-all; max-height:220px; overflow-y:auto; color:#991b1b;"></div>
+              <div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
+                <button type="button" class="btn btn-outline" onclick="apkVoltarFormulario()">← Voltar</button>
+                <button type="button" class="btn btn-primary" onclick="fecharModalAndroid()">Concluir</button>
+              </div>
             </div>
 
           </div><!-- /apkStatusInline -->
@@ -1029,6 +1060,10 @@
           <div class="apk-phone-notch"></div>
           <div class="apk-phone-screen">
             <iframe id="apkPreviewFrame" title="Preview do aplicativo" style="display:none;"></iframe>
+            <div id="apkPreviewLoader" class="apk-preview-loader">
+              <div class="apk-preview-loader-spinner"></div>
+              <span>Carregando prévia…</span>
+            </div>
             <div id="apkPreviewEmpty" class="apk-phone-empty">Preencha os dados para ver a prévia do app aqui.</div>
           </div>
         </div>
@@ -1040,6 +1075,26 @@
   </div><!-- /apk-wizard-box -->
 </div><!-- /modalAndroid -->
 
+<!-- Confirmação: gerar aplicativo sem chave de assinatura -->
+<div class="apk-wizard-overlay" id="apkNoKeyConfirmModal" style="z-index:1200;">
+  <div style="width:92%; max-width:460px; background:var(--bg-secondary); border-radius:var(--radius-lg); box-shadow:var(--shadow-lg); padding:26px 28px;">
+    <div style="display:flex; align-items:flex-start; gap:14px; margin-bottom:16px;">
+      <span style="font-size:1.8em; line-height:1;">⚠️</span>
+      <div>
+        <h3 style="margin:0 0 6px 0; color:var(--text-main); font-size:1.05em;">Gerar sem chave de assinatura?</h3>
+        <p style="margin:0; font-size:0.88em; color:var(--text-muted); line-height:1.5;">
+          Você ainda não criou nem importou uma chave de assinatura. É possível gerar o APK/AAB mesmo assim, usando uma
+          chave temporária e descartável — mas <strong>sem uma chave própria salva, o aplicativo não poderá ser publicado
+          na Google Play Store</strong>.
+        </p>
+      </div>
+    </div>
+    <div style="display:flex; justify-content:flex-end; gap:10px;">
+      <button type="button" class="btn btn-outline" onclick="apkNoKeyConfirmResolver(false)">Cancelar</button>
+      <button type="button" class="btn btn-primary" onclick="apkNoKeyConfirmResolver(true)">Continuar</button>
+    </div>
+  </div>
+</div>
 
 <div class="modal-overlay" id="modalOverlay">
     <div class="modal-box" id="modalBox" style="display: flex; flex-direction: column; max-height: 90vh; overflow: hidden;">
@@ -2196,6 +2251,8 @@
     // --------------------------------------------------------
     // Preview ao vivo (mockup de celular)
     // --------------------------------------------------------
+    const APK_PREVIEW_LIMITE_ENTRADAS = 10;
+
     window.apkAgendarPreviewLeve = function() {
         clearTimeout(_apkPreviewLeveTimer);
         _apkPreviewLeveTimer = setTimeout(() => {
@@ -2203,8 +2260,19 @@
         }, 500);
     };
 
+    function apkMostrarPreviewLoader() {
+        document.getElementById('apkPreviewLoader')?.classList.add('ativo');
+        const empty = document.getElementById('apkPreviewEmpty');
+        if (empty) empty.style.display = 'none';
+    }
+
+    function apkOcultarPreviewLoader() {
+        document.getElementById('apkPreviewLoader')?.classList.remove('ativo');
+    }
+
     async function apkGerarPreviewCompleto() {
         if (!window.exportador || !window.sistema) { apkLimparPreview(); return; }
+        apkMostrarPreviewLoader();
         try {
             const nomeApp = document.getElementById('apkNomeApp')?.value.trim() || 'Dicionário';
             const iconPreviewEl = document.getElementById('apkIconPreview');
@@ -2213,24 +2281,29 @@
                 : ((window.sistema.icone && window.sistema.icone.dataUrl) || null);
             const htmlStr = await window.exportador.exportarHtmlCards({
                 embutirMidias: true,
-                metadados: { tituloHtml: nomeApp, iconeDataUrl }
+                limitePreview: APK_PREVIEW_LIMITE_ENTRADAS,
+                metadados: { ...coletarMetadadosExportacao(), tituloHtml: nomeApp, iconeDataUrl }
             });
             apkExibirPreviewHtml(htmlStr);
         } catch (e) {
             console.error('Erro ao gerar preview do app:', e);
+            apkOcultarPreviewLoader();
             apkLimparPreview();
         }
     }
 
     async function apkPreviewDeArquivoPronto(file) {
+        apkMostrarPreviewLoader();
         try {
             const texto = await file.text();
-            const htmlFinal = _apkHtmlProntoMidias.size > 0
-                ? apkResolverMidiasPreview(texto, _apkHtmlProntoMidias)
-                : texto;
+            const doc = new DOMParser().parseFromString(texto, 'text/html');
+            if (_apkHtmlProntoMidias.size > 0) apkResolverMidiasPreviewDoc(doc, _apkHtmlProntoMidias);
+            apkLimitarEntradasPreviewDoc(doc, APK_PREVIEW_LIMITE_ENTRADAS);
+            const htmlFinal = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
             apkExibirPreviewHtml(htmlFinal);
         } catch (e) {
             console.error('Erro ao ler HTML pronto para preview:', e);
+            apkOcultarPreviewLoader();
             apkLimparPreview();
         }
     }
@@ -2238,13 +2311,12 @@
     // Resolve <img>/<audio>/<video>/<source> que apontam para as pastas de mídia
     // (audio/imagem/video) trocando o src pela URL blob do arquivo correspondente,
     // já que o preview roda isolado (blob: URL) e não enxerga a pasta original.
-    function apkResolverMidiasPreview(htmlStr, midiasMap) {
+    function apkResolverMidiasPreviewDoc(doc, midiasMap) {
         try {
             const porNomeArquivo = new Map();
             for (const [caminho, arquivo] of midiasMap) {
                 porNomeArquivo.set(caminho.split('/').pop().toLowerCase(), arquivo);
             }
-            const doc = new DOMParser().parseFromString(htmlStr, 'text/html');
             doc.querySelectorAll('img, audio, source, video').forEach(el => {
                 const src = el.getAttribute('src');
                 if (!src || src.startsWith('data:') || src.startsWith('blob:') || src.startsWith('http')) return;
@@ -2252,10 +2324,25 @@
                 const arquivo = porNomeArquivo.get(nome);
                 if (arquivo) el.src = URL.createObjectURL(arquivo);
             });
-            return '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
         } catch (e) {
             console.error('Erro ao resolver mídias do preview:', e);
-            return htmlStr;
+        }
+    }
+
+    // Corta o HTML importado em `limite` entradas para não travar o iframe com
+    // dicionários gigantes: remove os cards excedentes do DOM antes de exibir,
+    // assim suas mídias nem chegam a ser carregadas pelo iframe.
+    function apkLimitarEntradasPreviewDoc(doc, limite) {
+        try {
+            const entradas = doc.querySelectorAll('.entry-card');
+            if (entradas.length <= limite) return;
+            entradas.forEach((el, i) => { if (i >= limite) el.remove(); });
+            const aviso = doc.createElement('div');
+            aviso.style.cssText = 'padding:14px; text-align:center; color:#888; font-size:0.85em; font-style:italic;';
+            aviso.textContent = `Exibindo apenas as ${limite} primeiras entradas na prévia...`;
+            (doc.body || doc.documentElement).appendChild(aviso);
+        } catch (e) {
+            console.error('Erro ao limitar entradas do preview:', e);
         }
     }
 
@@ -2265,6 +2352,7 @@
         if (_apkPreviewUrl) URL.revokeObjectURL(_apkPreviewUrl);
         const blob = new Blob([htmlStr], { type: 'text/html;charset=utf-8' });
         _apkPreviewUrl = URL.createObjectURL(blob);
+        frame.onload = () => apkOcultarPreviewLoader();
         frame.src = _apkPreviewUrl;
         frame.style.display = 'block';
         empty.style.display = 'none';
@@ -2293,6 +2381,7 @@
         const frame = document.getElementById('apkPreviewFrame');
         const empty = document.getElementById('apkPreviewEmpty');
         if (_apkPreviewUrl) { URL.revokeObjectURL(_apkPreviewUrl); _apkPreviewUrl = null; }
+        apkOcultarPreviewLoader();
         frame.removeAttribute('src');
         frame.style.display = 'none';
         empty.style.display = 'flex';
@@ -2370,11 +2459,7 @@
         if (!nomeApp) { valido = false; marcarPrimeiro('apkFieldNomeApp'); }
 
         const temChave = document.getElementById('apkKsBrHasKey').style.display !== 'none';
-        if (!temChave) {
-            valido = false;
-            marcarPrimeiro('apkKsBrowserSection');
-            alert('Crie ou importe uma chave de assinatura antes de gerar o aplicativo.');
-        } else {
+        if (temChave) {
             const senha = document.getElementById('apkKsBrSenha').value;
             apkMarcarCampo('apkFieldKsSenha', !senha);
             if (!senha) { valido = false; marcarPrimeiro('apkFieldKsSenha'); }
@@ -2387,8 +2472,41 @@
         return valido;
     }
 
+    let _apkNoKeyConfirmResolve = null;
+    function apkConfirmarGerarSemChave() {
+        return new Promise((resolve) => {
+            _apkNoKeyConfirmResolve = resolve;
+            document.getElementById('apkNoKeyConfirmModal').style.display = 'flex';
+        });
+    }
+    window.apkNoKeyConfirmResolver = function(continuar) {
+        document.getElementById('apkNoKeyConfirmModal').style.display = 'none';
+        if (_apkNoKeyConfirmResolve) { _apkNoKeyConfirmResolve(continuar); _apkNoKeyConfirmResolve = null; }
+    };
+
+    function apkMostrarStatusInline() {
+        document.querySelectorAll('#modalAndroid .apk-form-section').forEach(el => el.style.display = 'none');
+        document.getElementById('apkFormActions').style.display = 'none';
+        document.getElementById('apkStatusInline').style.display = 'block';
+    }
+
+    window.apkVoltarFormulario = function() {
+        document.querySelectorAll('#modalAndroid .apk-form-section').forEach(el => el.style.display = '');
+        document.getElementById('apkFormActions').style.display = '';
+        document.getElementById('apkStatusInline').style.display = 'none';
+    };
+
     window.apkGerarAplicativo = async function() {
         if (!apkValidarFormulario()) return;
+
+        const temChave = document.getElementById('apkKsBrHasKey').style.display !== 'none';
+        if (!temChave) {
+            const continuar = await apkConfirmarGerarSemChave();
+            if (!continuar) {
+                document.getElementById('apkKsBrowserSection')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+        }
 
         const btn      = document.getElementById('apkBtnGerar');
         const btnLabel = document.getElementById('apkBtnGerarLabel');
@@ -2396,7 +2514,7 @@
         btn.disabled = true;
         btnLabel.textContent = 'Gerando…';
 
-        document.getElementById('apkStatusInline').style.display = 'block';
+        apkMostrarStatusInline();
         document.getElementById('apkProcessando').style.display  = 'block';
         document.getElementById('apkSucesso').style.display      = 'none';
         document.getElementById('apkErro').style.display         = 'none';
@@ -2433,7 +2551,9 @@
             document.getElementById('apkIconPreview').style.display    = 'none';
             document.getElementById('apkIconPlaceholder').style.display = 'flex';
         }
-        // Reset do bloco de status e do botão de geração
+        // Reset do bloco de status e do formulário para o estado inicial
+        document.querySelectorAll('#modalAndroid .apk-form-section').forEach(el => el.style.display = '');
+        document.getElementById('apkFormActions').style.display  = '';
         document.getElementById('apkStatusInline').style.display = 'none';
         document.getElementById('apkProcessando').style.display  = 'block';
         document.getElementById('apkSucesso').style.display      = 'none';
@@ -2613,8 +2733,10 @@
     };
 
     async function _apkGerarBrowser() {
-        const senha = document.getElementById('apkKsBrSenha')?.value || '';
-        if (!senha) { alert('Informe a senha da chave de assinatura.'); throw new Error('Senha não informada'); }
+        const temChave = document.getElementById('apkKsBrHasKey').style.display !== 'none';
+        const chaveTemporaria = !temChave;
+        const senha = temChave ? (document.getElementById('apkKsBrSenha')?.value || '') : '';
+        if (temChave && !senha) { alert('Informe a senha da chave de assinatura.'); throw new Error('Senha não informada'); }
 
         const nomeApp     = document.getElementById('apkNomeApp').value.trim();
         const versaoStr   = document.getElementById('apkVersao')?.value.trim() || '1.0';
@@ -2648,7 +2770,7 @@
             document.getElementById('apkStatusDesc').textContent = 'Gerando HTML com caminhos relativos…';
 
             const iconeParaHtml = (window.sistema && window.sistema.icone && window.sistema.icone.dataUrl) || null;
-            const htmlStr = await window.exportador.exportarHtmlCards({ embutirMidias: false, metadados: { tituloHtml: nomeApp, iconeDataUrl: iconeParaHtml } });
+            const htmlStr = await window.exportador.exportarHtmlCards({ embutirMidias: false, metadados: { ...coletarMetadadosExportacao(), tituloHtml: nomeApp, iconeDataUrl: iconeParaHtml } });
             htmlBytes = new TextEncoder().encode(htmlStr);
 
             midias = new Map();
@@ -2684,6 +2806,7 @@
         const exp = await _getExportador();
         const arquivosGerados = await exp.gerarAmbos({
             senha,
+            chaveTemporaria,
             htmlBytes,
             midias,
             iconeBytes: _apkIconeBytes.length > 0 ? new Uint8Array(_apkIconeBytes) : null,
@@ -2706,7 +2829,18 @@
 
         // Show zip info
         const onlineLinkBox = document.getElementById('apkOnlineDownloadLinks');
-        onlineLinkBox.innerHTML = `
+        onlineLinkBox.innerHTML = chaveTemporaria
+            ? `
+            <div style="padding:12px 16px; background:#fff3e0; border:1px solid #ffcc80; border-radius:8px;">
+              <div style="font-weight:700; color:#e65100;">📦 ${arquivosGerados.zip}</div>
+              <div style="font-size:0.82em; color:#e65100; margin-top:8px;">
+                Zip baixado automaticamente, contendo:<br>
+                - <b>${arquivosGerados.aab}</b> e <b>${arquivosGerados.apk}</b>: assinados com uma <b>chave temporária</b>, úteis apenas para instalação/testes locais.<br>
+                - <b>informacoes.txt</b>: resumo dos dados preenchidos.<br>
+                <strong>⚠️ Este pacote não pode ser publicado na Google Play.</strong> Crie ou importe uma chave de assinatura própria e gere o aplicativo novamente antes de publicar.
+              </div>
+            </div>`
+            : `
             <div style="padding:12px 16px; background:#f0fdf4; border:1px solid #86efac; border-radius:8px;">
               <div style="font-weight:700; color:#166534;">📦 ${arquivosGerados.zip}</div>
               <div style="font-size:0.82em; color:#166534; margin-top:8px;">

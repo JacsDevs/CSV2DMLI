@@ -110,8 +110,33 @@ class ExportadorHtmlCards extends ExportadorBase {
         return html;
     }
 
-    async gerarScriptsDados(embutir = false) {
-        return await this.gerarScriptsDadosEmLotes('card', embutir);
+    async gerarScriptsDados(embutir = false, entradasLimitadas = null) {
+        return await this.gerarScriptsDadosEmLotes('card', embutir, entradasLimitadas);
+    }
+
+    // Percorre a árvore na mesma ordem/recursão de processarEntradasHTML, mas só
+    // coleta as referências das entradas (sem gerar HTML) até `limite`. Usado para
+    // restringir gerarScriptsDados às entradas que de fato aparecerão na prévia,
+    // evitando embutir em Base64 as mídias de entradas que serão descartadas.
+    coletarEntradasAteLimite(arvore, categoriasRaizes, limite) {
+        const lista = [];
+        let atingiu = false;
+        const visitar = (noDict) => {
+            if (atingiu) return;
+            if (noDict._entradas) {
+                for (const ent of noDict._entradas) {
+                    if (lista.length >= limite) { atingiu = true; return; }
+                    lista.push(ent);
+                }
+            }
+            if (atingiu) return;
+            Object.keys(noDict).filter(k => k !== '_entradas').forEach(filho => { if (!atingiu) visitar(noDict[filho]); });
+        };
+        for (const cat of categoriasRaizes) {
+            if (atingiu) break;
+            visitar(arvore[cat]);
+        }
+        return lista;
     }
 
     async exportar(opcoes = {}) {
@@ -119,21 +144,42 @@ class ExportadorHtmlCards extends ExportadorBase {
         if (!this.templatePrincipal) throw new Error('Template principal HTML não carregado');
 
         const { arvore, categoriasRaizes } = this.db.obterArvoreOrdenada();
-        
-        const scriptsDados = await this.gerarScriptsDados(opcoes.embutirMidias);
-        
+
+        const limitePreview = opcoes.limitePreview;
+        const entradasLimitadas = limitePreview
+            ? this.coletarEntradasAteLimite(arvore, categoriasRaizes, limitePreview)
+            : null;
+
+        const scriptsDados = await this.gerarScriptsDados(opcoes.embutirMidias, entradasLimitadas);
+
+        let contadorEntradas = 0;
+        let limiteAtingido = false;
+
         let corpoHtml = '';
         const processarEntradasHTML = (noDict) => {
             let html = '';
-            if (noDict._entradas) noDict._entradas.forEach(ent => html += this.gerarEntradaHTML(ent));
-            Object.keys(noDict).filter(k => k !== '_entradas').forEach(filho => html += processarEntradasHTML(noDict[filho]));
+            if (noDict._entradas) {
+                for (const ent of noDict._entradas) {
+                    if (limitePreview && contadorEntradas >= limitePreview) { limiteAtingido = true; break; }
+                    html += this.gerarEntradaHTML(ent);
+                    contadorEntradas++;
+                }
+            }
+            if (!limiteAtingido) {
+                Object.keys(noDict).filter(k => k !== '_entradas').forEach(filho => html += processarEntradasHTML(noDict[filho]));
+            }
             return html;
         };
-        
+
         for (const cat of categoriasRaizes) {
+            if (limiteAtingido) break;
             corpoHtml += `<section class="categoria">\n<h2 class="categoria-titulo">${cat}</h2>\n`;
             corpoHtml += processarEntradasHTML(arvore[cat]);
             corpoHtml += `</section>\n`;
+        }
+
+        if (limiteAtingido) {
+            corpoHtml += `<p class="preview-limite-aviso" style="padding:14px; text-align:center; color:#888; font-size:0.85em; font-style:italic;">Exibindo apenas as ${limitePreview} primeiras entradas na prévia...</p>\n`;
         }
 
         const meta = opcoes.metadados || {};
