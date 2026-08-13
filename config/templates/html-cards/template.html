@@ -1747,7 +1747,133 @@
             }
         };
 
+
+        function adaptarDadosParaTemplate(item) {
+            let dados = { ...item };
+            
+            dados.CAMPO_SEMANTICO_EXIBIR = (modoVisualizacao === 'salvos' && item.CAMPO_SEMANTICO) ? true : false;
+            
+            if (item.AUDIO) {
+                const audios = item.AUDIO.split('~').map(a => a.trim()).filter(Boolean);
+                dados.AUDIOS_ARRAY = audios.map(a => ({ URL: resolverMidia(a, 'audio') }));
+                dados.AUDIO_PRIMEIRO = dados.AUDIOS_ARRAY.length > 0 ? dados.AUDIOS_ARRAY[0].URL : '';
+                if (dados.AUDIOS_ARRAY.length > 1) {
+                    dados.TEM_AUDIOS_ADICIONAIS = true;
+                    dados.AUDIOS_ADICIONAIS = dados.AUDIOS_ARRAY.slice(1);
+                }
+            }
+            
+            dados.TEM_INFO_GERAL = !!(item.INDEX || item.CLASSE || item.CAMPO_SEMANTICO || item.SUB_CAMPO_SEMANTICO);
+            dados.TEM_PRONUNCIA = !!(item.FONEMICA || item.FONETICA);
+            
+            if (item.SIGNIFICADOS && item.SIGNIFICADOS.length > 0) {
+                dados.SIGNIFICADOS = item.SIGNIFICADOS.map((sig, index) => {
+                    let s = { ...sig };
+                    s.NUMERO_PONTO = (item.SIGNIFICADOS.length > 1) ? (index + 1) + '.' : '';
+                    if (s.EXEMPLOS && s.EXEMPLOS.length > 0) {
+                        s.TEM_EXEMPLOS = true;
+                        s.EXEMPLOS = s.EXEMPLOS.map(ex => {
+                            let e = { ...ex };
+                            const exAudio = e.AUDIO || e.AUDIO_ARQUIVO || e.ARQUIVO_AUDIO || e.AUDIO_SRC;
+                            if (exAudio) {
+                                const auds = exAudio.split('~').map(a => a.trim()).filter(Boolean);
+                                e.AUDIOS_ARRAY = auds.map(a => ({ URL: resolverMidia(a, 'audio') }));
+                            }
+                            return e;
+                        });
+                    }
+                    if (s.IMAGENS && s.IMAGENS.length > 0) {
+                        s.TEM_IMAGENS = true;
+                        if (!dados.PRIMEIRA_IMAGEM) {
+                            dados.PRIMEIRA_IMAGEM = resolverMidia(s.IMAGENS[0].ARQUIVO, 'foto');
+                        }
+                        s.IMAGENS = s.IMAGENS.map(img => ({
+                            ...img, 
+                            ARQUIVO: resolverMidia(img.ARQUIVO, 'foto')
+                        }));
+                    }
+                    if (s.VIDEOS && s.VIDEOS.length > 0) {
+                        s.TEM_VIDEOS = true;
+                        s.VIDEOS = s.VIDEOS.map(vid => ({
+                            ...vid,
+                            ARQUIVO: resolverMidia(vid.ARQUIVO, 'video')
+                        }));
+                    }
+                    if (s.EXTRAS && s.EXTRAS.length > 0) s.TEM_EXTRAS = true;
+                    return s;
+                });
+            }
+
+            if (item.TEXTOS_ESTRUTURADOS && item.TEXTOS_ESTRUTURADOS.length > 0) {
+                dados.TEXTOS_ESTRUTURADOS = item.TEXTOS_ESTRUTURADOS.map(t => {
+                    let tex = { ...t };
+                    tex.TITULO_EXIBICAO_FALLBACK = tex.TITULO_EXIBICAO || tex.TITULO_BASE || "Texto";
+                    tex.ID_TEXTO = tex.ID_TEXTO ? tex.ID_TEXTO.replace(/\s+/g, '_') : 'tx';
+                    if (tex.VARIACOES) {
+                        tex.VARIACOES = tex.VARIACOES.map(v => {
+                            let varItem = { ...v };
+                            if (varItem.FRASES) {
+                                varItem.FRASES = varItem.FRASES.map(f => {
+                                    let fr = { ...f };
+                                    if (fr.AUDIO_ARQUIVO) {
+                                        fr.AUDIO_ARQUIVO = resolverMidia(fr.AUDIO_ARQUIVO.trim(), 'audio');
+                                    }
+                                    return fr;
+                                });
+                            }
+                            return varItem;
+                        });
+                    }
+                    return tex;
+                });
+            }
+            
+            return dados;
+        }
+
+        function processarTemplate(templateStr, dados) {
+            function processar(textoAtual, contextoAtual) {
+                // Processa blocos {{#CHAVE}}...{{/CHAVE}} iterativamente (um por vez) para
+                // garantir que blocos consecutivos e aninhados sejam todos resolvidos
+                const regexBloco = /\{\{#(\w+)\}\}([\s\S]*?)\{\{\/\1\}\}/;
+                let textoProcessado = textoAtual;
+                let match;
+                while ((match = regexBloco.exec(textoProcessado)) !== null) {
+                    const [full, chave, conteudoInterno] = match;
+                    const valor = contextoAtual[chave];
+                    let substituicao;
+                    if (valor === undefined || valor === null || valor === '' || valor === false ||
+                       (Array.isArray(valor) && valor.length === 0)) {
+                        substituicao = '';
+                    } else if (Array.isArray(valor)) {
+                        substituicao = valor.map(item => {
+                            if (typeof item === 'object' && item !== null) {
+                                return processar(conteudoInterno, { ...contextoAtual, ...item });
+                            }
+                            return processar(conteudoInterno, { ...contextoAtual, '.': item });
+                        }).join('');
+                    } else {
+                        const novoContexto = (typeof valor === 'object' && valor !== null)
+                            ? { ...contextoAtual, ...valor }
+                            : contextoAtual;
+                        substituicao = processar(conteudoInterno, novoContexto);
+                    }
+                    textoProcessado = textoProcessado.slice(0, match.index) + substituicao + textoProcessado.slice(match.index + full.length);
+                }
+
+                // Resolve variáveis simples {{ CHAVE }}
+                const regexVariavel = /\{\{\s*(\w+)\s*\}\}/g;
+                textoProcessado = textoProcessado.replace(regexVariavel, (m, chave) => {
+                    const valor = contextoAtual[chave];
+                    return (valor !== undefined && valor !== null) ? String(valor) : '';
+                });
+                return textoProcessado;
+            }
+            return processar(templateStr, dados).trim();
+        }
+        
         window.itensSalvos = carregarSalvosPersistidos();
+
 
         function idDoItem(item) {
             return String((item && (item.ID || item.TERMO)) || '');
@@ -1874,39 +2000,12 @@
             const nomeAcessivel = item.TERMO + (item.INDEX ? `, ${item.INDEX}` : '');
             card.setAttribute('aria-label', `${nomeAcessivel}. Abrir detalhes`);
 
-            let primeiraImagem = null;
-            
-            if (item.SIGNIFICADOS && item.SIGNIFICADOS.length > 0) {
-                item.SIGNIFICADOS.forEach(sig => {
-                    if (sig.IMAGENS && sig.IMAGENS.length > 0) {
-                        if (!primeiraImagem) primeiraImagem = sig.IMAGENS[0].ARQUIVO;
-                    }
-                });
+            if (window.templateCard) {
+                const dados = adaptarDadosParaTemplate(item);
+                card.innerHTML = processarTemplate(window.templateCard, dados);
+            } else {
+                card.innerHTML = `<div class="card-info"><span>${item.TERMO}</span></div>`;
             }
-            
-            let html = `<div class="card-info">`;
-            if (modoVisualizacao === 'salvos' && item.CAMPO_SEMANTICO) {
-                html += `<div class="card-categoria">${item.CAMPO_SEMANTICO}</div>`;
-            }
-            html += `<div class="card-lexical" style="display: flex; align-items: center; gap: 8px;">`;
-            html += `<span>${item.TERMO || '???'}</span>`;
-            if (item.AUDIO) {
-                const audioSrc = resolverMidia(item.AUDIO.split('~')[0].trim(), 'audio');
-                html += `<button type="button" class="modal-audio-btn" style="width: 32px; height: 32px; font-size: 0.9rem; flex-shrink: 0;" title="Ouvir pronúncia" aria-label="Ouvir pronúncia" onclick="event.stopPropagation(); window.tocarAudio('${audioSrc}', this)">🔊</button>`;
-            }
-            html += `</div>`;
-            html += `<div class="card-traducao">${item.INDEX || ''}</div>`;
-            if (item.CLASSE) {
-                html += `<span class="card-classe">${item.CLASSE}</span>`;
-            }
-            html += `</div>`;
-
-            if (primeiraImagem) {
-                const src = resolverMidia(primeiraImagem, 'foto');
-                html += `<div class="card-img-wrapper"><img src="${src}" alt="Imagem ilustrativa de ${item.TERMO || ''}" loading="lazy"></div>`;
-            }
-
-            card.innerHTML = html;
 
             card.addEventListener('click', () => abrirModal(item));
             card.addEventListener('keydown', (e) => {
@@ -1923,124 +2022,12 @@
             container.className = 'entrada_lexical section level2';
             container.id = `item-${item.ID || item.TERMO}`;
 
-            let html = `<button type="button" class="item-bookmark-btn" title="Salvar item" aria-label="Salvar item">
-                <svg class="bookmark-icon-add" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="m480-261.54-158.77 68.15q-36.15 15.46-68.69-5.92Q220-220.69 220-259.46v-488.23Q220-778 241-799q21-21 51.31-21H490q12.77 0 21.38 8.62Q520-802.77 520-790t-8.62 21.38Q502.77-760 490-760H292.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v486.84q0 6.54 5.58 10.39 5.57 3.84 11.73 1.15L480-328l182.69 78.69q6.16 2.69 11.73-1.15 5.58-3.85 5.58-10.39V-490q0-12.77 8.62-21.38Q697.23-520 710-520t21.38 8.62Q740-502.77 740-490v230.54q0 38.77-32.54 60.15-32.54 21.38-68.69 5.92L480-261.54ZM480-760H280h240-40Zm200 80h-50q-12.77 0-21.38-8.62Q600-697.23 600-710t8.62-21.38Q617.23-740 630-740h50v-50q0-12.77 8.62-21.38Q697.23-820 710-820t21.38 8.62Q740-802.77 740-790v50h50q12.77 0 21.38 8.62Q820-722.77 820-710t-8.62 21.38Q802.77-680 790-680h-50v50q0 12.77-8.62 21.38Q722.77-600 710-600t-21.38-8.62Q680-617.23 680-630v-50Z"/></svg>
-                <svg class="bookmark-icon-added" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="m698.77-684.54 119.92-120.3q8.92-9.31 21.19-9.31 12.27 0 21.58 9.31 9.31 9.3 9.31 21.38 0 12.08-9.31 21.38L724.08-625.31q-10.85 10.85-25.31 10.85-14.46 0-25.31-10.85l-52.77-52.77q-8.31-8.3-8.31-20.57t8.31-21.19q8.92-9.31 21.39-9.12 12.46.19 21.38 9.12l35.31 35.3ZM480-261.54l-158.77 68.15q-36.15 15.46-68.69-5.92Q220-220.69 220-259.46v-488.23q0-29.92 21.19-51.12Q262.39-820 292.31-820h213.84q16.47 0 24.5 14.27 8.04 14.27 1.2 29.73-6.23 15.85-9.04 31.69Q520-728.46 520-710q0 70.85 45.88 123.73 45.89 52.89 114.12 63.42 7.38 1.23 13.23 1.54 5.85.31 11.38.31 14.7.38 25.04 9.92Q740-501.54 740-487.46v228q0 38.77-32.54 60.15-32.54 21.38-68.69 5.92L480-261.54Z"/></svg>
-            </button>`;
-            html += `<span style="display: block; padding-right: 64px;"><span class='palavra_entrada'>${item.TERMO || '???'}</span>`;
-            if (item.AUDIO) {
-                const audios = item.AUDIO.split('~').map(a => a.trim()).filter(Boolean);
-                audios.forEach(aud => {
-                    const srcAudio = resolverMidia(aud, 'audio');
-                    html += `<button type="button" class="modal-audio-btn" style="width: 32px; height: 32px; font-size: 0.9rem; margin-left: 8px; vertical-align: middle;" title="Ouvir pronúncia" aria-label="Ouvir pronúncia" onclick="tocarAudio('${srcAudio}', this)">🔊</button>`;
-                });
+            if (window.templateLista) {
+                const dados = adaptarDadosParaTemplate(item);
+                container.innerHTML = processarTemplate(window.templateLista, dados);
+            } else {
+                container.innerHTML = `<span class='palavra_entrada'>${item.TERMO}</span>`;
             }
-            html += `</span><div class="entrada_div"><div class="info_entrada">`;
-
-            if (item.INDEX || item.CLASSE || item.CAMPO_SEMANTICO || item.SUB_CAMPO_SEMANTICO) {
-                html += `<div class="detalhe-secao"><div class="detalhe-titulo">Informações</div>`;
-                if (item.INDEX) html += `<div class="detalhe-valor mb-2"><strong>Tradução/Significado:</strong> ${item.INDEX}</div>`;
-                if (item.CLASSE) html += `<div class="detalhe-valor mb-2"><strong>Classe Gramatical:</strong> ${item.CLASSE}</div>`;
-                if (item.CAMPO_SEMANTICO) html += `<div class="detalhe-valor mb-2"><strong>Campo Semântico:</strong> ${item.CAMPO_SEMANTICO}</div>`;
-                if (item.SUB_CAMPO_SEMANTICO) html += `<div class="detalhe-valor mb-2"><strong>Subcampo:</strong> ${item.SUB_CAMPO_SEMANTICO}</div>`;
-                html += `</div>`;
-            }
-
-            if (item.FONEMICA || item.FONETICA) {
-                html += `<div class="detalhe-secao"><div class="detalhe-titulo">Pronúncia</div>`;
-                if (item.FONEMICA) html += `<div class="detalhe-valor mb-2"><strong>Fonêmica:</strong> ${item.FONEMICA}</div>`;
-                if (item.FONETICA) html += `<div class="detalhe-valor"><strong>Fonética:</strong> ${item.FONETICA}</div>`;
-                html += `</div>`;
-            }
-
-            if (item.SIGNIFICADOS && item.SIGNIFICADOS.length > 0) {
-                item.SIGNIFICADOS.forEach((sig, index) => {
-                    html += `<div class="significado-item">`;
-                    if (sig.TRADUCAO) html += `<strong>${index + 1}. ${sig.TRADUCAO}</strong><br>`;
-                    if (sig.DESCRICAO) html += `<span class="texto-muted">${sig.DESCRICAO}</span><br>`;
-                    
-                    if (sig.EXEMPLOS && sig.EXEMPLOS.length > 0) {
-                        html += `<div style="margin-left: 16px; margin-top: 6px;">`;
-                        sig.EXEMPLOS.forEach(ex => {
-                            html += `<div style="margin-bottom: 4px;"><em>${ex.TRANS}</em> - ${ex.TRAD}`;
-                            const exAudio = ex.AUDIO || ex.AUDIO_ARQUIVO || ex.ARQUIVO_AUDIO || ex.AUDIO_SRC;
-                            if (exAudio) {
-                                const audios = exAudio.split('~').map(a => a.trim()).filter(Boolean);
-                                audios.forEach(aud => {
-                                    const srcEx = resolverMidia(aud, 'audio');
-                                    html += `<button type="button" class="modal-audio-btn" style="width: 24px; height: 24px; font-size: 0.7rem; margin-left: 8px; vertical-align: middle;" title="Ouvir pronúncia" aria-label="Ouvir pronúncia" onclick="tocarAudio('${srcEx}', this)">🔊</button>`;
-                                });
-                            }
-                            html += `</div>`;
-                        });
-                        html += `</div>`;
-                    }
-                    
-                    if (sig.IMAGENS && sig.IMAGENS.length > 0) {
-                        html += `<div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">`;
-                        sig.IMAGENS.forEach(img => {
-                            const srcImg = resolverMidia(img.ARQUIVO, 'foto');
-                            const altImgLista = img.LEGENDA || `Imagem de ${item.TERMO || ''}`;
-                            html += `<img src="${srcImg}" class="lightbox-img-trigger" alt="${altImgLista}" tabindex="0" role="button" aria-label="Ampliar imagem: ${altImgLista}" style="max-height: 240px; border-radius: 8px; border: 1px solid var(--cor-borda); cursor: zoom-in;" onclick="abrirLightbox('${srcImg}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();abrirLightbox('${srcImg}')}">`;
-                        });
-                        html += `</div>`;
-                    }
-
-                    if (sig.VIDEOS && sig.VIDEOS.length > 0) {
-                        html += `<div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">`;
-                        sig.VIDEOS.forEach(vid => {
-                            const srcVid = resolverMidia(vid.ARQUIVO, 'video');
-                            html += `<video src="${srcVid}" controls style="max-height: 160px; border-radius: 8px; border: 1px solid var(--cor-borda);"></video>`;
-                        });
-                        html += `</div>`;
-                    }
-                    html += `</div>`;
-                });
-            }
-
-            if (item.ITENS_RELACIONADOS) {
-                html += `<div style="margin-top: 16px;"><strong>🔗 Relacionados:</strong> ${item.ITENS_RELACIONADOS}</div>`;
-            }
-
-            if (item.TEXTOS_ESTRUTURADOS && item.TEXTOS_ESTRUTURADOS.length > 0) {
-                html += `<div style="margin-top: 16px; border-top: 1px dashed #ddd; padding-top: 16px; text-align: center;">`;
-                html += `<div style="font-weight: bold; margin-bottom: 8px;">¶ Textos Adicionais</div>`;
-                item.TEXTOS_ESTRUTURADOS.forEach(texto => {
-                    const idTexto = 'lista_texto_' + texto.ID_TEXTO.replace(/\s+/g, '_');
-                    html += `<div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 12px;">`;
-                    if (texto.TITULO_EXIBICAO) {
-                        html += `<h4 style="color:var(--cor-primaria); margin:0;">${texto.TITULO_EXIBICAO}</h4>`;
-                    }
-                    html += `<button class="toca-texto-btn" onclick='tocaTexto(this, "${idTexto}")' style="background: none; border: 1px solid #16a34a; border-radius: 4px; cursor: pointer; color: #16a34a; font-size: 1em; padding: 2px 8px;" title="Tocar texto completo">&#9654;</button>`;
-                    html += `</div>`;
-                    
-                    html += `<div id="${idTexto}">`;
-                    if (texto.VARIACOES) {
-                        texto.VARIACOES.forEach(variacao => {
-                            if (variacao.FRASES) {
-                                html += `<div class="texto-variacao" style="font-size: 0.95em;">`;
-                                variacao.FRASES.forEach(frase => {
-                                    html += `<div class="frase-item" onclick="playAudio_frase(this)" style="cursor: pointer; padding: 8px; border-radius: 4px; transition: background-color 0.2s; margin-bottom: 12px; display: block;">`;
-                                    if (frase.AUDIO_ARQUIVO) {
-                                        const src = resolverMidia(frase.AUDIO_ARQUIVO, 'audio');
-                                        html += `<audio src="${src}" type="audio/mp3" preload="none" style="display: none;"></audio>`;
-                                    }
-                                    if (frase.ORIGINAL) html += `<div class="texto-frase" style="margin-bottom: 4px;">${frase.ORIGINAL}</div>`;
-                                    if (frase.TRADUCAO) html += `<div class="texto-traducao texto-muted" style="color: #64748b; font-size: 0.85em;">${frase.TRADUCAO}</div>`;
-                                    html += `</div>`;
-                                });
-                                html += `</div>`;
-                            }
-                        });
-                    }
-                    html += `</div>`;
-                    if (texto.TEXTO_NAO_LITERAL) html += `<div style="margin-top: 8px; font-style: italic; color: #555;">${texto.TEXTO_NAO_LITERAL}</div>`;
-                });
-                html += `</div>`;
-            }
-
-            html += `</div></div>`;
-            container.innerHTML = html;
 
             const bookmarkBtn = container.querySelector('.item-bookmark-btn');
             if (bookmarkBtn) {
@@ -2400,130 +2387,18 @@
             }
             modalBookmarkBtn.classList.toggle('ativo', window.itensSalvos.has(idDoItem(item)));
             modalBookmarkBtn.onclick = () => alternarSalvo(item, modalBookmarkBtn);
-            let html = '';
-            html += `<div class="detalhe-secao"><div class="detalhe-titulo">Informações</div>`;
-            if (item.INDEX) html += `<div class="detalhe-valor mb-2"><strong>Tradução/Significado:</strong> ${item.INDEX}</div>`;
-            if (item.CLASSE) html += `<div class="detalhe-valor mb-2"><strong>Classe Gramatical:</strong> ${item.CLASSE}</div>`;
-            if (item.CAMPO_SEMANTICO) html += `<div class="detalhe-valor mb-2"><strong>Campo Semântico:</strong> ${item.CAMPO_SEMANTICO}</div>`;
-            if (item.SUB_CAMPO_SEMANTICO) html += `<div class="detalhe-valor mb-2"><strong>Subcampo:</strong> ${item.SUB_CAMPO_SEMANTICO}</div>`;
-            html += `</div>`;
-
-            if (item.FONEMICA || item.FONETICA) {
-                html += `<div class="detalhe-secao"><div class="detalhe-titulo">Pronúncia</div>`;
-                if (item.FONEMICA) html += `<div class="detalhe-valor mb-2"><strong>Fonêmica:</strong> ${item.FONEMICA}</div>`;
-                if (item.FONETICA) html += `<div class="detalhe-valor"><strong>Fonética:</strong> ${item.FONETICA}</div>`;
-                html += `</div>`;
+            
+            if (window.templateEntrada) {
+                const dados = adaptarDadosParaTemplate(item);
+                modalBody.innerHTML = processarTemplate(window.templateEntrada, dados);
+            } else {
+                modalBody.innerHTML = `<div>${item.TERMO}</div>`;
             }
-            if (item.AUDIO) {
-                const audios = item.AUDIO.split('~').map(a => a.trim()).filter(Boolean);
-                if (audios.length > 1) {
-                    html += `<div class="detalhe-secao"><div class="detalhe-titulo">🔊 Áudios adicionais</div>`;
-                    audios.slice(1).forEach(aud => { const src = resolverMidia(aud.trim(), 'audio'); html += `<button type="button" class="modal-audio-btn" style="width: 32px; height: 32px; font-size: 0.9rem; display: inline-flex; margin-right: 8px;" title="Ouvir pronúncia" aria-label="Ouvir pronúncia" onclick="tocarAudio('${src}', this)">🔊</button>`; });
-                    html += `</div>`;
-                }
+            
+            const acoesSalvosContainer = document.getElementById('acoes-salvos-container');
+            if (acoesSalvosContainer) {
+                acoesSalvosContainer.style.display = (modoVisualizacao === 'salvos' && window.itensSalvos.size > 0) ? 'block' : 'none';
             }
-            if (item.SIGNIFICADOS && item.SIGNIFICADOS.length > 0) {
-                html += `<div class="detalhe-secao"><div class="detalhe-titulo">Significados</div>`;
-                item.SIGNIFICADOS.forEach(sig => {
-                    html += `<div class="exemplo-item" style="background:transparent; border:1px solid var(--cor-borda); padding:16px; margin-bottom:12px;">`;
-                    if (sig.NUMERO) html += `<strong>${sig.NUMERO}. </strong>`;
-                    if (sig.TRADUCAO) html += `<strong class="traducao">${sig.TRADUCAO}</strong><br>`;
-                    if (sig.DESCRICAO) html += `<span class="descricao" style="color:#475569; display:block; margin-top:6px;">${sig.DESCRICAO}</span>`;
-                    
-                    if (sig.EXEMPLOS && sig.EXEMPLOS.length > 0) {
-                        html += `<div style="margin-top:12px;">`;
-                        sig.EXEMPLOS.forEach(ex => {
-                            html += `<div style="margin-bottom:8px; padding-left:12px; border-left:3px solid var(--cor-secundaria);">`;
-                            html += `<div style="display:flex; align-items:center; flex-wrap:wrap; gap:8px;">`;
-                            if (ex.TRANS) html += `<em style="color:#1e293b;">${ex.TRANS}</em>`;
-                            const exAudio = ex.AUDIO || ex.AUDIO_ARQUIVO || ex.ARQUIVO_AUDIO || ex.AUDIO_SRC;
-                            if (exAudio) {
-                                const audios = exAudio.split('~').map(a => a.trim()).filter(Boolean);
-                                audios.forEach(aud => {
-                                    const srcEx = resolverMidia(aud, 'audio');
-                                    html += `<button type="button" class="modal-audio-btn" style="width: 24px; height: 24px; font-size: 0.7rem; margin-left: 8px; vertical-align: middle; display: inline-flex;" title="Ouvir pronúncia" aria-label="Ouvir pronúncia" onclick="tocarAudio('${srcEx}', this)">🔊</button>`;
-                                });
-                            }
-                            html += `</div>`;
-                            if (ex.TRAD) html += `<div style="color:#64748b;">"${ex.TRAD}"</div>`;
-                            html += `</div>`;
-                        });
-                        html += `</div>`;
-                    }
-                    
-                    if (sig.IMAGENS && sig.IMAGENS.length > 0) {
-                        html += `<div class="midia-galeria" style="margin-top:12px;">`;
-                        sig.IMAGENS.forEach(img => {
-                            const src = resolverMidia(img.ARQUIVO, 'foto');
-                            const altImg = img.LEGENDA || `Imagem de ${item.TERMO || ''}`;
-                            html += `<div class="midia-item"><img src="${src}" alt="${altImg}" loading="lazy" tabindex="0" role="button" aria-label="Ampliar imagem: ${altImg}">${img.LEGENDA ? `<div class="texto-muted" style="margin-top:6px; font-size:12px;">${img.LEGENDA}</div>` : ''}</div>`;
-                        });
-                        html += `</div>`;
-                    }
-                    
-                    if (sig.VIDEOS && sig.VIDEOS.length > 0) {
-                        html += `<div class="midia-galeria" style="margin-top:12px;">`;
-                        sig.VIDEOS.forEach(vid => {
-                            const src = resolverMidia(vid.ARQUIVO, 'video'); 
-                            html += `<div class="midia-item"><video controls><source src="${src}"></video></div>`; 
-                        });
-                        html += `</div>`;
-                    }
-
-                    if (sig.EXTRAS && sig.EXTRAS.length > 0) {
-                        html += `<div style="margin-top:12px; font-size:0.95em; color:#475569;">`;
-                        sig.EXTRAS.forEach(ex => {
-                            html += `<div style="margin-bottom:6px;">${ex.TEXTO}</div>`;
-                        });
-                        html += `</div>`;
-                    }
-
-                    html += `</div>`; 
-                });
-                html += `</div>`; 
-            }
-
-            if (item.ITENS_RELACIONADOS) {
-                html += `<div class="detalhe-secao"><div class="detalhe-titulo">🔗 Relacionados</div>`;
-                html += `<div class="detalhe-valor">${item.ITENS_RELACIONADOS}</div></div>`;
-            }
-
-            if (item.TEXTOS_ESTRUTURADOS && item.TEXTOS_ESTRUTURADOS.length > 0) {
-                html += `<div class="detalhe-secao" style="text-align: center;"><div class="detalhe-titulo">¶ Textos Adicionais</div>`;
-                item.TEXTOS_ESTRUTURADOS.forEach(texto => {
-                    const idTexto = 'modal_texto_' + texto.ID_TEXTO.replace(/\s+/g, '_');
-                    html += `<div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 12px;">`;
-                    if (texto.TITULO_EXIBICAO) {
-                        html += `<h3 style="margin: 0; color:var(--cor-primaria); font-size:1.1rem;">${texto.TITULO_EXIBICAO}</h3>`;
-                    }
-                    html += `<button class="toca-texto-btn" onclick='tocaTexto(this, "${idTexto}")' style="background: none; border: 1px solid #16a34a; border-radius: 4px; cursor: pointer; color: #16a34a; font-size: 1em; padding: 2px 8px;" title="Tocar texto completo">&#9654;</button>`;
-                    html += `</div>`;
-                    
-                    html += `<div id="${idTexto}">`;
-                    if (texto.VARIACOES) {
-                        texto.VARIACOES.forEach(variacao => {
-                            if (variacao.FRASES) {
-                                html += `<div class="texto-variacao" style="font-size: 0.95em;">`;
-                                variacao.FRASES.forEach(frase => {
-                                    html += `<div class="frase-item" onclick="playAudio_frase(this)" style="cursor: pointer; padding: 8px; border-radius: 4px; transition: background-color 0.2s; margin-bottom: 12px; display: block;">`;
-                                    if (frase.AUDIO_ARQUIVO) {
-                                        const src = resolverMidia(frase.AUDIO_ARQUIVO, 'audio');
-                                        html += `<audio src="${src}" type="audio/mp3" preload="none" style="display: none;"></audio>`;
-                                    }
-                                    if (frase.ORIGINAL) html += `<div class="texto-frase" style="margin-bottom: 4px;">${frase.ORIGINAL}</div>`;
-                                    if (frase.TRADUCAO) html += `<div class="texto-traducao texto-muted" style="color: #64748b; font-size: 0.85em;">${frase.TRADUCAO}</div>`;
-                                    html += `</div>`;
-                                });
-                                html += `</div>`;
-                            }
-                        });
-                    }
-                    html += `</div>`;
-                    if (texto.TEXTO_NAO_LITERAL) html += `<div class="mt-4 p-3" style="background:#f1f5f9; border-radius:12px;">${texto.TEXTO_NAO_LITERAL}</div>`;
-                });
-                html += `</div>`;
-            }
-            modalBody.innerHTML = html;
         }
 
         function atualizarEstadoNavegacao() {

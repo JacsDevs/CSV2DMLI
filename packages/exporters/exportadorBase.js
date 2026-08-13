@@ -248,6 +248,9 @@ class ExportadorBase {
         scripts += `window.DicionarioMidias = ${jsonSeguro(midias)};\n`;
         scripts += `window.dadosDicionarioLexical = [];\n`;
         scripts += `window.templateEntradaAtivo = "${tipoAtivo}";\n`;
+        if (this.templateEntrada) scripts += `window.templateEntrada = ${jsonSeguro(this.templateEntrada)};\n`;
+        if (this.templateCard) scripts += `window.templateCard = ${jsonSeguro(this.templateCard)};\n`;
+        if (this.templateLista) scripts += `window.templateLista = ${jsonSeguro(this.templateLista)};\n`;
         scripts += `function adicionaDados(lote) { window.dadosDicionarioLexical.push(...lote); }\n`;
         scripts += '<\/script>\n';
 

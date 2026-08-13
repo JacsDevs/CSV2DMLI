@@ -5,33 +5,55 @@ class ExportadorHtmlCards extends ExportadorBase {
         super(gerenciadorDados);
         this.templatePrincipal = null;
         this.templateEntrada = null;
+        this.templateCard = null;
+        this.templateLista = null;
         this.estilosGlobais = null;
     }
 
     async carregarTemplates() {
         try {
-            // Tenta carregar do localStorage ou via fetch
-            const cachePrincipal = localStorage.getItem('csv2dmli_template_html');
-            const cacheEntrada = localStorage.getItem('csv2dmli_templateEntradaCardHtml');
+            // Ignora o cache local temporariamente para forçar o recarregamento do disco
+            const cachePrincipal = null;
+            const cacheEntrada = null;
+            const cacheCard = null;
+            const cacheLista = null;
+            
+            const nocache = '?v=' + Date.now();
             
             if (cachePrincipal) this.templatePrincipal = cachePrincipal;
             else {
                 try {
-                    const res = await fetch('config/templates/html-cards/template.html');
+                    const res = await fetch('config/templates/html-cards/template.html' + nocache);
                     if (res.ok) this.templatePrincipal = await res.text();
-                } catch(e) { console.warn('Fetch de config/templates/html-cards/template.html falhou, usando fallback.'); }
+                } catch(e) { console.warn('Fetch de template.html falhou, usando fallback.'); }
             }
 
             if (cacheEntrada) this.templateEntrada = cacheEntrada;
             else {
                 try {
-                    const res = await fetch('config/templates/html-cards/entrada.html');
+                    const res = await fetch('config/templates/html-cards/entrada.tmpl' + nocache);
                     if (res.ok) this.templateEntrada = await res.text();
-                } catch(e) { console.warn('Fetch de config/templates/html-cards/entrada.html falhou, usando fallback.'); }
+                } catch(e) { console.warn('Fetch de entrada.html falhou, usando fallback.'); }
+            }
+
+            if (cacheCard) this.templateCard = cacheCard;
+            else {
+                try {
+                    const res = await fetch('config/templates/html-cards/card.tmpl' + nocache);
+                    if (res.ok) this.templateCard = await res.text();
+                } catch(e) { console.warn('Fetch de card.html falhou, usando fallback.'); }
+            }
+
+            if (cacheLista) this.templateLista = cacheLista;
+            else {
+                try {
+                    const res = await fetch('config/templates/html-cards/lista.tmpl' + nocache);
+                    if (res.ok) this.templateLista = await res.text();
+                } catch(e) { console.warn('Fetch de lista.html falhou, usando fallback.'); }
             }
 
             try {
-                const res = await fetch('config/templates/estilos-globais.css');
+                const res = await fetch('config/templates/estilos-globais.css' + nocache);
                 if (res.ok) this.estilosGlobais = await res.text();
             } catch(e) { console.warn('Fetch de config/templates/estilos-globais.css falhou, usando fallback.'); }
 
