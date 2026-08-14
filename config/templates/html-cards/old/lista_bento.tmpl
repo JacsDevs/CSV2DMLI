@@ -13,26 +13,11 @@
 <div class="entrada_div">
     <div class="dict-entry lista-linear-view" style="padding-left: 36px; padding-top: 4px; padding-right: 64px;">
 
-        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
-            {{#TEM_TERMOS_MISTOS}}
-            {{#TERMOS_MISTOS}}
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <h1 class="dict-headword" style="margin: 0; color: #15803d; font-weight: bold;">{{ TERMO_PARTE }}</h1>
-                {{#TEM_AUDIO}}
-                <button class="modal-audio-btn" style="display: inline-flex; width: 32px; height: 32px; justify-content: center; align-items: center; font-size: 1.2rem;" title="Ouvir pronúncia" aria-label="Ouvir pronúncia" onclick="event.stopPropagation(); window.tocarAudio('{{ URL }}', this)" data-texto-original="🔊">🔊</button>
-                {{/TEM_AUDIO}}
-            </div>
-            {{#NAO_E_O_ULTIMO}}<span style="color: #15803d; font-size: 1.5rem; font-weight: bold; margin: 0 4px;">~</span>{{/NAO_E_O_ULTIMO}}
-            {{/TERMOS_MISTOS}}
-            {{/TEM_TERMOS_MISTOS}}
-            
-            <!-- FALLBACK SE NÃO TIVER TERMOS_MISTOS (ex: modo sem renderizador completo na inicialização) -->
-            {{#NAO_TEM_TERMOS_MISTOS}}
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
             <h1 class="dict-headword" style="margin: 0; color: #15803d; font-weight: bold;">{{ TERMO }}</h1>
             {{#AUDIOS_ARRAY}}
             <button class="modal-audio-btn" style="display: inline-flex; width: 32px; height: 32px; justify-content: center; align-items: center; font-size: 1.2rem; margin-left: 8px;" title="Ouvir pronúncia" aria-label="Ouvir pronúncia" onclick="event.stopPropagation(); window.tocarAudio('{{ URL }}', this)" data-texto-original="🔊">🔊</button>
             {{/AUDIOS_ARRAY}}
-            {{/NAO_TEM_TERMOS_MISTOS}}
         </div>
 
         <div class="dict-variations-tray" style="margin-bottom: 12px;">

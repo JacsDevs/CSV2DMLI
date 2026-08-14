@@ -1,0 +1,115 @@
+﻿<button type="button" class="item-bookmark-btn" title="Salvar item" aria-label="Salvar item">
+    <svg class="bookmark-icon-add" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="m480-261.54-158.77 68.15q-36.15 15.46-68.69-5.92Q220-220.69 220-259.46v-488.23Q220-778 241-799q21-21 51.31-21H490q12.77 0 21.38 8.62Q520-802.77 520-790t-8.62 21.38Q502.77-760 490-760H292.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v486.84q0 6.54 5.58 10.39 5.57 3.84 11.73 1.15L480-328l182.69 78.69q6.16 2.69 11.73-1.15 5.58-3.85 5.58-10.39V-490q0-12.77 8.62-21.38Q697.23-520 710-520t21.38 8.62Q740-502.77 740-490v230.54q0 38.77-32.54 60.15-32.54 21.38-68.69 5.92L480-261.54ZM480-760H280h240-40Zm200 80h-50q-12.77 0-21.38-8.62Q600-697.23 600-710t8.62-21.38Q617.23-740 630-740h50v-50q0-12.77 8.62-21.38Q697.23-820 710-820t21.38 8.62Q740-802.77 740-790v50h50q12.77 0 21.38 8.62Q820-722.77 820-710t-8.62 21.38Q802.77-680 790-680h-50v50q0 12.77-8.62 21.38Q722.77-600 710-600t-21.38-8.62Q680-617.23 680-630v-50Z"/></svg>
+    <svg class="bookmark-icon-added" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="m698.77-684.54 119.92-120.3q8.92-9.31 21.19-9.31 12.27 0 21.58 9.31 9.31 9.3 9.31 21.38 0 12.08-9.31 21.38L724.08-625.31q-10.85 10.85-25.31 10.85-14.46 0-25.31-10.85l-52.77-52.77q-8.31-8.3-8.31-20.57t8.31-21.19q8.92-9.31 21.39-9.12 12.46.19 21.38 9.12l35.31 35.3ZM480-261.54l-158.77 68.15q-36.15 15.46-68.69-5.92Q220-220.69 220-259.46v-488.23q0-29.92 21.19-51.12Q262.39-820 292.31-820h213.84q16.47 0 24.5 14.27 8.04 14.27 1.2 29.73-6.23 15.85-9.04 31.69Q520-728.46 520-710q0 70.85 45.88 123.73 45.89 52.89 114.12 63.42 7.38 1.23 13.23 1.54 5.85.31 11.38.31 14.7.38 25.04 9.92Q740-501.54 740-487.46v228q0 38.77-32.54 60.15-32.54 21.38-68.69 5.92L480-261.54Z"/></svg>
+</button>
+<span style="display: block; padding-right: 64px;">
+    <span class='palavra_entrada'>{{ TERMO }}</span>
+    {{#AUDIOS_ARRAY}}
+    <button type="button" class="modal-audio-btn" style="width: 32px; height: 32px; font-size: 0.9rem; margin-left: 8px; vertical-align: middle; display: inline-flex; flex-shrink: 0;" title="Ouvir pron├║ncia" aria-label="Ouvir pron├║ncia" onclick="event.stopPropagation(); window.tocarAudio('{{ URL }}', this)">­ƒöè</button>
+    {{/AUDIOS_ARRAY}}
+</span>
+<div class="entrada_div">
+    <div class="info_entrada">
+        {{#TEM_INFO_GERAL}}
+        <div class="detalhe-secao">
+            <div class="detalhe-titulo">Informa├º├Áes</div>
+            {{#INDEX}}<div class="detalhe-valor mb-2"><strong>Tradu├º├úo/Significado:</strong> {{ INDEX }}</div>{{/INDEX}}
+            {{#CLASSE}}<div class="detalhe-valor mb-2"><strong>Classe Gramatical:</strong> {{ CLASSE }}</div>{{/CLASSE}}
+            {{#CAMPO_SEMANTICO}}<div class="detalhe-valor mb-2"><strong>Campo Sem├óntico:</strong> {{ CAMPO_SEMANTICO }}</div>{{/CAMPO_SEMANTICO}}
+            {{#SUB_CAMPO_SEMANTICO}}<div class="detalhe-valor mb-2"><strong>Subcampo:</strong> {{ SUB_CAMPO_SEMANTICO }}</div>{{/SUB_CAMPO_SEMANTICO}}
+        </div>
+        {{/TEM_INFO_GERAL}}
+
+        {{#TEM_PRONUNCIA}}
+        <div class="detalhe-secao">
+            <div class="detalhe-titulo">Pron├║ncia</div>
+            {{#FONEMICA}}<div class="detalhe-valor mb-2"><strong>Fon├¬mica:</strong> {{ FONEMICA }}</div>{{/FONEMICA}}
+            {{#FONETICA}}<div class="detalhe-valor"><strong>Fon├®tica:</strong> {{ FONETICA }}</div>{{/FONETICA}}
+        </div>
+        {{/TEM_PRONUNCIA}}
+
+        {{#SIGNIFICADOS}}
+        <div class="significado-item">
+            {{#TRADUCAO}}<strong>{{ NUMERO_PONTO }} {{ TRADUCAO }}</strong><br>{{/TRADUCAO}}
+            {{#DESCRICAO}}<span class="texto-muted">{{ DESCRICAO }}</span><br>{{/DESCRICAO}}
+            
+            {{#TEM_EXEMPLOS}}
+            <div style="margin-left: 16px; margin-top: 6px;">
+                {{#EXEMPLOS}}
+                <div style="margin-bottom: 4px;">
+                    <em>{{ TRANS }}</em> - {{ TRAD }}
+                    {{#AUDIOS_ARRAY}}
+                    <button type="button" class="modal-audio-btn" style="width: 24px; height: 24px; font-size: 0.7rem; margin-left: 8px; vertical-align: middle; display: inline-flex;" title="Ouvir pron├║ncia" aria-label="Ouvir pron├║ncia" onclick="event.stopPropagation(); window.tocarAudio('{{ URL }}', this)">­ƒöè</button>
+                    {{/AUDIOS_ARRAY}}
+                </div>
+                {{/EXEMPLOS}}
+            </div>
+            {{/TEM_EXEMPLOS}}
+
+            {{#TEM_IMAGENS}}
+            <div class="midia-galeria" style="margin-left: 16px; margin-top: 8px;">
+                {{#IMAGENS}}
+                <figure class="midia-item" onclick="abrirLightbox('{{ ARQUIVO }}')" style="display: inline-block; margin-right: 8px; margin-bottom: 8px;">
+                    <img src="{{ ARQUIVO }}" alt="{{ LEGENDA }}" loading="lazy" style="max-height: 100px; border-radius: 4px; cursor: pointer;">
+                    {{#LEGENDA}}<figcaption style="font-size: 0.8rem; text-align: center;">{{ LEGENDA }}</figcaption>{{/LEGENDA}}
+                </figure>
+                {{/IMAGENS}}
+            </div>
+            {{/TEM_IMAGENS}}
+
+            {{#TEM_VIDEOS}}
+            <div class="midia-galeria" style="margin-left: 16px; margin-top: 8px;">
+                {{#VIDEOS}}
+                <figure class="midia-item" style="border: none; padding: 0; display: inline-block; margin-right: 8px; margin-bottom: 8px;">
+                    <video controls style="max-height: 150px; border-radius: 4px;" loading="lazy">
+                        <source src="{{ ARQUIVO }}" type="video/mp4">
+                    </video>
+                </figure>
+                {{/VIDEOS}}
+            </div>
+            {{/TEM_VIDEOS}}
+
+            {{#TEM_EXTRAS}}
+            <div style="margin-left: 16px; margin-top: 8px;">
+                {{#EXTRAS}}
+                <div class="detalhe-valor" style="background:#f8f9fa; padding:8px; border-left:3px solid var(--cor-primaria); margin-top:4px; font-size: 0.9rem;">{{ TEXTO }}</div>
+                {{/EXTRAS}}
+            </div>
+            {{/TEM_EXTRAS}}
+        </div>
+        {{/SIGNIFICADOS}}
+    </div>
+</div>
+
+{{#ITENS_RELACIONADOS}}
+<div class="detalhe-secao" style="margin-top: 12px; margin-left: 12px; border-top: 1px dashed #ddd; padding-top: 8px;">
+    <div class="detalhe-titulo">­ƒöù Itens Relacionados</div>
+    <div class="detalhe-valor" style="font-size: 0.9rem;">{{ ITENS_RELACIONADOS }}</div>
+</div>
+{{/ITENS_RELACIONADOS}}
+
+{{#TEXTOS_ESTRUTURADOS}}
+<div class="detalhe-secao texto-estruturado" id="texto_{{ ID_TEXTO }}" style="margin-top: 16px; margin-left: 12px; border-top: 1px dashed #ddd; padding-top: 8px;">
+    <div class="detalhe-titulo" style="display: flex; align-items: center; gap: 8px; font-size: 1rem;">
+        ­ƒôä {{ TITULO_EXIBICAO_FALLBACK }}
+        <button class="modal-audio-btn" style="width: 24px; height: 24px; font-size: 0.7rem;" onclick="event.stopPropagation(); tocaTexto(this, 'texto_{{ ID_TEXTO }}')" title="Tocar texto completo">­ƒöè</button>
+    </div>
+    {{#TEXTO_NAO_LITERAL}}<div class="detalhe-valor mb-3" style="font-style: italic; color: #555; background: #f8f9fa; padding: 8px; border-radius: 4px; font-size: 0.9rem;">{{ TEXTO_NAO_LITERAL }}</div>{{/TEXTO_NAO_LITERAL}}
+
+    {{#VARIACOES}}
+    <div class="texto-variacao mb-2">
+        {{#FRASES}}
+        <div class="frase-item" onclick="event.stopPropagation(); playAudio_frase(this)" style="cursor: pointer; padding: 8px; border-radius: var(--raio); transition: background-color 0.2s; margin-bottom: 4px; border: 1px solid #eee;">
+            {{#AUDIO_ARQUIVO}}
+            <audio src="{{ AUDIO_ARQUIVO }}" preload="none" style="display: none;"></audio>
+            {{/AUDIO_ARQUIVO}}
+            <div class="texto-frase" style="margin-bottom: 2px; font-weight: 500; font-size: 0.95rem; color: var(--cor-texto);">{{ ORIGINAL }}</div>
+            {{#TRADUCAO}}
+            <div class="texto-traducao" style="color: #666; font-size: 0.85rem;">{{ TRADUCAO }}</div>
+            {{/TRADUCAO}}
+        </div>
+        {{/FRASES}}
+    </div>
+    {{/VARIACOES}}
+</div>
+{{/TEXTOS_ESTRUTURADOS}}
