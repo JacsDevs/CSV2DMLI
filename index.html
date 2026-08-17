@@ -181,6 +181,8 @@
         .apk-section-title span { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; background-color: #2563eb; color: #ffffff; border-radius: 50%; font-size: 14px; font-weight: bold; flex-shrink: 0; }
         .apk-section-desc { color: var(--text-muted); font-size: 0.85em; margin: 0 0 18px 0; }
 
+        .divLocation { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr 1fr; gap: 20px; }
+
         .apk-grid-2 {
             display: grid;
             grid-template-columns: 1fr;
@@ -202,6 +204,103 @@
         }
         .apk-field input:focus { border-color: var(--primary); }
         .apk-field small { font-size: 0.75em; color: var(--text-muted); }
+
+        /* Ícone de "mais informações" e balão de tooltip */
+        .apk-section-title .apk-info-icon,
+        .apk-field .apk-info-icon {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            margin-left: 2px;
+            border-radius: 50%;
+            background: none;
+            border: 1.5px solid var(--text-muted);
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: none;
+            letter-spacing: normal;
+            cursor: help;
+            flex-shrink: 0;
+            vertical-align: middle;
+            transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+            line-height: 0;
+        }
+        .apk-info-icon:hover,
+        .apk-info-icon:focus {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+            outline: none;
+        }
+        .apk-info-icon:focus-visible {
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 30%, transparent);
+        }
+        .apk-section-title .apk-tooltip-bubble,
+        .apk-field .apk-tooltip-bubble {
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%) translateY(-3px);
+            width: max-content;
+            max-width: 240px;
+            height: auto;
+            background: #0f172a;
+            color: #f1f5f9;
+            font-size: 0.8125rem;
+            font-weight: 400;
+            line-height: 1.5;
+            text-align: left;
+            text-transform: none;
+            letter-spacing: normal;
+            white-space: normal;
+            padding: 10px 13px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 12px 24px -6px rgba(0,0,0,0.35), 0 4px 8px -4px rgba(0,0,0,0.3);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+            z-index: 30;
+        }
+        .apk-tooltip-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-bottom-color: #0f172a;
+        }
+        /* Balão alinhado à direita do ícone — usado em campos estreitos, evita estourar a borda do formulário */
+        .apk-tooltip-bubble.apk-tooltip-end {
+            left: auto;
+            right: -6px;
+            transform: translateY(-3px);
+        }
+        .apk-tooltip-bubble.apk-tooltip-end::after {
+            left: auto;
+            right: 15px;
+            transform: none;
+        }
+        .apk-info-icon:hover .apk-tooltip-bubble,
+        .apk-info-icon:focus .apk-tooltip-bubble {
+            opacity: 1;
+            visibility: visible;
+            transition-delay: 0.2s;
+        }
+        .apk-info-icon:hover .apk-tooltip-bubble:not(.apk-tooltip-end),
+        .apk-info-icon:focus .apk-tooltip-bubble:not(.apk-tooltip-end) {
+            transform: translateX(-50%) translateY(0);
+        }
+        .apk-info-icon:hover .apk-tooltip-bubble.apk-tooltip-end,
+        .apk-info-icon:focus .apk-tooltip-bubble.apk-tooltip-end {
+            transform: translateY(0);
+        }
         .required { color: var(--error); }
         .apk-field-error {
             display: none;
@@ -452,6 +551,11 @@
                 padding: 12px 16px;
                 gap: 10px;
             }
+
+            .divLocation { grid-auto-flow: row;}
+            .apk-wizard-overlay { padding: 20px 14px; }
+            .apk-wizard-header { padding: 16px 20px; }
+            .apk-form-col { padding: 20px 20px; }
         }
 
         /* =====================================================
@@ -792,7 +896,6 @@
         <div>
           <h2>Gerar Aplicativo Android</h2>
           <div style="font-size:0.78em; color:var(--text-muted); margin-top:1px;">Gera .aab (Play Store) e .apk (instalação direta), assinados e prontos para publicação.</div>
-          <span id="apkModoBadge" style="display:inline-block; margin-top:4px; font-size:0.72em; font-weight:600; padding:2px 8px; border-radius:10px; background:#e0f2fe; color:#0369a1;"></span>
         </div>
       </div>
       <div style="display:flex; align-items:center; gap:10px;">
@@ -821,18 +924,20 @@
               <input id="apkOrganizacao" type="text" placeholder="Ex: Museu Goeldi" oninput="apkAtualizarPackageName(); apkLimparErroCampo(this)">
               <div class="apk-field-error">Informe a organização.</div>
             </div>
-            <div style="display: grid; grid-auto-flow: column; grid-auto-columns: 2fr 1fr 1fr; gap: 20px;">
+            <div class="divLocation">
                 <div class="apk-field">
                     <label>Cidade</label>
                     <input id="apkCidade" type="text" placeholder="Ex: Belém">
                 </div>
-                <div class="apk-field">
-                    <label>Estado</label>
-                    <input id="apkEstado" type="text" placeholder="Ex: PA">
-                </div>
-                <div class="apk-field">
-                    <label>País (ISO)</label>
-                    <input id="apkPais" type="text" placeholder="BR" maxlength="2" style="text-transform:uppercase;">
+                <div style="display: grid; grid-auto-flow:column; gap: 20px;">
+                    <div class="apk-field">
+                        <label>Estado</label>
+                        <input id="apkEstado" type="text" placeholder="Ex: PA">
+                    </div>
+                    <div class="apk-field">
+                        <label>País (ISO)</label>
+                        <input id="apkPais" type="text" placeholder="BR" maxlength="2" style="text-transform:uppercase;">
+                    </div>
                 </div>
             </div>
           </div>
@@ -848,14 +953,18 @@
               <input id="apkNomeApp" type="text" placeholder="Meu Dicionário" oninput="apkAtualizarPackageName(); apkAgendarPreviewLeve(); apkLimparErroCampo(this)">
               <div class="apk-field-error">Informe o nome do aplicativo.</div>
             </div>
-            <div style="display: grid; grid-auto-flow: column; grid-auto-columns: 3fr 1fr; gap: 20px;">
+            <div style="display: grid; grid-auto-flow: column; grid-auto-columns: 2fr 1fr; gap: 20px;">
                 <div class="apk-field">
-                    <label>Package Name</label>
+                    <label>Package Name
+                        <span class="apk-info-icon" tabindex="0">i<span class="apk-tooltip-bubble">Identificador único do aplicativo na loja e no dispositivo (ex: com.suaempresa.app). Não pode ser alterado após a primeira publicação.</span></span>
+                    </label>
                     <input id="apkPackageName" type="text" placeholder="com.organizacao.meu_dicionario">
                     <small>Gerado automaticamente — você pode editar livremente.</small>
                 </div>
                     <div class="apk-field">
-                    <label>Versão</label>
+                    <label>Versão
+                        <span class="apk-info-icon" tabindex="0">i<span class="apk-tooltip-bubble apk-tooltip-end">Número de controle do lançamento (ex: 1.0.0). Deve ser aumentado a cada nova atualização enviada à loja.</span></span>
+                    </label>
                     <input id="apkVersao" type="text" value="1.0.0" placeholder="1.0.0">
                 </div>
             </div>
@@ -913,7 +1022,9 @@
 
         <!-- Seção: Segurança & Assinatura -->
         <div class="apk-form-section">
-          <div class="apk-section-title"><h3><span>4</span>Segurança e Assinatura (Keystore)</h3></div>
+          <div class="apk-section-title"><h3><span>4</span>Segurança e Assinatura (Keystore)
+                <span class="apk-info-icon" tabindex="0">i<span class="apk-tooltip-bubble apk-tooltip-end">Certificado digital que comprova a autoria do app. Obrigatório para publicar e atualizar na Play Store — guarde-o em local seguro.</span></span>
+          </h3></div>
           <p class="apk-section-desc">O Keystore é o certificado digital que autoriza a publicação e a atualização do aplicativo na Play Store.</p>
 
           <!-- Gerenciamento de chave de assinatura (IndexedDB no dispositivo) -->
@@ -2536,6 +2647,11 @@
         }
     };
 
+    // Indica se o app está rodando dentro do runtime Tauri (App Desktop) ou de um navegador comum.
+    function isTauriEnvironment() {
+        return !!(window.__TAURI__ && window.__TAURI__.core);
+    }
+
     window.abrirModalAndroid = async function() {
         if (!window.exportador) return alert('Exportador não inicializado!');
 
@@ -2568,12 +2684,6 @@
         document.getElementById('apkSwUsarProjeto').checked = true;
         document.getElementById('apkHtmlProntoFields').style.display = 'none';
         apkLimparSelecaoHtmlPronto();
-
-        // Badge de ambiente (cosmético — a geração é sempre local, no dispositivo)
-        const badge = document.getElementById('apkModoBadge');
-        const noTauri = !!(window.__TAURI__ && window.__TAURI__.core);
-        badge.textContent = noTauri ? 'App Desktop' : 'Navegador';
-        badge.style.background = '#f0fdf4'; badge.style.color = '#166534';
 
         // Atualizar estado da chave de assinatura (IndexedDB)
         await apkKsBrAtualizarEstado();
