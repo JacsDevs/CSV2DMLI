@@ -43,7 +43,8 @@ export class ExportadorAndroid {
      * informações do aplicativo, empacotados num único zip.
      *
      * @param {{
-     *   senha: string,
+     *   senha?: string,
+     *   chaveTemporaria?: boolean,
      *   htmlBytes: Uint8Array,
      *   midias: Map<string, Uint8Array>,
      *   iconeBytes: Uint8Array,
@@ -62,6 +63,7 @@ export class ExportadorAndroid {
     async gerarAmbos(opcoes) {
         const {
             senha,
+            chaveTemporaria = false,
             htmlBytes,
             midias,
             iconeBytes,
@@ -95,9 +97,10 @@ export class ExportadorAndroid {
         const templateBytesAab = new Uint8Array(await templateRespAab.arrayBuffer());
         const templateBytesApk = new Uint8Array(await templateRespApk.arrayBuffer());
 
-        onProgress(15, 'Carregando chave de assinatura…');
-        const { privateKeyPkcs8, certPem, certDer } =
-            await this.gerenteChave.carregarChave(senha);
+        onProgress(15, chaveTemporaria ? 'Gerando chave de assinatura temporária…' : 'Carregando chave de assinatura…');
+        const { privateKeyPkcs8, certPem, certDer } = chaveTemporaria
+            ? await this.gerenteChave.gerarChaveTemporaria({ cn: nomeResponsavel, org: organizacao, pais })
+            : await this.gerenteChave.carregarChave(senha);
 
         const injector = new InjetorAab();
         const appInfo = { htmlBytes, midias, iconeBytes };
@@ -121,14 +124,16 @@ export class ExportadorAndroid {
         apkBytes = await assinarV2(apkBytes, privateKeyPkcs8, certDer);
 
         onProgress(85, 'Empacotando arquivos…');
-        const baseName = appName.replace(/[^a-zA-Z0-9_\-]/g, '_');
+        const baseName = appName
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-zA-Z0-9_\-]/g, '_');
         const nomeAab = `${baseName}.aab`;
         const nomeApk = `${baseName}.apk`;
         const nomeZip = `${baseName}.zip`;
 
         const infoTexto = this.#montarInformacoesTxt({
             nomeResponsavel, organizacao, cidade, estado, pais,
-            appName, packageName, versionName, senha,
+            appName, packageName, versionName, senha, chaveTemporaria,
         });
 
         const { zipSync } = await import(new URL('../../vendor/fflate.min.js', import.meta.url).href);
@@ -145,8 +150,21 @@ export class ExportadorAndroid {
         return { zip: nomeZip, aab: nomeAab, apk: nomeApk };
     }
 
-    #montarInformacoesTxt({ nomeResponsavel, organizacao, cidade, estado, pais, appName, packageName, versionName, senha }) {
+    #montarInformacoesTxt({ nomeResponsavel, organizacao, cidade, estado, pais, appName, packageName, versionName, senha, chaveTemporaria = false }) {
         const local = [cidade, estado, pais].filter(Boolean).join(' - ') || '(não informado)';
+        const blocoAssinatura = chaveTemporaria
+            ? [
+                'Assinatura',
+                '----------',
+                'Chave temporária (descartável) — NÃO foi salva.',
+                'Este pacote NÃO pode ser publicado ou atualizado na Google Play com esta assinatura.',
+                'Crie/importe uma chave de assinatura própria e gere o app novamente antes de publicar.',
+              ]
+            : [
+                'Assinatura',
+                '----------',
+                `Senha da chave: ${senha}`,
+              ];
         return [
             'Informações do Aplicativo',
             '==========================',
@@ -159,9 +177,7 @@ export class ExportadorAndroid {
             `Pacote: ${packageName}`,
             `Versão: ${versionName}`,
             '',
-            'Assinatura',
-            '----------',
-            `Senha da chave: ${senha}`,
+            ...blocoAssinatura,
             '',
             `Gerado em: ${new Date().toLocaleString('pt-BR')}`,
             '',

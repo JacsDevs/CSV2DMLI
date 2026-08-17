@@ -82,9 +82,7 @@ export class GerenteChave {
         };
     }
 
-    async gerarNovaChave(senha, { alias = 'upload', cn, org, pais = 'BR', validadeDias = 10000 } = {}) {
-        if (!senha || senha.length < 6) throw new Error('A senha deve ter pelo menos 6 caracteres.');
-
+    async #gerarParChaveECert({ alias = 'upload', cn, org, pais = 'BR', validadeDias = 10000 } = {}) {
         const { default: forge } = await import(new URL('../../vendor/node-forge.min.js', import.meta.url).href);
 
         const keyPair = await crypto.subtle.generateKey(
@@ -124,6 +122,14 @@ export class GerenteChave {
         cert.setIssuer(attrs);
         cert.sign(forgePrivKey, forge.md.sha256.create());
 
+        return { forge, privKeyBuf, cert };
+    }
+
+    async gerarNovaChave(senha, { alias = 'upload', cn, org, pais = 'BR', validadeDias = 10000 } = {}) {
+        if (!senha || senha.length < 6) throw new Error('A senha deve ter pelo menos 6 caracteres.');
+
+        const { forge, privKeyBuf, cert } = await this.#gerarParChaveECert({ alias, cn, org, pais, validadeDias });
+
         const iv = crypto.getRandomValues(new Uint8Array(12));
         const wrapKey = await this.#derivarChaveAes(senha, iv);
         const privKeyWrapped = await crypto.subtle.encrypt(
@@ -138,6 +144,27 @@ export class GerenteChave {
             criadoEm: new Date().toISOString(),
             expiraEm: cert.validity.notAfter.toISOString(),
         });
+    }
+
+    /**
+     * Gera um par de chaves e certificado de assinatura descartável, usado apenas
+     * para permitir a geração do app quando o usuário opta por não criar/importar
+     * uma chave própria. Não é persistido em nenhum lugar — a cada geração uma nova
+     * chave é criada, portanto o resultado nunca poderá ser reaproveitado para
+     * publicar atualizações na Play Store.
+     */
+    async gerarChaveTemporaria({ cn, org, pais = 'BR' } = {}) {
+        const { forge, privKeyBuf, cert } = await this.#gerarParChaveECert({ alias: 'temporaria', cn, org, pais });
+
+        const certAsn1 = forge.pki.certificateToAsn1(cert);
+        const certDerStr = forge.asn1.toDer(certAsn1).getBytes();
+        const certDer = Uint8Array.from(certDerStr, c => c.charCodeAt(0));
+
+        return {
+            privateKeyPkcs8: privKeyBuf,
+            certPem: forge.pki.certificateToPem(cert),
+            certDer,
+        };
     }
 
     async carregarChave(senha) {

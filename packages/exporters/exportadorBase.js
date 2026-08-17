@@ -138,13 +138,18 @@ class ExportadorBase {
         };
     }
 
-    async gerarScriptsDadosEmLotes(tipoAtivo, embutirMidias = false) {
+    async gerarScriptsDadosEmLotes(tipoAtivo, embutirMidias = false, entradasLimitadas = null) {
         const db = this.db.bancoDados;
         if (!db) return '';
 
+        // Quando `entradasLimitadas` é informado (prévia), restringe tanto o
+        // escaneamento de mídias referenciadas quanto os dados embutidos a essas
+        // entradas, para não converter em Base64 mídias de entradas descartadas.
+        const entradasConsideradas = entradasLimitadas || Object.values(db.entradas);
+
         // 1. Extrair mídias referenciadas para não embutir lixo
         const referenciadas = { audio: new Set(), imagem: new Set(), video: new Set() };
-        for (const entrada of Object.values(db.entradas)) {
+        for (const entrada of entradasConsideradas) {
             entrada.VARIACOES_IDS?.forEach(id => {
                 const v = db.variacoes[id];
                 if (v && v.ARQUIVO_SONORO) referenciadas.audio.add(v.ARQUIVO_SONORO);
@@ -233,7 +238,7 @@ class ExportadorBase {
 
         // 2. Preparar os dados para a UI
         const entradasConvertidas = [];
-        for (const entrada of Object.values(db.entradas)) {
+        for (const entrada of entradasConsideradas) {
             const dados = this.extrairDadosEntrada(entrada);
             entradasConvertidas.push({ ...entrada, ...dados });
         }
