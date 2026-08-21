@@ -2551,41 +2551,48 @@
             });
 
             if (ordenarPorTraducao) {
-                // Criar Dicionário Reverso (Transfiguração de Dados)
+                // Criar Dicionário Reverso (Transfiguração de Dados) preservando mídias
                 let dictReversoMap = new Map();
                 resultados.forEach(item => {
-                    // Determinar o significado cabeça (preferencialmente INDEX)
-                    let significadoPt = '';
-                    if (item.INDEX && item.INDEX.trim() !== '') {
-                        significadoPt = item.INDEX.trim();
-                    } else if (item.SIGNIFICADOS && item.SIGNIFICADOS.length > 0 && item.SIGNIFICADOS[0].TRADUCAO) {
-                        significadoPt = item.SIGNIFICADOS[0].TRADUCAO.trim();
-                    } else {
-                        significadoPt = 'Outros/Desconhecido';
-                    }
-                    
-                    const chaveAgrupamento = significadoPt.toLowerCase();
-                    
-                    if (!dictReversoMap.has(chaveAgrupamento)) {
-                        dictReversoMap.set(chaveAgrupamento, {
-                            TERMO: significadoPt,
-                            CAMPO_SEMANTICO: item.CAMPO_SEMANTICO,
-                            SUB_CAMPO_SEMANTICO: item.SUB_CAMPO_SEMANTICO,
-                            SUB_CAMPO_SEMANTICO_1: item.SUB_CAMPO_SEMANTICO_1,
-                            SUB_CAMPO_SEMANTICO_2: item.SUB_CAMPO_SEMANTICO_2,
-                            SUB_CAMPO_SEMANTICO_3: item.SUB_CAMPO_SEMANTICO_3,
-                            SUB_CAMPO_SEMANTICO_4: item.SUB_CAMPO_SEMANTICO_4,
-                            SUB_CAMPO_SEMANTICO_5: item.SUB_CAMPO_SEMANTICO_5,
-                            SUB_CAMPO_SEMANTICO_6: item.SUB_CAMPO_SEMANTICO_6,
-                            SIGNIFICADOS: [],
-                            _ordem: chaveAgrupamento
-                        });
-                    }
-                    
-                    // Inserir a palavra indígena como um card de significado interno
-                    dictReversoMap.get(chaveAgrupamento).SIGNIFICADOS.push({
-                        TRADUCAO: item.TERMO,
-                        DESCRICAO: item.CLASSE ? `(${item.CLASSE})` : ''
+                    const significadosOriginais = item.SIGNIFICADOS && item.SIGNIFICADOS.length > 0 
+                        ? item.SIGNIFICADOS 
+                        : [{ TRADUCAO: item.INDEX || 'Sem Significado' }];
+
+                    significadosOriginais.forEach(sig => {
+                        let significadoPt = sig.TRADUCAO || item.INDEX || 'Sem Significado';
+                        const chaveAgrupamento = significadoPt.trim().toLowerCase();
+                        
+                        if (!dictReversoMap.has(chaveAgrupamento)) {
+                            dictReversoMap.set(chaveAgrupamento, {
+                                TERMO: significadoPt.trim(),
+                                CAMPO_SEMANTICO: item.CAMPO_SEMANTICO,
+                                SUB_CAMPO_SEMANTICO: item.SUB_CAMPO_SEMANTICO,
+                                SUB_CAMPO_SEMANTICO_1: item.SUB_CAMPO_SEMANTICO_1,
+                                SUB_CAMPO_SEMANTICO_2: item.SUB_CAMPO_SEMANTICO_2,
+                                SUB_CAMPO_SEMANTICO_3: item.SUB_CAMPO_SEMANTICO_3,
+                                SUB_CAMPO_SEMANTICO_4: item.SUB_CAMPO_SEMANTICO_4,
+                                SUB_CAMPO_SEMANTICO_5: item.SUB_CAMPO_SEMANTICO_5,
+                                SUB_CAMPO_SEMANTICO_6: item.SUB_CAMPO_SEMANTICO_6,
+                                SIGNIFICADOS: [],
+                                _ordem: chaveAgrupamento
+                            });
+                        }
+                        
+                        // Preservar todas as propriedades do significado original (Mídias, Exemplos, Textos)
+                        let sigReverso = { ...sig };
+                        
+                        // Injetar a palavra indígena no lugar da tradução para o card reverso
+                        sigReverso.TRADUCAO = item.TERMO;
+                        
+                        // Mesclar a classe gramatical com a descrição original, se houver
+                        let descOriginal = sig.DESCRICAO ? ` - ${sig.DESCRICAO}` : '';
+                        let classePt = item.CLASSE ? `(${item.CLASSE}) ` : '';
+                        sigReverso.DESCRICAO = `${classePt}${descOriginal}`.trim();
+                        if (sigReverso.DESCRICAO.startsWith('- ')) {
+                            sigReverso.DESCRICAO = sigReverso.DESCRICAO.substring(2);
+                        }
+
+                        dictReversoMap.get(chaveAgrupamento).SIGNIFICADOS.push(sigReverso);
                     });
                 });
                 
