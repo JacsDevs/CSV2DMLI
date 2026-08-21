@@ -67,6 +67,13 @@ O arquivo principal `template.html` intercepta e enriquece os dados brutos do di
      {{/NAO_TEM_TERMOS_MISTOS}}
      ```
 
+2. **`TEM_VARIACOES_TRAY` (Espaçamento Inteligente):**
+   Criada para resolver o acúmulo de margens verticais vazias. É um booleano que só é verdadeiro se a palavra possuir `TEM_INFO_GERAL`, `TEM_AUDIOS_ADICIONAIS` ou `TEM_PRONUNCIA`. Sempre abrace contêineres de variações (a *tray*) com essa chave (`{{#TEM_VARIACOES_TRAY}}`) para evitar renderizar `divs` fantasmas que geram buracos no layout.
+
+3. **Hierarquia Rigorosa de `TEXTOS_ESTRUTURADOS`:**
+   Diferente das mídias que ficam no escopo raiz do card, os blocos de `TEXTOS_ESTRUTURADOS` (ex: frases, áudios de exemplo, textos suplementares) estão anexados semanticamente a cada acepção.
+   * **Regra:** O bloco `{{#TEXTOS_ESTRUTURADOS}}` deve existir obrigatoriamente **dentro** do laço `{{#SIGNIFICADOS}}`, logo antes do seu fechamento, e nunca no nível raiz do template.
+
 ## 4. Diretrizes para Modificação de Layouts
 Sempre que for solicitado a mudar o design (focado nos arquivos `.tmpl` em `config/`), atente-se a:
 1. Trabalhe **apenas** com as classes CSS (`template.html`) e a estrutura HTML interna dos `.tmpl`.
