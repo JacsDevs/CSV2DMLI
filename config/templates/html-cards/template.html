@@ -2011,6 +2011,7 @@
             
             dados.TEM_INFO_GERAL = !!(item.INDEX || item.CLASSE || item.CAMPO_SEMANTICO || item.SUB_CAMPO_SEMANTICO);
             dados.TEM_PRONUNCIA = !!(item.FONEMICA || item.FONETICA);
+            dados.TEM_VARIACOES_TRAY = dados.TEM_INFO_GERAL || dados.TEM_AUDIOS_ADICIONAIS || dados.TEM_PRONUNCIA;
             
             if (item.SIGNIFICADOS && item.SIGNIFICADOS.length > 0) {
                 dados.SIGNIFICADOS = item.SIGNIFICADOS.map((sig, index) => {
