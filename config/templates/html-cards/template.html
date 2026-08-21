@@ -2584,12 +2584,18 @@
                         // Injetar a palavra indígena no lugar da tradução para o card reverso
                         sigReverso.TRADUCAO = item.TERMO;
                         
-                        // Mesclar a classe gramatical com a descrição original, se houver
-                        let descOriginal = sig.DESCRICAO ? ` - ${sig.DESCRICAO}` : '';
-                        let classePt = item.CLASSE ? `(${item.CLASSE}) ` : '';
-                        sigReverso.DESCRICAO = `${classePt}${descOriginal}`.trim();
-                        if (sigReverso.DESCRICAO.startsWith('- ')) {
-                            sigReverso.DESCRICAO = sigReverso.DESCRICAO.substring(2);
+                        // Passar a classe e a pronúncia como tags distintas
+                        sigReverso.CLASSE_REVERSO = item.CLASSE || '';
+                        sigReverso.FONEMICA_REVERSO = item.FONEMICA || '';
+                        sigReverso.FONETICA_REVERSO = item.FONETICA || '';
+                        
+                        // Extrair o primeiro áudio original da palavra indígena, se houver
+                        if (item.AUDIO) {
+                            const audios = item.AUDIO.split('~').map(a => a.trim()).filter(Boolean);
+                            if (audios.length > 0) {
+                                sigReverso.TEM_AUDIO_REVERSO = true;
+                                sigReverso.AUDIO_REVERSO_URL = resolverMidia(audios[0], 'audio');
+                            }
                         }
 
                         dictReversoMap.get(chaveAgrupamento).SIGNIFICADOS.push(sigReverso);
