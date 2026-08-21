@@ -2551,11 +2551,69 @@
             });
 
             if (ordenarPorTraducao) {
-                resultados.sort((a, b) => {
-                    const textA = (a.INDEX || '').toLowerCase();
-                    const textB = (b.INDEX || '').toLowerCase();
-                    return textA.localeCompare(textB, 'pt-BR');
+                // Criar Dicionário Reverso (Transfiguração de Dados)
+                let dictReversoMap = new Map();
+                resultados.forEach(item => {
+                    // Determinar o significado cabeça (preferencialmente INDEX)
+                    let significadoPt = '';
+                    if (item.INDEX && item.INDEX.trim() !== '') {
+                        significadoPt = item.INDEX.trim();
+                    } else if (item.SIGNIFICADOS && item.SIGNIFICADOS.length > 0 && item.SIGNIFICADOS[0].TRADUCAO) {
+                        significadoPt = item.SIGNIFICADOS[0].TRADUCAO.trim();
+                    } else {
+                        significadoPt = 'Outros/Desconhecido';
+                    }
+                    
+                    const chaveAgrupamento = significadoPt.toLowerCase();
+                    
+                    if (!dictReversoMap.has(chaveAgrupamento)) {
+                        dictReversoMap.set(chaveAgrupamento, {
+                            TERMO: significadoPt,
+                            CAMPO_SEMANTICO: item.CAMPO_SEMANTICO,
+                            SUB_CAMPO_SEMANTICO: item.SUB_CAMPO_SEMANTICO,
+                            SUB_CAMPO_SEMANTICO_1: item.SUB_CAMPO_SEMANTICO_1,
+                            SUB_CAMPO_SEMANTICO_2: item.SUB_CAMPO_SEMANTICO_2,
+                            SUB_CAMPO_SEMANTICO_3: item.SUB_CAMPO_SEMANTICO_3,
+                            SUB_CAMPO_SEMANTICO_4: item.SUB_CAMPO_SEMANTICO_4,
+                            SUB_CAMPO_SEMANTICO_5: item.SUB_CAMPO_SEMANTICO_5,
+                            SUB_CAMPO_SEMANTICO_6: item.SUB_CAMPO_SEMANTICO_6,
+                            SIGNIFICADOS: [],
+                            _ordem: chaveAgrupamento
+                        });
+                    }
+                    
+                    // Inserir a palavra indígena como um card de significado interno
+                    dictReversoMap.get(chaveAgrupamento).SIGNIFICADOS.push({
+                        TRADUCAO: item.TERMO,
+                        DESCRICAO: item.CLASSE ? `(${item.CLASSE})` : ''
+                    });
                 });
+                
+                resultados = Array.from(dictReversoMap.values());
+                
+                // Ordenar as palavras indígenas dentro de cada significado alfabeticamente
+                resultados.forEach(res => {
+                    if (res.SIGNIFICADOS) {
+                        res.SIGNIFICADOS.sort((a, b) => (a.TRADUCAO || '').localeCompare(b.TRADUCAO || '', 'pt-BR'));
+                    }
+                });
+                
+                // Ordenar por Hierarquia Semântica e depois Alfabeticamente
+                const chavesSemanticas = [
+                    'CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO_1', 
+                    'SUB_CAMPO_SEMANTICO_2', 'SUB_CAMPO_SEMANTICO_3', 'SUB_CAMPO_SEMANTICO_4', 
+                    'SUB_CAMPO_SEMANTICO_5', 'SUB_CAMPO_SEMANTICO_6'
+                ];
+                
+                resultados.sort((a, b) => {
+                    for (let i = 0; i < chavesSemanticas.length; i++) {
+                        const valA = a[chavesSemanticas[i]] || (i === 0 ? 'Outros' : '');
+                        const valB = b[chavesSemanticas[i]] || (i === 0 ? 'Outros' : '');
+                        if (valA !== valB) return valA.localeCompare(valB, 'pt-BR');
+                    }
+                    return a._ordem.localeCompare(b._ordem, 'pt-BR');
+                });
+
             } else {
                 const chavesSemanticas = [
                     'CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO_1', 
