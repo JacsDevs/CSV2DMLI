@@ -89,36 +89,36 @@
             {{/EXTRAS}}
         </div>
         {{/TEM_EXTRAS}}
+
+        <!-- TEXTOS ESTRUTURADOS -->
+        {{#TEXTOS_ESTRUTURADOS}}
+        <div class="dict-text-card" id="texto_{{ ID_TEXTO }}" style="margin-top: 16px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                <strong style="font-size: 1.1rem;">📄 {{ TITULO_EXIBICAO_FALLBACK }}</strong>
+                <button class="modal-audio-btn" style="display: inline-flex; width: 28px; height: 28px; justify-content: center; align-items: center; font-size: 1rem;" onclick='tocaTexto(this, "texto_{{ ID_TEXTO }}")' title="Tocar texto" data-texto-original="🔊">🔊</button>
+            </div>
+            {{#TEXTO_NAO_LITERAL}}<div style="font-style: italic; color: #64748b; margin-bottom: 16px;">{{ TEXTO_NAO_LITERAL }}</div>{{/TEXTO_NAO_LITERAL}}
+
+            {{#VARIACOES}}
+            <div>
+                {{#FRASES}}
+                <div class="dict-text-phrase" onclick="playAudio_frase(this)" style="display: flex; flex-direction: column; gap: 4px;">
+                    {{#AUDIO_ARQUIVO}}<audio src="{{ AUDIO_ARQUIVO }}" preload="none" style="display: none;"></audio>{{/AUDIO_ARQUIVO}}
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="color: #15803d; font-weight: bold;">{{ ORIGINAL }}</span>
+                        {{#AUDIO_ARQUIVO}}
+                        <button class="modal-audio-btn" style="display: inline-flex; width: 24px; height: 24px; justify-content: center; align-items: center; font-size: 0.8rem;" title="Ouvir frase" aria-label="Ouvir frase" data-texto-original="🔊">🔊</button>
+                        {{/AUDIO_ARQUIVO}}
+                    </div>
+                    {{#TRADUCAO}}<div style="font-size: 0.9rem; color: #64748b;">{{ TRADUCAO }}</div>{{/TRADUCAO}}
+                </div>
+                {{/FRASES}}
+            </div>
+            {{/VARIACOES}}
+        </div>
+        {{/TEXTOS_ESTRUTURADOS}}
     </article>
     {{/SIGNIFICADOS}}
-
-    <!-- TEXTOS ESTRUTURADOS -->
-    {{#TEXTOS_ESTRUTURADOS}}
-    <div class="dict-text-card" id="texto_{{ ID_TEXTO }}">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-            <strong style="font-size: 1.1rem;">📄 {{ TITULO_EXIBICAO_FALLBACK }}</strong>
-            <button class="modal-audio-btn" style="display: inline-flex; width: 28px; height: 28px; justify-content: center; align-items: center; font-size: 1rem;" onclick='tocaTexto(this, "texto_{{ ID_TEXTO }}")' title="Tocar texto" data-texto-original="🔊">🔊</button>
-        </div>
-        {{#TEXTO_NAO_LITERAL}}<div style="font-style: italic; color: #64748b; margin-bottom: 16px;">{{ TEXTO_NAO_LITERAL }}</div>{{/TEXTO_NAO_LITERAL}}
-
-        {{#VARIACOES}}
-        <div>
-            {{#FRASES}}
-            <div class="dict-text-phrase" onclick="playAudio_frase(this)" style="display: flex; flex-direction: column; gap: 4px;">
-                {{#AUDIO_ARQUIVO}}<audio src="{{ AUDIO_ARQUIVO }}" preload="none" style="display: none;"></audio>{{/AUDIO_ARQUIVO}}
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="color: #15803d; font-weight: bold;">{{ ORIGINAL }}</span>
-                    {{#AUDIO_ARQUIVO}}
-                    <button class="modal-audio-btn" style="display: inline-flex; width: 24px; height: 24px; justify-content: center; align-items: center; font-size: 0.8rem;" title="Ouvir frase" aria-label="Ouvir frase" data-texto-original="🔊">🔊</button>
-                    {{/AUDIO_ARQUIVO}}
-                </div>
-                {{#TRADUCAO}}<div style="font-size: 0.9rem; color: #64748b;">{{ TRADUCAO }}</div>{{/TRADUCAO}}
-            </div>
-            {{/FRASES}}
-        </div>
-        {{/VARIACOES}}
-    </div>
-    {{/TEXTOS_ESTRUTURADOS}}
 
     {{#ITENS_RELACIONADOS}}
     <footer style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 0.95rem;">

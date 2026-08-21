@@ -575,7 +575,7 @@
             position: fixed;
             bottom: 136px;
             right: 24px;
-            background: white;
+            background: var(--cor-primaria);
             border-radius: var(--raio);
             box-shadow: var(--sombra-modal);
             display: flex;
@@ -596,12 +596,12 @@
         #menu a {
             padding: 10px 24px;
             text-decoration: none;
-            color: var(--cor-texto);
+            color: white;
             font-weight: 500;
             font-size: 0.95rem;
-            border-bottom: 1px solid #f1f5f9;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
         }
-        #menu a:hover { background: var(--cor-fundo); color: var(--cor-primaria); }
+        #menu a:hover { background: rgba(255, 255, 255, 0.1); color: white; }
 
         .btn-barra {
             background: var(--cor-primaria-light);
@@ -784,11 +784,13 @@
         }
 
         /* ===== MODO LISTA ===== */
-        .barra-escondida {
-            display: none !important;
+        .barra-content-animado {
+            display: grid;
+            grid-template-rows: 1fr;
+            transition: grid-template-rows 0.3s ease;
         }
-        #barra-content.ocultar-sub .btn-subcategoria {
-            display: none !important;
+        .barra-content-animado.barra-escondida {
+            grid-template-rows: 0fr;
         }
         .grid-container.modo-lista {
             display: block;
@@ -812,6 +814,16 @@
             grid-column: 1 / -1;
             border-bottom: 1px solid rgba(0, 0, 0, 0.1);
             scroll-margin-top: 100px;
+        }
+        .subcategorias-inline {
+            grid-column: 1 / -1;
+            width: 100%;
+            background: white;
+            padding: 12px 16px;
+            border-radius: var(--raio);
+            box-shadow: var(--sombra-suave);
+            border: 1px solid rgba(0,0,0,0.05);
+            margin-top: -8px; /* Puxa um pouco para perto do H2/H3 */
         }
         .modo-lista .entrada_lexical {
             background: transparent;
@@ -846,20 +858,20 @@
                 top: 50vh;
                 transform: translateY(-50%);
                 left: var(--sidebar-w);
-                width: 28px;
-                height: 60px;
+                width: 22px;
+                height: 44px;
                 background: var(--cor-primaria);
                 color: #fff;
                 border: none;
-                border-radius: 0 8px 8px 0;
+                border-radius: 0 22px 22px 0;
                 align-items: center;
                 justify-content: center;
                 cursor: pointer;
                 z-index: 1040;
-                box-shadow: 4px 0 8px rgba(0,0,0,0.15);
+                box-shadow: 3px 0 6px rgba(0,0,0,0.15);
                 transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                font-size: 1.5rem;
-                padding-bottom: 4px;
+                font-size: 1.2rem;
+                padding-bottom: 2px;
             }
             .sidebar-desktop-toggle:hover {
                 background: var(--cor-primaria-hover);
@@ -1220,13 +1232,13 @@
         .dict-entry {
             display: flex;
             flex-direction: column;
-            gap: 24px;
+            gap: 12px; /* Reduzido de 24px */
             font-family: inherit;
             color: var(--cor-texto);
         }
         .dict-header {
-            border-bottom: 2px solid var(--cor-fundo);
-            padding-bottom: 16px;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 4px;
         }
         .dict-tags {
             margin-bottom: 12px;
@@ -1271,7 +1283,7 @@
             border: 1px solid #cbd5e1;
             padding: 6px 12px;
             border-radius: 20px;
-            font-size: 0.9rem;
+            font-size: 1.05rem; /* Aumentado de 0.9rem */
             color: var(--cor-texto);
             cursor: pointer;
             transition: all 0.2s;
@@ -1281,7 +1293,7 @@
             border-color: var(--cor-primaria);
         }
         .dict-audio-chip svg { width: 16px; height: 16px; fill: var(--cor-primaria); }
-        .dict-chip-ipa { font-family: monospace; color: #64748b; margin-left: 4px; }
+        .dict-chip-ipa { font-family: monospace; color: #64748b; margin-left: 4px; font-size: 1.1rem; }
 
         /* Senses */
         .dict-sense-card {
@@ -1337,21 +1349,17 @@
             color: #64748b;
         }
 
-        /* Media Carousel */
+        /* Media Carousel -> Wrappable Grid */
         .dict-media-carousel {
             display: flex;
+            flex-wrap: wrap;
             gap: 12px;
-            overflow-x: auto;
             padding-bottom: 12px;
-            scroll-snap-type: x mandatory;
             margin-top: 16px;
         }
-        .dict-media-carousel::-webkit-scrollbar { height: 8px; }
-        .dict-media-carousel::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 8px; }
         .dict-media-card {
             flex: 0 0 auto;
             width: 260px;
-            scroll-snap-align: start;
             border-radius: 8px;
             overflow: hidden;
             background: #f8fafc;
@@ -1363,9 +1371,11 @@
         .dict-media-card:hover { transform: translateY(-2px); }
         .dict-media-card img, .dict-media-card video {
             width: 100%;
-            height: 160px;
-            object-fit: cover;
+            height: 200px; /* Mais quadrado */
+            object-fit: contain;
             display: block;
+            padding: 12px;
+            box-sizing: border-box;
         }
         .dict-media-card figcaption {
             padding: 8px;
@@ -1392,22 +1402,6 @@
             border: 1px solid transparent;
         }
         .dict-text-phrase:hover { border-color: var(--cor-primaria); }
-
-        /* LISTA INLINE OVERRIDES (Linear Stacking) */
-        .lista-linear-view .dict-media-carousel {
-            flex-direction: column;
-            overflow-x: visible;
-        }
-        .lista-linear-view .dict-media-card {
-            width: 100%;
-        }
-        .lista-linear-view .dict-sense-card {
-            box-shadow: none;
-            border-radius: 0;
-            padding: 12px 0;
-            border: none;
-            border-bottom: 1px dashed #e2e8f0;
-        }
     </style>
 </head>
 
@@ -1598,16 +1592,13 @@
     <!-- Main Content -->
     <main class="conteudo-principal" id="conteudo-principal" tabindex="-1">
 
-        <div id="barra-container" style="display: none; margin-bottom: 24px; padding: 20px; ">
-            <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; margin-bottom: 8px;" onclick="document.getElementById('barra-content').classList.toggle('barra-escondida')">
-                <h3 style="margin: 0; font-size: 1.1rem; color: var(--cor-primaria);">Categorias <span style="font-size: 0.8em; margin-left: 4px;">▼</span></h3>
-                <label style="font-size: 0.85rem; display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--cor-texto-secundario);" onclick="event.stopPropagation()">
-                    <input type="checkbox" id="check-subcategorias" checked onchange="document.getElementById('barra-content').classList.toggle('ocultar-sub', !this.checked)">
-                    Mostrar subcategorias
-                </label>
+        <div id="barra-container" style="margin: 0 -20px 24px -20px; padding: 16px 20px; background: white; border-radius: var(--raio); box-shadow: var(--sombra-suave); border: 1px solid rgba(0,0,0,0.05);">
+            <div style="display: flex; justify-content: flex-start; align-items: center; cursor: pointer; user-select: none; gap: 8px;" onclick="const c = document.getElementById('barra-content'); const i = document.getElementById('barra-icone'); if(c.classList.contains('barra-escondida')){ c.classList.remove('barra-escondida'); i.style.transform='rotate(0deg)'; }else{ c.classList.add('barra-escondida'); i.style.transform='rotate(-90deg)'; }">
+                <span id="barra-icone" style="font-size: 1.6rem; color: var(--cor-primaria); transition: transform 0.3s ease; line-height: 1; display: inline-flex; align-items: center; justify-content: center;">▼</span>
+                <h3 style="margin: 0; font-size: 1.6rem; font-weight: 700; color: var(--cor-primaria);">Categorias</h3>
             </div>
-            <div id="barra-content" style="transition: all 0.3s ease;">
-                <div class="panel" id="barra" style="display: flex; flex-wrap: wrap; gap: 8px; border-top: 1px solid #eee; padding-top: 12px;">
+            <div id="barra-content" class="barra-content-animado">
+                <div class="panel" id="barra" style="display: flex; flex-wrap: wrap; gap: 8px; border-top: 1px solid #eee; padding-top: 12px; margin-top: 12px; min-height: 0; overflow: hidden;">
                     <!-- Categorias injetadas via JS -->
                 </div>
             </div>
@@ -1940,6 +1931,49 @@
             }
         };
 
+        window.abrirCategoriaSeColapsada = function(caminho) {
+            let abriuAlguma = false;
+            const parts = caminho.split('|');
+            for (let i = 1; i <= parts.length; i++) {
+                const p = parts.slice(0, i).join('|');
+                if (window.categoriasColapsadas.has(p)) {
+                    window.categoriasColapsadas.delete(p);
+                    abriuAlguma = true;
+                    const headers = document.querySelectorAll(`h2[data-caminho="${p}"], h3[data-caminho="${p}"]`);
+                    headers.forEach(h => {
+                        h.classList.remove('colapsado');
+                        const icon = h.querySelector('.toggle-icon');
+                        if (icon) icon.textContent = '▼ ';
+                    });
+                }
+            }
+            if (abriuAlguma) {
+                const container = document.getElementById('grid-container');
+                const items = container.children;
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
+                    if (!item.dataset.caminho) continue;
+                    
+                    if (item.tagName === 'H2' || item.tagName === 'H3') {
+                        const hParts = item.dataset.caminho.split('|');
+                        let hideHeader = false;
+                        for (let j = 1; j < hParts.length; j++) {
+                            const parentPath = hParts.slice(0, j).join('|');
+                            if (window.categoriasColapsadas.has(parentPath)) {
+                                hideHeader = true;
+                                break;
+                            }
+                        }
+                        item.style.display = hideHeader ? 'none' : '';
+                    } else {
+                        const c = item.dataset.caminho;
+                        const hideItem = Array.from(window.categoriasColapsadas).some(colap => c === colap || c.startsWith(colap + '|'));
+                        item.style.display = hideItem ? 'none' : '';
+                    }
+                }
+            }
+        };
+
 
         function adaptarDadosParaTemplate(item) {
             let dados = { ...item };
@@ -2087,6 +2121,7 @@
         window.itensSalvos = carregarSalvosPersistidos();
 
 
+
         function idDoItem(item) {
             return String((item && (item.ID || item.TERMO)) || '');
         }
@@ -2157,17 +2192,16 @@
 
             if (modo === 'lista') {
                 gridContainer.className = 'grid-container modo-lista';
-                if(btnTopo) btnTopo.style.display = 'block';
-                if(barraContainer) barraContainer.style.display = 'block';
-                if(btnVoltar) btnVoltar.style.display = 'block';
             } else {
                 // 'cards' e 'salvos' usam o mesmo layout em grade
                 gridContainer.className = 'grid-container';
-                if(btnTopo) btnTopo.style.display = 'none';
-                if(barraContainer) barraContainer.style.display = 'none';
-                if(btnVoltar) btnVoltar.style.display = 'none';
                 if(menuBtn) menuBtn.classList.remove('menu-ativo');
             }
+            
+            // Botões flutuantes devem estar visíveis em TODAS as visualizações
+            if(btnTopo) btnTopo.style.display = 'block';
+            if(btnVoltar) btnVoltar.style.display = 'block';
+            if(barraContainer) barraContainer.style.display = 'block';
 
             ultimoIndiceExibido = 0;
             gridContainer.innerHTML = '';
@@ -2333,6 +2367,43 @@
                                         header.style.color = '#555';
                                     }
                                     fragment.appendChild(header);
+
+                                    // Render subcategories inline
+                                    if (window.arvoreSemantica) {
+                                        let node = window.arvoreSemantica;
+                                        const pathParts = idCaminho.split('|');
+                                        let foundNode = true;
+                                        for (const p of pathParts) {
+                                            if (node[p]) {
+                                                node = node[p];
+                                            } else {
+                                                foundNode = false;
+                                                break;
+                                            }
+                                        }
+                                        if (foundNode && Object.keys(node).length > 0) {
+                                            const inlineFilhos = document.createElement('div');
+                                            inlineFilhos.className = 'subcategorias-inline';
+                                            inlineFilhos.style = 'display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;';
+                                            
+                                            const chavesFilhos = Object.keys(node).sort((a, b) => a.localeCompare(b));
+                                            chavesFilhos.forEach(filho => {
+                                                const btn = document.createElement('a');
+                                                btn.href = '#' + filho;
+                                                btn.textContent = filho;
+                                                btn.className = 'btn-barra btn-subcategoria-inline';
+                                                const escapedC = filho.replace(/'/g, "\\'");
+                                                btn.onclick = (e) => window.clicarCategoria(e, escapedC);
+                                                inlineFilhos.appendChild(btn);
+                                            });
+                                            
+                                            if (hideHeader) inlineFilhos.style.display = 'none';
+                                            inlineFilhos.dataset.caminho = idCaminho;
+                                            inlineFilhos.dataset.tipo = 'subcategorias-container';
+                                            
+                                            fragment.appendChild(inlineFilhos);
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -2600,15 +2671,14 @@
         }
 
         function preencherModal(item) {
-            if (item.CAMPO_SEMANTICO) {
-                const sub = item.SUB_CAMPO_SEMANTICO ? ` › ${item.SUB_CAMPO_SEMANTICO}` : '';
-                modalTitulo.innerHTML = `<span style="font-size: 0.85rem; padding: 4px 10px; border-radius: 12px; background: #dcfce7; color: #15803d; font-weight: 600;">${item.CAMPO_SEMANTICO}${sub}</span>`;
+            modalTitulo.textContent = item.TERMO || 'Item';
+            if (item.AUDIO) {
+                const audioSrc = resolverMidia(item.AUDIO.split('~')[0].trim(), 'audio');
+                modalAudioBtn.style.display = 'flex';
+                modalAudioBtn.onclick = () => tocarAudio(audioSrc, modalAudioBtn);
             } else {
-                modalTitulo.textContent = '';
+                modalAudioBtn.style.display = 'none';
             }
-            
-            // Oculta o botão antigo do modal-header, pois já migramos o player 🔊 para perto do termo no layout (entrada.tmpl)
-            modalAudioBtn.style.display = 'none';
             modalBookmarkBtn.classList.toggle('ativo', window.itensSalvos.has(idDoItem(item)));
             modalBookmarkBtn.onclick = () => alternarSalvo(item, modalBookmarkBtn);
             
@@ -2791,29 +2861,33 @@
                 });
             });
 
+            window.arvoreSemantica = arvore;
+
             let listaHtml = `<button type="button" class="categoria-linha nivel-0 ativo" data-categoria="">Todas as categorias</button>`;
             let barraHtml = `<a class="btn-barra categoria_btn ativo" href="#" onclick="clicarCategoria(event, '')" style="font-weight: bold;">Todos</a> `;
-            let menuHtml = `<a href="#app-bar-header" onclick="fecharMenu()" style="border-bottom: 1px solid #f1f5f9; font-weight: bold;">Início</a>`;
+            let menuHtml = `<a href="#app-bar-header" onclick="fecharMenu()" style="border-bottom: 1px solid rgba(255,255,255,0.2); font-weight: bold;">Início</a>`;
 
-            function percorrerArvore(nodo, depth) {
+            function percorrerArvore(nodo, depth, caminhoAnterior = '') {
                 const chaves = Object.keys(nodo).sort((a, b) => a.localeCompare(b));
                 chaves.forEach(c => {
+                    const caminhoAtual = caminhoAnterior ? `${caminhoAnterior}|${c}` : c;
                     const escapedAttr = c.replace(/"/g, '&quot;');
                     const indent = 20 + (depth * 18);
                     listaHtml += `<button type="button" class="categoria-linha nivel-${depth}" data-categoria="${escapedAttr}" style="padding-left:${indent}px;">${c}</button>`;
 
-                    const margemBarra = depth > 0 ? `margin-left: 8px; font-size: 0.85em; opacity: 0.85;` : '';
-                    const clsAdicional = depth > 0 ? ' btn-subcategoria' : '';
-                    const escapedC = c.replace(/'/g, "\\'");
-                    barraHtml += `<a class="btn-barra categoria_btn${clsAdicional}" href="#${c}" onclick="clicarCategoria(event, '${escapedC}')" style="${margemBarra}">${c}</a> `;
+                    if (depth === 0) {
+                        const escapedC = c.replace(/'/g, "\\'");
+                        barraHtml += `<a class="btn-barra categoria_btn" href="#${c}" onclick="clicarCategoria(event, '${escapedC}')">${c}</a> `;
+                    }
 
                     const padLeft = 24 + (depth * 20);
                     const fontWeight = depth === 0 ? '700' : '500';
                     const fontSize = depth === 0 ? '0.95rem' : '0.85rem';
-                    const borderB = depth === 0 ? 'border-bottom: 1px solid #f1f5f9;' : 'border-bottom: 1px dashed #f1f5f9;';
-                    menuHtml += `<a class="link-categoria-menu" href="#${c}" onclick="fecharMenu()" style="padding-left: ${padLeft}px; font-weight: ${fontWeight}; font-size: ${fontSize}; ${borderB}">${c}</a>`;
+                    const borderB = depth === 0 ? 'border-bottom: 1px solid rgba(255,255,255,0.2);' : 'border-bottom: 1px dashed rgba(255,255,255,0.15);';
+                    const caminhoEscapado = caminhoAtual.replace(/'/g, "\\'");
+                    menuHtml += `<a class="link-categoria-menu" href="#${c}" onclick="window.abrirCategoriaSeColapsada('${caminhoEscapado}'); fecharMenu(); setTimeout(() => { document.getElementById('${c}')?.scrollIntoView(); }, 50);" style="padding-left: ${padLeft}px; font-weight: ${fontWeight}; font-size: ${fontSize}; ${borderB}">${c}</a>`;
 
-                    percorrerArvore(nodo[c], depth + 1);
+                    percorrerArvore(nodo[c], depth + 1, caminhoAtual);
                 });
             }
             percorrerArvore(arvore, 0);
@@ -3036,21 +3110,34 @@
             // Controle do sumiço dos botões flutuantes ao rolar para baixo
             let ultimoScroll = 0;
             window.addEventListener('scroll', () => {
-                if (modoVisualizacao !== 'lista') return;
                 const atualScroll = window.pageYOffset || document.documentElement.scrollTop;
                 const btnTopo = document.getElementById('btn-topo');
                 const btnVoltar = document.getElementById('btn-voltar');
                 const menuFloat = document.getElementById('menu');
+                
+                // Garante que o CSS controle a visibilidade invisível inicialmente sem quebrar as transições
+                if (btnTopo && btnTopo.style.display === 'none') {
+                    btnTopo.classList.add('btn-flutuante-oculto');
+                    btnTopo.style.display = 'block';
+                }
+                if (btnVoltar && btnVoltar.style.display === 'none') {
+                    btnVoltar.classList.add('btn-flutuante-oculto');
+                    btnVoltar.style.display = 'block';
+                }
 
-                if (atualScroll > ultimoScroll && atualScroll > 150) {
-                    // Rolando para baixo
+                if (atualScroll > ultimoScroll) {
+                    // Qualquer movimento para baixo -> ESCONDE os botões flutuantes
                     if(btnTopo) btnTopo.classList.add('btn-flutuante-oculto');
                     if(btnVoltar) btnVoltar.classList.add('btn-flutuante-oculto');
                     if(menuFloat) menuFloat.classList.remove('menu-ativo'); // Fecha menu se estiver aberto
                     if(btnVoltar) btnVoltar.setAttribute('aria-expanded', 'false');
-                } else {
-                    // Rolando para cima
-                    if(btnTopo) btnTopo.classList.remove('btn-flutuante-oculto');
+                } else if (atualScroll < ultimoScroll) {
+                    // Movimento para cima -> MOSTRA os botões flutuantes
+                    if(btnTopo) {
+                        // O botão de voltar ao topo não precisa aparecer se já estamos no topo
+                        if (atualScroll < 50) btnTopo.classList.add('btn-flutuante-oculto');
+                        else btnTopo.classList.remove('btn-flutuante-oculto');
+                    }
                     if(btnVoltar) btnVoltar.classList.remove('btn-flutuante-oculto');
                 }
                 ultimoScroll = atualScroll <= 0 ? 0 : atualScroll;
