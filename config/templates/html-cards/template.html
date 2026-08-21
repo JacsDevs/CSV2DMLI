@@ -2743,14 +2743,15 @@
         }
 
         function preencherModal(item) {
-            modalTitulo.textContent = item.TERMO || 'Item';
-            if (item.AUDIO) {
-                const audioSrc = resolverMidia(item.AUDIO.split('~')[0].trim(), 'audio');
-                modalAudioBtn.style.display = 'flex';
-                modalAudioBtn.onclick = () => tocarAudio(audioSrc, modalAudioBtn);
+            if (item.CAMPO_SEMANTICO) {
+                const sub = item.SUB_CAMPO_SEMANTICO ? ` › ${item.SUB_CAMPO_SEMANTICO}` : '';
+                modalTitulo.innerHTML = `<span style="font-size: 0.85rem; padding: 4px 10px; border-radius: 12px; background: #dcfce7; color: #15803d; font-weight: 600;">${item.CAMPO_SEMANTICO}${sub}</span>`;
             } else {
-                modalAudioBtn.style.display = 'none';
+                modalTitulo.textContent = '';
             }
+            
+            // Oculta o botão antigo do modal-header, pois o player 🔊 já fica perto do termo no layout (entrada.tmpl)
+            modalAudioBtn.style.display = 'none';
             modalBookmarkBtn.classList.toggle('ativo', window.itensSalvos.has(idDoItem(item)));
             modalBookmarkBtn.onclick = () => alternarSalvo(item, modalBookmarkBtn);
             
