@@ -6,9 +6,9 @@
 ========================================= */
 :root {
     /* Colors */
-    --primary: #4f46e5;
-    --primary-hover: #4338ca;
-    --primary-light: #e0e7ff;
+    --primary: #4e4285;
+    --primary-hover: #3b316e;
+    --primary-light: #e6e2f8;
     --secondary: #0ea5e9;
     --accent: #f43f5e;
     
@@ -21,7 +21,7 @@
     --text-light: #94a3b8;
     
     --border-color: #e2e8f0;
-    --border-focus: #818cf8;
+    --border-focus: #9181da;
     
     --success: #10b981;
     --success-bg: #d1fae5;
@@ -105,15 +105,25 @@ body {
     z-index: 10;
 }
 
+.app-header img {
+    width: clamp(60px, 6vw, 80px);
+}
+
+.logo-header {
+    display: flex;
+    width: 100%;
+    gap: 12px;
+    justify-content: space-between;
+    align-items: center;
+}
+
 .app-header h1 {
     font-size: 1.4rem;
     font-weight: 700;
     display: flex;
     align-items: center;
     gap: 12px;
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: var(--primary);
 }
 
 .badge {
@@ -181,12 +191,15 @@ body {
     background: #f8fafc;
     border: 1.5px solid var(--border-color);
     color: var(--text-muted);
+    font-size: 1.05rem;
 }
 .btn-custom:hover {
     background: white;
     color: var(--text-main);
     border-color: #cbd5e1;
 }
+.btn-custom-icon { display: inline-flex; }
+.btn-custom-text { display: inline; }
 
 .btn-new-project {
     background: #fee2e2;
@@ -257,6 +270,8 @@ body {
    WIZARD COMPONENT
 ========================================= */
 .wizard-container {
+    max-width: 1380px;
+    margin: 20px auto;
     background: var(--bg-card);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
@@ -326,6 +341,7 @@ body {
 .step-title-large {
     font-size: 1.8rem;
     color: var(--text-main);
+    margin-top: 8px;
     margin-bottom: 8px;
     display: flex;
     align-items: center;
@@ -341,6 +357,7 @@ body {
 .step-badge {
     font-size: 0.75rem;
     padding: 4px 12px;
+    margin-bottom: 12px;
     border-radius: var(--radius-pill);
     background: #f1f5f9;
     color: var(--text-muted);
@@ -1821,11 +1838,23 @@ hr {
     .app-header {
         padding: 6px 10px;
     }
-    
+
+    .btn-custom-text {
+        display: none;
+    }
+
+    .btn-custom {
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        border-radius: 50%;
+        gap: 0;
+    }
+
     .step-header {
         padding: 8px 10px;
     }
-    
+
     .step-body {
         padding: 8px 10px;
     }
@@ -2321,12 +2350,6 @@ hr {
     border-color: var(--primary);
     color: var(--primary);
     transform: translateY(-1px);
-}
-
-/* Botões pequenos */
-.btn-sm {
-    font-size: 11px;
-    padding: 4px 10px;
 }
 
 /* === DROP ZONES === */
