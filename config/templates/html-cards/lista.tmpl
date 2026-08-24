@@ -34,7 +34,7 @@
         {{#TEM_VARIACOES_TRAY}}
         <div class="dict-variations-tray">
             {{#TEM_INFO_GERAL}}
-                {{#CLASSE}}<span class="dict-audio-chip" style="background:transparent; border:none; padding:0;"><em>{{ CLASSE }}</em></span>{{/CLASSE}}
+                {{#CLASSE}}<span class="dict-audio-chip classe-gramatical" style="background:transparent; border:none; padding:0;"><em>{{ CLASSE }}</em></span>{{/CLASSE}}
             {{/TEM_INFO_GERAL}}
             
             {{#AUDIOS_ADICIONAIS}}
@@ -42,8 +42,8 @@
             {{/AUDIOS_ADICIONAIS}}
 
             {{#TEM_PRONUNCIA}}
-            {{#FONEMICA}}<span class="dict-audio-chip" style="pointer-events: none; background: transparent; border: none;"><span class="dict-chip-ipa">{{ FONEMICA }}</span></span>{{/FONEMICA}}
-            {{#FONETICA}}<span class="dict-audio-chip" style="pointer-events: none; background: transparent; border: none;"><span class="dict-chip-ipa">{{ FONETICA }}</span></span>{{/FONETICA}}
+            {{#FONEMICA}}<span class="dict-audio-chip transcricao-fonetica" style="pointer-events: none; background: transparent; border: none;"><span class="dict-chip-ipa">{{ FONEMICA }}</span></span>{{/FONEMICA}}
+            {{#FONETICA}}<span class="dict-audio-chip transcricao-fonetica" style="pointer-events: none; background: transparent; border: none;"><span class="dict-chip-ipa">{{ FONETICA }}</span></span>{{/FONETICA}}
             {{/TEM_PRONUNCIA}}
         </div>
         {{/TEM_VARIACOES_TRAY}}
@@ -59,9 +59,9 @@
                 <button class="modal-audio-btn" style="display: inline-flex; width: 28px; height: 28px; justify-content: center; align-items: center; font-size: 1rem; margin-left: 8px;" title="Ouvir pronúncia" aria-label="Ouvir pronúncia" onclick="event.stopPropagation(); window.tocarAudio('{{ AUDIO_REVERSO_URL }}', this)" data-texto-original="🔊">🔊</button>
                 {{/TEM_AUDIO_REVERSO}}
 
-                {{#CLASSE_REVERSO}}<span class="dict-audio-chip" style="background:transparent; border:none; padding:0; margin-left: 8px;"><em>{{ CLASSE_REVERSO }}</em></span>{{/CLASSE_REVERSO}}
-                {{#FONEMICA_REVERSO}}<span class="dict-audio-chip" style="pointer-events: none; background: transparent; border: none; margin-left: 8px;"><span class="dict-chip-ipa">{{ FONEMICA_REVERSO }}</span></span>{{/FONEMICA_REVERSO}}
-                {{#FONETICA_REVERSO}}<span class="dict-audio-chip" style="pointer-events: none; background: transparent; border: none; margin-left: 8px;"><span class="dict-chip-ipa">{{ FONETICA_REVERSO }}</span></span>{{/FONETICA_REVERSO}}
+                {{#CLASSE_REVERSO}}<span class="dict-audio-chip classe-gramatical" style="background:transparent; border:none; padding:0; margin-left: 8px;"><em>{{ CLASSE_REVERSO }}</em></span>{{/CLASSE_REVERSO}}
+                {{#FONEMICA_REVERSO}}<span class="dict-audio-chip transcricao-fonetica" style="pointer-events: none; background: transparent; border: none; margin-left: 8px;"><span class="dict-chip-ipa">{{ FONEMICA_REVERSO }}</span></span>{{/FONEMICA_REVERSO}}
+                {{#FONETICA_REVERSO}}<span class="dict-audio-chip transcricao-fonetica" style="pointer-events: none; background: transparent; border: none; margin-left: 8px;"><span class="dict-chip-ipa">{{ FONETICA_REVERSO }}</span></span>{{/FONETICA_REVERSO}}
 
                 {{#DESCRICAO}}<span class="dict-sense-definition" style="margin-left: 8px;">{{ DESCRICAO }}</span>{{/DESCRICAO}}
             </div>

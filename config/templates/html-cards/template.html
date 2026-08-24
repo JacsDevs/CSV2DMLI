@@ -1402,6 +1402,12 @@
             border: 1px solid transparent;
         }
         .dict-text-phrase:hover { border-color: var(--cor-primaria); }
+
+        /* Visão Simplificada (Padrão) */
+        body:not(.modo-completo) .classe-gramatical,
+        body:not(.modo-completo) .transcricao-fonetica {
+            display: none !important;
+        }
     </style>
 </head>
 
@@ -1561,6 +1567,11 @@
                 <button id="btn-modo-lista" onclick="mudarModoVisualizacao('lista')" class="filtro-select" style="flex: 1; border: 1px solid var(--cor-borda);" aria-pressed="false">📄 Lista</button>
             </div>
             <button id="btn-modo-salvos" onclick="mudarModoVisualizacao('salvos')" class="filtro-select" style="width: 100%; margin-top: 8px; border: 1px solid var(--cor-borda);" aria-pressed="false">🔖 Salvos (<span id="contagem-salvos">0</span>)</button>
+            <div class="ordenacao" style="margin-top: 12px;">
+                <label>
+                    <input type="checkbox" id="visao-completa" onchange="document.body.classList.toggle('modo-completo', this.checked)"> Visualização Completa
+                </label>
+            </div>
         </div>
 
         <div class="contador" id="contador-itens">
@@ -2311,7 +2322,7 @@
             const fragment = document.createDocumentFragment();
             itens.forEach(item => {
                 if (modoVisualizacao === 'cards' || modoVisualizacao === 'lista') {
-                    if (!ordenarPorTraducao) {
+                    if (true) { // Sempre mostrar cabeçalhos, mesmo ao ordenar por tradução
                         const chavesSemanticas = [
                             'CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO_1', 
                             'SUB_CAMPO_SEMANTICO_2', 'SUB_CAMPO_SEMANTICO_3', 'SUB_CAMPO_SEMANTICO_4', 
