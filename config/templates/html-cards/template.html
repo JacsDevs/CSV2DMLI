@@ -1403,6 +1403,22 @@
         }
         .dict-text-phrase:hover { border-color: var(--cor-primaria); }
 
+        /* Categorias Toolbar */
+        #barra-container {
+            margin: 0 -20px 24px -20px;
+            padding: 16px 20px;
+            background: white;
+            border-radius: var(--raio);
+            box-shadow: var(--sombra-suave);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        @media (max-width: 768px) {
+            #barra-container {
+                margin: 0 0 24px 0;
+            }
+        }
+
         /* Visão Simplificada (Padrão) */
         body:not(.modo-completo) .classe-gramatical,
         body:not(.modo-completo) .transcricao-fonetica {
@@ -1603,7 +1619,7 @@
     <!-- Main Content -->
     <main class="conteudo-principal" id="conteudo-principal" tabindex="-1">
 
-        <div id="barra-container" style="margin: 0 -20px 24px -20px; padding: 16px 20px; background: white; border-radius: var(--raio); box-shadow: var(--sombra-suave); border: 1px solid rgba(0,0,0,0.05);">
+        <div id="barra-container">
             <div style="display: flex; justify-content: flex-start; align-items: center; cursor: pointer; user-select: none; gap: 8px;" onclick="const c = document.getElementById('barra-content'); const i = document.getElementById('barra-icone'); if(c.classList.contains('barra-escondida')){ c.classList.remove('barra-escondida'); i.style.transform='rotate(0deg)'; }else{ c.classList.add('barra-escondida'); i.style.transform='rotate(-90deg)'; }">
                 <span id="barra-icone" style="font-size: 1.6rem; color: var(--cor-primaria); transition: transform 0.3s ease; line-height: 1; display: inline-flex; align-items: center; justify-content: center;">▼</span>
                 <h3 style="margin: 0; font-size: 1.6rem; font-weight: 700; color: var(--cor-primaria);">Categorias</h3>
