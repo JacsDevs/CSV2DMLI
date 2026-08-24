@@ -1,0 +1,114 @@
+﻿{{#TEM_INFO_GERAL}}
+<div class="detalhe-secao">
+    <div class="detalhe-titulo">Informa├º├Áes</div>
+    {{#INDEX}}<div class="detalhe-valor mb-2"><strong>Tradu├º├úo/Significado:</strong> {{ INDEX }}</div>{{/INDEX}}
+    {{#CLASSE}}<div class="detalhe-valor mb-2"><strong>Classe Gramatical:</strong> {{ CLASSE }}</div>{{/CLASSE}}
+    {{#CAMPO_SEMANTICO}}<div class="detalhe-valor mb-2"><strong>Campo Sem├óntico:</strong> {{ CAMPO_SEMANTICO }}</div>{{/CAMPO_SEMANTICO}}
+    {{#SUB_CAMPO_SEMANTICO}}<div class="detalhe-valor mb-2"><strong>Subcampo:</strong> {{ SUB_CAMPO_SEMANTICO }}</div>{{/SUB_CAMPO_SEMANTICO}}
+</div>
+{{/TEM_INFO_GERAL}}
+
+{{#TEM_PRONUNCIA}}
+<div class="detalhe-secao">
+    <div class="detalhe-titulo">Pron├║ncia</div>
+    {{#FONEMICA}}<div class="detalhe-valor mb-2"><strong>Fon├¬mica:</strong> {{ FONEMICA }}</div>{{/FONEMICA}}
+    {{#FONETICA}}<div class="detalhe-valor"><strong>Fon├®tica:</strong> {{ FONETICA }}</div>{{/FONETICA}}
+</div>
+{{/TEM_PRONUNCIA}}
+
+{{#TEM_AUDIOS_ADICIONAIS}}
+<div class="detalhe-secao">
+    <div class="detalhe-titulo">­ƒöè ├üudios adicionais</div>
+    {{#AUDIOS_ADICIONAIS}}
+    <button type="button" class="modal-audio-btn" style="width: 32px; height: 32px; font-size: 0.9rem; display: inline-flex; margin-right: 8px;" title="Ouvir pron├║ncia" aria-label="Ouvir pron├║ncia" onclick="tocarAudio('{{ URL }}', this)">­ƒöè</button>
+    {{/AUDIOS_ADICIONAIS}}
+</div>
+{{/TEM_AUDIOS_ADICIONAIS}}
+
+{{#SIGNIFICADOS}}
+<div class="detalhe-secao">
+    <div class="detalhe-titulo">Significado {{ NUMERO_PONTO }} {{ TRADUCAO }}</div>
+    {{#DESCRICAO}}<div class="detalhe-valor mb-3" style="font-size: 1.05rem;">{{ DESCRICAO }}</div>{{/DESCRICAO}}
+    
+    {{#TEM_EXEMPLOS}}
+    <div class="mb-3">
+        <strong>Exemplos:</strong>
+        {{#EXEMPLOS}}
+        <div class="exemplo-item">
+            <div class="texto-frase">
+                <em>{{ TRANS }}</em>
+                {{#AUDIOS_ARRAY}}
+                <button type="button" class="modal-audio-btn" style="width: 24px; height: 24px; font-size: 0.7rem; margin-left: 8px; vertical-align: middle; display: inline-flex;" title="Ouvir pron├║ncia" aria-label="Ouvir pron├║ncia" onclick="tocarAudio('{{ URL }}', this)">­ƒöè</button>
+                {{/AUDIOS_ARRAY}}
+            </div>
+            <div class="texto-traducao">{{ TRAD }}</div>
+        </div>
+        {{/EXEMPLOS}}
+    </div>
+    {{/TEM_EXEMPLOS}}
+
+    {{#TEM_IMAGENS}}
+    <div class="midia-galeria">
+        {{#IMAGENS}}
+        <figure class="midia-item" onclick="abrirLightbox('{{ ARQUIVO }}')">
+            <img src="{{ ARQUIVO }}" alt="{{ LEGENDA }}" loading="lazy">
+            {{#LEGENDA}}<figcaption>{{ LEGENDA }}</figcaption>{{/LEGENDA}}
+        </figure>
+        {{/IMAGENS}}
+    </div>
+    {{/TEM_IMAGENS}}
+
+    {{#TEM_VIDEOS}}
+    <div class="midia-galeria">
+        {{#VIDEOS}}
+        <figure class="midia-item" style="border: none; padding: 0;">
+            <video controls width="100%" loading="lazy">
+                <source src="{{ ARQUIVO }}" type="video/mp4">
+            </video>
+        </figure>
+        {{/VIDEOS}}
+    </div>
+    {{/TEM_VIDEOS}}
+
+    {{#TEM_EXTRAS}}
+    <div class="mb-2">
+        {{#EXTRAS}}
+        <div class="detalhe-valor" style="background:#f8f9fa; padding:12px; border-left:4px solid var(--cor-primaria); margin-top:8px;">{{ TEXTO }}</div>
+        {{/EXTRAS}}
+    </div>
+    {{/TEM_EXTRAS}}
+</div>
+{{/SIGNIFICADOS}}
+
+{{#ITENS_RELACIONADOS}}
+<div class="detalhe-secao">
+    <div class="detalhe-titulo">­ƒöù Itens Relacionados</div>
+    <div class="detalhe-valor">{{ ITENS_RELACIONADOS }}</div>
+</div>
+{{/ITENS_RELACIONADOS}}
+
+{{#TEXTOS_ESTRUTURADOS}}
+<div class="detalhe-secao texto-estruturado" id="texto_{{ ID_TEXTO }}">
+    <div class="detalhe-titulo" style="display: flex; align-items: center; gap: 8px;">
+        ­ƒôä {{ TITULO_EXIBICAO_FALLBACK }}
+        <button class="modal-audio-btn" style="width: 28px; height: 28px; font-size: 0.8rem;" onclick='tocaTexto(this, "texto_{{ ID_TEXTO }}")' title="Tocar texto completo">­ƒöè</button>
+    </div>
+    {{#TEXTO_NAO_LITERAL}}<div class="detalhe-valor mb-3" style="font-style: italic; color: #555; background: #f8f9fa; padding: 12px; border-radius: 4px;">{{ TEXTO_NAO_LITERAL }}</div>{{/TEXTO_NAO_LITERAL}}
+
+    {{#VARIACOES}}
+    <div class="texto-variacao mb-4">
+        {{#FRASES}}
+        <div class="frase-item" onclick="playAudio_frase(this)" style="cursor: pointer; padding: 12px; border-radius: var(--raio); transition: background-color 0.2s; margin-bottom: 8px; border: 1px solid #eee;">
+            {{#AUDIO_ARQUIVO}}
+            <audio src="{{ AUDIO_ARQUIVO }}" preload="none" style="display: none;"></audio>
+            {{/AUDIO_ARQUIVO}}
+            <div class="texto-frase" style="margin-bottom: 4px; font-weight: 500; font-size: 1.1rem; color: var(--cor-texto);">{{ ORIGINAL }}</div>
+            {{#TRADUCAO}}
+            <div class="texto-traducao" style="color: #666; font-size: 0.95rem;">{{ TRADUCAO }}</div>
+            {{/TRADUCAO}}
+        </div>
+        {{/FRASES}}
+    </div>
+    {{/VARIACOES}}
+</div>
+{{/TEXTOS_ESTRUTURADOS}}

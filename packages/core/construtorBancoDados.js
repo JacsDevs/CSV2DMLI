@@ -106,7 +106,6 @@ class ConstrutorBancoDados {
                     CAMPO_SEMANTICO: String(camposBasicos.CAMPO_SEMANTICO || '').trim(),
                     SUB_CAMPOS_SEMANTICOS: [camposBasicos.SUB_CAMPO_SEMANTICO].filter(Boolean),
                     ITENS_RELACIONADOS: String(camposBasicos.ITENS_RELACIONADOS || '').trim(),
-                    TEXTOS_ESTRUTURADOS: [],
                     VARIACOES_IDS: [], 
                     ACEPCOES: []
                 };
@@ -135,78 +134,16 @@ class ConstrutorBancoDados {
                 }
             });
 
-            // ========== TEXTOS ESTRUTURADOS ==========
-            const titulosBusca = limparListaPipe(camposBasicos.TEXTO || '');
-            const titulosPersonalizados = limparListaPipe(camposBasicos.TITULO_TEXTO || '');
-
-            titulosBusca.forEach((tit, index) => {
-                if (!tit) return;
-
-                const fonteTextos = this.vfs.textosExtra;
-                const textoMatch = fonteTextos && fonteTextos[tit];
-
-                if (!textoMatch || typeof textoMatch !== 'object' || !textoMatch.titulo_base) {
-                    console.warn(`⚠️ Texto estruturado "${tit}" referenciado na planilha mas não encontrado em textos.json`);
-                    return;
-                }
-
-                // const jaExiste = entrada.TEXTOS_ESTRUTURADOS.some(t => t.TITULO_BASE === textoMatch.titulo_base);
-                // if (jaExiste) return;
-
-                const tituloPersonalizado = titulosPersonalizados[index];
-
-                const textoFormatado = {
-                    ID_TEXTO: tit,
-                    TITULO_BASE: textoMatch.titulo_base,
-                    TITULO_EXIBICAO: tituloPersonalizado || '',
-                    TEXTO_NAO_LITERAL: textoMatch.texto_nao_literal || '',
-                    VARIACOES: []
-                };
-
-                if (textoMatch.textos_variacoes && Array.isArray(textoMatch.textos_variacoes)) {
-                    textoMatch.textos_variacoes.forEach(v => {
-                        const variacao = { ID_VARIACAO: v.id_variacao || '', FRASES: [] };
-                        if (v.frases && Array.isArray(v.frases)) {
-                            v.frases.forEach(f => {
-                                const audioFrase = f.audio?.arquivo || '';
-                                let audioDados = f.audio?.dados || '';
-                                
-                                if (audioDados && !audioDados.startsWith('data:')) {
-                                    const formato = f.audio?.formato || 'mp3';
-                                    audioDados = `data:audio/${formato};base64,${audioDados}`;
-                                }
-
-                                let audioExiste = true;
-                                let audioFinal = audioDados || audioFrase;
-
-                                if (audioFrase && !audioDados) {
-                                    audioExiste = this.validarEContarMidia(db, 'audio', audioFrase, silenciarAvisos);
-                                }
-
-                                variacao.FRASES.push({
-                                    ORIGINAL: f.texto_original || '',
-                                    TRADUCAO: f.traducao || '',
-                                    AUDIO_SRC: (audioExiste && audioFrase && !audioDados) ? this.obterMidiaUrl('audio', audioFrase) : audioFinal,
-                                    AUDIO_ARQUIVO: audioFinal,
-                                    AUDIO_EXISTE: audioExiste,
-                                    ARQUIVO_ORIGEM: f.arquivo_origem || ''
-                                });
-                            });
-                        }
-                        textoFormatado.VARIACOES.push(variacao);
-                    });
-                }
-
-                entrada.TEXTOS_ESTRUTURADOS.push(textoFormatado);
-            });
-
             // ========== ACEPÇÃO (SIGNIFICADO) ==========
             const defRaw = String(camposBasicos.TRADUCAO_SIGNIFICADO || '').trim();
             const descRaw = String(camposBasicos.DESCRICAO || '').trim();
             const chaveAcepcao = `${idEntrada}##${defRaw}##${descRaw}`;
             
             let idAcepcao = mapaSignificados[chaveAcepcao];
-            if (!idAcepcao && (defRaw || descRaw || exemplos.length > 0 || imagens.length > 0 || camposBasicos.ARQUIVO_VIDEO)) {
+            // Se houver texto estruturado, também precisamos de uma acepção para guardá-lo!
+            const temTextoEstruturado = (camposBasicos.TEXTO || '').trim() !== '';
+
+            if (!idAcepcao && (defRaw || descRaw || exemplos.length > 0 || imagens.length > 0 || camposBasicos.ARQUIVO_VIDEO || temTextoEstruturado)) {
                 idAcepcao = `${idEntrada}_SIG${contSignificados++}`;
                 mapaSignificados[chaveAcepcao] = idAcepcao;
                 db.significados[idAcepcao] = {
@@ -216,6 +153,7 @@ class ConstrutorBancoDados {
                     EXEMPLOS_IDS: [],
                     IMAGENS_IDS: [],
                     VIDEOS_IDS: [],
+                    TEXTOS_ESTRUTURADOS: [],
                     EXTRAS: (linhaNormalizada.extras || []).map(e => ({ TEXTO: `<b>${e.chave}:</b> ${e.valor}` }))
                 };
                 entrada.ACEPCOES.push({
@@ -223,6 +161,7 @@ class ConstrutorBancoDados {
                     EXEMPLOS_IDS: [],
                     IMAGENS_IDS: [],
                     VIDEOS_IDS: [],
+                    TEXTOS_ESTRUTURADOS: [],
                     EXTRAS: (linhaNormalizada.extras || []).map(e => ({ TEXTO: `<b>${e.chave}:</b> ${e.valor}` }))
                 });
             }
@@ -230,6 +169,68 @@ class ConstrutorBancoDados {
             if (idAcepcao) {
                 let acepcaoAlvo = entrada.ACEPCOES.find(ac => ac.SIGNIFICADO_ID === idAcepcao);
                 if (!acepcaoAlvo) acepcaoAlvo = entrada.ACEPCOES[entrada.ACEPCOES.length - 1];
+
+                // ========== TEXTOS ESTRUTURADOS ==========
+                const titulosBusca = limparListaPipe(camposBasicos.TEXTO || '');
+                const titulosPersonalizados = limparListaPipe(camposBasicos.TITULO_TEXTO || '');
+
+                titulosBusca.forEach((tit, index) => {
+                    if (!tit) return;
+
+                    const fonteTextos = this.vfs.textosExtra;
+                    const textoMatch = fonteTextos && fonteTextos[tit];
+
+                    if (!textoMatch || typeof textoMatch !== 'object' || !textoMatch.titulo_base) {
+                        console.warn(`⚠️ Texto estruturado "${tit}" referenciado na planilha mas não encontrado em textos.json`);
+                        return;
+                    }
+
+                    const tituloPersonalizado = titulosPersonalizados[index];
+
+                    const textoFormatado = {
+                        ID_TEXTO: tit,
+                        TITULO_BASE: textoMatch.titulo_base,
+                        TITULO_EXIBICAO: tituloPersonalizado || '',
+                        TEXTO_NAO_LITERAL: textoMatch.texto_nao_literal || '',
+                        VARIACOES: []
+                    };
+
+                    if (textoMatch.textos_variacoes && Array.isArray(textoMatch.textos_variacoes)) {
+                        textoMatch.textos_variacoes.forEach(v => {
+                            const variacao = { ID_VARIACAO: v.id_variacao || '', FRASES: [] };
+                            if (v.frases && Array.isArray(v.frases)) {
+                                v.frases.forEach(f => {
+                                    const audioFrase = f.audio?.arquivo || '';
+                                    let audioDados = f.audio?.dados || '';
+                                    
+                                    if (audioDados && !audioDados.startsWith('data:')) {
+                                        const formato = f.audio?.formato || 'mp3';
+                                        audioDados = `data:audio/${formato};base64,${audioDados}`;
+                                    }
+
+                                    let audioExiste = true;
+                                    let audioFinal = audioDados || audioFrase;
+
+                                    if (audioFrase && !audioDados) {
+                                        audioExiste = this.validarEContarMidia(db, 'audio', audioFrase, silenciarAvisos);
+                                    }
+
+                                    variacao.FRASES.push({
+                                        ORIGINAL: f.texto_original || '',
+                                        TRADUCAO: f.traducao || '',
+                                        AUDIO_SRC: (audioExiste && audioFrase && !audioDados) ? this.obterMidiaUrl('audio', audioFrase) : audioFinal,
+                                        AUDIO_ARQUIVO: audioFinal,
+                                        AUDIO_EXISTE: audioExiste,
+                                        ARQUIVO_ORIGEM: f.arquivo_origem || ''
+                                    });
+                                });
+                            }
+                            textoFormatado.VARIACOES.push(variacao);
+                        });
+                    }
+
+                    acepcaoAlvo.TEXTOS_ESTRUTURADOS.push(textoFormatado);
+                });
                 
                 // ========== EXEMPLOS ==========
                 exemplos.forEach((e, i) => {

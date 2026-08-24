@@ -18,7 +18,8 @@
       "IMAGEM": "IMAGEM",
       "LEGENDA_IMAGEM": "LEGENDA_IMAGEM",
       "ARQUIVO_VIDEO": "ARQUIVO_VIDEO",
-      "TEXTO": "TEXTO"
+      "TEXTO": "TEXTO",
+      "TITULO_TEXTO": "TITULO_TEXTO"
     }
   },
   

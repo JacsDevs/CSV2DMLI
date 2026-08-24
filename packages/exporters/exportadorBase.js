@@ -69,13 +69,18 @@ class ExportadorBase {
         const significados = [];
         if (entrada.ACEPCOES && entrada.ACEPCOES.length > 0) {
             entrada.ACEPCOES.forEach((ac, idx) => {
-                const significado = { NUMERO: entrada.ACEPCOES.length > 1 ? String(idx + 1) : '', TRADUCAO: '', DESCRICAO: '', EXEMPLOS: [], IMAGENS: [], VIDEOS: [], EXTRAS: [] };
+                const significado = { NUMERO: entrada.ACEPCOES.length > 1 ? String(idx + 1) : '', TRADUCAO: '', DESCRICAO: '', EXEMPLOS: [], IMAGENS: [], VIDEOS: [], EXTRAS: [], TEXTOS_ESTRUTURADOS: [] };
                 
                 if (ac.SIGNIFICADO_ID && banco.significados[ac.SIGNIFICADO_ID]) {
                     const sig = banco.significados[ac.SIGNIFICADO_ID];
                     significado.TRADUCAO = sig.TRADUCAO || '';
                     significado.DESCRICAO = sig.DESCRICAO || '';
                 }
+                
+                if (ac.TEXTOS_ESTRUTURADOS) {
+                    significado.TEXTOS_ESTRUTURADOS = ac.TEXTOS_ESTRUTURADOS;
+                }
+
                 if (ac.EXEMPLOS_IDS) ac.EXEMPLOS_IDS.forEach(exId => {
                     const ex = banco.exemplos[exId];
                     if (ex) {
@@ -133,8 +138,7 @@ class ExportadorBase {
             AUDIO: audiosUnicosResolved.join(' ~ '),
             SIGNIFICADOS: significados,  
             ITENS_RELACIONADOS: entrada.ITENS_RELACIONADOS || '',
-            INDEX: significados.length > 0 ? significados[0].TRADUCAO : '',
-            TEXTOS_ESTRUTURADOS: entrada.TEXTOS_ESTRUTURADOS || []
+            INDEX: significados.length > 0 ? significados[0].TRADUCAO : ''
         };
     }
 
@@ -253,6 +257,9 @@ class ExportadorBase {
         scripts += `window.DicionarioMidias = ${jsonSeguro(midias)};\n`;
         scripts += `window.dadosDicionarioLexical = [];\n`;
         scripts += `window.templateEntradaAtivo = "${tipoAtivo}";\n`;
+        if (this.templateEntrada) scripts += `window.templateEntrada = ${jsonSeguro(this.templateEntrada)};\n`;
+        if (this.templateCard) scripts += `window.templateCard = ${jsonSeguro(this.templateCard)};\n`;
+        if (this.templateLista) scripts += `window.templateLista = ${jsonSeguro(this.templateLista)};\n`;
         scripts += `function adicionaDados(lote) { window.dadosDicionarioLexical.push(...lote); }\n`;
         scripts += '<\/script>\n';
 

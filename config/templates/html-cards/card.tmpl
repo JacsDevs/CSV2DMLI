@@ -1,0 +1,16 @@
+<div class="card-info">
+    {{#CAMPO_SEMANTICO_EXIBIR}}
+    <div class="card-categoria">{{ CAMPO_SEMANTICO }}</div>
+    {{/CAMPO_SEMANTICO_EXIBIR}}
+    <div class="card-lexical" style="display: flex; align-items: center; gap: 8px;">
+        <span>{{ TERMO }}</span>
+        {{#AUDIO}}
+        <button type="button" class="modal-audio-btn" style="width: 32px; height: 32px; font-size: 0.9rem; flex-shrink: 0;" title="Ouvir pronúncia" aria-label="Ouvir pronúncia" onclick="event.stopPropagation(); window.tocarAudio('{{ AUDIO_PRIMEIRO }}', this)">🔊</button>
+        {{/AUDIO}}
+    </div>
+    <div class="card-traducao">{{ INDEX }}</div>
+    {{#CLASSE}}<span class="card-classe">{{ CLASSE }}</span>{{/CLASSE}}
+</div>
+{{#PRIMEIRA_IMAGEM}}
+<div class="card-img-wrapper"><img src="{{ PRIMEIRA_IMAGEM }}" alt="Imagem ilustrativa de {{ TERMO }}" loading="lazy"></div>
+{{/PRIMEIRA_IMAGEM}}

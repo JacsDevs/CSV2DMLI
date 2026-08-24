@@ -1,22 +1,22 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ metadados.html }}</title>
-    <!-- Fontes inline (sem CDN externo — compatível com APK/uso offline) -->
+    <!-- Fontes inline (sem CDN externo ÔÇö compat├¡vel com APK/uso offline) -->
 
     <style>
-        /* ===== VARIÁVEIS CSS (DESIGN SYSTEM MODERNO) ===== */
+        /* ===== VARI├üVEIS CSS (DESIGN SYSTEM MODERNO) ===== */
         :root {
             --app-bar-h: 76px;
             --cor-fundo: #FFF9E6; /* Bege claro suave */
             --cor-texto: #333333; /* Cinza escuro para melhor contraste */
-            --cor-texto-secundario: #666666; /* Cinza para textos secundários */
+            --cor-texto-secundario: #666666; /* Cinza para textos secund├írios */
             --cor-primaria: #2E7D32; /* Verde escuro */
             --cor-primaria-hover: #1b5e20;
             --cor-primaria-light: #E8F5E9; /* Verde claro para tags */
-            --cor-card: #FFF6D9; /* Amarelo próximo ao do fundo */
+            --cor-card: #FFF6D9; /* Amarelo pr├│ximo ao do fundo */
             
             --sombra-suave: 0 4px 6px rgba(0, 0, 0, 0.05);
             --sombra-hover: 0 10px 15px rgba(0, 0, 0, 0.1);
@@ -378,14 +378,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 12px 16px 12px 0; /* Afasta da borda direita, não corta a sombra */
+            padding: 12px 16px 12px 0; /* Afasta da borda direita, n├úo corta a sombra */
         }
         .card-img-wrapper img {
             width: 100%;
             height: 100%;
             object-fit: cover; /* Preenche o quadrado sem distorcer a imagem */
             border-radius: 8px; /* Arredondamento perfeito na imagem */
-            box-shadow: 0 2px 8px rgba(0,0,0,0.12); /* Dá destaque e formato à imagem */
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12); /* D├í destaque e formato ├á imagem */
             transition: transform 0.4s ease;
             display: block;
         }
@@ -575,7 +575,7 @@
             position: fixed;
             bottom: 136px;
             right: 24px;
-            background: var(--cor-primaria);
+            background: white;
             border-radius: var(--raio);
             box-shadow: var(--sombra-modal);
             display: flex;
@@ -596,12 +596,12 @@
         #menu a {
             padding: 10px 24px;
             text-decoration: none;
-            color: white;
+            color: var(--cor-texto);
             font-weight: 500;
             font-size: 0.95rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            border-bottom: 1px solid #f1f5f9;
         }
-        #menu a:hover { background: rgba(255, 255, 255, 0.1); color: white; }
+        #menu a:hover { background: var(--cor-fundo); color: var(--cor-primaria); }
 
         .btn-barra {
             background: var(--cor-primaria-light);
@@ -716,7 +716,7 @@
         }
         .lightbox-fechar:hover { opacity: 1; transform: scale(1.1); }
 
-        /* ===== VISUALIZAÇÃO LINEAR ===== */
+        /* ===== VISUALIZA├ç├âO LINEAR ===== */
         .grid-container.modo-lista {
             display: flex;
             flex-direction: column;
@@ -784,13 +784,11 @@
         }
 
         /* ===== MODO LISTA ===== */
-        .barra-content-animado {
-            display: grid;
-            grid-template-rows: 1fr;
-            transition: grid-template-rows 0.3s ease;
+        .barra-escondida {
+            display: none !important;
         }
-        .barra-content-animado.barra-escondida {
-            grid-template-rows: 0fr;
+        #barra-content.ocultar-sub .btn-subcategoria {
+            display: none !important;
         }
         .grid-container.modo-lista {
             display: block;
@@ -815,19 +813,9 @@
             border-bottom: 1px solid rgba(0, 0, 0, 0.1);
             scroll-margin-top: 100px;
         }
-        .subcategorias-inline {
-            grid-column: 1 / -1;
-            width: 100%;
-            background: white;
-            padding: 12px 16px;
-            border-radius: var(--raio);
-            box-shadow: var(--sombra-suave);
-            border: 1px solid rgba(0,0,0,0.05);
-            margin-top: -8px; /* Puxa um pouco para perto do H2/H3 */
-        }
         .modo-lista .entrada_lexical {
             background: transparent;
-            padding: 32px 8px; /* Mais espaço vertical */
+            padding: 32px 8px; /* Mais espa├ºo vertical */
             margin-bottom: 0;
             border-radius: 0;
             box-shadow: none;
@@ -839,7 +827,7 @@
             box-shadow: none;
             background: rgba(0,0,0,0.02); /* Efeito de highlight suave na linha */
         }
-        /* Remover a linha do último item da lista se necessário */
+        /* Remover a linha do ├║ltimo item da lista se necess├írio */
         .modo-lista .entrada_lexical:last-child {
             border-bottom: none;
         }
@@ -858,20 +846,20 @@
                 top: 50vh;
                 transform: translateY(-50%);
                 left: var(--sidebar-w);
-                width: 22px;
-                height: 44px;
+                width: 28px;
+                height: 60px;
                 background: var(--cor-primaria);
                 color: #fff;
                 border: none;
-                border-radius: 0 22px 22px 0;
+                border-radius: 0 8px 8px 0;
                 align-items: center;
                 justify-content: center;
                 cursor: pointer;
                 z-index: 1040;
-                box-shadow: 3px 0 6px rgba(0,0,0,0.15);
+                box-shadow: 4px 0 8px rgba(0,0,0,0.15);
                 transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                font-size: 1.2rem;
-                padding-bottom: 2px;
+                font-size: 1.5rem;
+                padding-bottom: 4px;
             }
             .sidebar-desktop-toggle:hover {
                 background: var(--cor-primaria-hover);
@@ -888,7 +876,7 @@
         @media (max-width: 768px) {
             .app-bar-toggle { display: flex; }
             .app-bar h1 { font-size: 1rem; line-height: 1.2; }
-            .app-bar-subtitle { display: none; } /* Esconde o subtítulo para poupar espaço no celular */
+            .app-bar-subtitle { display: none; } /* Esconde o subt├¡tulo para poupar espa├ºo no celular */
             
             .app-bar-left {
                 width: 100%;
@@ -977,10 +965,10 @@
             .mobile-header-info-btn { background: var(--cor-primaria-light); color: var(--cor-primaria); border: none; border-radius: var(--raio-pilula); padding: 8px 18px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
             .mobile-header-info-btn:active { transform: scale(0.97); }
 
-            /* Barra de ferramentas antiga: substituída pela navegação flutuante abaixo */
+            /* Barra de ferramentas antiga: substitu├¡da pela navega├º├úo flutuante abaixo */
             .barra-ferramentas { display: none; }
 
-            /* Pesquisa mobile: flutua acima da barra de navegação, escondida até tocar em Pesquisar */
+            /* Pesquisa mobile: flutua acima da barra de navega├º├úo, escondida at├® tocar em Pesquisar */
             .pesquisa-mobile {
                 display: none !important;
                 position: fixed;
@@ -1036,7 +1024,7 @@
             .categoria-linha.ativo { background: var(--cor-primaria-light); color: var(--cor-primaria); font-weight: 600; }
             .categoria-linha:active { background: #f1f5f9; }
 
-            /* ===== BARRA DE NAVEGAÇÃO FLUTUANTE (MOBILE) ===== */
+            /* ===== BARRA DE NAVEGA├ç├âO FLUTUANTE (MOBILE) ===== */
             .mobile-floating-nav {
                 position: fixed;
                 left: 0; right: 0; bottom: 18px;
@@ -1113,10 +1101,10 @@
             .mobile-nav-icon path { fill: currentColor; }
             .mobile-floating-nav-search .mobile-nav-icon { width: 24px; height: 24px; }
 
-            /* Espaço para a barra flutuante não cobrir os últimos itens */
+            /* Espa├ºo para a barra flutuante n├úo cobrir os ├║ltimos itens */
             #grid-container { padding-bottom: 100px; margin: 0px 20px; }
 
-            /* Reposiciona o botão de voltar ao topo acima da nova barra */
+            /* Reposiciona o bot├úo de voltar ao topo acima da nova barra */
             #btn-topo { bottom: 110px; }
 
             .modal-overlay.ativo .modal-conteudo { transform: translateY(0); }
@@ -1227,192 +1215,11 @@
             padding: 2px 4px;
             border-radius: 4px;
         }
-
-        /* ===== DICIONÁRIO MODULAR (MODAL E LISTA) ===== */
-        .dict-entry {
-            display: flex;
-            flex-direction: column;
-            gap: 12px; /* Reduzido de 24px */
-            font-family: inherit;
-            color: var(--cor-texto);
-        }
-        .dict-header {
-            border-bottom: 1px solid #f1f5f9;
-            padding-bottom: 4px;
-        }
-        .dict-tags {
-            margin-bottom: 12px;
-        }
-        .dict-tag {
-            display: inline-block;
-            background: var(--cor-primaria);
-            color: #fff;
-            font-size: 0.75rem;
-            font-weight: bold;
-            padding: 4px 10px;
-            border-radius: 16px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .dict-headword-container {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-        .dict-headword {
-            font-size: 2.5rem;
-            font-weight: 800;
-            line-height: 1.1;
-            margin: 0;
-            color: var(--cor-texto);
-        }
-        
-        /* Variations & Audio Chips */
-        .dict-variations-tray {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 4px;
-        }
-        .dict-audio-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: #f1f5f9;
-            border: 1px solid #cbd5e1;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 1.05rem; /* Aumentado de 0.9rem */
-            color: var(--cor-texto);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .dict-audio-chip:hover {
-            background: var(--cor-fundo);
-            border-color: var(--cor-primaria);
-        }
-        .dict-audio-chip svg { width: 16px; height: 16px; fill: var(--cor-primaria); }
-        .dict-chip-ipa { font-family: monospace; color: #64748b; margin-left: 4px; font-size: 1.1rem; }
-
-        /* Senses */
-        .dict-sense-card {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
-            border: 1px solid #f1f5f9;
-        }
-        .dict-sense-header {
-            display: flex;
-            align-items: baseline;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-        .dict-sense-number {
-            font-size: 1.25rem;
-            font-weight: 800;
-            color: var(--cor-primaria);
-        }
-        .dict-sense-translation {
-            font-size: 1.25rem;
-            font-weight: 700;
-        }
-        .dict-sense-definition {
-            font-size: 1.05rem;
-            color: #475569;
-        }
-
-        /* Examples */
-        .dict-examples-list {
-            margin: 16px 0;
-            padding: 0;
-            list-style: none;
-            border-top: 1px solid #f1f5f9;
-        }
-        .dict-example-item {
-            padding: 12px 0;
-            border-bottom: 1px solid #f1f5f9;
-        }
-        .dict-ex-source {
-            font-style: italic;
-            font-weight: 500;
-            font-size: 1.05rem;
-            margin-bottom: 6px;
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .dict-ex-target {
-            color: #64748b;
-        }
-
-        /* Media Carousel -> Wrappable Grid */
-        .dict-media-carousel {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            padding-bottom: 12px;
-            margin-top: 16px;
-        }
-        .dict-media-card {
-            flex: 0 0 auto;
-            width: 260px;
-            border-radius: 8px;
-            overflow: hidden;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            cursor: pointer;
-            transition: transform 0.2s;
-            margin: 0;
-        }
-        .dict-media-card:hover { transform: translateY(-2px); }
-        .dict-media-card img, .dict-media-card video {
-            width: 100%;
-            height: 200px; /* Mais quadrado */
-            object-fit: contain;
-            display: block;
-            padding: 12px;
-            box-sizing: border-box;
-        }
-        .dict-media-card figcaption {
-            padding: 8px;
-            font-size: 0.85rem;
-            text-align: center;
-            color: #475569;
-        }
-
-        /* Structured Texts */
-        .dict-text-card {
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 20px;
-            border-left: 4px solid var(--cor-primaria);
-        }
-        .dict-text-phrase {
-            background: #fff;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 1px solid transparent;
-        }
-        .dict-text-phrase:hover { border-color: var(--cor-primaria); }
-
-        /* Visão Simplificada (Padrão) */
-        body:not(.modo-completo) .classe-gramatical,
-        body:not(.modo-completo) .transcricao-fonetica {
-            display: none !important;
-        }
     </style>
 </head>
 
 <body>
-    <a href="#conteudo-principal" class="skip-link">Pular para o conteúdo</a>
+    <a href="#conteudo-principal" class="skip-link">Pular para o conte├║do</a>
     <div id="aria-live-status" class="visually-hidden" role="status" aria-live="polite"></div>
     <div class="toast-container" id="toast-container" aria-hidden="true"></div>
 
@@ -1421,47 +1228,47 @@
         <div class="logo-area">
             <div style="font-size: 4rem; margin-bottom: 8px;">{{ metadados.icone_html | safe }}</div>
             <h1>{{ metadados.html }}</h1>
-            <p style="color: var(--cor-texto-secundario); margin-top: 4px;">{{ metadados.autor }} &bull; Versão {{ metadados.versao }} ({{ metadados.ano }})</p>
+            <p style="color: var(--cor-texto-secundario); margin-top: 4px;">{{ metadados.autor }} &bull; Vers├úo {{ metadados.versao }} ({{ metadados.ano }})</p>
         </div>
 
         <div class="nav-cards">
             <div class="nav-card" data-nav="introducao">
-                <div class="icon">📚</div>
+                <div class="icon">­ƒôÜ</div>
                 <div class="info">
-                    <h3>Introdução</h3>
-                    <p>Conheça mais sobre este dicionário</p>
+                    <h3>Introdu├º├úo</h3>
+                    <p>Conhe├ºa mais sobre este dicion├írio</p>
                 </div>
-                <span style="color: var(--cor-texto-secundario);">›</span>
+                <span style="color: var(--cor-texto-secundario);">ÔÇ║</span>
             </div>
             <div class="nav-card" data-nav="cards">
-                <div class="icon">📝</div>
+                <div class="icon">­ƒôØ</div>
                 <div class="info">
-                    <h3>Ver Dicionário</h3>
+                    <h3>Ver Dicion├írio</h3>
                     <p>Navegue por cards com imagens</p>
                 </div>
-                <span style="color: var(--cor-texto-secundario);">›</span>
+                <span style="color: var(--cor-texto-secundario);">ÔÇ║</span>
             </div>
             <div class="nav-card" data-nav="lista">
-                <div class="icon">📋</div>
+                <div class="icon">­ƒôï</div>
                 <div class="info">
                     <h3>Modo Lista Extensa</h3>
-                    <p>Veja todo o conteúdo em lista</p>
+                    <p>Veja todo o conte├║do em lista</p>
                 </div>
-                <span style="color: var(--cor-texto-secundario);">›</span>
+                <span style="color: var(--cor-texto-secundario);">ÔÇ║</span>
             </div>
             <div class="nav-card" data-nav="pesquisar">
                 <div class="info">
                     <h3>Pesquisar Termos</h3>
                     <p>Busque palavras rapidamente</p>
                 </div>
-                <span style="color: var(--cor-texto-secundario);">›</span>
+                <span style="color: var(--cor-texto-secundario);">ÔÇ║</span>
             </div>
         </div>
 
         <div class="footer-buttons">
-            <button onclick="abrirModalGlobal('modal-info')">ℹ️ Informações</button>
-            <button onclick="abrirModalGlobal('modal-citar')">📝 Como citar</button>
-            <button onclick="abrirModalGlobal('modal-referencias')">📚 Referências</button>
+            <button onclick="abrirModalGlobal('modal-info')">Ôä╣´©Å Informa├º├Áes</button>
+            <button onclick="abrirModalGlobal('modal-citar')">­ƒôØ Como citar</button>
+            <button onclick="abrirModalGlobal('modal-referencias')">­ƒôÜ Refer├¬ncias</button>
         </div>
     
         <div class="creditos-csv2dmli" style="text-align: center; padding: 16px; margin-top: auto; font-size: 0.75rem; color: var(--cor-texto-secundario);">
@@ -1469,29 +1276,29 @@
         </div>
     </div>
 
-    <!-- TELA DE CONTEÚDO -->
+    <!-- TELA DE CONTE├ÜDO -->
     <div id="tela-conteudo" class="tela-conteudo">
         <div class="mobile-header-conteudo">
             <div class="dicionario-logo">{{ metadados.icone_html | safe }}</div>
             <h1>{{ metadados.html }}</h1>
-            <div class="mobile-header-subtitulo">Versão {{ metadados.versao }} ({{ metadados.ano }})</div>
+            <div class="mobile-header-subtitulo">Vers├úo {{ metadados.versao }} ({{ metadados.ano }})</div>
         </div>
 
         <!-- Pesquisa Mobile Dedicada (flutua acima da barra ao tocar em Pesquisar) -->
         <div class="pesquisa-mobile" id="pesquisa-mobile-container">
             <div style="flex: 1; display: flex; align-items: center; background: #f1f5f9; border-radius: var(--raio-pilula); padding: 8px 16px;">
-                <input type="text" id="search-input-mobile" placeholder="Pesquisar termo..." aria-label="Buscar termo no dicionário" style="border: none; background: transparent; width: 100%; outline: none; font-size: 0.95rem;">
-                <button type="button" id="btn-limpar-pesquisa" aria-label="Limpar busca" title="Limpar busca" style="background: none; border: none; color: var(--cor-texto-secundario); font-size: 1.2rem; display: none; cursor: pointer;">✕</button>
+                <input type="text" id="search-input-mobile" placeholder="Pesquisar termo..." aria-label="Buscar termo no dicion├írio" style="border: none; background: transparent; width: 100%; outline: none; font-size: 0.95rem;">
+                <button type="button" id="btn-limpar-pesquisa" aria-label="Limpar busca" title="Limpar busca" style="background: none; border: none; color: var(--cor-texto-secundario); font-size: 1.2rem; display: none; cursor: pointer;">Ô£ò</button>
             </div>
         </div>
 
-        <!-- Barra de navegação flutuante (mobile): cards, listas, salvos, filtros e pesquisar -->
+        <!-- Barra de navega├º├úo flutuante (mobile): cards, listas, salvos, filtros e pesquisar -->
         <div class="mobile-floating-nav">
             <div class="mobile-floating-nav-pill">
                 <button id="btn-modo-cards-mobile" class="mobile-floating-nav-btn ativo" onclick="mudarModoVisualizacao('cards')" title="Cards" aria-label="Cards"><svg class="mobile-nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="m509.77-482 61-36.85 61 36.85q5.23 2.46 9.58-.38 4.34-2.85 2.34-8.31L627-560.15l53.54-46.31q4.23-3.46 2.73-8.19-1.5-4.73-6.96-5.73l-70.46-6.24-27.62-65.23q-2-5.23-7.46-5.23t-7.46 5.23l-27.62 65.23-70.46 6.24q-5.46 1-6.96 5.73t2.73 8.19l53.54 46.31-16.69 69.46q-2 5.46 2.34 8.31 4.35 2.84 9.58.38ZM366.15-301.54q-27.61 0-46.11-18.5t-18.5-46.11v-409.23q0-27.62 18.5-46.12 18.5-18.5 46.11-18.5h409.23q27.62 0 46.12 18.5Q840-803 840-775.38v409.23q0 27.61-18.5 46.11t-46.12 18.5H366.15Zm0-40h409.23q10.77 0 17.7-6.92 6.92-6.92 6.92-17.69v-409.23q0-10.77-6.92-17.7-6.93-6.92-17.7-6.92H366.15q-10.77 0-17.69 6.92-6.92 6.93-6.92 17.7v409.23q0 10.77 6.92 17.69 6.92 6.92 17.69 6.92Zm204.62-229.23ZM218-164Zm29.23 36.69q-26.85 3.23-47.96-12.92-21.12-16.15-24.35-43l-49.15-388.54q-3.23-26.85 13.54-48.61 16.77-21.77 43.61-24.47l17.39-.77q8.54-.69 15.11 4.77 6.58 5.47 6.58 15 0 7.31-5.12 13.31-5.11 6-12.42 6.69l-15.61.77q-10.77.77-16.93 8.85-6.15 8.08-4.61 18.85l47.84 388.76q1.54 10.77 9.23 16.93 7.7 6.15 18.47 4.61l470.92-58.77q8.54-1.23 15 3.77 6.46 5 7.69 13.54 1.23 8.54-3.77 14.5-5 5.96-13.54 7.19l-471.92 59.54Z"/></svg><span class="mobile-nav-label" aria-hidden="true">Cards</span></button>
                 <button id="btn-modo-lista-mobile" class="mobile-floating-nav-btn" onclick="mudarModoVisualizacao('lista')" title="Listas" aria-label="Listas"><svg class="mobile-nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M624.62-160q-16.08 0-28.04-11.96T584.62-200v-175.38q0-16.08 11.96-28.04t28.04-11.96H800q16.08 0 28.04 11.96T840-375.38V-200q0 16.08-11.96 28.04T800-160H624.62Zm0-40H800V-375.38H624.62V-200ZM140-267.69q-8.54 0-14.27-5.73T120-287.69q0-8.54 5.73-14.27t14.27-5.73h289.23q8.54 0 14.27 5.73t5.73 14.27q0 8.54-5.73 14.27t-14.27 5.73H140Zm484.62-276.93q-16.08 0-28.04-11.96t-11.96-28.04V-760q0-16.08 11.96-28.04T624.62-800H800q16.08 0 28.04 11.96T840-760v175.38q0 16.08-11.96 28.04T800-544.62H624.62Zm0-40H800V-760H624.62v175.38ZM140-652.31q-8.54 0-14.27-5.73T120-672.31q0-8.54 5.73-14.27t14.27-5.73h289.23q8.54 0 14.27 5.73t5.73 14.27q0 8.54-5.73 14.27t-14.27 5.73H140Zm572.31 364.62Zm0-384.62Z"/></svg><span class="mobile-nav-label" aria-hidden="true">Listas</span></button>
                 <button id="btn-salvos-mobile" class="mobile-floating-nav-btn" onclick="mudarModoVisualizacao('salvos')" title="Salvos" aria-label="Salvos"><svg class="mobile-nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="m438-484.54-42.85-42.84Q389.31-533 381-533t-14.15 5.85Q361-521.31 361-513t5.85 14.15l47.53 47.77q9.7 9.7 23.12 9.7 13.42 0 23.12-9.7l132.53-132.77q5.85-5.84 6.23-13.77.39-7.92-6.23-14.53Q587.31-618 579-618t-14.15 5.85L438-484.54Zm42 201.46-149.54 64.31q-32.31 13.92-61.38-5.35Q240-243.38 240-277.92v-457.46q0-27.62 18.5-46.12Q277-800 304.62-800h350.76q27.62 0 46.12 18.5Q720-763 720-735.38v457.46q0 34.54-29.08 53.8-29.07 19.27-61.38 5.35L480-283.08Zm0-44.92 165.38 71.38q12.31 5.39 23.47-2.3 11.15-7.7 11.15-20.77v-455.69q0-9.24-7.69-16.93-7.69-7.69-16.93-7.69H304.62q-9.24 0-16.93 7.69-7.69 7.69-7.69 16.93v455.69q0 13.07 11.15 20.77 11.16 7.69 23.47 2.3L480-328Zm0-432H280h400-200Z"/></svg><span class="mobile-nav-label" aria-hidden="true">Salvos</span></button>
-                <button id="btn-filtros-mobile" class="mobile-floating-nav-btn" onclick="abrirBottomSheet()" title="Configurações" aria-label="Configurações"><svg class="mobile-nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M438.38-120q-13.92 0-24.19-9.15-10.27-9.16-12.73-22.85l-10.54-83.69q-19.15-5.77-41.42-18.16-22.27-12.38-37.88-26.53L235-247.46q-12.69 5.61-25.77 1.23-13.08-4.39-20.15-16.62l-43.16-74.3q-7.07-12.23-4.15-25.54 2.92-13.31 13.92-21.85l66.85-50q-1.77-10.84-2.92-22.34-1.16-11.5-1.16-22.35 0-10.08 1.16-21.19 1.15-11.12 2.92-25.04l-66.85-50q-11-8.54-13.54-22.23-2.53-13.69 4.54-25.93l42.39-72q7.07-11.46 20.15-16.23 13.08-4.77 25.77.85l75.85 32.15q17.92-14.92 38.77-26.92 20.84-12 40.53-18.54L401.46-808q2.46-13.69 12.73-22.85 10.27-9.15 24.19-9.15h83.24q13.92 0 24.19 9.15 10.27 9.16 12.73 22.85l10.54 84.46q23 8.08 40.65 18.54 17.65 10.46 36.35 26.15L725.77-711q12.69-5.62 25.77-.85 13.08 4.77 20.15 16.23l42.39 72.77q7.07 12.23 4.15 25.54-2.92 13.31-13.92 21.85l-69.93 52.31q3.31 12.38 3.7 22.73.38 10.34.38 20.42 0 9.31-.77 19.65-.77 10.35-3.54 25.04l67.62 50.77q11 8.54 14.31 21.85 3.3 13.31-3.77 25.54l-42.62 73.53q-7.07 12.24-20.54 16.62-13.46 4.38-26.15-1.23l-76.92-32.92q-18.7 15.69-37.62 26.92-18.92 11.23-39.38 17.77L558.54-152q-2.46 13.69-12.73 22.85-10.27 9.15-24.19 9.15h-83.24Zm1.62-40h78.23L533-268.31q30.23-8 54.42-21.96 24.2-13.96 49.27-38.27L736.46-286l39.77-68-87.54-65.77q5-17.08 6.62-31.42 1.61-14.35 1.61-28.81 0-15.23-1.61-28.81-1.62-13.57-6.62-29.88L777.77-606 738-674l-102.08 42.77q-18.15-19.92-47.73-37.35-29.57-17.42-55.96-23.11L520-800h-79.77l-12.46 107.54q-30.23 6.46-55.58 20.81-25.34 14.34-50.42 39.42L222-674l-39.77 68L269-541.23q-5 13.46-7 29.23t-2 32.77q0 15.23 2 30.23t6.23 29.23l-86 65.77L222-286l99-42q23.54 23.77 48.88 38.12 25.35 14.34 57.12 22.34L440-160Zm38.92-220q41.85 0 70.93-29.08 29.07-29.07 29.07-70.92t-29.07-70.92Q520.77-580 478.92-580q-42.07 0-71.04 29.08-28.96 29.07-28.96 70.92t28.96 70.92Q436.85-380 478.92-380ZM480-480Z"/></svg></button>
+                <button id="btn-filtros-mobile" class="mobile-floating-nav-btn" onclick="abrirBottomSheet()" title="Configura├º├Áes" aria-label="Configura├º├Áes"><svg class="mobile-nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M438.38-120q-13.92 0-24.19-9.15-10.27-9.16-12.73-22.85l-10.54-83.69q-19.15-5.77-41.42-18.16-22.27-12.38-37.88-26.53L235-247.46q-12.69 5.61-25.77 1.23-13.08-4.39-20.15-16.62l-43.16-74.3q-7.07-12.23-4.15-25.54 2.92-13.31 13.92-21.85l66.85-50q-1.77-10.84-2.92-22.34-1.16-11.5-1.16-22.35 0-10.08 1.16-21.19 1.15-11.12 2.92-25.04l-66.85-50q-11-8.54-13.54-22.23-2.53-13.69 4.54-25.93l42.39-72q7.07-11.46 20.15-16.23 13.08-4.77 25.77.85l75.85 32.15q17.92-14.92 38.77-26.92 20.84-12 40.53-18.54L401.46-808q2.46-13.69 12.73-22.85 10.27-9.15 24.19-9.15h83.24q13.92 0 24.19 9.15 10.27 9.16 12.73 22.85l10.54 84.46q23 8.08 40.65 18.54 17.65 10.46 36.35 26.15L725.77-711q12.69-5.62 25.77-.85 13.08 4.77 20.15 16.23l42.39 72.77q7.07 12.23 4.15 25.54-2.92 13.31-13.92 21.85l-69.93 52.31q3.31 12.38 3.7 22.73.38 10.34.38 20.42 0 9.31-.77 19.65-.77 10.35-3.54 25.04l67.62 50.77q11 8.54 14.31 21.85 3.3 13.31-3.77 25.54l-42.62 73.53q-7.07 12.24-20.54 16.62-13.46 4.38-26.15-1.23l-76.92-32.92q-18.7 15.69-37.62 26.92-18.92 11.23-39.38 17.77L558.54-152q-2.46 13.69-12.73 22.85-10.27 9.15-24.19 9.15h-83.24Zm1.62-40h78.23L533-268.31q30.23-8 54.42-21.96 24.2-13.96 49.27-38.27L736.46-286l39.77-68-87.54-65.77q5-17.08 6.62-31.42 1.61-14.35 1.61-28.81 0-15.23-1.61-28.81-1.62-13.57-6.62-29.88L777.77-606 738-674l-102.08 42.77q-18.15-19.92-47.73-37.35-29.57-17.42-55.96-23.11L520-800h-79.77l-12.46 107.54q-30.23 6.46-55.58 20.81-25.34 14.34-50.42 39.42L222-674l-39.77 68L269-541.23q-5 13.46-7 29.23t-2 32.77q0 15.23 2 30.23t6.23 29.23l-86 65.77L222-286l99-42q23.54 23.77 48.88 38.12 25.35 14.34 57.12 22.34L440-160Zm38.92-220q41.85 0 70.93-29.08 29.07-29.07 29.07-70.92t-29.07-70.92Q520.77-580 478.92-580q-42.07 0-71.04 29.08-28.96 29.07-28.96 70.92t28.96 70.92Q436.85-380 478.92-380ZM480-480Z"/></svg></button>
             </div>
             <button class="mobile-floating-nav-search" id="btn-pesquisar-mobile" onclick="toggleBuscaMobile()" title="Pesquisar" aria-label="Pesquisar"><svg class="mobile-nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M381.54-350.77q-95.92 0-162.58-66.65-66.65-66.66-66.65-162.58 0-95.92 66.65-162.58 66.66-66.65 162.58-66.65 95.92 0 162.58 66.65 66.65 66.66 66.65 162.58 0 41.69-14.77 80.69t-38.77 66.69l236.31 236.31q5.61 5.62 6 13.77.38 8.16-6 14.54-6.39 6.38-14.16 6.38-7.76 0-14.15-6.38L528.92-404.31q-30 25.54-69 39.54t-78.38 14Zm0-40q79.61 0 134.42-54.81 54.81-54.8 54.81-134.42 0-79.62-54.81-134.42-54.81-54.81-134.42-54.81-79.62 0-134.42 54.81-54.81 54.8-54.81 134.42 0 79.62 54.81 134.42 54.8 54.81 134.42 54.81Z"/></svg></button>
         </div>
@@ -1504,14 +1311,14 @@
                 <div class="dicionario-logo">{{ metadados.icone_html | safe }}</div>
                 <div>
                     <h1>{{ metadados.html }}</h1>
-                    <div class="app-bar-subtitle">Versão {{ metadados.versao }} ({{ metadados.ano }})</div>
+                    <div class="app-bar-subtitle">Vers├úo {{ metadados.versao }} ({{ metadados.ano }})</div>
                 </div>
             </div>
         </div>
         <div class="app-bar-actions">
-            <button class="app-bar-btn" onclick="abrirModalGlobal('modal-info')">Informações</button>
+            <button class="app-bar-btn" onclick="abrirModalGlobal('modal-info')">Informa├º├Áes</button>
             <button class="app-bar-btn" onclick="abrirModalGlobal('modal-citar')">Como citar</button>
-            <button class="app-bar-btn" onclick="abrirModalGlobal('modal-referencias')">Referências</button>
+            <button class="app-bar-btn" onclick="abrirModalGlobal('modal-referencias')">Refer├¬ncias</button>
         </div>
     </header>
 
@@ -1523,19 +1330,19 @@
 
         <div class="sidebar-section mobile-nav-actions">
             <div style="font-size: 0.75rem; line-height: 1.4; color: var(--cor-texto-secundario); margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #eee;">
-                {{ metadados.autor }} &bull; Versão {{ metadados.versao }} ({{ metadados.ano }})
+                {{ metadados.autor }} &bull; Vers├úo {{ metadados.versao }} ({{ metadados.ano }})
             </div>
-            <button class="app-bar-btn" onclick="abrirModalGlobal('modal-info')" style="background: var(--cor-primaria); margin-bottom: 4px;">Informações</button>
+            <button class="app-bar-btn" onclick="abrirModalGlobal('modal-info')" style="background: var(--cor-primaria); margin-bottom: 4px;">Informa├º├Áes</button>
             <button class="app-bar-btn" onclick="abrirModalGlobal('modal-citar')" style="background: var(--cor-primaria); margin-bottom: 4px;">Como citar</button>
-            <button class="app-bar-btn" onclick="abrirModalGlobal('modal-referencias')" style="background: var(--cor-primaria);">Referências</button>
+            <button class="app-bar-btn" onclick="abrirModalGlobal('modal-referencias')" style="background: var(--cor-primaria);">Refer├¬ncias</button>
         </div>
 
         <div class="sidebar-section">
             <div class="sidebar-label">Pesquisa</div>
             <div class="busca-wrapper">
                 <div style="position: relative;">
-                    <input type="text" id="search-input" placeholder="Buscar termo..." aria-label="Buscar termo no dicionário" style="padding-right: 40px;">
-                    <button type="button" id="btn-limpar-pesquisa-desktop" aria-label="Limpar busca" title="Limpar busca" style="display: none; width: auto; position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--cor-texto-secundario); font-size: 1.1rem; cursor: pointer; padding: 4px 8px; box-shadow: none;">✕</button>
+                    <input type="text" id="search-input" placeholder="Buscar termo..." aria-label="Buscar termo no dicion├írio" style="padding-right: 40px;">
+                    <button type="button" id="btn-limpar-pesquisa-desktop" aria-label="Limpar busca" title="Limpar busca" style="display: none; width: auto; position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--cor-texto-secundario); font-size: 1.1rem; cursor: pointer; padding: 4px 8px; box-shadow: none;">Ô£ò</button>
                 </div>
                 <button id="search-button" type="button">&#128269; Buscar</button>
             </div>
@@ -1543,8 +1350,8 @@
 
         <div class="sidebar-section">
             <div class="sidebar-label">Filtros</div>
-            <select id="filtro-semantico" class="filtro-select" aria-label="Filtrar por campo semântico">
-                <option value="">Todos os campos semânticos</option>
+            <select id="filtro-semantico" class="filtro-select" aria-label="Filtrar por campo sem├óntico">
+                <option value="">Todos os campos sem├ónticos</option>
             </select>
             <select id="filtro-classe" class="filtro-select" aria-label="Filtrar por classe gramatical">
                 <option value="">Todas as classes</option>
@@ -1552,26 +1359,21 @@
         </div>
 
         <div class="sidebar-section">
-            <div class="sidebar-label">Ordenação</div>
+            <div class="sidebar-label">Ordena├º├úo</div>
             <div class="ordenacao">
                 <label>
-                    <input type="checkbox" id="ordenar-traducao"> Ordenar por tradução
+                    <input type="checkbox" id="ordenar-traducao"> Ordenar por tradu├º├úo
                 </label>
             </div>
         </div>
 
         <div class="sidebar-section">
-            <div class="sidebar-label">Visualização</div>
+            <div class="sidebar-label">Visualiza├º├úo</div>
             <div style="display: flex; gap: 8px;">
-                <button id="btn-modo-cards" onclick="mudarModoVisualizacao('cards')" class="filtro-select" style="flex: 1; background: var(--cor-primaria); color: white; border: none; font-weight: 600;" aria-pressed="true">📱 Cards</button>
-                <button id="btn-modo-lista" onclick="mudarModoVisualizacao('lista')" class="filtro-select" style="flex: 1; border: 1px solid var(--cor-borda);" aria-pressed="false">📄 Lista</button>
+                <button id="btn-modo-cards" onclick="mudarModoVisualizacao('cards')" class="filtro-select" style="flex: 1; background: var(--cor-primaria); color: white; border: none; font-weight: 600;" aria-pressed="true">­ƒô▒ Cards</button>
+                <button id="btn-modo-lista" onclick="mudarModoVisualizacao('lista')" class="filtro-select" style="flex: 1; border: 1px solid var(--cor-borda);" aria-pressed="false">­ƒôä Lista</button>
             </div>
-            <button id="btn-modo-salvos" onclick="mudarModoVisualizacao('salvos')" class="filtro-select" style="width: 100%; margin-top: 8px; border: 1px solid var(--cor-borda);" aria-pressed="false">🔖 Salvos (<span id="contagem-salvos">0</span>)</button>
-            <div class="ordenacao" style="margin-top: 12px;">
-                <label>
-                    <input type="checkbox" id="visao-completa" onchange="document.body.classList.toggle('modo-completo', this.checked)"> Visualização Completa
-                </label>
-            </div>
+            <button id="btn-modo-salvos" onclick="mudarModoVisualizacao('salvos')" class="filtro-select" style="width: 100%; margin-top: 8px; border: 1px solid var(--cor-borda);" aria-pressed="false">­ƒöû Salvos (<span id="contagem-salvos">0</span>)</button>
         </div>
 
         <div class="contador" id="contador-itens">
@@ -1584,11 +1386,11 @@
         </div>
     </aside>
     <!-- Toggle desktop sidebar button -->
-    <button class="sidebar-desktop-toggle" id="sidebar-desktop-toggle" onclick="toggleSidebarDesktop()" title="Recolher Filtros" aria-label="Recolher Filtros" aria-expanded="true" aria-controls="sidebar">‹</button>
+    <button class="sidebar-desktop-toggle" id="sidebar-desktop-toggle" onclick="toggleSidebarDesktop()" title="Recolher Filtros" aria-label="Recolher Filtros" aria-expanded="true" aria-controls="sidebar">ÔÇ╣</button>
 
     <!-- FLOATING MENU LIST MODE -->
-    <button type="button" id="btn-topo" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" style="display: none;" title="Voltar ao Topo" aria-label="Voltar ao topo">⬆</button>
-    <button type="button" id="btn-voltar" onclick="toggleMenu()" style="display: none;" title="Categorias Rápidas" aria-label="Abrir categorias rápidas" aria-haspopup="true" aria-expanded="false" aria-controls="menu">☰</button>
+    <button type="button" id="btn-topo" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" style="display: none;" title="Voltar ao Topo" aria-label="Voltar ao topo">Ô¼å</button>
+    <button type="button" id="btn-voltar" onclick="toggleMenu()" style="display: none;" title="Categorias R├ípidas" aria-label="Abrir categorias r├ípidas" aria-haspopup="true" aria-expanded="false" aria-controls="menu">Ôÿ░</button>
     <div id="menu" class="menu"></div>
 
     <!-- Tela de Categorias (mobile) -->
@@ -1603,20 +1405,23 @@
     <!-- Main Content -->
     <main class="conteudo-principal" id="conteudo-principal" tabindex="-1">
 
-        <div id="barra-container" style="margin: 0 -20px 24px -20px; padding: 16px 20px; background: white; border-radius: var(--raio); box-shadow: var(--sombra-suave); border: 1px solid rgba(0,0,0,0.05);">
-            <div style="display: flex; justify-content: flex-start; align-items: center; cursor: pointer; user-select: none; gap: 8px;" onclick="const c = document.getElementById('barra-content'); const i = document.getElementById('barra-icone'); if(c.classList.contains('barra-escondida')){ c.classList.remove('barra-escondida'); i.style.transform='rotate(0deg)'; }else{ c.classList.add('barra-escondida'); i.style.transform='rotate(-90deg)'; }">
-                <span id="barra-icone" style="font-size: 1.6rem; color: var(--cor-primaria); transition: transform 0.3s ease; line-height: 1; display: inline-flex; align-items: center; justify-content: center;">▼</span>
-                <h3 style="margin: 0; font-size: 1.6rem; font-weight: 700; color: var(--cor-primaria);">Categorias</h3>
+        <div id="barra-container" style="display: none; margin-bottom: 24px; padding: 20px; ">
+            <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; margin-bottom: 8px;" onclick="document.getElementById('barra-content').classList.toggle('barra-escondida')">
+                <h3 style="margin: 0; font-size: 1.1rem; color: var(--cor-primaria);">Categorias <span style="font-size: 0.8em; margin-left: 4px;">Ôû╝</span></h3>
+                <label style="font-size: 0.85rem; display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--cor-texto-secundario);" onclick="event.stopPropagation()">
+                    <input type="checkbox" id="check-subcategorias" checked onchange="document.getElementById('barra-content').classList.toggle('ocultar-sub', !this.checked)">
+                    Mostrar subcategorias
+                </label>
             </div>
-            <div id="barra-content" class="barra-content-animado">
-                <div class="panel" id="barra" style="display: flex; flex-wrap: wrap; gap: 8px; border-top: 1px solid #eee; padding-top: 12px; margin-top: 12px; min-height: 0; overflow: hidden;">
+            <div id="barra-content" style="transition: all 0.3s ease;">
+                <div class="panel" id="barra" style="display: flex; flex-wrap: wrap; gap: 8px; border-top: 1px solid #eee; padding-top: 12px;">
                     <!-- Categorias injetadas via JS -->
                 </div>
             </div>
         </div>
         
         <div id="acoes-salvos-container" style="display: none; padding: 0 20px 16px 20px; text-align: right;">
-            <button onclick="apagarTodosSalvos()" class="filtro-select" style="border: 1px solid #ef4444; color: #ef4444; background: transparent; padding: 6px 12px; border-radius: var(--raio-borda); font-weight: 600; cursor: pointer; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#fef2f2'" onmouseout="this.style.backgroundColor='transparent'">🗑️ Apagar todos os itens salvos</button>
+            <button onclick="apagarTodosSalvos()" class="filtro-select" style="border: 1px solid #ef4444; color: #ef4444; background: transparent; padding: 6px 12px; border-radius: var(--raio-borda); font-weight: 600; cursor: pointer; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#fef2f2'" onmouseout="this.style.backgroundColor='transparent'">­ƒùæ´©Å Apagar todos os itens salvos</button>
         </div>
 
         <div id="grid-container" class="grid-container">
@@ -1638,8 +1443,8 @@
             <div class="modal-header">
                 <div class="modal-header-titulo">
                     <h2 id="modal-titulo"></h2>
-                    <button class="modal-audio-btn" id="modal-audio-btn" style="display: none;" title="Ouvir pronúncia" aria-label="Ouvir pronúncia">
-                        🔊
+                    <button class="modal-audio-btn" id="modal-audio-btn" style="display: none;" title="Ouvir pron├║ncia" aria-label="Ouvir pron├║ncia">
+                        ­ƒöè
                     </button>
                     <button class="modal-bookmark-btn" id="modal-bookmark-btn" title="Salvar item" aria-label="Salvar item">
                         <svg class="bookmark-icon-add" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="m480-261.54-158.77 68.15q-36.15 15.46-68.69-5.92Q220-220.69 220-259.46v-488.23Q220-778 241-799q21-21 51.31-21H490q12.77 0 21.38 8.62Q520-802.77 520-790t-8.62 21.38Q502.77-760 490-760H292.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v486.84q0 6.54 5.58 10.39 5.57 3.84 11.73 1.15L480-328l182.69 78.69q6.16 2.69 11.73-1.15 5.58-3.85 5.58-10.39V-490q0-12.77 8.62-21.38Q697.23-520 710-520t21.38 8.62Q740-502.77 740-490v230.54q0 38.77-32.54 60.15-32.54 21.38-68.69 5.92L480-261.54ZM480-760H280h240-40Zm200 80h-50q-12.77 0-21.38-8.62Q600-697.23 600-710t8.62-21.38Q617.23-740 630-740h50v-50q0-12.77 8.62-21.38Q697.23-820 710-820t21.38 8.62Q740-802.77 740-790v50h50q12.77 0 21.38 8.62Q820-722.77 820-710t-8.62 21.38Q802.77-680 790-680h-50v50q0 12.77-8.62 21.38Q722.77-600 710-600t-21.38-8.62Q680-617.23 680-630v-50Z"/></svg>
@@ -1648,7 +1453,7 @@
                 </div>
                 <div class="modal-nav">
                     <button class="modal-nav-btn" id="modal-anterior" title="Anterior" aria-label="Item anterior">&#8249;</button>
-                    <button class="modal-nav-btn" id="modal-proximo" title="Próximo" aria-label="Próximo item">&#8250;</button>
+                    <button class="modal-nav-btn" id="modal-proximo" title="Pr├│ximo" aria-label="Pr├│ximo item">&#8250;</button>
                 </div>
                 <button class="modal-fechar" id="modal-fechar" aria-label="Fechar">&times;</button>
             </div>
@@ -1662,17 +1467,17 @@
     <div class="sheet-overlay" id="sheet-overlay" onclick="fecharBottomSheet()"></div>
     <div class="bottom-sheet" id="bottom-sheet-filtros">
         <div class="sheet-header">
-            <h3>Configurações</h3>
-            <button class="btn-fechar-sheet" onclick="fecharBottomSheet()" style="background: none; border: none; font-size: 1.3rem; cursor: pointer;">✕</button>
+            <h3>Configura├º├Áes</h3>
+            <button class="btn-fechar-sheet" onclick="fecharBottomSheet()" style="background: none; border: none; font-size: 1.3rem; cursor: pointer;">Ô£ò</button>
         </div>
         <div style="margin-top: 16px;">
             <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--cor-texto-secundario); margin-bottom: 10px;">Filtros</div>
             <button type="button" onclick="abrirTelaCategorias()" style="width: 100%; padding: 12px 16px; background: var(--cor-primaria-light); color: var(--cor-primaria); border: none; border-radius: var(--raio); font-weight: 600; cursor: pointer; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
                 <span>Ver todas as categorias</span>
-                <span aria-hidden="true">›</span>
+                <span aria-hidden="true">ÔÇ║</span>
             </button>
             <div style="margin-bottom: 16px;">
-                <label for="filtro-semantico-mobile" style="font-size: 0.8rem; font-weight: 600; color: var(--cor-texto-secundario);">Campo Semântico</label>
+                <label for="filtro-semantico-mobile" style="font-size: 0.8rem; font-weight: 600; color: var(--cor-texto-secundario);">Campo Sem├óntico</label>
                 <select id="filtro-semantico-mobile" class="filtro-select" style="width: 100%; margin-top: 4px; padding: 12px; border-radius: 8px; border: 1px solid #ddd;"></select>
             </div>
             <div style="margin-bottom: 16px;">
@@ -1685,9 +1490,9 @@
 
             <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--cor-texto-secundario); margin: 24px 0 10px; padding-top: 16px; border-top: 1px solid #eee;">Sobre</div>
             <div style="display: flex; flex-direction: column; gap: 8px;">
-                <button class="app-bar-btn" onclick="abrirModalGlobal('modal-info')" style="background: var(--cor-primaria); width: 100%; text-align: center;">Informações</button>
+                <button class="app-bar-btn" onclick="abrirModalGlobal('modal-info')" style="background: var(--cor-primaria); width: 100%; text-align: center;">Informa├º├Áes</button>
                 <button class="app-bar-btn" onclick="abrirModalGlobal('modal-citar')" style="background: var(--cor-primaria); width: 100%; text-align: center;">Como citar</button>
-                <button class="app-bar-btn" onclick="abrirModalGlobal('modal-referencias')" style="background: var(--cor-primaria); width: 100%; text-align: center;">Referências</button>
+                <button class="app-bar-btn" onclick="abrirModalGlobal('modal-referencias')" style="background: var(--cor-primaria); width: 100%; text-align: center;">Refer├¬ncias</button>
             </div>
         </div>
     </div>
@@ -1696,13 +1501,13 @@
     <div class="modal-overlay" id="modal-info" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-info">
         <div class="modal-conteudo">
             <div class="modal-header">
-                <div class="modal-header-titulo"><h2 id="titulo-modal-info">Informações e Introdução</h2></div>
+                <div class="modal-header-titulo"><h2 id="titulo-modal-info">Informa├º├Áes e Introdu├º├úo</h2></div>
                 <button class="modal-fechar" onclick="fecharModalGlobal('modal-info')" aria-label="Fechar">&times;</button>
             </div>
             <div class="modal-body" style="font-size: 1.1rem; line-height: 1.7; color: var(--cor-texto);">
                 <p><strong>{{ metadados.html }}</strong></p>
-                <p><strong>Autoria e Colaboração:</strong> {{ metadados.autor }}</p>
-                <p><strong>Versão:</strong> {{ metadados.versao }}</p>
+                <p><strong>Autoria e Colabora├º├úo:</strong> {{ metadados.autor }}</p>
+                <p><strong>Vers├úo:</strong> {{ metadados.versao }}</p>
                 <p><strong>Ano:</strong> {{ metadados.ano }}</p>
                 <br>
                 {{ textos.intro_html | safe }}
@@ -1717,9 +1522,9 @@
                 <button class="modal-fechar" onclick="fecharModalGlobal('modal-citar')" aria-label="Fechar">&times;</button>
             </div>
             <div class="modal-body" style="padding: 24px; font-size: 1.1rem; line-height: 1.7;">
-                <p>Para referenciar este dicionário em trabalhos acadêmicos, utilize o seguinte formato:</p>
+                <p>Para referenciar este dicion├írio em trabalhos acad├¬micos, utilize o seguinte formato:</p>
                 <div style="background: #f1f5f9; padding: 16px; border-radius: 8px; margin-top: 12px; font-family: monospace;">
-                    {{ metadados.autor }}. <strong>{{ metadados.html }}</strong>. Versão {{ metadados.versao }}, {{ metadados.ano }}.
+                    {{ metadados.autor }}. <strong>{{ metadados.html }}</strong>. Vers├úo {{ metadados.versao }}, {{ metadados.ano }}.
                 </div>
             </div>
         </div>
@@ -1728,14 +1533,14 @@
     <div class="modal-overlay" id="modal-referencias" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-referencias">
         <div class="modal-conteudo">
             <div class="modal-header">
-                <div class="modal-header-titulo"><h2 id="titulo-modal-referencias">Referências</h2></div>
+                <div class="modal-header-titulo"><h2 id="titulo-modal-referencias">Refer├¬ncias</h2></div>
                 <button class="modal-fechar" onclick="fecharModalGlobal('modal-referencias')" aria-label="Fechar">&times;</button>
             </div>
             <div class="modal-body" style="padding: 24px; font-size: 1.1rem; line-height: 1.7;">
-                <p>Lista de referências bibliográficas utilizadas na construção deste dicionário:</p>
+                <p>Lista de refer├¬ncias bibliogr├íficas utilizadas na constru├º├úo deste dicion├írio:</p>
                 <ul style="margin-top: 12px; margin-left: 20px;">
-                    <li>Referência 1...</li>
-                    <li>Referência 2...</li>
+                    <li>Refer├¬ncia 1...</li>
+                    <li>Refer├¬ncia 2...</li>
                 </ul>
             </div>
         </div>
@@ -1761,7 +1566,7 @@
 
             var isRecolhida = sidebar.classList.toggle('recolhida');
             conteudo.classList.toggle('expandido');
-            btn.innerHTML = isRecolhida ? '›' : '‹';
+            btn.innerHTML = isRecolhida ? 'ÔÇ║' : 'ÔÇ╣';
             const legenda = isRecolhida ? 'Expandir Filtros' : 'Recolher Filtros';
             btn.title = legenda;
             btn.setAttribute('aria-label', legenda);
@@ -1769,7 +1574,7 @@
         }
 
         // ==============================================
-        // CONFIGURAÇÕES E VARIÁVEIS GLOBAIS
+        // CONFIGURA├ç├òES E VARI├üVEIS GLOBAIS
         // ==============================================
         window.TAMANHO_LOTE = 20;
         let dadosFiltrados = [];
@@ -1821,9 +1626,9 @@
             const alvo = elementoParaFocar || elementosFocaveis(container)[0];
             if (!alvo) return;
 
-            // O container tem "transition: all 0.2s", incluindo visibility — o elemento só
-            // fica realmente focável quando essa transição termina. Espera o transitionend,
-            // com um fallback por tempo caso ele não dispare (ex.: prefers-reduced-motion).
+            // O container tem "transition: all 0.2s", incluindo visibility ÔÇö o elemento s├│
+            // fica realmente foc├ível quando essa transi├º├úo termina. Espera o transitionend,
+            // com um fallback por tempo caso ele n├úo dispare (ex.: prefers-reduced-motion).
             let focado = false;
             const focar = () => {
                 if (focado) return;
@@ -1878,7 +1683,7 @@
                 const bruto = localStorage.getItem(CHAVE_SALVOS);
                 return new Set(bruto ? JSON.parse(bruto) : []);
             } catch (e) {
-                console.warn('Não foi possível carregar itens salvos:', e);
+                console.warn('N├úo foi poss├¡vel carregar itens salvos:', e);
                 return new Set();
             }
         }
@@ -1887,7 +1692,7 @@
             try {
                 localStorage.setItem(CHAVE_SALVOS, JSON.stringify(Array.from(window.itensSalvos)));
             } catch (e) {
-                console.warn('Não foi possível salvar itens localmente:', e);
+                console.warn('N├úo foi poss├¡vel salvar itens localmente:', e);
             }
             atualizarContagemSalvos();
         }
@@ -1909,12 +1714,12 @@
                 window.categoriasColapsadas.delete(caminho);
                 headerEl.classList.remove('colapsado');
                 const icon = headerEl.querySelector('.toggle-icon');
-                if (icon) icon.textContent = '▼ ';
+                if (icon) icon.textContent = 'Ôû╝ ';
             } else {
                 window.categoriasColapsadas.add(caminho);
                 headerEl.classList.add('colapsado');
                 const icon = headerEl.querySelector('.toggle-icon');
-                if (icon) icon.textContent = '▶ ';
+                if (icon) icon.textContent = 'ÔûÂ ';
             }
             
             const container = document.getElementById('grid-container');
@@ -1942,49 +1747,6 @@
             }
         };
 
-        window.abrirCategoriaSeColapsada = function(caminho) {
-            let abriuAlguma = false;
-            const parts = caminho.split('|');
-            for (let i = 1; i <= parts.length; i++) {
-                const p = parts.slice(0, i).join('|');
-                if (window.categoriasColapsadas.has(p)) {
-                    window.categoriasColapsadas.delete(p);
-                    abriuAlguma = true;
-                    const headers = document.querySelectorAll(`h2[data-caminho="${p}"], h3[data-caminho="${p}"]`);
-                    headers.forEach(h => {
-                        h.classList.remove('colapsado');
-                        const icon = h.querySelector('.toggle-icon');
-                        if (icon) icon.textContent = '▼ ';
-                    });
-                }
-            }
-            if (abriuAlguma) {
-                const container = document.getElementById('grid-container');
-                const items = container.children;
-                for (let i = 0; i < items.length; i++) {
-                    const item = items[i];
-                    if (!item.dataset.caminho) continue;
-                    
-                    if (item.tagName === 'H2' || item.tagName === 'H3') {
-                        const hParts = item.dataset.caminho.split('|');
-                        let hideHeader = false;
-                        for (let j = 1; j < hParts.length; j++) {
-                            const parentPath = hParts.slice(0, j).join('|');
-                            if (window.categoriasColapsadas.has(parentPath)) {
-                                hideHeader = true;
-                                break;
-                            }
-                        }
-                        item.style.display = hideHeader ? 'none' : '';
-                    } else {
-                        const c = item.dataset.caminho;
-                        const hideItem = Array.from(window.categoriasColapsadas).some(colap => c === colap || c.startsWith(colap + '|'));
-                        item.style.display = hideItem ? 'none' : '';
-                    }
-                }
-            }
-        };
-
 
         function adaptarDadosParaTemplate(item) {
             let dados = { ...item };
@@ -2000,29 +1762,9 @@
                     dados.AUDIOS_ADICIONAIS = dados.AUDIOS_ARRAY.slice(1);
                 }
             }
-
-            if (item.TERMO) {
-                const termos = item.TERMO.split('~').map(t => t.trim());
-                const audios = item.AUDIO ? item.AUDIO.split('~').map(a => a.trim()).filter(Boolean) : [];
-                
-                dados.TEM_TERMOS_MISTOS = true;
-                dados.NAO_TEM_TERMOS_MISTOS = false;
-                dados.TERMOS_MISTOS = termos.map((t, index) => {
-                    return {
-                        TERMO_PARTE: t,
-                        URL: audios[index] ? resolverMidia(audios[index], 'audio') : null,
-                        TEM_AUDIO: !!audios[index],
-                        NAO_E_O_ULTIMO: index < termos.length - 1
-                    };
-                });
-            } else {
-                dados.TEM_TERMOS_MISTOS = false;
-                dados.NAO_TEM_TERMOS_MISTOS = true;
-            }
             
             dados.TEM_INFO_GERAL = !!(item.INDEX || item.CLASSE || item.CAMPO_SEMANTICO || item.SUB_CAMPO_SEMANTICO);
             dados.TEM_PRONUNCIA = !!(item.FONEMICA || item.FONETICA);
-            dados.TEM_VARIACOES_TRAY = dados.TEM_INFO_GERAL || dados.TEM_AUDIOS_ADICIONAIS || dados.TEM_PRONUNCIA;
             
             if (item.SIGNIFICADOS && item.SIGNIFICADOS.length > 0) {
                 dados.SIGNIFICADOS = item.SIGNIFICADOS.map((sig, index) => {
@@ -2119,7 +1861,7 @@
                     textoProcessado = textoProcessado.slice(0, match.index) + substituicao + textoProcessado.slice(match.index + full.length);
                 }
 
-                // Resolve variáveis simples {{ CHAVE }}
+                // Resolve vari├íveis simples {{ CHAVE }}
                 const regexVariavel = /\{\{\s*(\w+)\s*\}\}/g;
                 textoProcessado = textoProcessado.replace(regexVariavel, (m, chave) => {
                     const valor = contextoAtual[chave];
@@ -2131,7 +1873,6 @@
         }
         
         window.itensSalvos = carregarSalvosPersistidos();
-
 
 
         function idDoItem(item) {
@@ -2204,16 +1945,17 @@
 
             if (modo === 'lista') {
                 gridContainer.className = 'grid-container modo-lista';
+                if(btnTopo) btnTopo.style.display = 'block';
+                if(barraContainer) barraContainer.style.display = 'block';
+                if(btnVoltar) btnVoltar.style.display = 'block';
             } else {
                 // 'cards' e 'salvos' usam o mesmo layout em grade
                 gridContainer.className = 'grid-container';
+                if(btnTopo) btnTopo.style.display = 'none';
+                if(barraContainer) barraContainer.style.display = 'none';
+                if(btnVoltar) btnVoltar.style.display = 'none';
                 if(menuBtn) menuBtn.classList.remove('menu-ativo');
             }
-            
-            // Botões flutuantes devem estar visíveis em TODAS as visualizações
-            if(btnTopo) btnTopo.style.display = 'block';
-            if(btnVoltar) btnVoltar.style.display = 'block';
-            if(barraContainer) barraContainer.style.display = 'block';
 
             ultimoIndiceExibido = 0;
             gridContainer.innerHTML = '';
@@ -2223,17 +1965,17 @@
         }
 
         // ==============================================
-        // FUNÇÕES AUXILIARES
+        // FUN├ç├òES AUXILIARES
         // ==============================================
         function resolverMidia(nomeArquivo, pasta) {
             if (!nomeArquivo) return '';
             
-            // Se já for um Base64 ou Blob URL, devolve direto
+            // Se j├í for um Base64 ou Blob URL, devolve direto
             if (nomeArquivo.startsWith('data:') || nomeArquivo.startsWith('blob:')) {
                 return nomeArquivo;
             }
             
-            // Se já tiver a pasta no caminho (ex: foto/gato.jpg)
+            // Se j├í tiver a pasta no caminho (ex: foto/gato.jpg)
             if (nomeArquivo.startsWith(pasta + '/')) {
                 return nomeArquivo;
             }
@@ -2306,14 +2048,14 @@
             if (!itens || itens.length === 0) {
                 if (modoVisualizacao === 'salvos') {
                     gridContainer.innerHTML = `<div class="sem-resultados">
-                        <div style="font-size: 3rem; margin-bottom: 16px;">🔖</div>
+                        <div style="font-size: 3rem; margin-bottom: 16px;">­ƒöû</div>
                         <h3>Nenhum item salvo ainda</h3>
-                        <p>Toque no ícone de marcador em um item para guardá-lo aqui.</p>
+                        <p>Toque no ├¡cone de marcador em um item para guard├í-lo aqui.</p>
                     </div>`;
                     return;
                 }
                 gridContainer.innerHTML = `<div class="sem-resultados">
-                    <div style="font-size: 3rem; margin-bottom: 16px;">🔍</div>
+                    <div style="font-size: 3rem; margin-bottom: 16px;">­ƒöì</div>
                     <h3>Nenhum item encontrado</h3>
                     <p>Tente ajustar os filtros ou o termo de busca.</p>
                 </div>`;
@@ -2322,7 +2064,7 @@
             const fragment = document.createDocumentFragment();
             itens.forEach(item => {
                 if (modoVisualizacao === 'cards' || modoVisualizacao === 'lista') {
-                    if (true) { // Sempre mostrar cabeçalhos, mesmo ao ordenar por tradução
+                    if (!ordenarPorTraducao) {
                         const chavesSemanticas = [
                             'CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO_1', 
                             'SUB_CAMPO_SEMANTICO_2', 'SUB_CAMPO_SEMANTICO_3', 'SUB_CAMPO_SEMANTICO_4', 
@@ -2354,7 +2096,7 @@
                                     
                                     const icone = document.createElement('span');
                                     icone.className = 'toggle-icon';
-                                    icone.textContent = window.categoriasColapsadas.has(idCaminho) ? '▶ ' : '▼ ';
+                                    icone.textContent = window.categoriasColapsadas.has(idCaminho) ? 'ÔûÂ ' : 'Ôû╝ ';
                                     header.appendChild(icone);
                                     
                                     const textoNode = document.createTextNode(val);
@@ -2379,43 +2121,6 @@
                                         header.style.color = '#555';
                                     }
                                     fragment.appendChild(header);
-
-                                    // Render subcategories inline
-                                    if (window.arvoreSemantica) {
-                                        let node = window.arvoreSemantica;
-                                        const pathParts = idCaminho.split('|');
-                                        let foundNode = true;
-                                        for (const p of pathParts) {
-                                            if (node[p]) {
-                                                node = node[p];
-                                            } else {
-                                                foundNode = false;
-                                                break;
-                                            }
-                                        }
-                                        if (foundNode && Object.keys(node).length > 0) {
-                                            const inlineFilhos = document.createElement('div');
-                                            inlineFilhos.className = 'subcategorias-inline';
-                                            inlineFilhos.style = 'display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;';
-                                            
-                                            const chavesFilhos = Object.keys(node).sort((a, b) => a.localeCompare(b));
-                                            chavesFilhos.forEach(filho => {
-                                                const btn = document.createElement('a');
-                                                btn.href = '#' + filho;
-                                                btn.textContent = filho;
-                                                btn.className = 'btn-barra btn-subcategoria-inline';
-                                                const escapedC = filho.replace(/'/g, "\\'");
-                                                btn.onclick = (e) => window.clicarCategoria(e, escapedC);
-                                                inlineFilhos.appendChild(btn);
-                                            });
-                                            
-                                            if (hideHeader) inlineFilhos.style.display = 'none';
-                                            inlineFilhos.dataset.caminho = idCaminho;
-                                            inlineFilhos.dataset.tipo = 'subcategorias-container';
-                                            
-                                            fragment.appendChild(inlineFilhos);
-                                        }
-                                    }
                                 }
                             }
                         }
@@ -2482,17 +2187,6 @@
             renderizarCards(lote);
             atualizarProgresso();
             carregandoDados = false;
-            
-            // Força novo carregamento caso os itens inseridos tenham ficado ocultos 
-            // (ex: categorias fechadas) e não tenham empurrado o sentinela para baixo
-            setTimeout(() => {
-                if (ultimoIndiceExibido < dadosFiltrados.length) {
-                    const ret = sentinela.getBoundingClientRect();
-                    if (ret.top < window.innerHeight + 200) {
-                        carregarLoteFiltrado(quantidade);
-                    }
-                }
-            }, 50);
         }
 
         function setupIntersectionObserver() {
@@ -2508,7 +2202,7 @@
         // FILTRAGEM E BUSCA (APLICADA SOBRE TODOS OS DADOS)
         // ==============================================
         function normalizarTexto(texto) {
-            return texto.toString().normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+            return texto.toString().normalize('NFD').replace(/[╠Ç-═»]/g, '').toLowerCase();
         }
 
         function aplicarFiltrosEBusca() {
@@ -2562,82 +2256,11 @@
             });
 
             if (ordenarPorTraducao) {
-                // Criar Dicionário Reverso (Transfiguração de Dados) preservando mídias
-                let dictReversoMap = new Map();
-                resultados.forEach(item => {
-                    const significadosOriginais = item.SIGNIFICADOS && item.SIGNIFICADOS.length > 0 
-                        ? item.SIGNIFICADOS 
-                        : [{ TRADUCAO: item.INDEX || 'Sem Significado' }];
-
-                    significadosOriginais.forEach(sig => {
-                        let significadoPt = sig.TRADUCAO || item.INDEX || 'Sem Significado';
-                        const chaveAgrupamento = significadoPt.trim().toLowerCase();
-                        
-                        if (!dictReversoMap.has(chaveAgrupamento)) {
-                            dictReversoMap.set(chaveAgrupamento, {
-                                TERMO: significadoPt.trim(),
-                                CAMPO_SEMANTICO: item.CAMPO_SEMANTICO,
-                                SUB_CAMPO_SEMANTICO: item.SUB_CAMPO_SEMANTICO,
-                                SUB_CAMPO_SEMANTICO_1: item.SUB_CAMPO_SEMANTICO_1,
-                                SUB_CAMPO_SEMANTICO_2: item.SUB_CAMPO_SEMANTICO_2,
-                                SUB_CAMPO_SEMANTICO_3: item.SUB_CAMPO_SEMANTICO_3,
-                                SUB_CAMPO_SEMANTICO_4: item.SUB_CAMPO_SEMANTICO_4,
-                                SUB_CAMPO_SEMANTICO_5: item.SUB_CAMPO_SEMANTICO_5,
-                                SUB_CAMPO_SEMANTICO_6: item.SUB_CAMPO_SEMANTICO_6,
-                                SIGNIFICADOS: [],
-                                _ordem: chaveAgrupamento
-                            });
-                        }
-                        
-                        // Preservar todas as propriedades do significado original (Mídias, Exemplos, Textos)
-                        let sigReverso = { ...sig };
-                        
-                        // Injetar a palavra indígena no lugar da tradução para o card reverso
-                        sigReverso.TRADUCAO = item.TERMO;
-                        
-                        // Passar a classe e a pronúncia como tags distintas
-                        sigReverso.CLASSE_REVERSO = item.CLASSE || '';
-                        sigReverso.FONEMICA_REVERSO = item.FONEMICA || '';
-                        sigReverso.FONETICA_REVERSO = item.FONETICA || '';
-                        
-                        // Extrair o primeiro áudio original da palavra indígena, se houver
-                        if (item.AUDIO) {
-                            const audios = item.AUDIO.split('~').map(a => a.trim()).filter(Boolean);
-                            if (audios.length > 0) {
-                                sigReverso.TEM_AUDIO_REVERSO = true;
-                                sigReverso.AUDIO_REVERSO_URL = resolverMidia(audios[0], 'audio');
-                            }
-                        }
-
-                        dictReversoMap.get(chaveAgrupamento).SIGNIFICADOS.push(sigReverso);
-                    });
-                });
-                
-                resultados = Array.from(dictReversoMap.values());
-                
-                // Ordenar as palavras indígenas dentro de cada significado alfabeticamente
-                resultados.forEach(res => {
-                    if (res.SIGNIFICADOS) {
-                        res.SIGNIFICADOS.sort((a, b) => (a.TRADUCAO || '').localeCompare(b.TRADUCAO || '', 'pt-BR'));
-                    }
-                });
-                
-                // Ordenar por Hierarquia Semântica e depois Alfabeticamente
-                const chavesSemanticas = [
-                    'CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO_1', 
-                    'SUB_CAMPO_SEMANTICO_2', 'SUB_CAMPO_SEMANTICO_3', 'SUB_CAMPO_SEMANTICO_4', 
-                    'SUB_CAMPO_SEMANTICO_5', 'SUB_CAMPO_SEMANTICO_6'
-                ];
-                
                 resultados.sort((a, b) => {
-                    for (let i = 0; i < chavesSemanticas.length; i++) {
-                        const valA = a[chavesSemanticas[i]] || (i === 0 ? 'Outros' : '');
-                        const valB = b[chavesSemanticas[i]] || (i === 0 ? 'Outros' : '');
-                        if (valA !== valB) return valA.localeCompare(valB, 'pt-BR');
-                    }
-                    return a._ordem.localeCompare(b._ordem, 'pt-BR');
+                    const textA = (a.INDEX || '').toLowerCase();
+                    const textB = (b.INDEX || '').toLowerCase();
+                    return textA.localeCompare(textB, 'pt-BR');
                 });
-
             } else {
                 const chavesSemanticas = [
                     'CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO_1', 
@@ -2679,7 +2302,7 @@
             const semanticos = [...new Set(dicio.map(i => i.CAMPO_SEMANTICO).filter(Boolean))].sort();
             const classes = [...new Set(dicio.map(i => i.CLASSE).filter(Boolean))].sort();
             
-            filtroSemantico.innerHTML = '<option value="">Todos os campos semânticos</option>';
+            filtroSemantico.innerHTML = '<option value="">Todos os campos sem├ónticos</option>';
             semanticos.forEach(s => {
                 const opt = document.createElement('option');
                 opt.value = s;
@@ -2754,15 +2377,14 @@
         }
 
         function preencherModal(item) {
-            if (item.CAMPO_SEMANTICO) {
-                const sub = item.SUB_CAMPO_SEMANTICO ? ` › ${item.SUB_CAMPO_SEMANTICO}` : '';
-                modalTitulo.innerHTML = `<span style="font-size: 0.85rem; padding: 4px 10px; border-radius: 12px; background: #dcfce7; color: #15803d; font-weight: 600;">${item.CAMPO_SEMANTICO}${sub}</span>`;
+            modalTitulo.textContent = item.TERMO || 'Item';
+            if (item.AUDIO) {
+                const audioSrc = resolverMidia(item.AUDIO.split('~')[0].trim(), 'audio');
+                modalAudioBtn.style.display = 'flex';
+                modalAudioBtn.onclick = () => tocarAudio(audioSrc, modalAudioBtn);
             } else {
-                modalTitulo.textContent = '';
+                modalAudioBtn.style.display = 'none';
             }
-            
-            // Oculta o botão antigo do modal-header, pois o player 🔊 já fica perto do termo no layout (entrada.tmpl)
-            modalAudioBtn.style.display = 'none';
             modalBookmarkBtn.classList.toggle('ativo', window.itensSalvos.has(idDoItem(item)));
             modalBookmarkBtn.onclick = () => alternarSalvo(item, modalBookmarkBtn);
             
@@ -2817,13 +2439,13 @@
         }
 
         window.tocarAudio = function(src, btn) {
-            // Clicar no mesmo botão enquanto toca funciona como pausar
+            // Clicar no mesmo bot├úo enquanto toca funciona como pausar
             if (audioAtual && botaoAudioAtual === btn && !audioAtual.paused) {
                 audioAtual.pause();
                 resetarBotaoAudio(btn);
                 return;
             }
-            // Só um áudio por vez: para o anterior antes de iniciar o novo
+            // S├│ um ├íudio por vez: para o anterior antes de iniciar o novo
             if (audioAtual) {
                 audioAtual.pause();
                 resetarBotaoAudio(botaoAudioAtual);
@@ -2835,14 +2457,14 @@
 
             if (btn) {
                 if (!btn.dataset.textoOriginal) btn.dataset.textoOriginal = btn.textContent;
-                btn.textContent = btn.textContent.includes('Ouvir') ? '⏸ Pausar' : '⏸';
+                btn.textContent = btn.textContent.includes('Ouvir') ? 'ÔÅ© Pausar' : 'ÔÅ©';
                 btn.classList.add('tocando');
             }
 
             audio.addEventListener('ended', () => resetarBotaoAudio(btn));
             audio.play().catch(() => {
                 resetarBotaoAudio(btn);
-                mostrarToast('Não foi possível reproduzir o áudio.');
+                mostrarToast('N├úo foi poss├¡vel reproduzir o ├íudio.');
             });
         };
 
@@ -2945,33 +2567,29 @@
                 });
             });
 
-            window.arvoreSemantica = arvore;
-
             let listaHtml = `<button type="button" class="categoria-linha nivel-0 ativo" data-categoria="">Todas as categorias</button>`;
             let barraHtml = `<a class="btn-barra categoria_btn ativo" href="#" onclick="clicarCategoria(event, '')" style="font-weight: bold;">Todos</a> `;
-            let menuHtml = `<a href="#app-bar-header" onclick="fecharMenu()" style="border-bottom: 1px solid rgba(255,255,255,0.2); font-weight: bold;">Início</a>`;
+            let menuHtml = `<a href="#app-bar-header" onclick="fecharMenu()" style="border-bottom: 1px solid #f1f5f9; font-weight: bold;">In├¡cio</a>`;
 
-            function percorrerArvore(nodo, depth, caminhoAnterior = '') {
+            function percorrerArvore(nodo, depth) {
                 const chaves = Object.keys(nodo).sort((a, b) => a.localeCompare(b));
                 chaves.forEach(c => {
-                    const caminhoAtual = caminhoAnterior ? `${caminhoAnterior}|${c}` : c;
                     const escapedAttr = c.replace(/"/g, '&quot;');
                     const indent = 20 + (depth * 18);
                     listaHtml += `<button type="button" class="categoria-linha nivel-${depth}" data-categoria="${escapedAttr}" style="padding-left:${indent}px;">${c}</button>`;
 
-                    if (depth === 0) {
-                        const escapedC = c.replace(/'/g, "\\'");
-                        barraHtml += `<a class="btn-barra categoria_btn" href="#${c}" onclick="clicarCategoria(event, '${escapedC}')">${c}</a> `;
-                    }
+                    const margemBarra = depth > 0 ? `margin-left: 8px; font-size: 0.85em; opacity: 0.85;` : '';
+                    const clsAdicional = depth > 0 ? ' btn-subcategoria' : '';
+                    const escapedC = c.replace(/'/g, "\\'");
+                    barraHtml += `<a class="btn-barra categoria_btn${clsAdicional}" href="#${c}" onclick="clicarCategoria(event, '${escapedC}')" style="${margemBarra}">${c}</a> `;
 
                     const padLeft = 24 + (depth * 20);
                     const fontWeight = depth === 0 ? '700' : '500';
                     const fontSize = depth === 0 ? '0.95rem' : '0.85rem';
-                    const borderB = depth === 0 ? 'border-bottom: 1px solid rgba(255,255,255,0.2);' : 'border-bottom: 1px dashed rgba(255,255,255,0.15);';
-                    const caminhoEscapado = caminhoAtual.replace(/'/g, "\\'");
-                    menuHtml += `<a class="link-categoria-menu" href="#${c}" onclick="window.abrirCategoriaSeColapsada('${caminhoEscapado}'); fecharMenu(); setTimeout(() => { document.getElementById('${c}')?.scrollIntoView(); }, 50);" style="padding-left: ${padLeft}px; font-weight: ${fontWeight}; font-size: ${fontSize}; ${borderB}">${c}</a>`;
+                    const borderB = depth === 0 ? 'border-bottom: 1px solid #f1f5f9;' : 'border-bottom: 1px dashed #f1f5f9;';
+                    menuHtml += `<a class="link-categoria-menu" href="#${c}" onclick="fecharMenu()" style="padding-left: ${padLeft}px; font-weight: ${fontWeight}; font-size: ${fontSize}; ${borderB}">${c}</a>`;
 
-                    percorrerArvore(nodo[c], depth + 1, caminhoAtual);
+                    percorrerArvore(nodo[c], depth + 1);
                 });
             }
             percorrerArvore(arvore, 0);
@@ -3165,7 +2783,7 @@
             fecharBottomSheet();
         }
 
-        // Interceptar mudarModoVisualizacao para sincronizar botões mobile
+        // Interceptar mudarModoVisualizacao para sincronizar bot├Áes mobile
         const originalMudarModo = window.mudarModoVisualizacao || function(){};
         window.mudarModoVisualizacao = function(modo) {
             originalMudarModo(modo);
@@ -3183,7 +2801,7 @@
         };
 
         // ==============================================
-        // INICIALIZAÇÃO
+        // INICIALIZA├ç├âO
         // ==============================================
         document.addEventListener("DOMContentLoaded", () => {
             atualizarAlturaHeader();
@@ -3191,37 +2809,24 @@
             window.addEventListener('resize', () => { const isMobile = window.innerWidth <= 768; if (isMobile !== mobileMode) { mobileMode = isMobile; if(isMobile){ mostrarTelaConteudo(); inicializarFiltrosMobile(); } else { mostrarTelaConteudo(); } } });
             window.addEventListener('resize', atualizarAlturaHeader);
 
-            // Controle do sumiço dos botões flutuantes ao rolar para baixo
+            // Controle do sumi├ºo dos bot├Áes flutuantes ao rolar para baixo
             let ultimoScroll = 0;
             window.addEventListener('scroll', () => {
+                if (modoVisualizacao !== 'lista') return;
                 const atualScroll = window.pageYOffset || document.documentElement.scrollTop;
                 const btnTopo = document.getElementById('btn-topo');
                 const btnVoltar = document.getElementById('btn-voltar');
                 const menuFloat = document.getElementById('menu');
-                
-                // Garante que o CSS controle a visibilidade invisível inicialmente sem quebrar as transições
-                if (btnTopo && btnTopo.style.display === 'none') {
-                    btnTopo.classList.add('btn-flutuante-oculto');
-                    btnTopo.style.display = 'block';
-                }
-                if (btnVoltar && btnVoltar.style.display === 'none') {
-                    btnVoltar.classList.add('btn-flutuante-oculto');
-                    btnVoltar.style.display = 'block';
-                }
 
-                if (atualScroll > ultimoScroll) {
-                    // Qualquer movimento para baixo -> ESCONDE os botões flutuantes
+                if (atualScroll > ultimoScroll && atualScroll > 150) {
+                    // Rolando para baixo
                     if(btnTopo) btnTopo.classList.add('btn-flutuante-oculto');
                     if(btnVoltar) btnVoltar.classList.add('btn-flutuante-oculto');
                     if(menuFloat) menuFloat.classList.remove('menu-ativo'); // Fecha menu se estiver aberto
                     if(btnVoltar) btnVoltar.setAttribute('aria-expanded', 'false');
-                } else if (atualScroll < ultimoScroll) {
-                    // Movimento para cima -> MOSTRA os botões flutuantes
-                    if(btnTopo) {
-                        // O botão de voltar ao topo não precisa aparecer se já estamos no topo
-                        if (atualScroll < 50) btnTopo.classList.add('btn-flutuante-oculto');
-                        else btnTopo.classList.remove('btn-flutuante-oculto');
-                    }
+                } else {
+                    // Rolando para cima
+                    if(btnTopo) btnTopo.classList.remove('btn-flutuante-oculto');
                     if(btnVoltar) btnVoltar.classList.remove('btn-flutuante-oculto');
                 }
                 ultimoScroll = atualScroll <= 0 ? 0 : atualScroll;
@@ -3229,28 +2834,28 @@
 
             // Fechar modais ao clicar no overlay
             document.querySelectorAll('.modal-global, .modal-overlay').forEach(overlay => {
-                if (overlay.id === 'modal-detalhes') return; // já tem handler próprio (fecharModal)
+                if (overlay.id === 'modal-detalhes') return; // j├í tem handler pr├│prio (fecharModal)
                 overlay.addEventListener('click', (e) => {
                     if (e.target === overlay) fecharModalGlobal(overlay.id);
                 });
             });
 
-            // Abrir informações iniciais
+            // Abrir informa├º├Áes iniciais
             setTimeout(() => abrirModalGlobal('modal-info'), 100);
 
-            // Patch em memória para garantir os sub-campos nos itens de teste sem quebrar o JSON original
+            // Patch em mem├│ria para garantir os sub-campos nos itens de teste sem quebrar o JSON original
             if (window.dadosDicionarioLexical) {
                 window.dadosDicionarioLexical.forEach(item => {
                     const termo = (item._TERMO_PRINCIPAL || item.TERMO || '').toLowerCase();
                     if (termo === 'dog') {
                         item.CAMPO_SEMANTICO = "Animais";
-                        item.SUB_CAMPO_SEMANTICO = "Mamíferos";
-                        item.SUB_CAMPO_SEMANTICO_1 = "Canídeos";
-                        item.SUB_CAMPO_SEMANTICO_2 = "Domésticos";
+                        item.SUB_CAMPO_SEMANTICO = "Mam├¡feros";
+                        item.SUB_CAMPO_SEMANTICO_1 = "Can├¡deos";
+                        item.SUB_CAMPO_SEMANTICO_2 = "Dom├®sticos";
                     } else if (termo === 'elephant') {
                         item.CAMPO_SEMANTICO = "Animais";
-                        item.SUB_CAMPO_SEMANTICO = "Mamíferos";
-                        item.SUB_CAMPO_SEMANTICO_1 = "Proboscídeos";
+                        item.SUB_CAMPO_SEMANTICO = "Mam├¡feros";
+                        item.SUB_CAMPO_SEMANTICO_1 = "Probosc├¡deos";
                         item.SUB_CAMPO_SEMANTICO_2 = "Selvagens";
                     }
                 });
@@ -3266,7 +2871,7 @@
 
     {{ scripts_dados_js | safe }}
 
-    <!-- INÍCIO DO VLIBRAS -->
+    <!-- IN├ìCIO DO VLIBRAS -->
     <div vw class="enabled">
         <div vw-access-button class="active"></div>
         <div vw-plugin-wrapper>
@@ -3288,7 +2893,7 @@
     </script>
     <!-- FIM DO VLIBRAS -->
     
-    <!-- INÍCIO SCRIPT AUDIO TEXTOS -->
+    <!-- IN├ìCIO SCRIPT AUDIO TEXTOS -->
     <script>
         let audioElementsTexto = [];
         let audioPlayingTexto = false;

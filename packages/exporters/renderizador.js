@@ -14,46 +14,46 @@ export function processarTemplateEntrada(template, dados) {
     // Função recursiva que avalia blocos e variáveis dinamicamente
     function processar(textoAtual, contextoAtual) {
         // 1. Resolve blocos lógicos e iteradores: {{#CHAVE}}...{{/CHAVE}}
-        const regexBloco = /\{\{#(\w+)\}\}([\s\S]*?)\{\{\/\1\}\}/g;
-
-        let textoProcessado = textoAtual.replace(regexBloco, (match, chave, conteudoInterno) => {
+        // Processa um bloco por vez (sem /g) para garantir que blocos consecutivos
+        // e aninhados sejam todos resolvidos corretamente.
+        const regexBloco = /\{\{#(\w+)\}\}([\s\S]*?)\{\{\/\1\}\}/;
+        let textoProcessado = textoAtual;
+        let match;
+        while ((match = regexBloco.exec(textoProcessado)) !== null) {
+            const [full, chave, conteudoInterno] = match;
             const valor = contextoAtual[chave];
+            let substituicao;
 
-            if (valor === undefined || valor === null || valor === '' || (Array.isArray(valor) && valor.length === 0)) {
-                return ''; // Omite o bloco se a chave não existe, é nula ou vazia
-            }
-
-            if (Array.isArray(valor)) {
+            if (valor === undefined || valor === null || valor === '' || valor === false ||
+               (Array.isArray(valor) && valor.length === 0)) {
+                substituicao = ''; // Omite o bloco se a chave não existe, é nula, vazia ou false
+            } else if (Array.isArray(valor)) {
                 // Itera sobre arrays (ex: {{#TEXTOS}}...{{/TEXTOS}})
-                return valor.map(item => {
+                substituicao = valor.map(item => {
                     if (typeof item === 'object' && item !== null) {
-                        // Só verifica as chaves PRÓPRIAS do item, não do contexto herdado
                         const chavesProprias = Object.keys(item);
                         const temConteudoProprio = chavesProprias.some(k => {
                             const v = item[k];
                             return v !== null && v !== undefined && String(v).trim() !== '';
                         });
-                        
                         if (!temConteudoProprio) return '';
-                        
-                        const contextoItem = { ...contextoAtual, ...item };
-                        return processar(conteudoInterno, contextoItem);
+                        return processar(conteudoInterno, { ...contextoAtual, ...item });
                     }
                     return '';
                 }).join('');
+            } else {
+                // Condição simples (se a chave existe e não é false)
+                const novoContexto = (typeof valor === 'object' && valor !== null)
+                    ? { ...contextoAtual, ...valor }
+                    : contextoAtual;
+                substituicao = processar(conteudoInterno, novoContexto);
             }
-
-            // Condição simples (se a chave existe e não é false)
-            const novoContexto = (typeof valor === 'object' && valor !== null)
-                ? { ...contextoAtual, ...valor }
-                : contextoAtual;
-
-            return processar(conteudoInterno, novoContexto);
-        });
+            textoProcessado = textoProcessado.slice(0, match.index) + substituicao + textoProcessado.slice(match.index + full.length);
+        }
 
         // 2. Resolve variáveis simples de texto: {{ CHAVE }}
         const regexVariavel = /\{\{\s*(\w+)\s*\}\}/g;
-        textoProcessado = textoProcessado.replace(regexVariavel, (match, chave) => {
+        textoProcessado = textoProcessado.replace(regexVariavel, (m, chave) => {
             const valor = contextoAtual[chave];
             return (valor !== undefined && valor !== null) ? String(valor) : '';
         });
