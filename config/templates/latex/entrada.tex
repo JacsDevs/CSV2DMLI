@@ -1,0 +1,30 @@
+{{#INDEX}}
+\index{{{ INDEX }} ({{ TERMO_PARENT }})}
+{{/INDEX}}
+\markboth{{{ TERMO_PARENT }}}{{{ TERMO_PARENT }}}
+
+\noindent\textbf{\large {{ TERMO }}}{{#FONEMICA}} {{ FONEMICA }}{{/FONEMICA}}{{#FONETICA}} {{ FONETICA }}{{/FONETICA}}{{#CLASSE}} \textit{{{ CLASSE }}}{{/CLASSE}}
+{{#SIGNIFICADOS}}
+{{#NUMERO}}{{ NUMERO }}. {{/NUMERO}}{{#TRADUCAO}}{{ TRADUCAO }}{{/TRADUCAO}}{{#DESCRICAO}}. {{ DESCRICAO }}{{/DESCRICAO}}
+{{#EXEMPLOS}} \textit{\textbf{{{ TRANS }}}} {{ TRAD }}{{/EXEMPLOS}}
+{{#IMAGENS}}
+{{#ARQUIVO}}
+\vspace{0.2cm}
+\begin{center}
+  \includegraphics[width=0.9\linewidth,height=5.5cm,keepaspectratio]{{{ ARQUIVO_LOCAL }}}
+  {{#LEGENDA}}\\\vspace{0.1cm}\textit{\small {{ LEGENDA }}}{{/LEGENDA}}
+\end{center}
+\vspace{0.2cm}
+{{/ARQUIVO}}
+{{/IMAGENS}}
+{{/SIGNIFICADOS}}
+{{#ITENS_RELACIONADOS}}
+\vspace{0.1cm}
+{\small \color{gray} Veja também: {{ ITENS_RELACIONADOS }}}
+{{/ITENS_RELACIONADOS}}
+
+\vspace{0.3cm}
+\begin{center}
+  \textcolor{lightgray}{\rule{0.4\linewidth}{0.4pt} $\diamond$ \rule{0.4\linewidth}{0.4pt}}
+\end{center}
+\vspace{0.3cm}

@@ -1,0 +1,92 @@
+\documentclass[a4paper,12pt,twoside]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[portuguese]{babel}
+\usepackage{multicol}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{imakeidx}
+\usepackage{parskip}
+\usepackage{xcolor}
+
+% Setup page margins
+\geometry{
+  top=3cm,
+  bottom=3cm,
+  left=2cm,
+  right=2cm
+}
+
+% Fonts
+\usepackage{libertine}
+
+\makeindex[columns=3, title=Índice Alfabético]
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[R]{\textbf{\thepage}}
+\fancyhead[L]{\textbf{\leftmark \hfill \rightmark}}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancyfoot{}
+
+\begin{document}
+
+% --- Capa ---
+\begin{titlepage}
+  \centering
+  \vspace*{6cm}
+  {\Huge \textbf{\color[HTML]{1b4332} {{ metadados.pdf }} }}\\[1.5cm]
+  {\Large \textbf{\color[HTML]{2d6a4f} {{ metadados.autor }} }}\\[\vfill]
+  {\large \color[HTML]{5a5a5a} {{ metadados.ano }} }\\[0.5cm]
+  {\large \color[HTML]{7a7a7a} Versão: {{ metadados.versao }} }
+\end{titlepage}
+
+% --- Folha de Rosto ---
+\newpage
+\thispagestyle{empty}
+\begin{center}
+  \textbf{\large {{ metadados.autor }}}
+  \vspace{6cm}
+  
+  \textbf{\Huge {{ metadados.pdf }}}
+  
+  \vspace{0.5cm}
+  \textit{Versão {{ metadados.versao }}}
+  
+  \vspace{\fill}
+  {{ metadados.ano }}
+\end{center}
+
+% --- Sumário ---
+\newpage
+\pagenumbering{roman}
+\pagestyle{plain}
+\tableofcontents
+
+% --- Introdução ---
+\newpage
+\section*{Introdução}
+\addcontentsline{toc}{section}{Introdução}
+
+{{ textos.intro_pdf }}
+
+% --- Dicionário ---
+\newpage
+\pagenumbering{arabic}
+\pagestyle{fancy}
+\begin{multicols}{2}
+{{ corpo_dicionario }}
+\end{multicols}
+
+% --- Referências ---
+\newpage
+\pagestyle{plain}
+\section*{Referências Bibliográficas}
+\addcontentsline{toc}{section}{Referências Bibliográficas}
+
+% --- Índice ---
+\newpage
+\printindex
+
+\end{document}

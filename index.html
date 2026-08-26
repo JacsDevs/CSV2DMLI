@@ -644,6 +644,7 @@
                           <div class="export-grid">
                             <button class="export-btn export-html" onclick="gerarExportacao('html')"><span class="export-icon">🌐</span><span class="export-label">Gerar Site HTML</span></button>
                             <button class="export-btn export-typst" onclick="gerarExportacao('typst')"><span class="export-icon">📘</span><span class="export-label">Gerar Typst</span></button>
+                            <button class="export-btn export-typst" onclick="gerarExportacao('latex')" style="background-color: #3b5998; border-color: #2d4373;"><span class="export-icon">📄</span><span class="export-label">Gerar LaTeX (ZIP)</span></button>
                             <button class="export-btn export-pdf" onclick="gerarExportacao('pdf')"><span class="export-icon">📑</span><span class="export-label">Gerar PDF</span></button>
                             <button class="export-btn export-android" onclick="abrirModalAndroid()"><span class="export-icon">📱</span><span class="export-label">Gerar Aplicativo</span></button>
                           </div>
@@ -1633,6 +1634,19 @@
                 return;
             } finally {
                 window.ocultarLoader();
+            }
+        } else if (tipo === 'latex') {
+            window.mostrarLoader('Gerando Projeto LaTeX', 'Compactando arquivos e mídias...');
+            try {
+                await window.exportador.exportarLatexZip({ metadados: coletarMetadadosExportacao() }, 'projeto_latex.zip');
+                // Como salva o arquivo diretamente via ZipBlob, não precisamos preencher conteúdo no modal de preview
+                window.ocultarLoader();
+                return;
+            } catch (e) {
+                console.error(e);
+                alert('Erro ao gerar Projeto LaTeX: ' + e.message);
+                window.ocultarLoader();
+                return;
             }
         } else if (tipo === 'pdf') {
             window.mostrarLoader('Gerando PDF', 'Compilando via WebAssembly (isso pode demorar um pouco)...');
