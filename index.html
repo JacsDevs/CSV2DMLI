@@ -1490,8 +1490,8 @@
             autor:      document.getElementById('metaAutor')?.value.trim() || existente.autor || '',
             ano:        document.getElementById('metaAno')?.value.trim()   || existente.ano  || '',
             versao:     existente.versao || '1.0',
-            introHtml,
-            introPdf,
+            introHtml: introHtml || (window.sistema ? window.sistema.introHtml : ''),
+            introPdf: introPdf || (window.sistema ? window.sistema.introPdf : ''),
             iconeDataUrl: (window.sistema && window.sistema.icone && window.sistema.icone.dataUrl) || null,
         };
     }

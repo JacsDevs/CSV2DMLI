@@ -110,11 +110,27 @@ class ExportadorLatex extends ExportadorBase {
             return sig;
         });
         
-        if (this.templateEntrada) {
-            return this.processarTemplate(this.templateEntrada, dados);
+        let saida = this.templateEntrada ? this.processarTemplate(this.templateEntrada, dados) : `\n\\textbf{${dados.TERMO}}\n`;
+
+        const textosEstruturados = dados.SIGNIFICADOS.flatMap(s => s.TEXTOS_ESTRUTURADOS || []);
+        if (textosEstruturados.length > 0) {
+            textosEstruturados.forEach(t => {
+                saida += `\n\n\\vspace{0.3cm}\n\\noindent \\textbf{${this.escaparLatex(t.TITULO_BASE)}}`;
+                if (t.TEXTO_NAO_LITERAL) saida += ` -- \\textit{${this.escaparLatex(t.TEXTO_NAO_LITERAL)}}`;
+                if (t.VARIACOES && t.VARIACOES.length > 0) {
+                    t.VARIACOES.forEach(v => {
+                        if (v.FRASES && v.FRASES.length > 0) {
+                            v.FRASES.forEach(f => {
+                                saida += `\n\n\\noindent \\textbf{\\textit{\\textipa{${this.escaparLatex(f.ORIGINAL)}}}}`;
+                                if (f.TRADUCAO) saida += ` \\\\\n${this.escaparLatex(f.TRADUCAO)}`;
+                            });
+                        }
+                    });
+                }
+            });
         }
-        
-        return `\n\\textbf{${dados.TERMO}}\n`;
+
+        return saida;
     }
 
     gerarCorpoLatex(arvore, categoriasRaizes, manterSet) {
