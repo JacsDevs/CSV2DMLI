@@ -49,8 +49,7 @@
 #text(size: 9pt, fill: luma(80))[Veja também: {{ ITENS_RELACIONADOS }}]
 {{/ITENS_RELACIONADOS}}
 
-#v(0.6em, weak: true)
-#v(0.5fr, weak: true) 
+#v(0.5em, weak: true)
 
 #align(center)[
   #block(width: 70%)[ 
@@ -65,5 +64,4 @@
   ]
 ]
 
-#v(0.8em, weak: true)
-#v(0.5fr, weak: true)
+#v(0.5em, weak: true)
