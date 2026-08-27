@@ -16,10 +16,17 @@
 #set par(justify: true, leading: 0.5em, first-line-indent: 0pt)
 
 #show heading: set text(weight: "bold")
-#show heading: set block(above: 1.5em, below: 1em)
-#show heading.where(level: 1): set text(size: 20pt)
-#show heading.where(level: 2): set text(size: 14pt)
-#show heading.where(level: 3): set text(size: 12pt)
+#show heading: set block(above: 0.8em, below: 0.4em, breakable: false)
+#show heading.where(level: 1): set text(size: 16pt)
+#show heading.where(level: 1): it => {
+  block(above: 0.6em, below: 0.3em)[
+    #it.body
+    #v(0.15em)
+    #line(length: 100%, stroke: 0.8pt + luma(120))
+  ]
+}
+#show heading.where(level: 2): set text(size: 12pt)
+#show heading.where(level: 3): set text(size: 11pt)
 
 
 #import "/in-dexter.typ": *

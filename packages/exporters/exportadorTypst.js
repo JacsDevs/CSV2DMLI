@@ -107,9 +107,11 @@ class ExportadorTypst extends ExportadorBase {
         const processarNo = (nomeNo, noDict, nivel, raizCategoria) => {
             if (nivel === 1) {
                 raizCategoria = nomeNo;
-                partes.push(`\n= ${this.escaparTypst(nomeNo.toUpperCase())}\n#v(0.5em)\n`);
+                const nome = this.escaparTypst(nomeNo.toUpperCase());
+                partes.push(`\n#heading(level: 1, outlined: true, bookmarked: true)[${nome}]\n`);
             } else if (nomeNo !== 'Geral') {
-                partes.push(`\n${'='.repeat(nivel)} ${this.escaparTypst(nomeNo)}\n#v(0.5em)\n`);
+                const nome = this.escaparTypst(nomeNo);
+                partes.push(`\n#heading(level: ${nivel}, outlined: true, bookmarked: true)[${nome}]\n`);
             }
             
             if (noDict._entradas && noDict._entradas.length > 0) {
