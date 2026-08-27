@@ -1,3 +1,4 @@
+#v(0.8em, weak: true)
 {{#INDEX}}
 #index("{{ INDEX }} ({{ TERMO_PARENT }})")
 {{/INDEX}}
