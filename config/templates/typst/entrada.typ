@@ -7,11 +7,11 @@
 
 #v(1em)
 
-#block(breakable: false, width: 100%)[
+#block(breakable: true, width: 100%)[
   #align(center)[
     #layout(size => {
-      let altura-max = calc.min(size.height * 0.55, 5.5cm)
-      let altura-min = 2.5cm
+      let altura-max = calc.min(size.height * 0.45, 3.5cm)
+      let altura-min = 2cm
       let altura-final = calc.max(altura-min, altura-max)
       
       box(width: 100% - 2mm, height: altura-final, align(center + horizon)[

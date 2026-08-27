@@ -138,8 +138,9 @@
   footer: none 
 )
 
-#set page(columns: 2)
+#columns(2, gutter: 1.5em)[
 {{ corpo_dicionario | safe }}
+]
 
 // ============================================
 // 4. PÓS-TEXTUAIS (VOLTA NUMERAÇÃO NORMAL NO RODAPÉ)
