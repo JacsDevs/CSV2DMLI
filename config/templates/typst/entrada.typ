@@ -5,8 +5,7 @@
 
 #text(size: 14pt)[{{#TERMO}}*{{ TERMO }}*{{/TERMO}}]{{#FONEMICA}} {{ FONEMICA }}{{/FONEMICA}}{{#FONETICA}} {{ FONETICA }}{{/FONETICA}}{{#CLASSE}} _{{ CLASSE }}_{{/CLASSE}} {{#SIGNIFICADOS}}{{#NUMERO}}{{ NUMERO }}. {{/NUMERO}}{{#TRADUCAO}}{{ TRADUCAO }}{{/TRADUCAO}}{{#DESCRICAO}}. {{ DESCRICAO }}{{/DESCRICAO}}{{#EXEMPLOS}} {{#TRANS}}*_{{ TRANS }}_*{{/TRANS}} {{#TRAD}}{{ TRAD }}{{/TRAD}}{{/EXEMPLOS}}{{#IMAGENS}}{{#ARQUIVO}}
 
-#v(0.6em, weak: true)
-#v(1fr, weak: true) 
+#v(1em)
 
 #block(breakable: false, width: 100%)[
   #align(center)[
@@ -27,7 +26,13 @@
   ]
 ]
 
-{{/ARQUIVO}}{{/IMAGENS}}{{/SIGNIFICADOS}}{{#ITENS_RELACIONADOS}} #text(size: 9pt, fill: luma(80))[Veja também: {{ ITENS_RELACIONADOS }}]{{/ITENS_RELACIONADOS}}
+#v(1em)
+
+{{/ARQUIVO}}{{/IMAGENS}}{{/SIGNIFICADOS}}{{#ITENS_RELACIONADOS}}
+
+#v(0.5em)
+#text(size: 9pt, fill: luma(80))[Veja também: {{ ITENS_RELACIONADOS }}]
+{{/ITENS_RELACIONADOS}}
 
 #v(0.6em, weak: true)
 #v(0.5fr, weak: true) 
