@@ -246,20 +246,29 @@ class CarregadorPasta {
             resultado.textosExtra.configTxt = arquivo;
             console.log(`⚙️ Configuração TXT encontrada: ${nomeArquivo}`);
         }
+        // Helper para verificar se qualquer parte do caminho corresponde às pastas permitidas
+        const estaNaPasta = (pastasPermitidas) => {
+            return pastasPermitidas.some(p => {
+                const pLower = p.toLowerCase();
+                // Verifica se a string pLower aparece como um segmento de pasta no caminho
+                return caminhoRelativo.toLowerCase().split('/').some(segmento => segmento.includes(pLower));
+            });
+        };
+
         // Verificar se é áudio
-        else if (pastasAudio.some(p => pastaPai.toLowerCase().includes(p.toLowerCase()))) {
+        if (estaNaPasta(pastasAudio)) {
             if (this.configurador.isExtensaoValida('audio', extensao)) {
                 resultado.audio.push(arquivo);
             }
         }
         // Verificar se é imagem
-        else if (pastasImagem.some(p => pastaPai.toLowerCase().includes(p.toLowerCase()))) {
+        else if (estaNaPasta(pastasImagem)) {
             if (this.configurador.isExtensaoValida('imagem', extensao)) {
                 resultado.imagem.push(arquivo);
             }
         }
         // Verificar se é vídeo
-        else if (pastasVideo.some(p => pastaPai.toLowerCase().includes(p.toLowerCase()))) {
+        else if (estaNaPasta(pastasVideo)) {
             if (this.configurador.isExtensaoValida('video', extensao)) {
                 resultado.video.push(arquivo);
             }
