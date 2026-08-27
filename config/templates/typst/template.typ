@@ -121,7 +121,7 @@
     
     [
       #align(right)[#text(size: 10pt, weight: "bold")[#page-num]]
-      #v(1.5em) 
+      #v(0.3em) 
       
       #if page-marks.len() > 0 {
         let first = page-marks.first().value
