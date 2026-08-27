@@ -3,7 +3,7 @@
 {{/INDEX}}
 \markboth{{{ TERMO_PARENT }}}{{{ TERMO_PARENT }}}
 
-\noindent\textbf{\large {{ TERMO }}}{{#FONEMICA}} {{ FONEMICA }}{{/FONEMICA}}{{#FONETICA}} {{ FONETICA }}{{/FONETICA}}{{#CLASSE}} \textit{{{ CLASSE }}}{{/CLASSE}} {{#SIGNIFICADOS}}{{#NUMERO}}{{ NUMERO }}. {{/NUMERO}}{{ TEXTO_SIGNIFICADO }}{{#EXEMPLOS}} \textit{\textbf{{{ TRANS }}}} {{ TRAD }}{{/EXEMPLOS}}{{#IMAGENS}}{{#ARQUIVO}}
+\noindent\textbf{\large \textipa{{{ TERMO }}}}{{#FONEMICA}} \textipa{{{ FONEMICA }}}{{/FONEMICA}}{{#FONETICA}} \textipa{{{ FONETICA }}}{{/FONETICA}}{{#CLASSE}} \textit{{{ CLASSE }}}{{/CLASSE}} {{#SIGNIFICADOS}}{{#NUMERO}}{{ NUMERO }}. {{/NUMERO}}{{ TEXTO_SIGNIFICADO }}{{#EXEMPLOS}} \textit{\textbf{\textipa{{{ TRANS }}}}} {{ TRAD }}{{/EXEMPLOS}}{{#IMAGENS}}{{#ARQUIVO}}
 \vspace{0.2cm}
 \begin{center}
   \includegraphics[width=0.9\linewidth,height=5.5cm,keepaspectratio]{{{ ARQUIVO_LOCAL }}}
