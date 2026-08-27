@@ -117,7 +117,15 @@ class ConstrutorBancoDados {
                     _TERMO_PRINCIPAL: variacoes[0].item,
                     CLASSE_GRAMATICAL: String(camposBasicos.CLASSE_GRAMATICAL || '').trim(),
                     CAMPO_SEMANTICO: String(camposBasicos.CAMPO_SEMANTICO || '').trim(),
-                    SUB_CAMPOS_SEMANTICOS: [camposBasicos.SUB_CAMPO_SEMANTICO].filter(Boolean),
+                    SUB_CAMPOS_SEMANTICOS: [
+                        camposBasicos.SUB_CAMPO_SEMANTICO,
+                        camposBasicos.SUB_CAMPO_SEMANTICO_1,
+                        camposBasicos.SUB_CAMPO_SEMANTICO_2,
+                        camposBasicos.SUB_CAMPO_SEMANTICO_3,
+                        camposBasicos.SUB_CAMPO_SEMANTICO_4,
+                        camposBasicos.SUB_CAMPO_SEMANTICO_5,
+                        camposBasicos.SUB_CAMPO_SEMANTICO_6
+                    ].filter(Boolean).map(s => String(s).trim()),
                     ITENS_RELACIONADOS: String(camposBasicos.ITENS_RELACIONADOS || '').trim(),
                     VARIACOES_IDS: [], 
                     ACEPCOES: []

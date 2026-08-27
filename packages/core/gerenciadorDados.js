@@ -451,7 +451,18 @@ export default class GerenciadorDados {
             const cat = entrada.CAMPO_SEMANTICO || 'Geral';
             categoriasRaizes.add(cat);
             if (!arvore[cat]) arvore[cat] = { _entradas: [] };
-            arvore[cat]._entradas.push(entrada);
+            
+            let nohAtual = arvore[cat];
+            if (entrada.SUB_CAMPOS_SEMANTICOS && entrada.SUB_CAMPOS_SEMANTICOS.length > 0) {
+                entrada.SUB_CAMPOS_SEMANTICOS.forEach(sub => {
+                    const s = sub.trim();
+                    if (!s) return;
+                    if (!nohAtual[s]) nohAtual[s] = { _entradas: [] };
+                    nohAtual = nohAtual[s];
+                });
+            }
+            
+            nohAtual._entradas.push(entrada);
         });
         
         let ordemCategorias = Array.from(categoriasRaizes).sort();
