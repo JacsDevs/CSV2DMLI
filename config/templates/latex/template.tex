@@ -160,7 +160,7 @@ BoldItalicFont = *bi,
 \maketitle
 
 {
-\setcounter{tocdepth}{1}
+\setcounter{tocdepth}{3}
 \tableofcontents
 }
 \setstretch{1}
@@ -171,12 +171,9 @@ BoldItalicFont = *bi,
 
 {{ textos.intro_pdf }}
 
-% --- Dicionário ---
-\chapter*{Dicionário}
-\addcontentsline{toc}{chapter}{Dicionário}
-\begin{multicols}{2}
+\twocolumn
 {{ corpo_dicionario }}
-\end{multicols}
+\onecolumn
 
 % --- Referências ---
 \chapter*{Referências Bibliográficas}

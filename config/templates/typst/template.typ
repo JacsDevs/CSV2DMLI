@@ -99,7 +99,7 @@
   ]
 )
 
-#outline(title: "Sumário", indent: 1em)
+#outline(title: "Sumário", indent: 1em, depth: 3)
 
 #pagebreak()
 = Introdução

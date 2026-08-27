@@ -124,10 +124,10 @@ class ExportadorLatex extends ExportadorBase {
         const processarNo = (nomeNo, noDict, nivel, raizCategoria) => {
             if (nivel === 1) {
                 raizCategoria = nomeNo;
-                partes.push(`\n\\dictsection{${this.escaparLatex(nomeNo.toUpperCase())}}\n`);
+                partes.push(`\n\\chapter{${this.escaparLatex(nomeNo.toUpperCase())}}\n`);
             } else if (nomeNo !== 'Geral') {
-                const sub = nivel === 2 ? 'subsection' : 'subsubsection';
-                partes.push(`\n\\${sub}*{${this.escaparLatex(nomeNo)}}\n`);
+                const sub = nivel === 2 ? 'section' : 'subsection';
+                partes.push(`\n\\${sub}{${this.escaparLatex(nomeNo)}}\n`);
             }
             
             if (noDict._entradas && noDict._entradas.length > 0) {
