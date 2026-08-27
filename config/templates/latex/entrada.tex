@@ -1,0 +1,35 @@
+{{#INDEX}}
+\index{\markboth{{{ INDEX }}}{{{ INDEX }}}{{ INDEX }} ({{ TERMO_PARENT }})}
+{{/INDEX}}
+\markboth{{{ TERMO_PARENT }}}{{{ TERMO_PARENT }}}
+
+\noindent\textbf{\large \textipa{{{ TERMO }}}}{{#FONEMICA}} \textipa{{{ FONEMICA }}}{{/FONEMICA}}{{#FONETICA}} \textipa{{{ FONETICA }}}{{/FONETICA}}{{#CLASSE}} \textit{{{ CLASSE }}}{{/CLASSE}} {{#SIGNIFICADOS}}{{#NUMERO}}{{ NUMERO }}. {{/NUMERO}}{{ TEXTO_SIGNIFICADO }}{{#EXEMPLOS}} \textit{\textbf{\textipa{{{ TRANS }}}}} {{ TRAD }}{{/EXEMPLOS}}{{#IMAGENS}}{{#ARQUIVO}}
+\vspace{0.2cm}
+\begin{center}
+  \includegraphics[width=0.9\linewidth,height=5.5cm,keepaspectratio]{{{ ARQUIVO_LOCAL }}}
+  {{#LEGENDA}}\\\vspace{0.1cm}\textit{\small {{ LEGENDA }}}{{/LEGENDA}}
+\end{center}
+\vspace{0.2cm}
+{{/ARQUIVO}}{{/IMAGENS}}
+{{#TEXTOS_ESTRUTURADOS}}
+\vspace{0.3cm}
+\noindent \textbf{{{ TITULO_BASE }}}{{#TEXTO_NAO_LITERAL}} -- \textit{{{ TEXTO_NAO_LITERAL }}}{{/TEXTO_NAO_LITERAL}}
+{{#VARIACOES}}
+{{#FRASES}}
+\vspace{0.2cm}
+\noindent \textbf{\textit{\textipa{{{ ORIGINAL }}}}}\\
+{{{ TRADUCAO }}}
+{{/FRASES}}
+{{/VARIACOES}}
+{{/TEXTOS_ESTRUTURADOS}}
+{{/SIGNIFICADOS}}
+{{#ITENS_RELACIONADOS}}
+\vspace{0.1cm}
+{\small \color{gray} Veja também: {{ ITENS_RELACIONADOS }}}
+{{/ITENS_RELACIONADOS}}
+
+\vspace{0.3cm}
+\begin{center}
+  \textcolor{lightgray}{\rule{0.4\linewidth}{0.4pt} $\diamond$ \rule{0.4\linewidth}{0.4pt}}
+\end{center}
+\vspace{0.3cm}

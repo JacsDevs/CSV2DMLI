@@ -3254,23 +3254,7 @@
             // Abrir informações iniciais
             setTimeout(() => abrirModalGlobal('modal-info'), 100);
 
-            // Patch em memória para garantir os sub-campos nos itens de teste sem quebrar o JSON original
-            if (window.dadosDicionarioLexical) {
-                window.dadosDicionarioLexical.forEach(item => {
-                    const termo = (item._TERMO_PRINCIPAL || item.TERMO || '').toLowerCase();
-                    if (termo === 'dog') {
-                        item.CAMPO_SEMANTICO = "Animais";
-                        item.SUB_CAMPO_SEMANTICO = "Mamíferos";
-                        item.SUB_CAMPO_SEMANTICO_1 = "Canídeos";
-                        item.SUB_CAMPO_SEMANTICO_2 = "Domésticos";
-                    } else if (termo === 'elephant') {
-                        item.CAMPO_SEMANTICO = "Animais";
-                        item.SUB_CAMPO_SEMANTICO = "Mamíferos";
-                        item.SUB_CAMPO_SEMANTICO_1 = "Proboscídeos";
-                        item.SUB_CAMPO_SEMANTICO_2 = "Selvagens";
-                    }
-                });
-            }
+
 
             renderizarCategoriasLista();
             inicializarFiltros();

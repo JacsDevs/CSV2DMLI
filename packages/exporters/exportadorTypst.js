@@ -97,24 +97,6 @@ class ExportadorTypst extends ExportadorBase {
         if (dados.CLASSE) typ += ` _${dados.CLASSE}_`;
         dados.SIGNIFICADOS.forEach(s => typ += ` ${s.TRADUCAO}`);
         
-        if (dados.TEXTOS && dados.TEXTOS.length > 0) {
-            dados.TEXTOS.forEach(t => {
-                typ += `\n\n#v(1em, weak: true)\n#pad(left: 1em)[\n  *${t.TITULO_BASE}*`;
-                if (t.TEXTO_NAO_LITERAL) typ += ` -- _${t.TEXTO_NAO_LITERAL}_`;
-                if (t.VARIACOES && t.VARIACOES.length > 0) {
-                    t.VARIACOES.forEach(v => {
-                        if (v.FRASES && v.FRASES.length > 0) {
-                            v.FRASES.forEach(f => {
-                                typ += `\n\n  *_${f.ORIGINAL}_*`;
-                                if (f.TRADUCAO) typ += ` \\\n  ${f.TRADUCAO}`;
-                            });
-                        }
-                    });
-                }
-                typ += `\n]`;
-            });
-        }
-        
         return typ;
     }
 
@@ -125,9 +107,11 @@ class ExportadorTypst extends ExportadorBase {
         const processarNo = (nomeNo, noDict, nivel, raizCategoria) => {
             if (nivel === 1) {
                 raizCategoria = nomeNo;
-                partes.push(`\n= ${this.escaparTypst(nomeNo.toUpperCase())}\n#v(0.5em)\n`);
+                const nome = this.escaparTypst(nomeNo.toUpperCase());
+                partes.push(`\n#heading(level: 1, outlined: true, bookmarked: true)[${nome}]\n`);
             } else if (nomeNo !== 'Geral') {
-                partes.push(`\n${'='.repeat(nivel)} ${this.escaparTypst(nomeNo)}\n#v(0.5em)\n`);
+                const nome = this.escaparTypst(nomeNo);
+                partes.push(`\n#heading(level: ${nivel}, outlined: true, bookmarked: true)[${nome}]\n`);
             }
             
             if (noDict._entradas && noDict._entradas.length > 0) {
