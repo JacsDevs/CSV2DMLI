@@ -506,12 +506,66 @@ export default class GerenciadorDados {
             // Fallback: usa ordem padrão se não houver DOM disponível
         }
         
+        const stripAccents = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+        let alfabetoMap = null;
+        let digraphs = [];
+        
+        if (this.alfabetoCustomizado && this.alfabetoCustomizado.trim()) {
+            const letras = this.alfabetoCustomizado.split(',').map(l => stripAccents(l.trim().toLowerCase())).filter(l => l);
+            if (letras.length > 0) {
+                alfabetoMap = new Map();
+                letras.forEach((letra, index) => {
+                    if (!alfabetoMap.has(letra)) {
+                        alfabetoMap.set(letra, index);
+                        if (letra.length > 1) digraphs.push(letra);
+                    }
+                });
+                digraphs.sort((a, b) => b.length - a.length); // match longest first
+            }
+        }
+        
+        const getCustomOrderArray = (palavra) => {
+            const limpa = stripAccents(palavra.toLowerCase());
+            let i = 0;
+            const arr = [];
+            while (i < limpa.length) {
+                let match = null;
+                for (const dig of digraphs) {
+                    if (limpa.startsWith(dig, i)) {
+                        match = dig;
+                        break;
+                    }
+                }
+                if (match) {
+                    arr.push(alfabetoMap.get(match));
+                    i += match.length;
+                } else {
+                    const char = limpa[i];
+                    arr.push(alfabetoMap.has(char) ? alfabetoMap.get(char) : 9999);
+                    i++;
+                }
+            }
+            return arr;
+        };
+        
         Object.keys(arvore).forEach(cat => {
             if (categoriasAlfabetico.has(cat)) {
                 arvore[cat]._entradas.sort((a, b) => {
-                    const termoA = (a._TERMO_PRINCIPAL || a.TERMO_PARENT || '').toLowerCase();
-                    const termoB = (b._TERMO_PRINCIPAL || b.TERMO_PARENT || '').toLowerCase();
-                    return termoA.localeCompare(termoB, 'pt-BR');
+                    const termoA = (a._TERMO_PRINCIPAL || a.TERMO_PARENT || '').trim();
+                    const termoB = (b._TERMO_PRINCIPAL || b.TERMO_PARENT || '').trim();
+                    
+                    if (alfabetoMap) {
+                        const arrA = getCustomOrderArray(termoA);
+                        const arrB = getCustomOrderArray(termoB);
+                        
+                        for (let i = 0; i < Math.min(arrA.length, arrB.length); i++) {
+                            if (arrA[i] !== arrB[i]) return arrA[i] - arrB[i];
+                        }
+                        return arrA.length - arrB.length;
+                    } else {
+                        return termoA.toLowerCase().localeCompare(termoB.toLowerCase(), 'pt-BR');
+                    }
                 });
             }
         });
