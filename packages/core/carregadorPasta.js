@@ -238,7 +238,7 @@ class CarregadorPasta {
             resultado.textosExtra.referencia = arquivo;
             console.log(`📚 Referência encontrada: ${nomeArquivo}`);
         }
-        else if (estaNaRaiz && nomeArquivo.toLowerCase() === 'alfabeto.txt') {
+        else if (estaNaRaiz && (nomeArquivo.toLowerCase() === 'alfabeto.txt' || nomeArquivo.toLowerCase() === 'ordem-alfabeto.txt')) {
             resultado.textosExtra.alfabeto = arquivo;
             console.log(`🔤 Alfabeto encontrado: ${nomeArquivo}`);
         }
