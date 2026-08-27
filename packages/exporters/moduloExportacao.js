@@ -48,12 +48,27 @@ export default class ModuloExportacao {
             const imgFolder = zip.folder("images");
             for (const img of resultado.imagens) {
                 try {
-                    // Tenta buscar o arquivo original via fetch para pegar os bytes
-                    const res = await fetch(img.original);
-                    if (res.ok) {
-                        const blob = await res.blob();
+                    let blob = null;
+                    const nomeOriginal = img.original.split('/').pop().split('\\').pop();
+                    
+                    // 1. Tentar pegar do VFS diretamente
+                    if (this.gerenciador && this.gerenciador.vfs) {
+                        blob = this.gerenciador.vfs.obterArquivo('imagem', nomeOriginal);
+                    }
+                    
+                    // 2. Se não encontrou no VFS, tenta fetch (para URLs, blobs, ou asset://)
+                    if (!blob) {
+                        const res = await fetch(img.original);
+                        if (res.ok) {
+                            blob = await res.blob();
+                        }
+                    }
+                    
+                    if (blob) {
                         const nomeArquivo = img.local.split('/').pop();
                         imgFolder.file(nomeArquivo, blob);
+                    } else {
+                        console.warn('Não foi possível encontrar o arquivo para o ZIP:', img.original);
                     }
                 } catch (e) {
                     console.warn('Erro ao embutir imagem no ZIP LaTeX:', img.original, e);
