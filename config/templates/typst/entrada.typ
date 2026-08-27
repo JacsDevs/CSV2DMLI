@@ -8,23 +8,19 @@
 #v(0.6em)
 
 #layout(size => {
-  // Espaço restante na coluna atual
   let espaco = size.height
-  // Reserva para o separador + margem abaixo da imagem
-  let reserva = 1.8em
+  // Reserva para separador + margens (em pt absoluto)
+  let reserva = 22pt
   let disponivel = espaco - reserva
 
-  // Tamanhos configuráveis
-  let altura-ideal = 3.5cm
-  let altura-min = 1.2cm
+  let altura-ideal = 99pt   // ~3.5cm
+  let altura-min = 34pt     // ~1.2cm
 
-  // Calcula: se cabe no espaço, usa o ideal; senão, encolhe até o mínimo
   let altura-final = if disponivel >= altura-ideal {
     altura-ideal
   } else if disponivel >= altura-min {
     disponivel
   } else {
-    // Não cabe nem no mínimo — usa o ideal e deixa o Typst fluir para a próxima coluna
     altura-ideal
   }
 
