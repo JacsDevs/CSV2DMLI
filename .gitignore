@@ -31,3 +31,4 @@ Thumbs.db
 *.tmp
 template-old.html
 dicionario-cards-embutido.html
+csv2rmd.py

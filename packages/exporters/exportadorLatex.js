@@ -38,6 +38,17 @@ class ExportadorLatex extends ExportadorBase {
         return resultado;
     }
 
+    testaFinal(texto, removePonto = false) {
+        if (!texto) return '';
+        let t = String(texto).trim();
+        if (removePonto) {
+            if (t.endsWith('.')) t = t.slice(0, -1);
+        } else {
+            if (t && !/[.?!]$/.test(t)) t += '.';
+        }
+        return t;
+    }
+
     gerarEntradaLatex(entrada) {
         const dados = this.extrairDadosEntrada(entrada);
         dados.TERMO = this.escaparLatex(dados.TERMO);
@@ -49,11 +60,30 @@ class ExportadorLatex extends ExportadorBase {
         dados.ITENS_RELACIONADOS = this.escaparLatex(dados.ITENS_RELACIONADOS);
         
         dados.SIGNIFICADOS = dados.SIGNIFICADOS.map(s => {
+            const traducao = this.escaparLatex(this.testaFinal(s.TRADUCAO, true));
+            const descricao = this.escaparLatex(this.testaFinal(s.DESCRICAO, true));
+            
+            let textoSignificado = '';
+            if (traducao) {
+                textoSignificado += traducao;
+            }
+            if (descricao) {
+                if (textoSignificado) {
+                    textoSignificado += '. ';
+                }
+                textoSignificado += descricao;
+            }
+            if (textoSignificado) {
+                textoSignificado += '.';
+            }
+
             const sig = {
                 ...s, 
-                TRADUCAO: this.escaparLatex(s.TRADUCAO), 
-                DESCRICAO: this.escaparLatex(s.DESCRICAO),
-                EXEMPLOS: s.EXEMPLOS.map(e => ({ TRANS: this.escaparLatex(e.TRANS), TRAD: this.escaparLatex(e.TRAD) }))
+                TEXTO_SIGNIFICADO: textoSignificado,
+                EXEMPLOS: s.EXEMPLOS.map(e => ({ 
+                    TRANS: this.escaparLatex(this.testaFinal(e.TRANS, false)), 
+                    TRAD: this.escaparLatex(this.testaFinal(e.TRAD, false)) 
+                }))
             };
 
             // Tratar imagens
