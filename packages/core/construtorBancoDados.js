@@ -117,6 +117,13 @@ class ConstrutorBancoDados {
                     _TERMO_PRINCIPAL: variacoes[0].item,
                     CLASSE_GRAMATICAL: String(camposBasicos.CLASSE_GRAMATICAL || '').trim(),
                     CAMPO_SEMANTICO: String(camposBasicos.CAMPO_SEMANTICO || '').trim(),
+                    SUB_CAMPO_SEMANTICO: String(camposBasicos.SUB_CAMPO_SEMANTICO || '').trim(),
+                    SUB_CAMPO_SEMANTICO_1: String(camposBasicos.SUB_CAMPO_SEMANTICO_1 || '').trim(),
+                    SUB_CAMPO_SEMANTICO_2: String(camposBasicos.SUB_CAMPO_SEMANTICO_2 || '').trim(),
+                    SUB_CAMPO_SEMANTICO_3: String(camposBasicos.SUB_CAMPO_SEMANTICO_3 || '').trim(),
+                    SUB_CAMPO_SEMANTICO_4: String(camposBasicos.SUB_CAMPO_SEMANTICO_4 || '').trim(),
+                    SUB_CAMPO_SEMANTICO_5: String(camposBasicos.SUB_CAMPO_SEMANTICO_5 || '').trim(),
+                    SUB_CAMPO_SEMANTICO_6: String(camposBasicos.SUB_CAMPO_SEMANTICO_6 || '').trim(),
                     SUB_CAMPOS_SEMANTICOS: [
                         camposBasicos.SUB_CAMPO_SEMANTICO,
                         camposBasicos.SUB_CAMPO_SEMANTICO_1,
