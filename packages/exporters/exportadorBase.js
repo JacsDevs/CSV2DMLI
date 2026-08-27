@@ -127,12 +127,19 @@ class ExportadorBase {
             return (this.midiasGeradas && this.midiasGeradas[raw]) ? this.midiasGeradas[raw] : 'audio/' + raw;
         });
 
-        return {
+        const subCampos = entrada.SUB_CAMPOS_SEMANTICOS || [];
+        const result = {
             TERMO: termosUnicos.length > 0 ? termosUnicos.join(' ~ ') : (entrada._TERMO_PRINCIPAL || '???'),
             TERMO_PARENT: entrada._TERMO_PRINCIPAL || '???', 
             CLASSE: entrada.CLASSE_GRAMATICAL || '',
             CAMPO_SEMANTICO: entrada.CAMPO_SEMANTICO || '',
-            SUB_CAMPO_SEMANTICO: entrada.SUB_CAMPOS_SEMANTICOS ? entrada.SUB_CAMPOS_SEMANTICOS.join(', ') : '',
+            SUB_CAMPO_SEMANTICO: subCampos[0] || '',
+            SUB_CAMPO_SEMANTICO_1: subCampos[1] || '',
+            SUB_CAMPO_SEMANTICO_2: subCampos[2] || '',
+            SUB_CAMPO_SEMANTICO_3: subCampos[3] || '',
+            SUB_CAMPO_SEMANTICO_4: subCampos[4] || '',
+            SUB_CAMPO_SEMANTICO_5: subCampos[5] || '',
+            SUB_CAMPO_SEMANTICO_6: subCampos[6] || '',
             FONEMICA: fonemicasStr,
             FONETICA: foneticasStr,
             AUDIO: audiosUnicosResolved.join(' ~ '),
@@ -140,6 +147,7 @@ class ExportadorBase {
             ITENS_RELACIONADOS: entrada.ITENS_RELACIONADOS || '',
             INDEX: significados.length > 0 ? significados[0].TRADUCAO : ''
         };
+        return result;
     }
 
     async gerarScriptsDadosEmLotes(tipoAtivo, embutirMidias = false) {
