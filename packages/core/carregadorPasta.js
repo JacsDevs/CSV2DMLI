@@ -246,29 +246,32 @@ class CarregadorPasta {
             resultado.textosExtra.configTxt = arquivo;
             console.log(`⚙️ Configuração TXT encontrada: ${nomeArquivo}`);
         }
-        // Helper para verificar se qualquer parte do caminho corresponde às pastas permitidas
-        const estaNaPasta = (pastasPermitidas) => {
-            return pastasPermitidas.some(p => {
-                const pLower = p.toLowerCase();
-                // Verifica se a string pLower aparece como um segmento de pasta no caminho
-                return caminhoRelativo.toLowerCase().split('/').some(segmento => segmento.includes(pLower));
-            });
+        // O usuário solicitou que mídias em subpastas sejam ignoradas.
+        // O arquivo deve estar diretamente dentro da pasta de mídia.
+        // Isso significa que o caminho relativo deve ter exatamente 2 partes: 'pasta_midia/arquivo.ext'
+        const partesRelativas = caminhoRelativo.split('/');
+        const estaDiretoNaPastaDeMidia = partesRelativas.length === 2;
+        const nomePastaMidia = estaDiretoNaPastaDeMidia ? partesRelativas[0].toLowerCase() : '';
+
+        // Helper para verificar a pasta exata
+        const nomeDaPastaBate = (pastasPermitidas) => {
+            return estaDiretoNaPastaDeMidia && pastasPermitidas.some(p => p.toLowerCase() === nomePastaMidia);
         };
 
         // Verificar se é áudio
-        if (estaNaPasta(pastasAudio)) {
+        if (nomeDaPastaBate(pastasAudio)) {
             if (this.configurador.isExtensaoValida('audio', extensao)) {
                 resultado.audio.push(arquivo);
             }
         }
         // Verificar se é imagem
-        else if (estaNaPasta(pastasImagem)) {
+        else if (nomeDaPastaBate(pastasImagem)) {
             if (this.configurador.isExtensaoValida('imagem', extensao)) {
                 resultado.imagem.push(arquivo);
             }
         }
         // Verificar se é vídeo
-        else if (estaNaPasta(pastasVideo)) {
+        else if (nomeDaPastaBate(pastasVideo)) {
             if (this.configurador.isExtensaoValida('video', extensao)) {
                 resultado.video.push(arquivo);
             }
