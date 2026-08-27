@@ -97,25 +97,6 @@ class ExportadorTypst extends ExportadorBase {
         if (dados.CLASSE) typ += ` _${dados.CLASSE}_`;
         dados.SIGNIFICADOS.forEach(s => typ += ` ${s.TRADUCAO}`);
         
-        const textosEstruturados = dados.SIGNIFICADOS.flatMap(s => s.TEXTOS_ESTRUTURADOS || []);
-        if (textosEstruturados.length > 0) {
-            textosEstruturados.forEach(t => {
-                typ += `\n\n#v(1em, weak: true)\n#pad(left: 1em)[\n  *${t.TITULO_BASE}*`;
-                if (t.TEXTO_NAO_LITERAL) typ += ` -- _${t.TEXTO_NAO_LITERAL}_`;
-                if (t.VARIACOES && t.VARIACOES.length > 0) {
-                    t.VARIACOES.forEach(v => {
-                        if (v.FRASES && v.FRASES.length > 0) {
-                            v.FRASES.forEach(f => {
-                                typ += `\n\n  *_${f.ORIGINAL}_*`;
-                                if (f.TRADUCAO) typ += ` \\\n  ${f.TRADUCAO}`;
-                            });
-                        }
-                    });
-                }
-                typ += `\n]`;
-            });
-        }
-        
         return typ;
     }
 

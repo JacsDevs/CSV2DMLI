@@ -28,7 +28,22 @@
 
 #v(1em)
 
-{{/ARQUIVO}}{{/IMAGENS}}{{/SIGNIFICADOS}}{{#ITENS_RELACIONADOS}}
+{{/ARQUIVO}}{{/IMAGENS}}
+{{#TEXTOS_ESTRUTURADOS}}
+
+#v(1em, weak: true)
+#pad(left: 1em)[
+  *{{ TITULO_BASE }}*{{#TEXTO_NAO_LITERAL}} -- _{{ TEXTO_NAO_LITERAL }}_{{/TEXTO_NAO_LITERAL}}
+  {{#VARIACOES}}
+  {{#FRASES}}
+  
+  *_{{ ORIGINAL }}_* \
+  {{ TRADUCAO }}
+  {{/FRASES}}
+  {{/VARIACOES}}
+]
+{{/TEXTOS_ESTRUTURADOS}}
+{{/SIGNIFICADOS}}{{#ITENS_RELACIONADOS}}
 
 #v(0.5em)
 #text(size: 9pt, fill: luma(80))[Veja também: {{ ITENS_RELACIONADOS }}]

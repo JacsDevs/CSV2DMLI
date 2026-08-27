@@ -10,7 +10,19 @@
   {{#LEGENDA}}\\\vspace{0.1cm}\textit{\small {{ LEGENDA }}}{{/LEGENDA}}
 \end{center}
 \vspace{0.2cm}
-{{/ARQUIVO}}{{/IMAGENS}}{{/SIGNIFICADOS}}
+{{/ARQUIVO}}{{/IMAGENS}}
+{{#TEXTOS_ESTRUTURADOS}}
+\vspace{0.3cm}
+\noindent \textbf{{{ TITULO_BASE }}}{{#TEXTO_NAO_LITERAL}} -- \textit{{{ TEXTO_NAO_LITERAL }}}{{/TEXTO_NAO_LITERAL}}
+{{#VARIACOES}}
+{{#FRASES}}
+\vspace{0.2cm}
+\noindent \textbf{\textit{\textipa{{{ ORIGINAL }}}}}\\
+{{{ TRADUCAO }}}
+{{/FRASES}}
+{{/VARIACOES}}
+{{/TEXTOS_ESTRUTURADOS}}
+{{/SIGNIFICADOS}}
 {{#ITENS_RELACIONADOS}}
 \vspace{0.1cm}
 {\small \color{gray} Veja também: {{ ITENS_RELACIONADOS }}}
