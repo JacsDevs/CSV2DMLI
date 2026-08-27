@@ -1,92 +1,188 @@
-\documentclass[a4paper,12pt,twoside]{article}
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
-\usepackage[portuguese]{babel}
-\usepackage{multicol}
-\usepackage{fancyhdr}
-\usepackage{graphicx}
-\usepackage{geometry}
-\usepackage{imakeidx}
-\usepackage{parskip}
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+  10pt,
+  a4paper,
+]{book}
+\usepackage{amsmath,amssymb}
+\usepackage{setspace}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+	\usepackage{parskip}
+  }{% else
+	\setlength{\parindent}{0pt}
+	\setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
 \usepackage{xcolor}
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{5}
+% preamble.tex
+\usepackage{booktabs}
+\usepackage[Brazil]{babel}
+\usepackage[twoside,top=3.5cm,bottom=3.5cm,left=2cm,right=2cm,columnsep=50pt]{geometry} 
+\usepackage{textcomp} 
+\usepackage{fancyhdr}
+\usepackage{parskip}
+\usepackage{marvosym}
+\usepackage{ragged2e}
+\usepackage{titlesec}
+\usepackage{emptypage}
+\usepackage{lastpage} % Obter o número total de páginas
+\usepackage{titling}
+\usepackage{float}
+\usepackage{multicol} % Para as colunas do dicionário
 
-% Setup page margins
-\geometry{
-  top=3cm,
-  bottom=3cm,
-  left=2cm,
-  right=2cm
+% Pacote para criar o índice
+\usepackage{imakeidx}
+\makeindex[columns=3, title=Índice Alfabético, intoc]
+
+% Configuração dos títulos dos capítulos
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries}{\chaptertitlename\ \thechapter}{20pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{50pt}{40pt}
+
+% Configuração das seções (section)
+\titleformat{\section}
+  {\normalfont\Large\bfseries}{\thesection}{1em}{}
+\titlespacing*{\section}{0pt}{20pt}{10pt}
+
+% Configuração das subseções (subsection)
+\titleformat{\subsection}
+  {\normalfont\large\bfseries}{\thesubsection}{1em}{}
+\titlespacing*{\subsection}{0pt}{15pt}{5pt}
+
+% Configuração de cabeçalho e rodapé
+\fancyhf{} % Limpa todos os campos de cabeçalho e rodapé
+\fancyhead[L]{\textsf{\rightmark}} % Cabeçalho esquerdo (capítulo)
+\fancyhead[R]{\textsf{\leftmark}} % Cabeçalho direito (seção)
+\fancyfoot[C]{\textbf{\textsf{\thepage}}} % Rodapé central (número da página)
+\renewcommand{\headrulewidth}{1.1pt} % Linha horizontal no cabeçalho
+\renewcommand{\footrulewidth}{1.1pt} % Linha horizontal no rodapé
+\pagestyle{fancy} % Define o estilo de página como "fancy"
+\setlength{\headheight}{12.28003pt}
+
+\ifPDFTeX\else
+% Fonte principal do documento (Arial)
+\setmainfont[% OK7
+UprightFont = * ,
+BoldFont = *bd ,
+ItalicFont = *i ,
+BoldItalicFont = *bi,
+]{Arial}
+\fi
+
+% Comando personalizado
+\newcommand{\negritoetamanhogrande}[1]{\textbf{\large #1}}
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+
+\hypersetup{
+	pdftitle={ {{ metadados.pdf }} },
+	pdfauthor={ {{ metadados.autor }} },
+	hidelinks,
+	pdfcreator={LaTeX via CSV2DMLI}
 }
 
-% Fonts
-\usepackage{libertine}
+\title{ {{ metadados.pdf }} }
+\author{ {{ metadados.autor }} }
+\date{ {{ metadados.ano }} }
 
-\makeindex[columns=3, title=Índice Alfabético]
-
-\pagestyle{fancy}
-\fancyhf{}
-\fancyhead[R]{\textbf{\thepage}}
-\fancyhead[L]{\textbf{\leftmark \hfill \rightmark}}
-\renewcommand{\headrulewidth}{0.4pt}
-\fancyfoot{}
+% Personalização do \maketitle para centralizar e ajustar
+\renewcommand{\maketitle}{%
+  \thispagestyle{empty} % Remove o cabeçalho e rodapé da primeira página
+  \vspace*{\fill}  % Preenche o espaço acima do conteúdo e empurra o conteúdo para o centro
+  \begin{center}
+	\LARGE \textbf{\thetitle}\par
+	\vskip 1em
+	\large \theauthor \par
+	\large \thedate \par
+	\vspace{1em}  % Espaço entre data e o elemento adicional
+	{\large Versão {{ metadados.versao }} }
+  \end{center}
+  \vspace*{\fill}  % Preenche o espaço abaixo do conteúdo e assegura que fique centralizado
+}
 
 \begin{document}
+\maketitle
 
-% --- Capa ---
-\begin{titlepage}
-  \centering
-  \vspace*{6cm}
-  {\Huge \textbf{\color[HTML]{1b4332} {{ metadados.pdf }} }}\\[1.5cm]
-  {\Large \textbf{\color[HTML]{2d6a4f} {{ metadados.autor }} }}\\[\vfill]
-  {\large \color[HTML]{5a5a5a} {{ metadados.ano }} }\\[0.5cm]
-  {\large \color[HTML]{7a7a7a} Versão: {{ metadados.versao }} }
-\end{titlepage}
-
-% --- Folha de Rosto ---
-\newpage
-\thispagestyle{empty}
-\begin{center}
-  \textbf{\large {{ metadados.autor }}}
-  \vspace{6cm}
-  
-  \textbf{\Huge {{ metadados.pdf }}}
-  
-  \vspace{0.5cm}
-  \textit{Versão {{ metadados.versao }}}
-  
-  \vspace{\fill}
-  {{ metadados.ano }}
-\end{center}
-
-% --- Sumário ---
-\newpage
-\pagenumbering{roman}
-\pagestyle{plain}
+{
+\setcounter{tocdepth}{1}
 \tableofcontents
+}
+\setstretch{1}
 
 % --- Introdução ---
-\newpage
-\section*{Introdução}
-\addcontentsline{toc}{section}{Introdução}
+\chapter*{Introdução}
+\addcontentsline{toc}{chapter}{Introdução}
 
 {{ textos.intro_pdf }}
 
 % --- Dicionário ---
-\newpage
-\pagenumbering{arabic}
-\pagestyle{fancy}
+\chapter*{Dicionário}
+\addcontentsline{toc}{chapter}{Dicionário}
 \begin{multicols}{2}
 {{ corpo_dicionario }}
 \end{multicols}
 
 % --- Referências ---
-\newpage
-\pagestyle{plain}
-\section*{Referências Bibliográficas}
-\addcontentsline{toc}{section}{Referências Bibliográficas}
+\chapter*{Referências Bibliográficas}
+\addcontentsline{toc}{chapter}{Referências Bibliográficas}
 
 % --- Índice ---
-\newpage
 \printindex
 
 \end{document}
