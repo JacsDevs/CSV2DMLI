@@ -3,67 +3,73 @@
     <svg class="bookmark-icon-added" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true"><path d="m698.77-684.54 119.92-120.3q8.92-9.31 21.19-9.31 12.27 0 21.58 9.31 9.31 9.3 9.31 21.38 0 12.08-9.31 21.38L724.08-625.31q-10.85 10.85-25.31 10.85-14.46 0-25.31-10.85l-52.77-52.77q-8.31-8.3-8.31-20.57t8.31-21.19q8.92-9.31 21.39-9.12 12.46.19 21.38 9.12l35.31 35.3ZM480-261.54l-158.77 68.15q-36.15 15.46-68.69-5.92Q220-220.69 220-259.46v-488.23q0-29.92 21.19-51.12Q262.39-820 292.31-820h213.84q16.47 0 24.5 14.27 8.04 14.27 1.2 29.73-6.23 15.85-9.04 31.69Q520-728.46 520-710q0 70.85 45.88 123.73 45.89 52.89 114.12 63.42 7.38 1.23 13.23 1.54 5.85.31 11.38.31 14.7.38 25.04 9.92Q740-501.54 740-487.46v228q0 38.77-32.54 60.15-32.54 21.38-68.69 5.92L480-261.54Z"/></svg>
 </button>
 
-<!-- Apenas um espaçador para o botão de salvar absoluto -->
-<div style="height: 12px;"></div>
-
 <div class="entrada_div">
-    <div class="dict-entry lista-linear-view" style="padding-left: 36px; padding-top: 4px; padding-right: 64px;">
+    <div class="dict-entry lista-linear-view" style="padding-right: 52px;">
+        <header class="dict-header">
+            <div class="dict-headword-container">
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    {{#TEM_TERMOS_MISTOS}}
+                    {{#TERMOS_MISTOS}}
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <h2 class="dict-headword">{{ TERMO_PARTE }}</h2>
+                        {{#TEM_AUDIO}}
+                        <button type="button" class="btn-audio" title="Ouvir pronúncia" aria-label="Ouvir pronúncia de {{ TERMO_PARTE }}" onclick="event.stopPropagation(); window.tocarAudio('{{ URL }}', this)">
+                            <svg class="icone" aria-hidden="true"><use href="#ic-som"></use></svg>
+                        </button>
+                        {{/TEM_AUDIO}}
+                    </div>
+                    {{#NAO_E_O_ULTIMO}}<span class="dict-headword" style="opacity: 0.5;">~</span>{{/NAO_E_O_ULTIMO}}
+                    {{/TERMOS_MISTOS}}
+                    {{/TEM_TERMOS_MISTOS}}
 
-        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 0;">
-            {{#TEM_TERMOS_MISTOS}}
-            {{#TERMOS_MISTOS}}
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <h1 class="dict-headword" style="margin: 0; color: #15803d; font-weight: bold;">{{ TERMO_PARTE }}</h1>
-                {{#TEM_AUDIO}}
-                <button class="modal-audio-btn" style="display: inline-flex; width: 32px; height: 32px; justify-content: center; align-items: center; font-size: 1.2rem;" title="Ouvir pronúncia" aria-label="Ouvir pronúncia" onclick="event.stopPropagation(); window.tocarAudio('{{ URL }}', this)" data-texto-original="🔊">🔊</button>
-                {{/TEM_AUDIO}}
+                    {{#NAO_TEM_TERMOS_MISTOS}}
+                    <h2 class="dict-headword">{{ TERMO }}</h2>
+                    {{#AUDIOS_ARRAY}}
+                    <button type="button" class="btn-audio" title="Ouvir pronúncia" aria-label="Ouvir pronúncia de {{ TERMO }}" onclick="event.stopPropagation(); window.tocarAudio('{{ URL }}', this)">
+                        <svg class="icone" aria-hidden="true"><use href="#ic-som"></use></svg>
+                    </button>
+                    {{/AUDIOS_ARRAY}}
+                    {{/NAO_TEM_TERMOS_MISTOS}}
+                </div>
+
+                {{#TEM_VARIACOES_TRAY}}
+                <div class="dict-variations-tray">
+                    {{#TEM_INFO_GERAL}}
+                        {{#CLASSE}}<span class="tag classe-gramatical">{{ CLASSE }}</span>{{/CLASSE}}
+                    {{/TEM_INFO_GERAL}}
+
+                    {{#AUDIOS_ADICIONAIS}}
+                    <button type="button" class="btn-audio btn-audio-sm" title="Ouvir variação" aria-label="Ouvir variação" onclick="event.stopPropagation(); window.tocarAudio('{{ URL }}', this)">
+                        <svg class="icone" aria-hidden="true"><use href="#ic-som"></use></svg>
+                    </button>
+                    {{/AUDIOS_ADICIONAIS}}
+
+                    {{#TEM_PRONUNCIA}}
+                    {{#FONEMICA}}<span class="dict-audio-chip transcricao-fonetica"><span class="dict-chip-ipa">{{ FONEMICA }}</span></span>{{/FONEMICA}}
+                    {{#FONETICA}}<span class="dict-audio-chip transcricao-fonetica"><span class="dict-chip-ipa">{{ FONETICA }}</span></span>{{/FONETICA}}
+                    {{/TEM_PRONUNCIA}}
+                </div>
+                {{/TEM_VARIACOES_TRAY}}
             </div>
-            {{#NAO_E_O_ULTIMO}}<span style="color: #15803d; font-size: 1.5rem; font-weight: bold; margin: 0 4px;">~</span>{{/NAO_E_O_ULTIMO}}
-            {{/TERMOS_MISTOS}}
-            {{/TEM_TERMOS_MISTOS}}
-            
-            <!-- FALLBACK SE NÃO TIVER TERMOS_MISTOS -->
-            {{#NAO_TEM_TERMOS_MISTOS}}
-            <h1 class="dict-headword" style="margin: 0; color: #15803d; font-weight: bold;">{{ TERMO }}</h1>
-            {{#AUDIOS_ARRAY}}
-            <button class="modal-audio-btn" style="display: inline-flex; width: 32px; height: 32px; justify-content: center; align-items: center; font-size: 1.2rem; margin-left: 8px;" title="Ouvir pronúncia" aria-label="Ouvir pronúncia" onclick="event.stopPropagation(); window.tocarAudio('{{ URL }}', this)" data-texto-original="🔊">🔊</button>
-            {{/AUDIOS_ARRAY}}
-            {{/NAO_TEM_TERMOS_MISTOS}}
-        </div>
+        </header>
 
-        {{#TEM_VARIACOES_TRAY}}
-        <div class="dict-variations-tray">
-            {{#TEM_INFO_GERAL}}
-                {{#CLASSE}}<span class="dict-audio-chip classe-gramatical" style="background:transparent; border:none; padding:0;"><em>{{ CLASSE }}</em></span>{{/CLASSE}}
-            {{/TEM_INFO_GERAL}}
-            
-            {{#AUDIOS_ADICIONAIS}}
-            <button class="modal-audio-btn" style="display: inline-flex; width: 28px; height: 28px; justify-content: center; align-items: center; font-size: 1rem;" title="Ouvir variação" aria-label="Ouvir variação" onclick="event.stopPropagation(); tocarAudio('{{ URL }}', this)" data-texto-original="🔊">🔊</button>
-            {{/AUDIOS_ADICIONAIS}}
-
-            {{#TEM_PRONUNCIA}}
-            {{#FONEMICA}}<span class="dict-audio-chip transcricao-fonetica" style="pointer-events: none; background: transparent; border: none;"><span class="dict-chip-ipa">{{ FONEMICA }}</span></span>{{/FONEMICA}}
-            {{#FONETICA}}<span class="dict-audio-chip transcricao-fonetica" style="pointer-events: none; background: transparent; border: none;"><span class="dict-chip-ipa">{{ FONETICA }}</span></span>{{/FONETICA}}
-            {{/TEM_PRONUNCIA}}
-        </div>
-        {{/TEM_VARIACOES_TRAY}}
-
-        <!-- SIGNIFICADOS E MÍDIAS (CARTÕES) -->
         {{#SIGNIFICADOS}}
-        <article class="dict-sense-card" style="margin-left: -20px; margin-right: -44px;">
+        <article class="dict-sense-card">
             <div class="dict-sense-header">
                 <span class="dict-sense-number">{{ NUMERO_PONTO }}</span>
                 {{#TRADUCAO}}<span class="dict-sense-translation">{{ TRADUCAO }}</span>{{/TRADUCAO}}
-                
+
                 {{#TEM_AUDIO_REVERSO}}
-                <button class="modal-audio-btn" style="display: inline-flex; width: 28px; height: 28px; justify-content: center; align-items: center; font-size: 1rem; margin-left: 8px;" title="Ouvir pronúncia" aria-label="Ouvir pronúncia" onclick="event.stopPropagation(); window.tocarAudio('{{ AUDIO_REVERSO_URL }}', this)" data-texto-original="🔊">🔊</button>
+                <button type="button" class="btn-audio btn-audio-sm" title="Ouvir pronúncia" aria-label="Ouvir pronúncia" onclick="event.stopPropagation(); window.tocarAudio('{{ AUDIO_REVERSO_URL }}', this)">
+                    <svg class="icone" aria-hidden="true"><use href="#ic-som"></use></svg>
+                </button>
                 {{/TEM_AUDIO_REVERSO}}
 
-                {{#CLASSE_REVERSO}}<span class="dict-audio-chip classe-gramatical" style="background:transparent; border:none; padding:0; margin-left: 8px;"><em>{{ CLASSE_REVERSO }}</em></span>{{/CLASSE_REVERSO}}
-                {{#FONEMICA_REVERSO}}<span class="dict-audio-chip transcricao-fonetica" style="pointer-events: none; background: transparent; border: none; margin-left: 8px;"><span class="dict-chip-ipa">{{ FONEMICA_REVERSO }}</span></span>{{/FONEMICA_REVERSO}}
-                {{#FONETICA_REVERSO}}<span class="dict-audio-chip transcricao-fonetica" style="pointer-events: none; background: transparent; border: none; margin-left: 8px;"><span class="dict-chip-ipa">{{ FONETICA_REVERSO }}</span></span>{{/FONETICA_REVERSO}}
+                {{#CLASSE_REVERSO}}<span class="tag classe-gramatical">{{ CLASSE_REVERSO }}</span>{{/CLASSE_REVERSO}}
+                {{#FONEMICA_REVERSO}}<span class="dict-audio-chip transcricao-fonetica"><span class="dict-chip-ipa">{{ FONEMICA_REVERSO }}</span></span>{{/FONEMICA_REVERSO}}
+                {{#FONETICA_REVERSO}}<span class="dict-audio-chip transcricao-fonetica"><span class="dict-chip-ipa">{{ FONETICA_REVERSO }}</span></span>{{/FONETICA_REVERSO}}
 
-                {{#DESCRICAO}}<span class="dict-sense-definition" style="margin-left: 8px;">{{ DESCRICAO }}</span>{{/DESCRICAO}}
+                {{#DESCRICAO}}<span class="dict-sense-definition">{{ DESCRICAO }}</span>{{/DESCRICAO}}
             </div>
 
             {{#TEM_EXEMPLOS}}
@@ -71,9 +77,11 @@
                 {{#EXEMPLOS}}
                 <li class="dict-example-item">
                     <div class="dict-ex-source">
-                        <span style="color: #15803d; font-weight: bold;">{{ TRANS }}</span>
+                        <span>{{ TRANS }}</span>
                         {{#AUDIOS_ARRAY}}
-                        <button class="modal-audio-btn" style="display: inline-flex; width: 24px; height: 24px; justify-content: center; align-items: center; font-size: 0.8rem; margin-left: 4px;" title="Ouvir pronúncia" aria-label="Ouvir pronúncia" onclick="event.stopPropagation(); window.tocarAudio('{{ URL }}', this)" data-texto-original="🔊">🔊</button>
+                        <button type="button" class="btn-audio btn-audio-sm" title="Ouvir exemplo" aria-label="Ouvir exemplo" onclick="event.stopPropagation(); window.tocarAudio('{{ URL }}', this)">
+                            <svg class="icone" aria-hidden="true"><use href="#ic-som"></use></svg>
+                        </button>
                         {{/AUDIOS_ARRAY}}
                     </div>
                     <div class="dict-ex-target">{{ TRAD }}</div>
@@ -106,34 +114,37 @@
             {{/TEM_VIDEOS}}
 
             {{#TEM_EXTRAS}}
-            <div style="margin-top: 16px;">
+            <div style="margin-top: 14px;">
                 {{#EXTRAS}}
-                <div style="background: #fef9c3; color: #854d0e; padding: 12px; border-radius: 8px; font-size: 0.95rem; margin-bottom: 8px;">{{ TEXTO }}</div>
+                <div class="dict-extra">{{ TEXTO }}</div>
                 {{/EXTRAS}}
             </div>
             {{/TEM_EXTRAS}}
 
-            <!-- TEXTOS ESTRUTURADOS -->
             {{#TEXTOS_ESTRUTURADOS}}
-            <div class="dict-text-card" id="texto_{{ ID_TEXTO }}" style="margin-top: 16px;">
-                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                    <strong style="font-size: 1.1rem;">📄 {{ TITULO_EXIBICAO_FALLBACK }}</strong>
-                    <button class="modal-audio-btn" style="display: inline-flex; width: 28px; height: 28px; justify-content: center; align-items: center; font-size: 1rem;" onclick="event.stopPropagation(); tocaTexto(this, 'texto_{{ ID_TEXTO }}')" title="Tocar texto" data-texto-original="🔊">🔊</button>
+            <div class="dict-text-card" id="texto_{{ ID_TEXTO }}" style="margin-top: 14px;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                    <strong style="font-size: 1.02rem;">{{ TITULO_EXIBICAO_FALLBACK }}</strong>
+                    <button type="button" class="btn-audio btn-audio-sm toca-texto-btn" onclick="event.stopPropagation(); tocaTexto(this, 'texto_{{ ID_TEXTO }}')" title="Tocar texto" aria-label="Tocar texto">
+                        <svg class="icone" aria-hidden="true"><use href="#ic-som"></use></svg>
+                    </button>
                 </div>
-                {{#TEXTO_NAO_LITERAL}}<div style="font-style: italic; color: #64748b; margin-bottom: 16px;">{{ TEXTO_NAO_LITERAL }}</div>{{/TEXTO_NAO_LITERAL}}
+                {{#TEXTO_NAO_LITERAL}}<div class="dict-sense-definition" style="font-style: italic; margin-bottom: 14px;">{{ TEXTO_NAO_LITERAL }}</div>{{/TEXTO_NAO_LITERAL}}
 
                 {{#VARIACOES}}
                 <div>
                     {{#FRASES}}
-                    <div class="dict-text-phrase" onclick="event.stopPropagation(); playAudio_frase(this)" style="display: flex; flex-direction: column; gap: 4px;">
+                    <div class="dict-text-phrase frase-item" onclick="event.stopPropagation(); playAudio_frase(this)">
                         {{#AUDIO_ARQUIVO}}<audio src="{{ AUDIO_ARQUIVO }}" preload="none" style="display: none;"></audio>{{/AUDIO_ARQUIVO}}
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="color: #15803d; font-weight: bold;">{{ ORIGINAL }}</span>
+                            <span class="texto-frase" style="font-weight: 600; color: var(--cor-primaria);">{{ ORIGINAL }}</span>
                             {{#AUDIO_ARQUIVO}}
-                            <button class="modal-audio-btn" style="display: inline-flex; width: 24px; height: 24px; justify-content: center; align-items: center; font-size: 0.8rem;" title="Ouvir frase" aria-label="Ouvir frase" data-texto-original="🔊">🔊</button>
+                            <button type="button" class="btn-audio btn-audio-sm" title="Ouvir frase" aria-label="Ouvir frase">
+                                <svg class="icone" aria-hidden="true"><use href="#ic-som"></use></svg>
+                            </button>
                             {{/AUDIO_ARQUIVO}}
                         </div>
-                        {{#TRADUCAO}}<div style="font-size: 0.9rem; color: #64748b;">{{ TRADUCAO }}</div>{{/TRADUCAO}}
+                        {{#TRADUCAO}}<div class="dict-ex-target" style="font-size: 0.9rem;">{{ TRADUCAO }}</div>{{/TRADUCAO}}
                     </div>
                     {{/FRASES}}
                 </div>
@@ -144,9 +155,9 @@
         {{/SIGNIFICADOS}}
 
         {{#ITENS_RELACIONADOS}}
-        <footer style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 0.95rem;">
-            <span style="font-weight: 600; color: #64748b; margin-right: 8px;">Veja também:</span>
-            <span style="color: var(--cor-primaria); font-weight: 500;">{{ ITENS_RELACIONADOS }}</span>
+        <footer class="dict-veja-tambem">
+            <span style="font-weight: 700; margin-right: 6px;">Veja também:</span>
+            <span style="color: var(--cor-primaria); font-weight: 600;">{{ ITENS_RELACIONADOS }}</span>
         </footer>
         {{/ITENS_RELACIONADOS}}
     </div>
