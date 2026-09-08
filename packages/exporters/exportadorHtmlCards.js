@@ -210,15 +210,48 @@ class ExportadorHtmlCards extends ExportadorBase {
 
         const iconeHtml = meta.iconeDataUrl
             ? `<img src="${this.escaparHTML(meta.iconeDataUrl)}" alt="Ícone do dicionário" class="dicionario-icone-img">`
-            : '📖';
+            : '';
+
+        const versao = meta.versao || '';
+        const ano = meta.ano || '';
+
+        const versaoAnoHtml = versao && ano
+            ? `Versão ${versao} (${ano})`
+            : versao
+                ? `Versão ${versao}`
+                : ano
+                    ? ano
+                    : '';
+
+        const subtitleComAutorHtml = [meta.autor || '', versaoAnoHtml].filter(Boolean).join(' &bull; ');
+
+        const versaoAnoLabelHtml = [
+            versao ? `<strong>Versão:</strong> ${versao}` : '',
+            ano ? `<strong>Ano:</strong> ${ano}` : ''
+        ].filter(Boolean).join(' &bull; ');
+        const autorLinhaHtml = versaoAnoLabelHtml
+            ? `<strong>Autoria e colaboração:</strong> ${meta.autor || ''}<br>\n                   ${versaoAnoLabelHtml}`
+            : `<strong>Autoria e colaboração:</strong> ${meta.autor || ''}`;
+
+        const versaoAnoCitacaoHtml = versao && ano
+            ? `Versão ${versao}, ${ano}.`
+            : versao
+                ? `Versão ${versao}.`
+                : ano
+                    ? `${ano}.`
+                    : '';
 
         let html = this.templatePrincipal
             .replace(/\{\{\s*metadados\.html\s*\}\}/gi, meta.tituloHtml || 'Dicionário')
             .replace(/\{\{\s*metadados\.icone_html\s*(\|\s*safe)?\s*\}\}/gi, iconeHtml)
             .replace(/\{\{\s*metadados\.pdf\s*\}\}/gi, meta.tituloPdf || 'Dicionário')
+            .replace(/\{\{\s*metadados\.autor\s*\}\}\s*&bull;\s*Vers[aã]o\s*\{\{\s*metadados\.versao\s*\}\}\s*\(\{\{\s*metadados\.ano\s*\}\}\)/gi, subtitleComAutorHtml)
+            .replace(/Vers[aã]o\s*\{\{\s*metadados\.versao\s*\}\}\s*\(\{\{\s*metadados\.ano\s*\}\}\)/gi, versaoAnoHtml)
+            .replace(/<strong>Autoria e colabora[cç][aã]o:<\/strong>\s*\{\{\s*metadados\.autor\s*\}\}<br>\s*<strong>Vers[aã]o:<\/strong>\s*\{\{\s*metadados\.versao\s*\}\}\s*&bull;\s*<strong>Ano:<\/strong>\s*\{\{\s*metadados\.ano\s*\}\}/gi, autorLinhaHtml)
+            .replace(/Vers[aã]o\s*\{\{\s*metadados\.versao\s*\}\},\s*\{\{\s*metadados\.ano\s*\}\}\./gi, versaoAnoCitacaoHtml)
             .replace(/\{\{\s*metadados\.autor\s*\}\}/gi, meta.autor || '')
-            .replace(/\{\{\s*metadados\.versao\s*\}\}/gi, meta.versao || '')
-            .replace(/\{\{\s*metadados\.ano\s*\}\}/gi, meta.ano || '')
+            .replace(/\{\{\s*metadados\.versao\s*\}\}/gi, versao)
+            .replace(/\{\{\s*metadados\.ano\s*\}\}/gi, ano)
             .replace(/\{\{\s*textos\.intro_html\s*(\|\s*safe)?\s*\}\}/gi, meta.introHtml || '')
             .replace(/\{\{\s*estilos_globais\s*(\|\s*safe)?\s*\}\}/gi, this.estilosGlobais || '')
             .replace(/\{\{\s*corpo_dicionario\s*(\|\s*safe)?\s*\}\}/gi, corpoHtml)
