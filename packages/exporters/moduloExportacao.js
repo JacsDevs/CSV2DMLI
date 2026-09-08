@@ -1,5 +1,6 @@
 import ExportadorHtmlCards from './exportadorHtmlCards.js';
 import ExportadorTypst from './exportadorTypst.js';
+import ExportadorLatex from './exportadorLatex.js';
 import ExportadorZip from './exportadorZip.js';
 import CompiladorPdf from '../pdf/compiladorPdf.js';
 import { platform } from '../platform/index.js';
@@ -9,6 +10,7 @@ export default class ModuloExportacao {
         this.gerenciador = gerenciadorDados;
         this.exportadorCards = new ExportadorHtmlCards(this.gerenciador);
         this.exportadorTypstModule = new ExportadorTypst(this.gerenciador);
+        this.exportadorLatexModule = new ExportadorLatex(this.gerenciador);
         this.exportadorZipModule = new ExportadorZip(this.gerenciador);
         this.compiladorPdf = new CompiladorPdf(this.gerenciador);
         console.log('📤 Módulo de Exportação inicializado.');
@@ -17,7 +19,8 @@ export default class ModuloExportacao {
     async inicializar() {
         await Promise.all([
             this.exportadorCards.carregarTemplates(),
-            this.exportadorTypstModule.carregarTemplates()
+            this.exportadorTypstModule.carregarTemplates(),
+            this.exportadorLatexModule.carregarTemplates()
         ]);
         console.log('✅ Templates de exportação carregados.');
     }
@@ -28,6 +31,53 @@ export default class ModuloExportacao {
 
     exportarTypst(opcoes = {}) {
         return this.exportadorTypstModule.exportar(opcoes);
+    }
+
+    async exportarLatexZip(opcoes = {}, nomeArquivo = 'dicionario_latex.zip') {
+        const resultado = this.exportadorLatexModule.exportar(opcoes);
+        
+        // Precisamos do JSZip
+        if (!window.JSZip) {
+            throw new Error('JSZip não carregado.');
+        }
+        
+        const zip = new window.JSZip();
+        zip.file("main.tex", resultado.latex);
+        
+        if (resultado.imagens.length > 0) {
+            const imgFolder = zip.folder("images");
+            for (const img of resultado.imagens) {
+                try {
+                    let blob = null;
+                    const nomeOriginal = img.original.split('/').pop().split('\\').pop();
+                    
+                    // 1. Tentar pegar do VFS diretamente
+                    if (this.gerenciador && this.gerenciador.vfs) {
+                        blob = this.gerenciador.vfs.obterArquivo('imagem', nomeOriginal);
+                    }
+                    
+                    // 2. Se não encontrou no VFS, tenta fetch (para URLs, blobs, ou asset://)
+                    if (!blob) {
+                        const res = await fetch(img.original);
+                        if (res.ok) {
+                            blob = await res.blob();
+                        }
+                    }
+                    
+                    if (blob) {
+                        const nomeArquivo = img.local.split('/').pop();
+                        imgFolder.file(nomeArquivo, blob);
+                    } else {
+                        console.warn('Não foi possível encontrar o arquivo para o ZIP:', img.original);
+                    }
+                } catch (e) {
+                    console.warn('Erro ao embutir imagem no ZIP LaTeX:', img.original, e);
+                }
+            }
+        }
+        
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+        await this.salvarArquivoBlob(zipBlob, nomeArquivo);
     }
 
     async exportarPdf(opcoes = {}, nomeArquivo = 'dicionario.pdf') {

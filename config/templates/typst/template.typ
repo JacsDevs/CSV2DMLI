@@ -16,10 +16,17 @@
 #set par(justify: true, leading: 0.5em, first-line-indent: 0pt)
 
 #show heading: set text(weight: "bold")
-#show heading: set block(above: 1.5em, below: 1em)
-#show heading.where(level: 1): set text(size: 20pt)
-#show heading.where(level: 2): set text(size: 14pt)
-#show heading.where(level: 3): set text(size: 12pt)
+#show heading: set block(above: 0.8em, below: 0.4em, breakable: false)
+#show heading.where(level: 1): set text(size: 16pt)
+#show heading.where(level: 1): it => {
+  block(above: 0.6em, below: 0.3em)[
+    #it.body
+    #v(0.15em)
+    #line(length: 100%, stroke: 0.8pt + luma(120))
+  ]
+}
+#show heading.where(level: 2): set text(size: 12pt)
+#show heading.where(level: 3): set text(size: 11pt)
 
 
 #import "/in-dexter.typ": *
@@ -38,6 +45,9 @@
 #set page(paper: "a4", margin: (top: 3.5cm, bottom: 3.5cm, left: 2cm, right: 2cm), header: none, footer: none)
 
 #[
+  #set text(hyphenate: false)
+  #show "-": "\u{2011}" // Non-breaking hyphen
+  #set par(justify: false, linebreaks: "simple")
   #place(top + left, dx: -2cm, dy: -3.5cm)[
     #box(width: 21cm, height: 6cm, clip: true)[
       // Degradê muito suave - último ponto obrigatoriamente 100%
@@ -75,6 +85,9 @@
 #pagebreak()
 #[
   #set align(center)
+  #set text(hyphenate: false)
+  #show "-": "\u{2011}" // Non-breaking hyphen
+  #set par(justify: false, linebreaks: "simple")
   #text(size: 14pt, weight: "bold")[{{ metadados.autor }}]
   #v(6cm)
   #text(size: 24pt, weight: "bold")[{{ metadados.pdf }}]
@@ -99,7 +112,7 @@
   ]
 )
 
-#outline(title: "Sumário", indent: 1em)
+#outline(title: "Sumário", indent: 1em, depth: 3)
 
 #pagebreak()
 = Introdução
@@ -121,14 +134,18 @@
     
     [
       #align(right)[#text(size: 10pt, weight: "bold")[#page-num]]
-      #v(1.5em) 
+      #v(0.3em) 
       
       #if page-marks.len() > 0 {
         let first = page-marks.first().value
         let last = page-marks.last().value
         text(size: 10pt, weight: "bold")[#first #h(1fr) #last]
       } else {
-        align(center)[#text(size: 15pt, style: "italic", weight: "regular")[{{ metadados.pdf }}]]
+        align(center)[
+          #set text(hyphenate: false)
+          #show "-": "\u{2011}"
+          #text(size: 15pt, style: "italic", weight: "regular")[{{ metadados.pdf }}]
+        ]
       }
       
       #v(0.2em)

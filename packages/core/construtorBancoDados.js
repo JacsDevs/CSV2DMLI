@@ -87,11 +87,24 @@ class ConstrutorBancoDados {
 
             if (variacoes.length === 0 || !variacoes[0].item) return;
 
-            const termoPrincipal = variacoes[0].item.trim().toLowerCase();
+            let termoPrincipal = variacoes[0].item.trim().toLowerCase();
+            let forceNewGroup = false;
+
+            if (termoPrincipal.startsWith('%')) {
+                forceNewGroup = true;
+                // Remove o '%' para o nome final
+                termoPrincipal = termoPrincipal.substring(1).trim();
+                variacoes[0].item = variacoes[0].item.trim().substring(1).trim();
+            }
+
             const classe = String(camposBasicos.CLASSE_GRAMATICAL || '').trim().toLowerCase();
             const categoria = String(camposBasicos.CAMPO_SEMANTICO || '').trim().toLowerCase();
             const subCampo = String(camposBasicos.SUB_CAMPO_SEMANTICO || '').trim().toLowerCase();
-            const chaveAgrupamento = `${termoPrincipal}##${classe}##${categoria}##${subCampo}`;
+            
+            // Se forceNewGroup for true, a chave será única pelo index
+            const chaveAgrupamento = forceNewGroup 
+                ? `${termoPrincipal}##${classe}##${categoria}##${subCampo}##FORCE_${index}`
+                : `${termoPrincipal}##${classe}##${categoria}##${subCampo}`;
             
             let idEntrada = mapaEntradas[chaveAgrupamento];
             if (!idEntrada) {
@@ -104,7 +117,22 @@ class ConstrutorBancoDados {
                     _TERMO_PRINCIPAL: variacoes[0].item,
                     CLASSE_GRAMATICAL: String(camposBasicos.CLASSE_GRAMATICAL || '').trim(),
                     CAMPO_SEMANTICO: String(camposBasicos.CAMPO_SEMANTICO || '').trim(),
-                    SUB_CAMPOS_SEMANTICOS: [camposBasicos.SUB_CAMPO_SEMANTICO].filter(Boolean),
+                    SUB_CAMPO_SEMANTICO: String(camposBasicos.SUB_CAMPO_SEMANTICO || '').trim(),
+                    SUB_CAMPO_SEMANTICO_1: String(camposBasicos.SUB_CAMPO_SEMANTICO_1 || '').trim(),
+                    SUB_CAMPO_SEMANTICO_2: String(camposBasicos.SUB_CAMPO_SEMANTICO_2 || '').trim(),
+                    SUB_CAMPO_SEMANTICO_3: String(camposBasicos.SUB_CAMPO_SEMANTICO_3 || '').trim(),
+                    SUB_CAMPO_SEMANTICO_4: String(camposBasicos.SUB_CAMPO_SEMANTICO_4 || '').trim(),
+                    SUB_CAMPO_SEMANTICO_5: String(camposBasicos.SUB_CAMPO_SEMANTICO_5 || '').trim(),
+                    SUB_CAMPO_SEMANTICO_6: String(camposBasicos.SUB_CAMPO_SEMANTICO_6 || '').trim(),
+                    SUB_CAMPOS_SEMANTICOS: [
+                        camposBasicos.SUB_CAMPO_SEMANTICO,
+                        camposBasicos.SUB_CAMPO_SEMANTICO_1,
+                        camposBasicos.SUB_CAMPO_SEMANTICO_2,
+                        camposBasicos.SUB_CAMPO_SEMANTICO_3,
+                        camposBasicos.SUB_CAMPO_SEMANTICO_4,
+                        camposBasicos.SUB_CAMPO_SEMANTICO_5,
+                        camposBasicos.SUB_CAMPO_SEMANTICO_6
+                    ].filter(Boolean).map(s => String(s).trim()),
                     ITENS_RELACIONADOS: String(camposBasicos.ITENS_RELACIONADOS || '').trim(),
                     VARIACOES_IDS: [], 
                     ACEPCOES: []
@@ -280,6 +308,37 @@ class ConstrutorBancoDados {
                 }
             }
         });
+        
+        // Post-processamento: Homônimos
+        const contagemTermos = {};
+        Object.values(db.entradas).forEach(entrada => {
+            const termo = entrada._TERMO_PRINCIPAL;
+            if (termo) {
+                const chaveHomologo = termo.toLowerCase().trim();
+                if (!contagemTermos[chaveHomologo]) contagemTermos[chaveHomologo] = [];
+                contagemTermos[chaveHomologo].push(entrada);
+            }
+        });
+
+        const mapSobrescritos = { '0':'\u2070', '1':'\u00B9', '2':'\u00B2', '3':'\u00B3', '4':'\u2074', '5':'\u2075', '6':'\u2076', '7':'\u2077', '8':'\u2078', '9':'\u2079' };
+        function converterParaSobrescrito(numero) {
+            return String(numero).split('').map(digito => mapSobrescritos[digito] || digito).join('');
+        }
+
+        for (const chave in contagemTermos) {
+            const lista = contagemTermos[chave];
+            if (lista.length > 1) {
+                lista.forEach((entrada, idx) => {
+                    const sufixo = converterParaSobrescrito(idx + 1);
+                    entrada._TERMO_PRINCIPAL += sufixo;
+                    entrada.VARIACOES_IDS.forEach(vid => {
+                        if (db.variacoes[vid] && db.variacoes[vid].TRANSCRICAO_ORTOGRAFICA) {
+                            db.variacoes[vid].TRANSCRICAO_ORTOGRAFICA += sufixo;
+                        }
+                    });
+                });
+            }
+        }
 
         db.metadados.totalEntradas = Object.keys(db.entradas).length;
         db.metadados.totalVariacoes = Object.keys(db.variacoes).length;

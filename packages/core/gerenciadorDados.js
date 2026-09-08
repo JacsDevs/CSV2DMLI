@@ -148,6 +148,12 @@ export default class GerenciadorDados {
                     CLASSE_GRAMATICAL: linhaMesclada.CLASSE_GRAMATICAL || '',
                     CAMPO_SEMANTICO: linhaMesclada.CAMPO_SEMANTICO || '',
                     SUB_CAMPO_SEMANTICO: linhaMesclada.SUB_CAMPO_SEMANTICO || '',
+                    SUB_CAMPO_SEMANTICO_1: linhaMesclada.SUB_CAMPO_SEMANTICO_1 || '',
+                    SUB_CAMPO_SEMANTICO_2: linhaMesclada.SUB_CAMPO_SEMANTICO_2 || '',
+                    SUB_CAMPO_SEMANTICO_3: linhaMesclada.SUB_CAMPO_SEMANTICO_3 || '',
+                    SUB_CAMPO_SEMANTICO_4: linhaMesclada.SUB_CAMPO_SEMANTICO_4 || '',
+                    SUB_CAMPO_SEMANTICO_5: linhaMesclada.SUB_CAMPO_SEMANTICO_5 || '',
+                    SUB_CAMPO_SEMANTICO_6: linhaMesclada.SUB_CAMPO_SEMANTICO_6 || '',
                     TEXTO: linhaMesclada.TEXTO || '',
                     TITULO_TEXTO: linhaMesclada.TITULO_TEXTO || '',
                     TRADUCAO_SIGNIFICADO: linhaMesclada.TRADUCAO_SIGNIFICADO || '',
@@ -162,6 +168,8 @@ export default class GerenciadorDados {
             
             const colunasConhecidas = [
                 'CLASSE_GRAMATICAL', 'CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO', 
+                'SUB_CAMPO_SEMANTICO_1', 'SUB_CAMPO_SEMANTICO_2', 'SUB_CAMPO_SEMANTICO_3',
+                'SUB_CAMPO_SEMANTICO_4', 'SUB_CAMPO_SEMANTICO_5', 'SUB_CAMPO_SEMANTICO_6',
                 'TEXTO', 'TITULO_TEXTO', 'TRADUCAO_SIGNIFICADO', 'ITENS_RELACIONADOS', 
                 'DESCRICAO', 'ARQUIVO_VIDEO', 'ITEM_LEXICAL', 'ARQUIVO_SONORO', 
                 'TRANSCRICAO_FONEMICA', 'TRANSCRICAO_FONETICA', 'ARQUIVO_SONORO_EXEMPLO', 
@@ -383,6 +391,12 @@ export default class GerenciadorDados {
                     CLASSE_GRAMATICAL: cb.CLASSE_GRAMATICAL || '',
                     CAMPO_SEMANTICO: cb.CAMPO_SEMANTICO || '',
                     SUB_CAMPO_SEMANTICO: cb.SUB_CAMPO_SEMANTICO || '',
+                    SUB_CAMPO_SEMANTICO_1: cb.SUB_CAMPO_SEMANTICO_1 || '',
+                    SUB_CAMPO_SEMANTICO_2: cb.SUB_CAMPO_SEMANTICO_2 || '',
+                    SUB_CAMPO_SEMANTICO_3: cb.SUB_CAMPO_SEMANTICO_3 || '',
+                    SUB_CAMPO_SEMANTICO_4: cb.SUB_CAMPO_SEMANTICO_4 || '',
+                    SUB_CAMPO_SEMANTICO_5: cb.SUB_CAMPO_SEMANTICO_5 || '',
+                    SUB_CAMPO_SEMANTICO_6: cb.SUB_CAMPO_SEMANTICO_6 || '',
                     ARQUIVO_SONORO: vars.map(v => v.audio || '').join(' | '),
                     TRANSCRICAO_FONEMICA: vars.map(v => v.fone || '').join(' | '),
                     TRANSCRICAO_FONETICA: vars.map(v => v.fonet || '').join(' | '),
@@ -451,7 +465,18 @@ export default class GerenciadorDados {
             const cat = entrada.CAMPO_SEMANTICO || 'Geral';
             categoriasRaizes.add(cat);
             if (!arvore[cat]) arvore[cat] = { _entradas: [] };
-            arvore[cat]._entradas.push(entrada);
+            
+            let nohAtual = arvore[cat];
+            if (entrada.SUB_CAMPOS_SEMANTICOS && entrada.SUB_CAMPOS_SEMANTICOS.length > 0) {
+                entrada.SUB_CAMPOS_SEMANTICOS.forEach(sub => {
+                    const s = sub.trim();
+                    if (!s) return;
+                    if (!nohAtual[s]) nohAtual[s] = { _entradas: [] };
+                    nohAtual = nohAtual[s];
+                });
+            }
+            
+            nohAtual._entradas.push(entrada);
         });
         
         let ordemCategorias = Array.from(categoriasRaizes).sort();
@@ -481,12 +506,66 @@ export default class GerenciadorDados {
             // Fallback: usa ordem padrão se não houver DOM disponível
         }
         
+        const stripAccents = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+        let alfabetoMap = null;
+        let digraphs = [];
+        
+        if (this.alfabetoCustomizado && this.alfabetoCustomizado.trim()) {
+            const letras = this.alfabetoCustomizado.split(',').map(l => stripAccents(l.trim().toLowerCase())).filter(l => l);
+            if (letras.length > 0) {
+                alfabetoMap = new Map();
+                letras.forEach((letra, index) => {
+                    if (!alfabetoMap.has(letra)) {
+                        alfabetoMap.set(letra, index);
+                        if (letra.length > 1) digraphs.push(letra);
+                    }
+                });
+                digraphs.sort((a, b) => b.length - a.length); // match longest first
+            }
+        }
+        
+        const getCustomOrderArray = (palavra) => {
+            const limpa = stripAccents(palavra.toLowerCase());
+            let i = 0;
+            const arr = [];
+            while (i < limpa.length) {
+                let match = null;
+                for (const dig of digraphs) {
+                    if (limpa.startsWith(dig, i)) {
+                        match = dig;
+                        break;
+                    }
+                }
+                if (match) {
+                    arr.push(alfabetoMap.get(match));
+                    i += match.length;
+                } else {
+                    const char = limpa[i];
+                    arr.push(alfabetoMap.has(char) ? alfabetoMap.get(char) : 9999);
+                    i++;
+                }
+            }
+            return arr;
+        };
+        
         Object.keys(arvore).forEach(cat => {
             if (categoriasAlfabetico.has(cat)) {
                 arvore[cat]._entradas.sort((a, b) => {
-                    const termoA = (a._TERMO_PRINCIPAL || a.TERMO_PARENT || '').toLowerCase();
-                    const termoB = (b._TERMO_PRINCIPAL || b.TERMO_PARENT || '').toLowerCase();
-                    return termoA.localeCompare(termoB, 'pt-BR');
+                    const termoA = (a._TERMO_PRINCIPAL || a.TERMO_PARENT || '').trim();
+                    const termoB = (b._TERMO_PRINCIPAL || b.TERMO_PARENT || '').trim();
+                    
+                    if (alfabetoMap) {
+                        const arrA = getCustomOrderArray(termoA);
+                        const arrB = getCustomOrderArray(termoB);
+                        
+                        for (let i = 0; i < Math.min(arrA.length, arrB.length); i++) {
+                            if (arrA[i] !== arrB[i]) return arrA[i] - arrB[i];
+                        }
+                        return arrA.length - arrB.length;
+                    } else {
+                        return termoA.toLowerCase().localeCompare(termoB.toLowerCase(), 'pt-BR');
+                    }
                 });
             }
         });

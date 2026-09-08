@@ -238,7 +238,7 @@ class CarregadorPasta {
             resultado.textosExtra.referencia = arquivo;
             console.log(`📚 Referência encontrada: ${nomeArquivo}`);
         }
-        else if (estaNaRaiz && nomeArquivo.toLowerCase() === 'alfabeto.txt') {
+        else if (estaNaRaiz && (nomeArquivo.toLowerCase() === 'alfabeto.txt' || nomeArquivo.toLowerCase() === 'ordem-alfabeto.txt')) {
             resultado.textosExtra.alfabeto = arquivo;
             console.log(`🔤 Alfabeto encontrado: ${nomeArquivo}`);
         }
@@ -246,20 +246,32 @@ class CarregadorPasta {
             resultado.textosExtra.configTxt = arquivo;
             console.log(`⚙️ Configuração TXT encontrada: ${nomeArquivo}`);
         }
+        // O usuário solicitou que mídias em subpastas sejam ignoradas.
+        // O arquivo deve estar diretamente dentro da pasta de mídia.
+        // Isso significa que o caminho relativo deve ter exatamente 2 partes: 'pasta_midia/arquivo.ext'
+        const partesRelativas = caminhoRelativo.split('/');
+        const estaDiretoNaPastaDeMidia = partesRelativas.length === 2;
+        const nomePastaMidia = estaDiretoNaPastaDeMidia ? partesRelativas[0].toLowerCase() : '';
+
+        // Helper para verificar a pasta exata
+        const nomeDaPastaBate = (pastasPermitidas) => {
+            return estaDiretoNaPastaDeMidia && pastasPermitidas.some(p => p.toLowerCase() === nomePastaMidia);
+        };
+
         // Verificar se é áudio
-        else if (pastasAudio.some(p => pastaPai.toLowerCase().includes(p.toLowerCase()))) {
+        if (nomeDaPastaBate(pastasAudio)) {
             if (this.configurador.isExtensaoValida('audio', extensao)) {
                 resultado.audio.push(arquivo);
             }
         }
         // Verificar se é imagem
-        else if (pastasImagem.some(p => pastaPai.toLowerCase().includes(p.toLowerCase()))) {
+        else if (nomeDaPastaBate(pastasImagem)) {
             if (this.configurador.isExtensaoValida('imagem', extensao)) {
                 resultado.imagem.push(arquivo);
             }
         }
         // Verificar se é vídeo
-        else if (pastasVideo.some(p => pastaPai.toLowerCase().includes(p.toLowerCase()))) {
+        else if (nomeDaPastaBate(pastasVideo)) {
             if (this.configurador.isExtensaoValida('video', extensao)) {
                 resultado.video.push(arquivo);
             }

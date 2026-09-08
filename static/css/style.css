@@ -583,6 +583,7 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
 
 .export-html:hover { border-color: #3b82f6; background: #eff6ff; }
 .export-typst:hover { border-color: #06b6d4; background: #ecfeff; }
+.export-latex:hover { border-color: #3b5998; background: #f0f4f8; }
 .export-pdf:hover { border-color: #ef4444; background: #fef2f2; }
 .export-csv:hover { border-color: #10b981; background: #ecfdf5; }
 .export-json:hover { border-color: #8b5cf6; background: #f5f3ff; }
