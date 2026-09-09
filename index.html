@@ -849,10 +849,13 @@
         </div>
         <div id="tab-html" class="custom-tab-content active">
             <!-- Templates DropZones -->
-            <div class="drop-zone" id="templateHtmlZone"><p><strong>HTML Base</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste o template.html</span></p><input type="file" id="fileTemplateHtml" accept=".html" style="display:none"><div id="templateHtmlStatus"></div></div>
-            <div class="drop-zone" id="templateEntradaHtmlZone"><p><strong>Entrada  </strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste o entrada.html</span></p><input type="file" id="fileTemplateEntradaCardHtml" accept=".html" style="display:none"><div id="templateEntradaCardHtmlStatus"></div></div>
-            
-            <div class="drop-zone" id="templateCssCardZone"><p><strong>Estilos Globais (CSS)</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste estilos-globais.css</span></p><input type="file" id="fileTemplateCssCard" accept=".css" style="display:none"><div id="templateCssCardStatus"></div></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="drop-zone" id="templateHtmlZone"><p><strong>HTML Base</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste o template.html</span></p><input type="file" id="fileTemplateHtml" accept=".html" style="display:none"><div id="templateHtmlStatus"></div></div>
+                <div class="drop-zone" id="templateEntradaHtmlZone"><p><strong>Entrada</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste o entrada.tmpl</span></p><input type="file" id="fileTemplateEntradaHtml" accept=".tmpl,.html" style="display:none"><div id="templateEntradaHtmlStatus"></div></div>
+                <div class="drop-zone" id="templateListaHtmlZone"><p><strong>Item de Lista</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste o lista.tmpl</span></p><input type="file" id="fileTemplateListaHtml" accept=".tmpl,.html" style="display:none"><div id="templateListaHtmlStatus"></div></div>
+                <div class="drop-zone" id="templateCardHtmlZone"><p><strong>Mini Card</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste o card.tmpl</span></p><input type="file" id="fileTemplateCardHtml" accept=".tmpl,.html" style="display:none"><div id="templateCardHtmlStatus"></div></div>
+            </div>
+            <div class="drop-zone" id="templateCssCardZone" style="margin-top: 15px;"><p><strong>Estilos Globais (CSS)</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste estilos-globais.css</span></p><input type="file" id="fileTemplateCssCard" accept=".css" style="display:none"><div id="templateCssCardStatus"></div></div>
         </div>
         <div id="tab-typst" class="custom-tab-content">
             <h3 style="margin-bottom: 15px; color: var(--text-main);">📘 Templates Typst (Para PDFs)</h3>
@@ -879,7 +882,9 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/estilos-globais.css', 'estilos-globais.css')">🎨 Estilos Globais (CSS)</button>
                 <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/html-cards/template.html', 'cards-template.html')">🃏 template.html</button>
-                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/html-cards/entrada.html', 'cards-entrada.html')">🃏 entrada.html</button>
+                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/html-cards/entrada.tmpl', 'cards-entrada.tmpl')">🃏 entrada.tmpl</button>
+                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/html-cards/lista.tmpl', 'cards-lista.tmpl')">🃏 lista.tmpl</button>
+                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/html-cards/card.tmpl', 'cards-card.tmpl')">🃏 card.tmpl</button>
                 <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/typst/template.typ', 'typst-template.typ')">📘 Typst: template.typ</button>
                 <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/typst/entrada.typ', 'typst-entrada.typ')">📘 Typst: entrada.typ</button>
             </div>
@@ -2155,7 +2160,10 @@
         // --- SISTEMA DE TEMPLATES CUSTOMIZADOS ---
         const templatesCustomizados = [
             { id: 'fileTemplateHtml', key: 'csv2dmli_template_html' },
-            { id: 'fileTemplateEntradaCardHtml', key: 'csv2dmli_templateEntradaCardHtml' },
+            { id: 'fileTemplateEntradaHtml', key: 'csv2dmli_templateEntradaHtml' },
+            { id: 'fileTemplateListaHtml', key: 'csv2dmli_templateListaHtml' },
+            { id: 'fileTemplateCardHtml', key: 'csv2dmli_templateCardHtml' },
+            { id: 'fileTemplateCssCard', key: 'csv2dmli_templateCssCard' },
             { id: 'fileTemplateTypst', key: 'csv2dmli_template_typst' },
             { id: 'fileTemplateEntradaTypst', key: 'csv2dmli_templateEntradaTypst' }
         ];

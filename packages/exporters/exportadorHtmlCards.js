@@ -12,11 +12,10 @@ class ExportadorHtmlCards extends ExportadorBase {
 
     async carregarTemplates() {
         try {
-            // Ignora o cache local temporariamente para forçar o recarregamento do disco
-            const cachePrincipal = null;
-            const cacheEntrada = null;
-            const cacheCard = null;
-            const cacheLista = null;
+            const cachePrincipal = localStorage.getItem('csv2dmli_template_html');
+            const cacheEntrada = localStorage.getItem('csv2dmli_templateEntradaHtml');
+            const cacheCard = localStorage.getItem('csv2dmli_templateCardHtml');
+            const cacheLista = localStorage.getItem('csv2dmli_templateListaHtml');
             
             const nocache = '?v=' + Date.now();
             
@@ -52,10 +51,14 @@ class ExportadorHtmlCards extends ExportadorBase {
                 } catch(e) { console.warn('Fetch de lista.html falhou, usando fallback.'); }
             }
 
-            try {
-                const res = await fetch('config/templates/estilos-globais.css' + nocache);
-                if (res.ok) this.estilosGlobais = await res.text();
-            } catch(e) { console.warn('Fetch de config/templates/estilos-globais.css falhou, usando fallback.'); }
+            const cacheCss = localStorage.getItem('csv2dmli_templateCssCard');
+            if (cacheCss) this.estilosGlobais = cacheCss;
+            else {
+                try {
+                    const res = await fetch('config/templates/estilos-globais.css' + nocache);
+                    if (res.ok) this.estilosGlobais = await res.text();
+                } catch(e) { console.warn('Fetch de config/templates/estilos-globais.css falhou, usando fallback.'); }
+            }
 
             // Fallback de emergência caso os templates não sejam encontrados
             if (!this.templatePrincipal) {
