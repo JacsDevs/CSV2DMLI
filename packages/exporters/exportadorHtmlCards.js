@@ -78,6 +78,20 @@ class ExportadorHtmlCards extends ExportadorBase {
         }
     }
 
+    // Gera um bloco CSS (ex.: ":root{--cor-primaria:#5c6b41;}") a partir de um mapa
+    // { '--var': 'valor' }. Só aceita hex e rgba/rgb para não abrir espaço a injeção
+    // de CSS arbitrário via valores vindos do wizard.
+    gerarBlocoTemaCSS(vars, seletor) {
+        if (!vars) return '';
+        const chaveValida = /^--[a-z0-9-]+$/i;
+        const valorValido = /^(#[0-9a-fA-F]{3,8}|rgba?\([\d.,\s%]+\))$/;
+        const propriedades = Object.entries(vars)
+            .filter(([chave, valor]) => chaveValida.test(chave) && valorValido.test(String(valor).trim()))
+            .map(([chave, valor]) => `${chave}:${valor};`)
+            .join('');
+        return propriedades ? `${seletor}{${propriedades}}` : '';
+    }
+
     escaparHTML(texto) {
         if (!texto) return '';
         const mapa = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
@@ -241,6 +255,10 @@ class ExportadorHtmlCards extends ExportadorBase {
                     ? `${ano}.`
                     : '';
 
+        const tema = meta.tema || null;
+        const temaOverrideClaro = this.gerarBlocoTemaCSS(tema && tema.light, ':root');
+        const temaOverrideEscuro = this.gerarBlocoTemaCSS(tema && tema.dark, 'html[data-tema="escuro"]');
+
         let html = this.templatePrincipal
             .replace(/\{\{\s*metadados\.html\s*\}\}/gi, meta.tituloHtml || 'Dicionário')
             .replace(/\{\{\s*metadados\.icone_html\s*(\|\s*safe)?\s*\}\}/gi, iconeHtml)
@@ -254,6 +272,8 @@ class ExportadorHtmlCards extends ExportadorBase {
             .replace(/\{\{\s*metadados\.ano\s*\}\}/gi, ano)
             .replace(/\{\{\s*textos\.intro_html\s*(\|\s*safe)?\s*\}\}/gi, meta.introHtml || '')
             .replace(/\{\{\s*estilos_globais\s*(\|\s*safe)?\s*\}\}/gi, this.estilosGlobais || '')
+            .replace(/\{\{\s*tema\.override_claro\s*(\|\s*safe)?\s*\}\}/gi, temaOverrideClaro)
+            .replace(/\{\{\s*tema\.override_escuro\s*(\|\s*safe)?\s*\}\}/gi, temaOverrideEscuro)
             .replace(/\{\{\s*corpo_dicionario\s*(\|\s*safe)?\s*\}\}/gi, corpoHtml)
             .replace(/\{\{\s*scripts_dados_js\s*(\|\s*safe)?\s*\}\}/gi, scriptsDados);
 

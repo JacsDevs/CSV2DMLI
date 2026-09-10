@@ -9,7 +9,9 @@
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <h1 class="dict-headword" style="margin: 0; color: #15803d; font-weight: bold;">{{ TERMO_PARTE }}</h1>
                     {{#TEM_AUDIO}}
-                    <button class="modal-audio-btn" style="display: inline-flex; width: 32px; height: 32px; justify-content: center; align-items: center; font-size: 1.2rem;" title="Ouvir pronúncia" aria-label="Ouvir pronúncia" onclick="event.stopPropagation(); tocarAudio('{{ URL }}', this)" data-texto-original="🔊">🔊</button>
+                    <button type="button" class="btn-audio" title="Ouvir pronúncia" aria-label="Ouvir pronúncia" onclick="event.stopPropagation(); tocarAudio('{{ URL }}', this)">
+                        <svg class="icone" aria-hidden="true"><use href="#ic-som"></use></svg>
+                    </button>
                     {{/TEM_AUDIO}}
                 </div>
                 {{#NAO_E_O_ULTIMO}}<span style="color: #15803d; font-size: 1.5rem; font-weight: bold; margin: 0 4px;">~</span>{{/NAO_E_O_ULTIMO}}
@@ -19,7 +21,9 @@
                 {{#NAO_TEM_TERMOS_MISTOS}}
                 <h1 class="dict-headword" style="margin: 0; color: #15803d; font-weight: bold;">{{ TERMO }}</h1>
                 {{#AUDIOS_ARRAY}}
-                <button class="modal-audio-btn" style="display: inline-flex; width: 32px; height: 32px; justify-content: center; align-items: center; font-size: 1.2rem;" title="Ouvir pronúncia" aria-label="Ouvir pronúncia" onclick="event.stopPropagation(); tocarAudio('{{ URL }}', this)" data-texto-original="🔊">🔊</button>
+                <button type="button" class="btn-audio" title="Ouvir pronúncia" aria-label="Ouvir pronúncia" onclick="event.stopPropagation(); tocarAudio('{{ URL }}', this)">
+                    <svg class="icone" aria-hidden="true"><use href="#ic-som"></use></svg>
+                </button>
                 {{/AUDIOS_ARRAY}}
                 {{/NAO_TEM_TERMOS_MISTOS}}
             </div>
@@ -44,7 +48,9 @@
             {{#TRADUCAO}}<span class="dict-sense-translation">{{ TRADUCAO }}</span>{{/TRADUCAO}}
             
             {{#TEM_AUDIO_REVERSO}}
-            <button class="modal-audio-btn" style="display: inline-flex; width: 28px; height: 28px; justify-content: center; align-items: center; font-size: 1rem; margin-left: 8px;" title="Ouvir pronúncia" aria-label="Ouvir pronúncia" onclick="event.stopPropagation(); window.tocarAudio('{{ AUDIO_REVERSO_URL }}', this)" data-texto-original="🔊">🔊</button>
+            <button type="button" class="btn-audio btn-audio-sm" style="margin-left: 8px;" title="Ouvir pronúncia" aria-label="Ouvir pronúncia" onclick="event.stopPropagation(); window.tocarAudio('{{ AUDIO_REVERSO_URL }}', this)">
+                <svg class="icone" aria-hidden="true"><use href="#ic-som"></use></svg>
+            </button>
             {{/TEM_AUDIO_REVERSO}}
 
             {{#CLASSE_REVERSO}}<span class="dict-audio-chip classe-gramatical" style="background:transparent; border:none; padding:0; margin-left: 8px;"><em>{{ CLASSE_REVERSO }}</em></span>{{/CLASSE_REVERSO}}
@@ -61,7 +67,9 @@
                 <div class="dict-ex-source">
                     <span style="color: #15803d; font-weight: bold;">{{ TRANS }}</span>
                     {{#AUDIOS_ARRAY}}
-                    <button class="modal-audio-btn" style="display: inline-flex; width: 24px; height: 24px; justify-content: center; align-items: center; font-size: 0.8rem; margin-left: 4px;" title="Ouvir pronúncia" aria-label="Ouvir pronúncia" onclick="event.stopPropagation(); tocarAudio('{{ URL }}', this)" data-texto-original="🔊">🔊</button>
+                    <button type="button" class="btn-audio btn-audio-sm" style="margin-left: 4px;" title="Ouvir pronúncia" aria-label="Ouvir pronúncia" onclick="event.stopPropagation(); tocarAudio('{{ URL }}', this)">
+                        <svg class="icone" aria-hidden="true"><use href="#ic-som"></use></svg>
+                    </button>
                     {{/AUDIOS_ARRAY}}
                 </div>
                 <div class="dict-ex-target">{{ TRAD }}</div>
@@ -106,7 +114,9 @@
         <div class="dict-text-card" id="texto_{{ ID_TEXTO }}" style="margin-top: 16px;">
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
                 <strong style="font-size: 1.1rem;">📄 {{ TITULO_EXIBICAO_FALLBACK }}</strong>
-                <button class="modal-audio-btn" style="display: inline-flex; width: 28px; height: 28px; justify-content: center; align-items: center; font-size: 1rem;" onclick='tocaTexto(this, "texto_{{ ID_TEXTO }}")' title="Tocar texto" data-texto-original="🔊">🔊</button>
+                <button type="button" class="btn-audio btn-audio-sm toca-texto-btn" onclick='tocaTexto(this, "texto_{{ ID_TEXTO }}")' title="Tocar texto" aria-label="Tocar texto">
+                    <svg class="icone" aria-hidden="true"><use href="#ic-som"></use></svg>
+                </button>
             </div>
             {{#TEXTO_NAO_LITERAL}}<div style="font-style: italic; color: #64748b; margin-bottom: 16px;">{{ TEXTO_NAO_LITERAL }}</div>{{/TEXTO_NAO_LITERAL}}
 
@@ -118,7 +128,9 @@
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span style="color: #15803d; font-weight: bold;">{{ ORIGINAL }}</span>
                         {{#AUDIO_ARQUIVO}}
-                        <button class="modal-audio-btn" style="display: inline-flex; width: 24px; height: 24px; justify-content: center; align-items: center; font-size: 0.8rem;" title="Ouvir frase" aria-label="Ouvir frase" data-texto-original="🔊">🔊</button>
+                        <button type="button" class="btn-audio btn-audio-sm" title="Ouvir frase" aria-label="Ouvir frase">
+                            <svg class="icone" aria-hidden="true"><use href="#ic-som"></use></svg>
+                        </button>
                         {{/AUDIO_ARQUIVO}}
                     </div>
                     {{#TRADUCAO}}<div style="font-size: 0.9rem; color: #64748b;">{{ TRADUCAO }}</div>{{/TRADUCAO}}
