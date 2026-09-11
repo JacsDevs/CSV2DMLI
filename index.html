@@ -845,6 +845,7 @@
             <button class="custom-tab active" onclick="switchCustomTab(event, 'tab-html')">🌐 HTML</button>
             <button class="custom-tab" onclick="switchCustomTab(event, 'tab-typst')">📘 Typst</button>
             <button class="custom-tab" onclick="switchCustomTab(event, 'tab-geral')">⚙️ Geral</button>
+            <button class="custom-tab" onclick="switchCustomTab(event, 'tab-tema')">🎨 Tema</button>
             <button class="custom-tab" onclick="switchCustomTab(event, 'tab-download')">📥 Download</button>
         </div>
         <div id="tab-html" class="custom-tab-content active">
@@ -873,6 +874,39 @@
                 <div class="drop-zone" id="introPdfDropZone"><p><strong>Introdução do Dicionário (PDF)</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Documento Typst para o inicio do PDF</span></p><input type="file" id="fileIntroPdf" accept=".typ" style="display:none"></div>
                 <div class="drop-zone" id="referenciaDropZone"><p><strong>Referências Bibliográficas</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Importar referências</span></p><input type="file" id="fileReferencia" style="display:none"></div>
                 <div class="drop-zone" id="alfabetoDropZone"><p><strong>Ordem Alfabética Customizada</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Defina o próprio alfabeto para ordenação</span></p><input type="file" id="fileAlfabeto" style="display:none"><div id="alfabetoPreview" style="display:none;"></div><div id="alfabetoActions" style="display:none;"></div></div>
+            </div>
+        </div>
+        <div id="tab-tema" class="custom-tab-content">
+            <h3 style="margin-bottom: 15px; color: var(--text-main);">🎨 Tema do Dicionário (HTML exportado)</h3>
+            <p style="font-size: 0.9em; color: var(--text-muted); margin-bottom: 20px;">Escolha as cores do arquivo HTML gerado ao final da exportação. Isso não muda a aparência deste assistente, só a do dicionário exportado — nos modos claro e escuro.</p>
+
+            <div id="temaPaletasGrid" style="display: flex; flex-wrap: nowrap; align-items: center; gap: 12px; margin-bottom: 20px;"></div>
+
+            <div id="temaCustomPainel" style="display: none; margin-bottom: 20px; padding: 15px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px;">
+                <strong style="display: block; margin-bottom: 12px; color: var(--text-main);">Cores personalizadas</strong>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 14px;">
+                    <label style="display: flex; flex-direction: column; gap: 6px; font-size: 0.85em; color: var(--text-muted);">Fundo
+                        <input type="color" id="temaCustomFundo" value="#f5ead8" oninput="window.atualizarTemaCustom()">
+                    </label>
+                    <label style="display: flex; flex-direction: column; gap: 6px; font-size: 0.85em; color: var(--text-muted);">Superfície (cards)
+                        <input type="color" id="temaCustomSuperficie" value="#fffbf2" oninput="window.atualizarTemaCustom()">
+                    </label>
+                    <label style="display: flex; flex-direction: column; gap: 6px; font-size: 0.85em; color: var(--text-muted);">Cor primária
+                        <input type="color" id="temaCustomPrimaria" value="#5c6b41" oninput="window.atualizarTemaCustom()">
+                    </label>
+                    <label style="display: flex; flex-direction: column; gap: 6px; font-size: 0.85em; color: var(--text-muted);">Cor de acento
+                        <input type="color" id="temaCustomAcento" value="#c67139" oninput="window.atualizarTemaCustom()">
+                    </label>
+                </div>
+                <p style="font-size: 0.78em; color: var(--text-muted); margin-top: 10px;">As demais tonalidades (hover, bordas, contraste e o modo escuro completo) são geradas automaticamente a partir destas 4 cores.</p>
+            </div>
+
+            <div>
+                <strong style="display: block; margin-bottom: 8px; color: var(--text-main); font-size: 0.9em;">Pré-visualização</strong>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div id="temaPreviewClaro"></div>
+                    <div id="temaPreviewEscuro"></div>
+                </div>
             </div>
         </div>
         <div id="tab-download" class="custom-tab-content">
@@ -1683,6 +1717,7 @@
             introHtml: introHtml || (window.sistema ? window.sistema.introHtml : ''),
             introPdf: introPdf || (window.sistema ? window.sistema.introPdf : ''),
             iconeDataUrl: (window.sistema && window.sistema.icone && window.sistema.icone.dataUrl) || null,
+            tema: window.coletarTemaExportacao ? window.coletarTemaExportacao() : null,
         };
     }
 
@@ -3192,12 +3227,262 @@
 
     function getDragAfterElement(container, y) {
         const items = [...container.querySelectorAll('.sortable-item:not(.dragging)')];
-        return items.reduce((closest, child) => { 
-            const box = child.getBoundingClientRect(); 
-            const offset = y - box.top - box.height / 2; 
-            return (offset < 0 && offset > closest.offset) ? { offset, element: child } : closest; 
+        return items.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            return (offset < 0 && offset > closest.offset) ? { offset, element: child } : closest;
         }, { offset: Number.NEGATIVE_INFINITY }).element;
     }
+
+    // ===================================================================
+    // TEMA DO HTML EXPORTADO (aba "🎨 Tema" no modal de Configurações)
+    // Personaliza apenas as CSS custom properties do dicionário exportado
+    // (config/templates/html-cards/template.html), não a aparência do wizard.
+    // ===================================================================
+    const TEMA_STORAGE_KEY = 'csv2dmli-tema-preferencia';
+
+    const PALETAS_TEMA = [
+        {
+            id: 'salvia', nome: 'Sálvia & Terracota', amostra: ['#f5ead8', '#5c6b41', '#c67139'],
+            light: { '--cor-fundo': '#f5ead8', '--cor-fundo-2': '#efe1c9', '--cor-superficie': '#fffbf2', '--cor-superficie-2': '#f7eeda', '--cor-texto': '#201e1d', '--cor-texto-secundario': '#6d6459', '--cor-borda': 'rgba(32,30,29,0.10)', '--cor-borda-forte': 'rgba(32,30,29,0.18)', '--cor-primaria': '#5c6b41', '--cor-primaria-hover': '#47542f', '--cor-primaria-light': '#e6e9d8', '--cor-primaria-contraste': '#fffbf2', '--cor-acento': '#c67139', '--cor-acento-forte': '#9d5324', '--cor-acento-light': '#f7e2ce', '--cor-perigo': '#a9452c' },
+            dark: { '--cor-fundo': '#1a1816', '--cor-fundo-2': '#14120f', '--cor-superficie': '#262220', '--cor-superficie-2': '#302b28', '--cor-texto': '#f2e9db', '--cor-texto-secundario': '#ada190', '--cor-borda': 'rgba(242,233,219,0.12)', '--cor-borda-forte': 'rgba(242,233,219,0.22)', '--cor-primaria': '#a9bd83', '--cor-primaria-hover': '#c0d199', '--cor-primaria-light': '#333a29', '--cor-primaria-contraste': '#1a1816', '--cor-acento': '#e0904f', '--cor-acento-forte': '#f0a869', '--cor-acento-light': '#3d2c1e', '--cor-perigo': '#e58a72' }
+        },
+        {
+            id: 'oceano', nome: 'Oceano', amostra: ['#eaf2f4', '#1f6f78', '#e0703f'],
+            light: { '--cor-fundo': '#eaf2f4', '--cor-fundo-2': '#dfeaed', '--cor-superficie': '#ffffff', '--cor-superficie-2': '#f2f7f8', '--cor-texto': '#17232a', '--cor-texto-secundario': '#56727c', '--cor-borda': 'rgba(23,35,42,0.10)', '--cor-borda-forte': 'rgba(23,35,42,0.18)', '--cor-primaria': '#1f6f78', '--cor-primaria-hover': '#17565d', '--cor-primaria-light': '#d9edf0', '--cor-primaria-contraste': '#ffffff', '--cor-acento': '#e0703f', '--cor-acento-forte': '#b6532a', '--cor-acento-light': '#fbe2d3', '--cor-perigo': '#b3402a' },
+            dark: { '--cor-fundo': '#10181b', '--cor-fundo-2': '#0c1214', '--cor-superficie': '#1a2529', '--cor-superficie-2': '#212f34', '--cor-texto': '#e6f1f3', '--cor-texto-secundario': '#9db3ba', '--cor-borda': 'rgba(230,241,243,0.12)', '--cor-borda-forte': 'rgba(230,241,243,0.22)', '--cor-primaria': '#5fb8c2', '--cor-primaria-hover': '#82c9d1', '--cor-primaria-light': '#1f3a3d', '--cor-primaria-contraste': '#0c1214', '--cor-acento': '#f0925f', '--cor-acento-forte': '#f5ab80', '--cor-acento-light': '#3d2418', '--cor-perigo': '#e58768' }
+        },
+        {
+            id: 'ametista', nome: 'Ametista', amostra: ['#f3eef8', '#6b4c9a', '#c99a2e'],
+            light: { '--cor-fundo': '#f3eef8', '--cor-fundo-2': '#eae1f2', '--cor-superficie': '#fffdff', '--cor-superficie-2': '#f7f1fb', '--cor-texto': '#241b2e', '--cor-texto-secundario': '#6f6079', '--cor-borda': 'rgba(36,27,46,0.10)', '--cor-borda-forte': 'rgba(36,27,46,0.18)', '--cor-primaria': '#6b4c9a', '--cor-primaria-hover': '#543a7c', '--cor-primaria-light': '#e8e0f4', '--cor-primaria-contraste': '#ffffff', '--cor-acento': '#c99a2e', '--cor-acento-forte': '#a17c1f', '--cor-acento-light': '#f6ead0', '--cor-perigo': '#a9412e' },
+            dark: { '--cor-fundo': '#191420', '--cor-fundo-2': '#130f18', '--cor-superficie': '#241d2d', '--cor-superficie-2': '#2e2537', '--cor-texto': '#ede7f2', '--cor-texto-secundario': '#ab9db8', '--cor-borda': 'rgba(237,231,242,0.12)', '--cor-borda-forte': 'rgba(237,231,242,0.22)', '--cor-primaria': '#b399e0', '--cor-primaria-hover': '#c6b1e8', '--cor-primaria-light': '#3a2f4a', '--cor-primaria-contraste': '#191420', '--cor-acento': '#e0b95c', '--cor-acento-forte': '#edc97e', '--cor-acento-light': '#3d331b', '--cor-perigo': '#e58a76' }
+        },
+        {
+            id: 'ardosia', nome: 'Ardósia', amostra: ['#eef0f2', '#3a4a5c', '#2f7fe0'],
+            light: { '--cor-fundo': '#eef0f2', '--cor-fundo-2': '#e2e6e9', '--cor-superficie': '#ffffff', '--cor-superficie-2': '#f5f6f8', '--cor-texto': '#1c2126', '--cor-texto-secundario': '#5b6570', '--cor-borda': 'rgba(28,33,38,0.10)', '--cor-borda-forte': 'rgba(28,33,38,0.18)', '--cor-primaria': '#3a4a5c', '--cor-primaria-hover': '#2b3947', '--cor-primaria-light': '#dde3e8', '--cor-primaria-contraste': '#ffffff', '--cor-acento': '#2f7fe0', '--cor-acento-forte': '#1f60b3', '--cor-acento-light': '#d9e8fb', '--cor-perigo': '#b3402a' },
+            dark: { '--cor-fundo': '#14171a', '--cor-fundo-2': '#101214', '--cor-superficie': '#1e2226', '--cor-superficie-2': '#262b30', '--cor-texto': '#e8ebed', '--cor-texto-secundario': '#99a3ac', '--cor-borda': 'rgba(232,235,237,0.12)', '--cor-borda-forte': 'rgba(232,235,237,0.22)', '--cor-primaria': '#8fa3b5', '--cor-primaria-hover': '#a7b8c6', '--cor-primaria-light': '#2a333b', '--cor-primaria-contraste': '#14171a', '--cor-acento': '#5fa3f0', '--cor-acento-forte': '#7fb6f5', '--cor-acento-light': '#1c2e42', '--cor-perigo': '#e58768' }
+        }
+    ];
+
+    let temaSelecionado = { tipo: 'paleta', paletaId: 'salvia', custom: { fundo: '#f5ead8', superficie: '#fffbf2', primaria: '#5c6b41', acento: '#c67139' } };
+
+    // --- utilidades de cor (hex <-> hsl, para derivar o modo "Personalizado") ---
+    function hexParaRgb(hex) {
+        hex = hex.replace('#', '');
+        if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+        const num = parseInt(hex, 16);
+        return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+    }
+    function rgbParaHex(r, g, b) {
+        const c = v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0');
+        return `#${c(r)}${c(g)}${c(b)}`;
+    }
+    function rgbParaHsl(r, g, b) {
+        r /= 255; g /= 255; b /= 255;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        let h, s, l = (max + min) / 2;
+        if (max === min) { h = s = 0; }
+        else {
+            const d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            switch (max) {
+                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                case g: h = (b - r) / d + 2; break;
+                default: h = (r - g) / d + 4; break;
+            }
+            h /= 6;
+        }
+        return { h: h * 360, s: s * 100, l: l * 100 };
+    }
+    function hslParaRgb(h, s, l) {
+        h /= 360; s /= 100; l /= 100;
+        let r, g, b;
+        if (s === 0) { r = g = b = l; }
+        else {
+            const hue2rgb = (p, q, t) => { if (t < 0) t += 1; if (t > 1) t -= 1; if (t < 1 / 6) return p + (q - p) * 6 * t; if (t < 1 / 2) return q; if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6; return p; };
+            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            const p = 2 * l - q;
+            r = hue2rgb(p, q, h + 1 / 3);
+            g = hue2rgb(p, q, h);
+            b = hue2rgb(p, q, h - 1 / 3);
+        }
+        return { r: r * 255, g: g * 255, b: b * 255 };
+    }
+    function hexParaHsl(hex) { const { r, g, b } = hexParaRgb(hex); return rgbParaHsl(r, g, b); }
+    function hslParaHex(h, s, l) { const { r, g, b } = hslParaRgb(h, s, l); return rgbParaHex(r, g, b); }
+    function clampTema(v, min, max) { return Math.max(min, Math.min(max, v)); }
+    function rgbaDeHex(hex, alpha) { const { r, g, b } = hexParaRgb(hex); return `rgba(${Math.round(r)},${Math.round(g)},${Math.round(b)},${alpha})`; }
+    function luminanciaRelativa(hex) {
+        const { r, g, b } = hexParaRgb(hex);
+        const canal = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+        return 0.2126 * canal(r) + 0.7152 * canal(g) + 0.0722 * canal(b);
+    }
+    function contrasteTexto(hexFundo) { return luminanciaRelativa(hexFundo) > 0.5 ? '#201e1d' : '#fffbf2'; }
+
+    // Deriva os dois conjuntos de variáveis (claro/escuro) a partir das 4 cores
+    // escolhidas pelo usuário no modo "Personalizado".
+    function derivarTemaCustom({ fundo, superficie, primaria, acento }) {
+        const hFundo = hexParaHsl(fundo);
+        const hSup = hexParaHsl(superficie);
+        const hPri = hexParaHsl(primaria);
+        const hAcc = hexParaHsl(acento);
+
+        const textoClaro = hslParaHex(hFundo.h, Math.min(hFundo.s, 15), 12);
+        const light = {
+            '--cor-fundo': fundo,
+            '--cor-fundo-2': hslParaHex(hFundo.h, hFundo.s, clampTema(hFundo.l - 5, 0, 100)),
+            '--cor-superficie': superficie,
+            '--cor-superficie-2': hslParaHex(hSup.h, hSup.s, clampTema(hSup.l - 4, 0, 100)),
+            '--cor-texto': textoClaro,
+            '--cor-texto-secundario': hslParaHex(hFundo.h, Math.min(hFundo.s, 10), 42),
+            '--cor-borda': rgbaDeHex(textoClaro, 0.10),
+            '--cor-borda-forte': rgbaDeHex(textoClaro, 0.18),
+            '--cor-primaria': primaria,
+            '--cor-primaria-hover': hslParaHex(hPri.h, hPri.s, clampTema(hPri.l - 12, 0, 100)),
+            '--cor-primaria-light': hslParaHex(hPri.h, clampTema(hPri.s - 30, 10, 100), clampTema(hPri.l + 45, 0, 92)),
+            '--cor-primaria-contraste': contrasteTexto(primaria),
+            '--cor-acento': acento,
+            '--cor-acento-forte': hslParaHex(hAcc.h, hAcc.s, clampTema(hAcc.l - 15, 0, 100)),
+            '--cor-acento-light': hslParaHex(hAcc.h, clampTema(hAcc.s - 20, 10, 100), clampTema(hAcc.l + 40, 0, 92)),
+            '--cor-perigo': '#a9452c'
+        };
+
+        const textoEscuro = hslParaHex(hFundo.h, Math.min(hFundo.s, 10), 92);
+        const dark = {
+            '--cor-fundo': hslParaHex(hFundo.h, clampTema(hFundo.s - 10, 0, 60), 9),
+            '--cor-fundo-2': hslParaHex(hFundo.h, clampTema(hFundo.s - 10, 0, 60), 7),
+            '--cor-superficie': hslParaHex(hSup.h, clampTema(hSup.s - 10, 0, 60), 15),
+            '--cor-superficie-2': hslParaHex(hSup.h, clampTema(hSup.s - 10, 0, 60), 18),
+            '--cor-texto': textoEscuro,
+            '--cor-texto-secundario': hslParaHex(hFundo.h, Math.min(hFundo.s, 8), 66),
+            '--cor-borda': rgbaDeHex(textoEscuro, 0.12),
+            '--cor-borda-forte': rgbaDeHex(textoEscuro, 0.22),
+            '--cor-primaria': hslParaHex(hPri.h, clampTema(hPri.s - 5, 0, 100), clampTema(hPri.l + 30, 40, 78)),
+            '--cor-primaria-hover': hslParaHex(hPri.h, clampTema(hPri.s - 5, 0, 100), clampTema(hPri.l + 42, 50, 88)),
+            '--cor-primaria-light': hslParaHex(hPri.h, clampTema(hPri.s - 25, 5, 100), 18),
+            '--cor-primaria-contraste': '#1a1816',
+            '--cor-acento': hslParaHex(hAcc.h, clampTema(hAcc.s - 5, 0, 100), clampTema(hAcc.l + 22, 45, 80)),
+            '--cor-acento-forte': hslParaHex(hAcc.h, clampTema(hAcc.s - 5, 0, 100), clampTema(hAcc.l + 34, 55, 88)),
+            '--cor-acento-light': hslParaHex(hAcc.h, clampTema(hAcc.s - 25, 5, 100), 20),
+            '--cor-perigo': '#e58a72'
+        };
+
+        return { light, dark };
+    }
+
+    function resolverTemaAtual() {
+        if (temaSelecionado.tipo === 'custom') return derivarTemaCustom(temaSelecionado.custom);
+        const paleta = PALETAS_TEMA.find(p => p.id === temaSelecionado.paletaId) || PALETAS_TEMA[0];
+        return { light: paleta.light, dark: paleta.dark };
+    }
+
+    function persistirTema() {
+        try { localStorage.setItem(TEMA_STORAGE_KEY, JSON.stringify(temaSelecionado)); } catch (e) {}
+    }
+
+    function carregarTemaPersistido() {
+        try {
+            const salvo = localStorage.getItem(TEMA_STORAGE_KEY);
+            if (!salvo) return;
+            const parsed = JSON.parse(salvo);
+            if (parsed && (parsed.tipo === 'paleta' || parsed.tipo === 'custom')) temaSelecionado = parsed;
+        } catch (e) { console.warn('Preferência de tema bloqueada:', e); }
+    }
+
+    // Consumido em coletarMetadadosExportacao() e, por conseguinte, por todas
+    // as chamadas a exportarHtmlCards() (site, preview do APK e app Android).
+    window.coletarTemaExportacao = function() { return resolverTemaAtual(); };
+
+    function preencherCamposCustom() {
+        const c = temaSelecionado.custom;
+        if (!c) return;
+        const mapa = { temaCustomFundo: c.fundo, temaCustomSuperficie: c.superficie, temaCustomPrimaria: c.primaria, temaCustomAcento: c.acento };
+        Object.entries(mapa).forEach(([id, valor]) => { const el = document.getElementById(id); if (el && valor) el.value = valor; });
+    }
+
+    function renderizarPaletasTema() {
+        const grid = document.getElementById('temaPaletasGrid');
+        if (!grid) return;
+        grid.innerHTML = '';
+        PALETAS_TEMA.forEach(p => {
+            const ativo = temaSelecionado.tipo === 'paleta' && temaSelecionado.paletaId === p.id;
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.title = p.nome;
+            btn.setAttribute('aria-label', p.nome);
+            btn.style.cssText = `display:flex; gap:5px; align-items:center; padding:10px 12px; border-radius:10px; cursor:pointer; border:2px solid ${ativo ? p.amostra[1] : 'var(--border-color)'}; background:var(--bg-secondary); flex-shrink:0;`;
+            btn.innerHTML = p.amostra.map(cor => `<span style="width:20px; height:20px; border-radius:50%; background:${cor}; border:1px solid rgba(0,0,0,0.15);"></span>`).join('');
+            btn.onclick = () => selecionarPaletaTema(p.id);
+            grid.appendChild(btn);
+        });
+
+        const customAtivo = temaSelecionado.tipo === 'custom';
+        const btnCustom = document.createElement('button');
+        btnCustom.type = 'button';
+        btnCustom.style.cssText = `display:flex; align-items:center; gap:6px; padding:10px 12px; border-radius:10px; cursor:pointer; border:2px solid ${customAtivo ? 'var(--text-main)' : 'var(--border-color)'}; background:var(--bg-secondary); flex-shrink:0; white-space:nowrap;`;
+        btnCustom.innerHTML = `<span style="font-size:1.1em;">🎛️</span><span style="font-size:0.85em; font-weight:600; color:var(--text-main);">Personalizado</span>`;
+        btnCustom.onclick = () => selecionarPaletaTema('custom');
+        grid.appendChild(btnCustom);
+
+        const painelCustom = document.getElementById('temaCustomPainel');
+        if (painelCustom) painelCustom.style.display = customAtivo ? 'block' : 'none';
+    }
+
+    function selecionarPaletaTema(id) {
+        if (id === 'custom') {
+            temaSelecionado = { tipo: 'custom', custom: temaSelecionado.custom || { fundo: '#f5ead8', superficie: '#fffbf2', primaria: '#5c6b41', acento: '#c67139' } };
+            preencherCamposCustom();
+        } else {
+            temaSelecionado = { tipo: 'paleta', paletaId: id, custom: temaSelecionado.custom };
+        }
+        persistirTema();
+        renderizarPaletasTema();
+        atualizarPreviewTema();
+    }
+    window.selecionarPaletaTema = selecionarPaletaTema;
+
+    window.atualizarTemaCustom = function() {
+        temaSelecionado = {
+            tipo: 'custom',
+            custom: {
+                fundo: document.getElementById('temaCustomFundo').value,
+                superficie: document.getElementById('temaCustomSuperficie').value,
+                primaria: document.getElementById('temaCustomPrimaria').value,
+                acento: document.getElementById('temaCustomAcento').value
+            }
+        };
+        persistirTema();
+        atualizarPreviewTema();
+    };
+
+    function renderizarPreviewCardTema(container, vars, rotulo) {
+        if (!container) return;
+        container.innerHTML = `
+            <div style="border-radius:12px; padding:14px; background:${vars['--cor-fundo']}; border:1px solid ${vars['--cor-borda']};">
+                <div style="font-size:0.72em; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:${vars['--cor-texto-secundario']}; margin-bottom:8px;">${rotulo}</div>
+                <div style="background:${vars['--cor-superficie']}; border:1px solid ${vars['--cor-borda']}; border-radius:10px; padding:12px; display:flex; flex-direction:column; gap:6px;">
+                    <strong style="color:${vars['--cor-primaria']}; font-size:1.05em;">Palavra</strong>
+                    <span style="color:${vars['--cor-texto']}; font-size:0.88em;">tradução de exemplo</span>
+                    <span style="display:inline-block; align-self:flex-start; margin-top:4px; padding:3px 10px; border-radius:999px; font-size:0.75em; font-weight:600; background:${vars['--cor-primaria-light']}; color:${vars['--cor-primaria']};">substantivo</span>
+                    <span style="display:inline-block; align-self:flex-start; padding:3px 10px; border-radius:999px; font-size:0.75em; font-weight:600; background:${vars['--cor-acento-light']}; color:${vars['--cor-acento-forte']};">destaque</span>
+                </div>
+            </div>
+        `;
+    }
+
+    function atualizarPreviewTema() {
+        const tema = resolverTemaAtual();
+        renderizarPreviewCardTema(document.getElementById('temaPreviewClaro'), tema.light, '☀️ Claro');
+        renderizarPreviewCardTema(document.getElementById('temaPreviewEscuro'), tema.dark, '🌙 Escuro');
+    }
+
+    function iniciarTemaWizard() {
+        carregarTemaPersistido();
+        preencherCamposCustom();
+        renderizarPaletasTema();
+        atualizarPreviewTema();
+    }
+    iniciarTemaWizard();
 </script>
 
 <!-- Registro do Service Worker (PWA) -->
