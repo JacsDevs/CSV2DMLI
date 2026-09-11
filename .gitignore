@@ -25,6 +25,9 @@ android-template/app/build/
 android-template/local.properties
 android-template/gradle/wrapper/gradle-wrapper.jar
 
+
+20260819-CLDF/
+
 # Temporários do sistema
 .DS_Store
 Thumbs.db

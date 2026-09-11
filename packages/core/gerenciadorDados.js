@@ -1,20 +1,20 @@
-import SistemaArquivosVirtual from './sistemaArquivosVirtual.js';
+﻿import SistemaArquivosVirtual from './sistemaArquivosVirtual.js';
 import CarregadorCsv from './carregadorCsv.js';
 import ConstrutorBancoDados from './construtorBancoDados.js';
 import { buscaFuzzy } from './helpers.js';
 
 /**
- * Gerencia o carregamento e o armazenamento de todos os dados da aplicação,
- * orquestrando os componentes do núcleo conforme a arquitetura modular.
+ * Gerencia o carregamento e o armazenamento de todos os dados da aplicaÃ§Ã£o,
+ * orquestrando os componentes do nÃºcleo conforme a arquitetura modular.
  */
 export default class GerenciadorDados {
     constructor(configurador) {
         if (!configurador) {
-            throw new Error("GerenciadorDados requer uma instância de Configurador válida.");
+            throw new Error("GerenciadorDados requer uma instÃ¢ncia de Configurador vÃ¡lida.");
         }
         this.configurador = configurador;
 
-        // Instancia os componentes do núcleo
+        // Instancia os componentes do nÃºcleo
         this.vfs = new SistemaArquivosVirtual(this.configurador);
         this.carregadorCsv = new CarregadorCsv();
         this.construtorDB = new ConstrutorBancoDados(this.vfs, this.configurador);
@@ -31,10 +31,10 @@ export default class GerenciadorDados {
         this.configuracaoTextoLocal = {};
         this.icone = { dataUrl: null, bytes: null, nome: null };
         
-        // Opções
+        // OpÃ§Ãµes
         this.silenciarAvisosMidia = false;
 
-        console.log('🗃️ Gerenciador de Dados inicializado (Arquitetura Modular).');
+        console.log('ðŸ—ƒï¸ Gerenciador de Dados inicializado (Arquitetura Modular).');
     }
 
     async inicializar() {
@@ -53,11 +53,19 @@ export default class GerenciadorDados {
      * @returns {Promise<void>}
      */
     async carregarPlanilha(arquivo) {
-        console.log(`📄 Processando planilha via CarregadorCsv: ${arquivo.name}`);
+        console.log(`ðŸ“„ Processando planilha via CarregadorCsv: ${arquivo.name}`);
         const resultado = await this.carregadorCsv.processarCSV(arquivo);
         
         // Normaliza os dados crus (flat) para o formato aninhado do Editor
-        this.dadosPlanilha = resultado.dados.map((linhaMesclada, index) => {
+        this.dadosPlanilha = this._normalizarDadosCrus(resultado.dados);
+        this.colunasPlanilha = resultado.colunas;
+        
+        console.log("Planilha carregada e normalizada: " + this.dadosPlanilha.length + " linhas.");
+        this._reconstruirBanco();
+    }
+
+    _normalizarDadosCrus(dadosCrus) {
+        return dadosCrus.map((linhaMesclada, index) => {
             const imagens = [];
             if (linhaMesclada.IMAGEM || linhaMesclada.LEGENDA_IMAGEM) {
                 const imgsRaw = (linhaMesclada.IMAGEM || '').split('|').map(v=>v.trim());
@@ -139,7 +147,7 @@ export default class GerenciadorDados {
                 }
             }
             
-            // Remove variações vazias
+            // Remove variaÃ§Ãµes vazias
             const variacoesFiltradas = variacoes.filter(v => v.item || v.audio || v.fone || v.fonet);
 
             return {
@@ -196,12 +204,12 @@ export default class GerenciadorDados {
 
         this.colunasPlanilha = resultado.colunas;
         
-        console.log(`✅ Planilha carregada e normalizada: ${this.dadosPlanilha.length} linhas.`);
+        console.log(`âœ… Planilha carregada e normalizada: ${this.dadosPlanilha.length} linhas.`);
         this._reconstruirBanco();
     }
 
     /**
-     * Carrega o arquivo JSON de textos e o transforma em um mapa para acesso rápido.
+     * Carrega o arquivo JSON de textos e o transforma em um mapa para acesso rÃ¡pido.
      * @param {File} arquivo - O arquivo textos.json.
      * @returns {Promise<void>}
      */
@@ -214,7 +222,7 @@ export default class GerenciadorDados {
                     this.adicionarTextosEstruturados(json);
                     resolve();
                 } catch (err) {
-                    console.error(`❌ Erro no formato do textos.json: ${err.message}`);
+                    console.error(`âŒ Erro no formato do textos.json: ${err.message}`);
                     reject(err);
                 }
             };
@@ -225,14 +233,14 @@ export default class GerenciadorDados {
 
     /**
      * Processa os textos estruturados do JSON e os envia ao Sistema de Arquivos Virtual.
-     * É chamada tanto por carregarTextos() avulso quanto pelo CarregadorPasta.
-     * @param {object} json - O conteúdo parseado do arquivo textos.json
+     * Ã‰ chamada tanto por carregarTextos() avulso quanto pelo CarregadorPasta.
+     * @param {object} json - O conteÃºdo parseado do arquivo textos.json
      */
     adicionarTextosEstruturados(json) {
         const textosMap = {};
         const textosArray = json.textos || (Array.isArray(json) ? json : Object.values(json));
 
-        // Mapeia os textos pela chave 'titulo_base' para busca rápida O(1)
+        // Mapeia os textos pela chave 'titulo_base' para busca rÃ¡pida O(1)
         if (Array.isArray(textosArray)) {
             textosArray.forEach(texto => {
                 if (texto.titulo_base) {
@@ -243,23 +251,23 @@ export default class GerenciadorDados {
             Object.assign(textosMap, textosArray);
         }
 
-        // Envia para a memória do VFS
+        // Envia para a memÃ³ria do VFS
         if (typeof this.vfs.adicionarTextosEstruturados === 'function') {
             this.vfs.adicionarTextosEstruturados(textosMap);
         } else {
             this.vfs.textos = textosMap;
         }
         
-        console.log(`📝 ${Object.keys(textosMap).length} textos estruturados mapeados e enviados ao VFS.`);
+        console.log(`ðŸ“ ${Object.keys(textosMap).length} textos estruturados mapeados e enviados ao VFS.`);
         this._reconstruirBanco();
     }
 
     /**
-     * Adiciona arquivos de mídia (áudio, imagem, vídeo) ao sistema.
+     * Adiciona arquivos de mÃ­dia (Ã¡udio, imagem, vÃ­deo) ao sistema.
      * @param {FileList} arquivos - A lista de arquivos a serem adicionados.
      */
     adicionarMidias(arquivos) {
-        console.log(`🖼️ Adicionando ${arquivos.length} arquivos de mídia...`);
+        console.log(`ðŸ–¼ï¸ Adicionando ${arquivos.length} arquivos de mÃ­dia...`);
         if (!arquivos || arquivos.length === 0) return;
 
         Array.from(arquivos).forEach(arquivo => {
@@ -288,8 +296,8 @@ export default class GerenciadorDados {
     }
 
     /**
-     * Define o ícone do aplicativo/site a partir de um arquivo de imagem.
-     * @param {File} arquivo - Imagem do ícone (ex: icone.png).
+     * Define o Ã­cone do aplicativo/site a partir de um arquivo de imagem.
+     * @param {File} arquivo - Imagem do Ã­cone (ex: icone.png).
      */
     async setIcone(arquivo) {
         const dataUrl = await this._lerArquivoComoDataURL(arquivo);
@@ -317,7 +325,7 @@ export default class GerenciadorDados {
     }
 
     /**
-     * Retorna o objeto contendo os mapas de mídias, garantindo compatibilidade.
+     * Retorna o objeto contendo os mapas de mÃ­dias, garantindo compatibilidade.
      */
     getPastasMidia() {
         return { audio: this.vfs.audio, imagem: this.vfs.imagem, video: this.vfs.video };
@@ -350,7 +358,7 @@ export default class GerenciadorDados {
         if (projeto.alfabetoCustomizado) this.alfabetoCustomizado = projeto.alfabetoCustomizado;
         if (projeto.configuracaoTextoLocal) this.configuracaoTextoLocal = projeto.configuracaoTextoLocal;
         this._reconstruirBanco();
-        console.log('📦 Projeto restaurado de projeto.json');
+        console.log('ðŸ“¦ Projeto restaurado de projeto.json');
     }
 
     _lerArquivoComoTexto(arquivo) {
@@ -363,7 +371,7 @@ export default class GerenciadorDados {
     }
 
     limpar() {
-        // Opções
+        // OpÃ§Ãµes
         this.silenciarAvisosMidia = false;
         
         // Estado
@@ -372,14 +380,14 @@ export default class GerenciadorDados {
         this._bancoConstruido = null;
         this.icone = { dataUrl: null, bytes: null, nome: null };
         this.vfs.limpar();
-        console.log('🧹 Dados limpos com sucesso.');
+        console.log('ðŸ§¹ Dados limpos com sucesso.');
     }
 
     async exportar(tipo) {
         if (tipo === 'csv') {
             if (!this.carregadorCsv.papa || this.dadosPlanilha.length === 0) return null;
             
-            // Re-empacota a árvore de volta para linhas planas
+            // Re-empacota a Ã¡rvore de volta para linhas planas
             const dadosPlanos = this.dadosPlanilha.map(item => {
                 const cb = item.camposBasicos || {};
                 const vars = item.variacoes || [];
@@ -503,7 +511,7 @@ export default class GerenciadorDados {
                 categoriasAlfabetico = new Set(cbAtivos);
             }
         } catch(e) {
-            // Fallback: usa ordem padrão se não houver DOM disponível
+            // Fallback: usa ordem padrÃ£o se nÃ£o houver DOM disponÃ­vel
         }
         
         const stripAccents = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -580,7 +588,7 @@ export default class GerenciadorDados {
         return Object.values(this._bancoConstruido.entradas).filter(item => {
             let match = false;
             
-            // 1. Busca no termo principal e variações
+            // 1. Busca no termo principal e variaÃ§Ãµes
             if (opcoes.fuzzy) {
                 match = buscaFuzzy(item._TERMO_PRINCIPAL, termoBusca);
                 if (!match && item.VARIACOES_IDS) {
@@ -605,7 +613,7 @@ export default class GerenciadorDados {
                 }
             }
 
-            // 2. Busca Global em Acepções (Significados e Descrições)
+            // 2. Busca Global em AcepÃ§Ãµes (Significados e DescriÃ§Ãµes)
             if (!match && opcoes.global && item.ACEPCOES) {
                 for (const aId of item.ACEPCOES) {
                     const acep = this._bancoConstruido.significados[aId];

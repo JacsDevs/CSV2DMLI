@@ -785,6 +785,7 @@
                             <button class="export-btn export-html" onclick="gerarExportacao('html')"><span class="export-icon">🌐</span><span class="export-label">Gerar Site HTML</span></button>
                             <button class="export-btn export-typst" onclick="gerarExportacao('typst')"><span class="export-icon">📘</span><span class="export-label">Gerar Typst</span></button>
                             <button class="export-btn export-latex" onclick="gerarExportacao('latex')"><span class="export-icon">📄</span><span class="export-label">Gerar LaTeX (ZIP)</span></button>
+                            <button class="export-btn export-cldf" onclick="gerarExportacao('cldf')"><span class="export-icon">🌍</span><span class="export-label">Gerar CLDF (ZIP)</span></button>
                             <button class="export-btn export-pdf" onclick="gerarExportacao('pdf')"><span class="export-icon">📑</span><span class="export-label">Gerar PDF</span></button>
                             <button class="export-btn export-android" onclick="abrirModalAndroid()"><span class="export-icon">📱</span><span class="export-label">Gerar Aplicativo</span></button>
                           </div>
@@ -921,6 +922,8 @@
                 <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/html-cards/card.tmpl', 'cards-card.tmpl')">🃏 card.tmpl</button>
                 <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/typst/template.typ', 'typst-template.typ')">📘 Typst: template.typ</button>
                 <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/typst/entrada.typ', 'typst-entrada.typ')">📘 Typst: entrada.typ</button>
+                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/latex/template.tex', 'latex-template.tex')">📄 LaTeX: template.tex</button>
+                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/latex/entrada.tex', 'latex-entrada.tex')">📄 LaTeX: entrada.tex</button>
             </div>
         </div>
     </div>
@@ -1870,6 +1873,18 @@
             } catch (e) {
                 console.error(e);
                 alert('Erro ao gerar Projeto LaTeX: ' + e.message);
+                window.ocultarLoader();
+                return;
+            }
+        } else if (tipo === 'cldf') {
+            window.mostrarLoader('Gerando CLDF', 'Convertendo modelo e compactando tabelas...');
+            try {
+                await window.exportador.exportarCldfZip({ metadados: coletarMetadadosExportacao() }, 'projeto_cldf.zip');
+                window.ocultarLoader();
+                return;
+            } catch (e) {
+                console.error(e);
+                alert('Erro ao gerar CLDF: ' + e.message);
                 window.ocultarLoader();
                 return;
             }

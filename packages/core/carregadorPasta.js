@@ -1,3 +1,4 @@
+import { LeitorCLDF } from './leitorCLDF.js';
 // ============================================
 // CARREGADOR DE PASTA
 // LÊ UMA PASTA DE TRABALHO COMPLETA
@@ -15,6 +16,14 @@ class CarregadorPasta {
             configuracao: null,
             metadados: null,
             icone: null,
+            cldf: {
+                metadata: null,
+                entries: null,
+                senses: null,
+                forms: null,
+                examples: null,
+                media: null
+            },
             textosExtra: {
                 introHtml: null,
                 introPdf: null,
@@ -43,10 +52,17 @@ class CarregadorPasta {
         this._exibirResumo(organizados);
         
         // 1. Carregar o pacote mestre (Projeto JSON) ou Planilha base e textos
+        
         if (organizados.projeto) {
             await this.gerenciador.carregarProjeto(organizados.projeto);
             this.arquivosEncontrados.projeto = organizados.projeto;
+        } else if (organizados.cldf && organizados.cldf.metadata) {
+            console.log("Iniciando conversao de pacote CLDF...");
+            const leitorCldf = new LeitorCLDF(this.gerenciador);
+            await leitorCldf.carregarCldf(organizados.cldf);
+            this.arquivosEncontrados.planilha = organizados.cldf.metadata;
         } else {
+
             // É fundamental carregar os textos ANTES da planilha para evitar avisos falsos de "texto não encontrado"
             if (organizados.textos) {
                 await this._carregarTextos(organizados.textos);
@@ -140,6 +156,14 @@ class CarregadorPasta {
         configuracao: null,
         metadados: null,
         icone: null,
+        cldf: {
+            metadata: null,
+            entries: null,
+            senses: null,
+            forms: null,
+            examples: null,
+            media: null
+        },
         textosExtra: {
             introHtml: null,
             introPdf: null,
@@ -196,7 +220,24 @@ class CarregadorPasta {
         const estaNaRaiz = caminhoRelativo.split('/').length === 1;
         
         // Verificar se é o pacote de recuperação salvo (Projeto JSON)
-        if (estaNaRaiz && nomeArquivo.toLowerCase() === 'projeto.json') {
+        
+        const isCldfMeta = (nomeArquivo.toLowerCase() === 'metadata.json' || nomeArquivo.toLowerCase() === 'cldf-metadata.json') && (estaNaRaiz || caminhoRelativo.toLowerCase().startsWith('cldf'));
+        
+        if (isCldfMeta) {
+            resultado.cldf.metadata = arquivo;
+            console.log("Metadados CLDF encontrados: " + nomeArquivo);
+        } else if (caminhoRelativo.toLowerCase().includes('entries.csv')) {
+            resultado.cldf.entries = arquivo;
+        } else if (caminhoRelativo.toLowerCase().includes('senses.csv')) {
+            resultado.cldf.senses = arquivo;
+        } else if (caminhoRelativo.toLowerCase().includes('forms.csv')) {
+            resultado.cldf.forms = arquivo;
+        } else if (caminhoRelativo.toLowerCase().includes('examples.csv')) {
+            resultado.cldf.examples = arquivo;
+        } else if (caminhoRelativo.toLowerCase().includes('media.csv')) {
+            resultado.cldf.media = arquivo;
+        } else if (estaNaRaiz && nomeArquivo.toLowerCase() === 'projeto.json') {
+
             resultado.projeto = arquivo;
             console.log(`📦 Projeto JSON de recuperação encontrado: ${nomeArquivo}`);
         }
@@ -258,23 +299,16 @@ class CarregadorPasta {
             return estaDiretoNaPastaDeMidia && pastasPermitidas.some(p => p.toLowerCase() === nomePastaMidia);
         };
 
-        // Verificar se é áudio
-        if (nomeDaPastaBate(pastasAudio)) {
-            if (this.configurador.isExtensaoValida('audio', extensao)) {
-                resultado.audio.push(arquivo);
-            }
+        const isCldfMedia = partesRelativas.length >= 2 && partesRelativas[0].toLowerCase() === 'media';
+        
+        if ((nomeDaPastaBate(pastasAudio) || isCldfMedia) && this.configurador.isExtensaoValida('audio', extensao)) {
+            resultado.audio.push(arquivo);
         }
-        // Verificar se é imagem
-        else if (nomeDaPastaBate(pastasImagem)) {
-            if (this.configurador.isExtensaoValida('imagem', extensao)) {
-                resultado.imagem.push(arquivo);
-            }
+        else if ((nomeDaPastaBate(pastasImagem) || isCldfMedia) && this.configurador.isExtensaoValida('imagem', extensao)) {
+            resultado.imagem.push(arquivo);
         }
-        // Verificar se é vídeo
-        else if (nomeDaPastaBate(pastasVideo)) {
-            if (this.configurador.isExtensaoValida('video', extensao)) {
-                resultado.video.push(arquivo);
-            }
+        else if ((nomeDaPastaBate(pastasVideo) || isCldfMedia) && this.configurador.isExtensaoValida('video', extensao)) {
+            resultado.video.push(arquivo);
         }
     }
     
