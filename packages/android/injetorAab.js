@@ -4,16 +4,7 @@
 
 import { patchManifestAab } from './patcherManifestAab.js';
 import { patchManifest } from './patcherManifest.js';
-
-// Sufixo -v4 adicionado pelo AAPT2 para recursos de densidade (API 4+ = Android 1.6+).
-// Estes são os paths reais gerados pelo Gradle e presentes no resources.arsc dos templates.
-const DENSITY_MAP = {
-    48:  'mdpi-v4',
-    72:  'hdpi-v4',
-    96:  'xhdpi-v4',
-    144: 'xxhdpi-v4',
-    192: 'xxxhdpi-v4',
-};
+import { DENSIDADES_ANDROID, redimensionarParaPng, aplicarMascaraCircular } from '../core/iconeUtil.js';
 
 export class InjetorAab {
     /**
@@ -48,12 +39,16 @@ export class InjetorAab {
 
         // 5. Injetar ícones redimensionados para cada densidade
         if (conteudo.iconeBytes && conteudo.iconeBytes.length > 0) {
-            for (const [size, density] of Object.entries(DENSITY_MAP)) {
+            for (const [size, { pasta: density }] of Object.entries(DENSIDADES_ANDROID)) {
                 try {
-                    const redimensionado = await redimensionarIcone(conteudo.iconeBytes, Number(size));
-                    const prefix = `${resDir}mipmap-${density}`;
-                    arquivos[`${prefix}/ic_launcher.png`]       = [redimensionado, { level: 0 }];
-                    arquivos[`${prefix}/ic_launcher_round.png`] = [redimensionado, { level: 0 }];
+                    const tamanho = Number(size);
+                    const [quadrado, redondo] = await Promise.all([
+                        redimensionarParaPng(conteudo.iconeBytes, tamanho),
+                        aplicarMascaraCircular(conteudo.iconeBytes, tamanho),
+                    ]);
+                    const prefix = `${resDir}mipmap-${density}-v4`;
+                    arquivos[`${prefix}/ic_launcher.png`]       = [quadrado, { level: 0 }];
+                    arquivos[`${prefix}/ic_launcher_round.png`] = [redondo, { level: 0 }];
                 } catch (e) {
                     console.warn(`Não foi possível redimensionar ícone para ${size}px:`, e);
                 }
@@ -109,16 +104,4 @@ export class InjetorAab {
 
         return zipSync(resultado);
     }
-}
-
-async function redimensionarIcone(pngBytes, size) {
-    const blob = new Blob([pngBytes], { type: 'image/png' });
-    const img  = await createImageBitmap(blob);
-
-    const canvas = new OffscreenCanvas(size, size);
-    const ctx    = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0, size, size);
-
-    const outBlob = await canvas.convertToBlob({ type: 'image/png' });
-    return new Uint8Array(await outBlob.arrayBuffer());
 }
