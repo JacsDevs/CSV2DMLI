@@ -326,6 +326,77 @@
             color: var(--text-muted); font-size: 0.88em;
         }
 
+        /* ---- Editor de ícone (recorte + prévia de densidades) ---- */
+        .modal-icone-editor { max-width: 880px; width: 92%; }
+        .icone-editor-body {
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            gap: 28px;
+        }
+        .icone-editor-crop-col { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .icone-crop-viewport {
+            width: 360px; height: 360px;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 2px dashed var(--primary);
+            background: var(--bg-secondary);
+        }
+        #iconeCropCanvas { width: 360px; height: 360px; display: block; touch-action: none; cursor: grab; }
+        #iconeCropCanvas.arrastando { cursor: grabbing; }
+        .icone-crop-controls {
+            display: flex; align-items: center; gap: 10px; width: 100%; flex-wrap: wrap;
+        }
+        .icone-crop-controls label { font-size: 0.85em; color: var(--text-muted); white-space: nowrap; }
+        .icone-crop-controls input[type="range"] { flex: 1; min-width: 120px; }
+        .icone-crop-zoom-valor { font-size: 0.8em; color: var(--text-muted); min-width: 3em; text-align: right; }
+        .icone-crop-controls input[type="color"] {
+            width: 32px; height: 28px; padding: 0; border: 1px solid var(--border-color);
+            border-radius: 6px; background: none; cursor: pointer;
+        }
+        .icone-crop-hint { color: var(--text-muted); text-align: center; }
+
+        .icone-editor-info-col { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+        .icone-info-panel {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+        }
+        .icone-info-dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0 0 8px; }
+        .icone-info-dl dt { color: var(--text-muted); font-size: 0.82em; }
+        .icone-info-dl dd { margin: 0; font-size: 0.82em; font-weight: 600; color: var(--text-main); }
+        .icone-info-avisos { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+        .icone-info-avisos li { font-size: 0.8em; color: var(--warning); }
+        .icone-info-ok { margin: 8px 0 0; font-size: 0.8em; color: var(--success); }
+
+        .icone-density-title { font-size: 0.85em; font-weight: 600; color: var(--text-main); margin-bottom: 10px; }
+        /* align-items: flex-end -> os ícones (de tamanhos diferentes) ficam
+           alinhados por baixo, como numa régua, deixando a diferença real de
+           tamanho entre densidades visível em vez de forçar tudo à mesma caixa. */
+        .icone-density-grid { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
+        .icone-density-item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .icone-density-thumb {
+            /* Sem width/height fixos: o canvas é renderizado no seu tamanho real
+               em pixels (48–192px, definido em editorIcone.js), então densidades
+               maiores aparecem visivelmente maiores que mdpi/hdpi. */
+            display: block;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+        }
+        .icone-density-thumb-round { border-radius: 50%; }
+        .icone-density-item span { font-size: 0.68em; color: var(--text-muted); }
+
+        .icone-editor-footer {
+            display: flex; justify-content: flex-end; gap: 10px;
+            padding: 16px 30px; border-top: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+        }
+
+        @media (max-width: 720px) {
+            .icone-editor-body { grid-template-columns: 1fr; }
+            .icone-crop-viewport, #iconeCropCanvas { width: 100%; height: auto; aspect-ratio: 1 / 1; }
+        }
+
         .apk-ks-block {
             border: 1px solid var(--border-color);
             border-radius: 12px; overflow: hidden;
@@ -922,6 +993,46 @@
 </dialog>
 
 <!-- ========================================================
+     EDITOR DE ÍCONE (recorte + prévia de densidades)
+======================================================== -->
+<dialog id="modalRecorteIcone" class="modal-custom modal-icone-editor">
+    <div class="modal-custom-header">
+        <h2>🖼️ Ajustar Ícone do Aplicativo</h2>
+        <button class="btn-close" id="btnFecharEditorIcone" type="button">✕</button>
+    </div>
+    <div class="modal-custom-body icone-editor-body">
+        <div class="icone-editor-crop-col">
+            <div class="icone-crop-viewport">
+                <canvas id="iconeCropCanvas" width="360" height="360"></canvas>
+            </div>
+            <div class="icone-crop-controls">
+                <label for="iconeCropZoom">🔍 Zoom</label>
+                <input type="range" id="iconeCropZoom" min="0" max="400" value="100">
+                <span id="iconeCropZoomValor" class="icone-crop-zoom-valor">100%</span>
+
+                <label for="iconeCropBgColor">🎨 Fundo</label>
+                <input type="color" id="iconeCropBgColor" value="#FFFFFF">
+
+                <button type="button" id="btnIconeTrocarImagem" class="btn btn-sm btn-outline">Trocar imagem</button>
+                <input type="file" id="inputIconeTrocarImagem" accept="image/png,image/jpeg,image/webp" style="display:none">
+            </div>
+            <small class="icone-crop-hint">Arraste para reposicionar · role o mouse ou use o slider para dar zoom.</small>
+        </div>
+        <div class="icone-editor-info-col">
+            <div id="iconeInfoPanel" class="icone-info-panel"></div>
+            <div>
+                <div class="icone-density-title">Prévia por densidade</div>
+                <div id="iconeDensityGrid" class="icone-density-grid"></div>
+            </div>
+        </div>
+    </div>
+    <div class="icone-editor-footer">
+        <button type="button" class="btn btn-outline" id="btnCancelarEditorIcone">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="btnAplicarEditorIcone">Aplicar</button>
+    </div>
+</dialog>
+
+<!-- ========================================================
      GERADOR DE APK / AAB  (split view: formulário + preview)
 ======================================================== -->
 <div class="apk-wizard-overlay" id="modalAndroid">
@@ -1397,6 +1508,7 @@
     import ValidadorDados from './packages/exporters/validadorDados.js';
     import Configurador from './packages/core/configurador.js';
     import { platform } from './packages/platform/index.js';
+    import { abrirEditorIcone } from './packages/ui/editorIcone.js';
 
     
     // 1. Criar instâncias do sistema modular
@@ -1631,14 +1743,27 @@
     // ÍCONE DO APLICATIVO (Etapa 3 - Metadados)
     // ==========================================
 
-    window.metaIconeEscolher = function() {
+    window.metaIconeEscolher = async function() {
+        const icone = window.sistema && window.sistema.icone;
+        if (icone && icone.dataUrl) {
+            // Ícone já definido: abre direto no editor para reajustar o recorte,
+            // em vez de forçar a escolha de um novo arquivo.
+            const resultado = await abrirEditorIcone({ dataUrl: icone.dataUrl, nome: icone.nome });
+            if (resultado) {
+                window.sistema.definirIconeProcessado(resultado);
+                atualizarUIIconeApp();
+            }
+            return;
+        }
         document.getElementById('inputMetaIcone').click();
     };
 
     window.metaIconeSelecionar = async function(file) {
         if (!file || !window.sistema) return;
-        await window.sistema.setIcone(file);
         document.getElementById('inputMetaIcone').value = '';
+        const resultado = await abrirEditorIcone(file);
+        if (!resultado) return;
+        window.sistema.definirIconeProcessado(resultado);
         atualizarUIIconeApp();
     };
 
@@ -2572,24 +2697,34 @@
         return Math.max(1, code);
     }
 
-    window.apkEscolherIcone = function() {
+    window.apkEscolherIcone = async function() {
+        const preview = document.getElementById('apkIconPreview');
+        if (_apkIconeBytes.length > 0 && preview && preview.style.display !== 'none') {
+            // Ícone já definido: abre direto no editor para reajustar o recorte,
+            // em vez de forçar a escolha de um novo arquivo.
+            const resultado = await abrirEditorIcone({ dataUrl: preview.src, nome: 'icone.png' });
+            if (resultado) aplicarIconeApk(resultado);
+            return;
+        }
         document.getElementById('apkIconeInput').click();
     };
 
     window.apkPreviewIcone = async function(input) {
         const file = input.files[0];
+        input.value = '';
         if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            document.getElementById('apkIconPreview').src = e.target.result;
-            document.getElementById('apkIconPreview').style.display = 'block';
-            document.getElementById('apkIconPlaceholder').style.display = 'none';
-            apkAgendarPreviewLeve();
-        };
-        reader.readAsDataURL(file);
-        const buf = await file.arrayBuffer();
-        _apkIconeBytes = Array.from(new Uint8Array(buf));
+        const resultado = await abrirEditorIcone(file);
+        if (!resultado) return;
+        aplicarIconeApk(resultado);
     };
+
+    function aplicarIconeApk({ bytes, dataUrl }) {
+        document.getElementById('apkIconPreview').src = dataUrl;
+        document.getElementById('apkIconPreview').style.display = 'block';
+        document.getElementById('apkIconPlaceholder').style.display = 'none';
+        _apkIconeBytes = Array.from(bytes);
+        apkAgendarPreviewLeve();
+    }
 
     function apkSetProg(id, estado, texto) {
         const icons = { pending:'⬜', running:'🔄', done:'✅', error:'❌' };

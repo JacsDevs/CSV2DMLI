@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Tema sem barra de título, fullscreen via WindowManager -->
+    <!-- Tema sem ActionBar própria (a WebView ocupa toda a área de conteúdo).
+         Modo claro (padrão): barra de status branca com ícones escuros.
+         Ver values-night/themes.xml para a variante escura, aplicada
+         automaticamente quando o sistema está em modo escuro. -->
     <style name="AppTheme" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:windowFullscreen">true</item>
+        <item name="android:statusBarColor">@android:color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
     </style>
 </resources>

@@ -289,12 +289,24 @@ export default class GerenciadorDados {
 
     /**
      * Define o ícone do aplicativo/site a partir de um arquivo de imagem.
+     * Usado apenas pelo auto-detect de icone.png na importação de pasta —
+     * fluxos manuais (pickers da UI) passam pelo editor de recorte e chamam
+     * definirIconeProcessado() em vez deste método.
      * @param {File} arquivo - Imagem do ícone (ex: icone.png).
      */
     async setIcone(arquivo) {
         const dataUrl = await this._lerArquivoComoDataURL(arquivo);
         const buf = await arquivo.arrayBuffer();
         this.icone = { dataUrl, bytes: Array.from(new Uint8Array(buf)), nome: arquivo.name };
+    }
+
+    /**
+     * Define o ícone a partir de bytes já processados pelo editor de recorte
+     * (packages/ui/editorIcone.js) — evita reler o arquivo via FileReader.
+     * @param {{ bytes: Uint8Array, dataUrl: string, nome: string }} icone
+     */
+    definirIconeProcessado({ bytes, dataUrl, nome }) {
+        this.icone = { dataUrl, bytes: Array.from(bytes), nome };
     }
 
     removerIcone() {
