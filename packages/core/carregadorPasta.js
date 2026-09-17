@@ -154,27 +154,6 @@ class CarregadorPasta {
     }
 
     _organizarArquivos(arquivosLista) {
-    const resultado = {
-        projeto: null,
-        planilha: null,
-        textos: null,
-        configuracao: null,
-        metadados: null,
-        icone: null,
-        cldf: {
-            metadata: null,
-            entries: null,
-            senses: null,
-            forms: null,
-            examples: null,
-            media: null
-        },
-        textosExtra: {
-            introHtml: null,
-            introPdf: null,
-            referencia: null,
-            alfabeto: null,
-            configTxt: null
         const resultado = {
             projeto: null,
             planilha: null,
