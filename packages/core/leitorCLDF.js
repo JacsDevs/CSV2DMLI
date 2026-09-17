@@ -36,11 +36,12 @@ export class LeitorCLDF {
             if (!m.ID) return;
             let path = m.Download_URL || m.Name || '';
             let isAudio = m.Media_Type && m.Media_Type.includes('audio');
+            let isVideo = m.Media_Type && m.Media_Type.includes('video');
             let isImg = m.Media_Type && m.Media_Type.includes('image');
-            
+
             // Preservar o caminho relativo completo para CLDF (mídias podem estar em subpastas arbitrárias)
             let nomeOriginal = path.replace(/\\/g, '/').trim();
-            mediaMap[m.ID] = { nome: nomeOriginal, type: isAudio ? 'audio' : (isImg ? 'imagem' : 'unknown') };
+            mediaMap[m.ID] = { nome: nomeOriginal, type: isAudio ? 'audio' : (isVideo ? 'video' : (isImg ? 'imagem' : 'unknown')) };
         });
 
         const colunasPadraoEntry = ["ID", "Headword", "Language_ID", "Description", "Phonemic_Transcription", "Phonetic_Transcription", "Part_Of_Speech", "Related_Items", "Semantic_Field", "Sub_Semantic_Field", "Sub_Semantic_Field_1", "Sub_Semantic_Field_2", "Sub_Semantic_Field_3", "Sub_Semantic_Field_4", "Sub_Semantic_Field_5", "Sub_Semantic_Field_6", "Media_ID", "Media_IDs"];
@@ -130,7 +131,7 @@ export class LeitorCLDF {
                 ITENS_RELACIONADOS: entry.Related_Items || '',
                 TRANSCRICAO_FONEMICA: entry.Phonemic_Transcription || '',
                 TRANSCRICAO_FONETICA: entry.Phonetic_Transcription || '',
-                ARQUIVO_SONORO: audEntry
+                ARQUIVO_ENTRADA: audEntry
             };
 
             let descEntradaPieces = [];
@@ -298,7 +299,7 @@ export class LeitorCLDF {
                         formRow.ITEM_LEXICAL = vf.Form || '';
                         formRow.TRANSCRICAO_FONEMICA = fonemica || baseRow.TRANSCRICAO_FONEMICA || '';
                         formRow.TRANSCRICAO_FONETICA = fonetica || baseRow.TRANSCRICAO_FONETICA || '';
-                        formRow.ARQUIVO_SONORO = aud || baseRow.ARQUIVO_SONORO || '';
+                        formRow.ARQUIVO_ENTRADA = aud || baseRow.ARQUIVO_ENTRADA || '';
                         
                         if (baseRow.METADADOS_EXTRAS || row.METADADOS_EXTRAS) {
                             formRow.METADADOS_EXTRAS = { ...(baseRow.METADADOS_EXTRAS || {}), ...(row.METADADOS_EXTRAS || {}) };
@@ -347,7 +348,7 @@ export class LeitorCLDF {
                 let variacoesEstruturadas = (variacoesGlobais.length > 0 ? variacoesGlobais : [row]).map(v => ({
                     ...v,
                     item: v.ITEM_LEXICAL || '',
-                    audio: v.ARQUIVO_SONORO || '',
+                    audio: v.ARQUIVO_ENTRADA || '',
                     fone: v.TRANSCRICAO_FONEMICA || '',
                     fonet: v.TRANSCRICAO_FONETICA || ''
                 }));

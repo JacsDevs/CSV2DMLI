@@ -1,4 +1,4 @@
-import { limparListaPipe } from './helpers.js';
+import { limparListaPipe, detectarTipoMidia } from './helpers.js';
 
 // ============================================
 // CONSTRUTOR DO BANCO DE DADOS LEXICAL
@@ -149,17 +149,19 @@ class ConstrutorBancoDados {
             variacoes.forEach((v, i) => {
                 const lex = v.item || '';
                 const audioFile = v.audio || '';
-                
-                const audioExiste = this.validarEContarMidia(db, 'audio', audioFile, silenciarAvisos);
-                
+                const tipoMidiaEntrada = detectarTipoMidia(audioFile, this.configurador);
+
+                const audioExiste = this.validarEContarMidia(db, tipoMidiaEntrada, audioFile, silenciarAvisos);
+
                 if (lex && !entrada.VARIACOES_IDS.some(vid => db.variacoes[vid] && db.variacoes[vid].TRANSCRICAO_ORTOGRAFICA === lex)) {
                     const varId = `${idEntrada}_VAR${i+1}`;
                     db.variacoes[varId] = {
                         ID: varId,
                         TRANSCRICAO_ORTOGRAFICA: lex,
-                        ARQUIVO_SONORO: audioFile,
-                        ARQUIVO_SONORO_EXISTE: audioExiste,
-                        ARQUIVO_SONORO_URL: audioExiste ? this.obterMidiaUrl('audio', audioFile) : null,
+                        ARQUIVO_ENTRADA: audioFile,
+                        ARQUIVO_ENTRADA_TIPO: tipoMidiaEntrada,
+                        ARQUIVO_ENTRADA_EXISTE: audioExiste,
+                        ARQUIVO_ENTRADA_URL: audioExiste ? this.obterMidiaUrl(tipoMidiaEntrada, audioFile) : null,
                         TRANSCRICAO_FONEMICA: v.fone || '',
                         TRANSCRICAO_FONETICA: v.fonet || ''
                     };
@@ -380,6 +382,9 @@ class ConstrutorBancoDados {
         if (!bancoDados) return;
         
         const limparUrl = (item) => {
+            if (item?.ARQUIVO_ENTRADA_URL?.startsWith('blob:')) {
+                URL.revokeObjectURL(item.ARQUIVO_ENTRADA_URL);
+            }
             if (item?.ARQUIVO_SONORO_URL?.startsWith('blob:')) {
                 URL.revokeObjectURL(item.ARQUIVO_SONORO_URL);
             }

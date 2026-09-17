@@ -13,6 +13,11 @@
                         <svg class="icone" aria-hidden="true"><use href="#ic-som"></use></svg>
                     </button>
                     {{/TEM_AUDIO}}
+                    {{#TEM_VIDEO}}
+                    <button type="button" class="btn-audio btn-video" title="Assistir pronúncia" aria-label="Assistir pronúncia" onclick="event.stopPropagation(); abrirModalVideoEntrada('{{ URL }}')">
+                        <svg class="icone" aria-hidden="true"><use href="#ic-play"></use></svg>
+                    </button>
+                    {{/TEM_VIDEO}}
                 </div>
                 {{#NAO_E_O_ULTIMO}}<span style="color: #15803d; font-size: 1.5rem; font-weight: bold; margin: 0 4px;">~</span>{{/NAO_E_O_ULTIMO}}
                 {{/TERMOS_MISTOS}}
@@ -21,9 +26,16 @@
                 {{#NAO_TEM_TERMOS_MISTOS}}
                 <h1 class="dict-headword" style="margin: 0; color: #15803d; font-weight: bold;">{{ TERMO }}</h1>
                 {{#AUDIOS_ARRAY}}
+                {{#TEM_AUDIO}}
                 <button type="button" class="btn-audio" title="Ouvir pronúncia" aria-label="Ouvir pronúncia" onclick="event.stopPropagation(); tocarAudio('{{ URL }}', this)">
                     <svg class="icone" aria-hidden="true"><use href="#ic-som"></use></svg>
                 </button>
+                {{/TEM_AUDIO}}
+                {{#TEM_VIDEO}}
+                <button type="button" class="btn-audio btn-video" title="Assistir pronúncia" aria-label="Assistir pronúncia" onclick="event.stopPropagation(); abrirModalVideoEntrada('{{ URL }}')">
+                    <svg class="icone" aria-hidden="true"><use href="#ic-play"></use></svg>
+                </button>
+                {{/TEM_VIDEO}}
                 {{/AUDIOS_ARRAY}}
                 {{/NAO_TEM_TERMOS_MISTOS}}
             </div>
@@ -58,6 +70,11 @@
                 <svg class="icone" aria-hidden="true"><use href="#ic-som"></use></svg>
             </button>
             {{/TEM_AUDIO_REVERSO}}
+            {{#TEM_VIDEO_REVERSO}}
+            <button type="button" class="btn-audio btn-video btn-audio-sm" style="margin-left: 8px;" title="Assistir pronúncia" aria-label="Assistir pronúncia" onclick="event.stopPropagation(); abrirModalVideoEntrada('{{ AUDIO_REVERSO_URL }}')">
+                <svg class="icone" aria-hidden="true"><use href="#ic-play"></use></svg>
+            </button>
+            {{/TEM_VIDEO_REVERSO}}
 
             {{#CLASSE_REVERSO}}<span class="dict-audio-chip classe-gramatical" style="background:transparent; border:none; padding:0; margin-left: 8px;"><em>{{ CLASSE_REVERSO }}</em></span>{{/CLASSE_REVERSO}}
             {{#FONEMICA_REVERSO}}<span class="dict-audio-chip transcricao-fonetica" style="pointer-events: none; background: transparent; border: none; margin-left: 8px;"><span class="dict-chip-ipa">{{ FONEMICA_REVERSO }}</span></span>{{/FONEMICA_REVERSO}}

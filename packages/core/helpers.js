@@ -19,6 +19,24 @@ export function limparListaPipe(valor) {
 }
 
 /**
+ * Detecta se um nome de arquivo é áudio ou vídeo, com base nas extensões
+ * configuradas em config.json (midias.audio.extensoes / midias.video.extensoes).
+ * Usado para que a coluna ARQUIVO_ENTRADA (pronúncia) aceite tanto áudio quanto vídeo.
+ * @param {string} nomeArquivo - Nome/caminho do arquivo referenciado.
+ * @param {object} configurador - Instância de Configurador (para consultar extensões).
+ * @returns {'audio'|'video'|'desconhecido'}
+ */
+export function detectarTipoMidia(nomeArquivo, configurador) {
+    if (!nomeArquivo) return 'desconhecido';
+    const extensao = String(nomeArquivo).split('.').pop().toLowerCase();
+    if (configurador && configurador.isExtensaoValida) {
+        if (configurador.isExtensaoValida('video', extensao)) return 'video';
+        if (configurador.isExtensaoValida('audio', extensao)) return 'audio';
+    }
+    return 'audio';
+}
+
+/**
  * Calcula a distância de Levenshtein entre duas strings.
  * Usado para busca fuzzy.
  */

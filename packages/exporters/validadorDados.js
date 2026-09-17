@@ -1,4 +1,4 @@
-import { limparListaPipe } from '../core/helpers.js';
+import { limparListaPipe, detectarTipoMidia } from '../core/helpers.js';
 
 class ValidadorDados {
     constructor(gerenciadorDados) {
@@ -52,7 +52,7 @@ class ValidadorDados {
             }
         };
 
-        variacoes.forEach((v, idx) => verificarMidia('audio', v.audio, `Áudio da Variação ${idx + 1}`));
+        variacoes.forEach((v, idx) => verificarMidia(detectarTipoMidia(v.audio, this.db.configurador), v.audio, `Pronúncia da Variação ${idx + 1}`));
         (dadosEditados.exemplos || []).forEach((e, idx) => verificarMidia('audio', e.audio, `Áudio do Exemplo ${idx + 1}`));
         (dadosEditados.imagens || []).forEach((i, idx) => verificarMidia('imagem', i.img, `Imagem ${idx + 1}`));
         verificarMidia('video', dadosEditados.camposBasicos.ARQUIVO_VIDEO, 'Vídeo');
@@ -77,7 +77,7 @@ class ValidadorDados {
                 CLASSE_GRAMATICAL: cb.CLASSE_GRAMATICAL || '',
                 CAMPO_SEMANTICO: cb.CAMPO_SEMANTICO || '',
                 SUB_CAMPO_SEMANTICO: cb.SUB_CAMPO_SEMANTICO || '',
-                ARQUIVO_SONORO: vars.map(v => v.audio || '').join(' | '),
+                ARQUIVO_ENTRADA: vars.map(v => v.audio || '').join(' | '),
                 TRANSCRICAO_FONEMICA: vars.map(v => v.fone || '').join(' | '),
                 TRANSCRICAO_FONETICA: vars.map(v => v.fonet || '').join(' | '),
                 TRADUCAO_SIGNIFICADO: cb.TRADUCAO_SIGNIFICADO || '',
@@ -113,7 +113,7 @@ class ValidadorDados {
             if (camposNaoPreenchidos.length > 0) errosLinha.push(`Campos não preenchidos: ${camposNaoPreenchidos.join(', ')}`);
 
             // Validação de Barras (|)
-            const resConj1 = this.verificarBarras(dic, ['ITEM_LEXICAL', 'ARQUIVO_SONORO', 'TRANSCRICAO_FONEMICA', 'TRANSCRICAO_FONETICA']);
+            const resConj1 = this.verificarBarras(dic, ['ITEM_LEXICAL', 'ARQUIVO_ENTRADA', 'TRANSCRICAO_FONEMICA', 'TRANSCRICAO_FONETICA']);
             if (!resConj1[0]) errosLinha.push(`Erro no uso de barras (item lexical): ${resConj1[1]}`);
 
             const resConj2 = this.verificarBarras(dic, ['ARQUIVO_SONORO_EXEMPLO', 'TRANSCRICAO_EXEMPLO', 'TRADUCAO_EXEMPLO']);
@@ -131,13 +131,18 @@ class ValidadorDados {
                     mapa.get(arq).add(numeroLinha);
                 });
             };
-            addReferencia(arqAudioTabela, 'ARQUIVO_SONORO');
+            // ARQUIVO_ENTRADA pode ser áudio ou vídeo de pronúncia — classifica por extensão real
+            limparListaPipe(dic.ARQUIVO_ENTRADA).forEach(arq => {
+                const mapa = detectarTipoMidia(arq, this.db.configurador) === 'video' ? arqVideoTabela : arqAudioTabela;
+                if (!mapa.has(arq)) mapa.set(arq, new Set());
+                mapa.get(arq).add(numeroLinha);
+            });
             addReferencia(arqAudioTabela, 'ARQUIVO_SONORO_EXEMPLO');
             addReferencia(arqVideoTabela, 'ARQUIVO_VIDEO');
             addReferencia(arqImagemTabela, 'IMAGEM');
 
             // Entradas Vazias de Mídia
-            if ((!dic["ARQUIVO_SONORO"] || !dic["ARQUIVO_SONORO"].trim()) && 
+            if ((!dic["ARQUIVO_ENTRADA"] || !dic["ARQUIVO_ENTRADA"].trim()) &&
                 (!dic["ARQUIVO_SONORO_EXEMPLO"] || !dic["ARQUIVO_SONORO_EXEMPLO"].trim())) entradasSemAudio++;
             if (!dic["IMAGEM"] || !dic["IMAGEM"].trim()) entradasSemImagem++;
             if (!dic["ARQUIVO_VIDEO"] || !dic["ARQUIVO_VIDEO"].trim()) entradasSemVideo++;
