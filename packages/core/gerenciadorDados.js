@@ -261,16 +261,19 @@ export default class GerenciadorDados {
      * @param {FileList} arquivos - A lista de arquivos a serem adicionados.
      */
     adicionarMidias(arquivos) {
-        console.log(`🖼️ Adicionando ${arquivos.length} arquivos de mídia...`);
+        console.log(`📥 Adicionando ${arquivos.length} arquivos de mídia...`);
         if (!arquivos || arquivos.length === 0) return;
 
         Array.from(arquivos).forEach(arquivo => {
-            const tipo = arquivo.type;
-            if (tipo.startsWith('audio/')) {
+            const nomeArquivo = arquivo.name || '';
+            const extensao = nomeArquivo.split('.').pop().toLowerCase();
+            const tipoMime = arquivo.type || '';
+            
+            if (tipoMime.startsWith('audio/') || this.configurador.isExtensaoValida('audio', extensao)) {
                 this.vfs.adicionarArquivos('audio', [arquivo]);
-            } else if (tipo.startsWith('image/')) {
+            } else if (tipoMime.startsWith('image/') || this.configurador.isExtensaoValida('imagem', extensao)) {
                 this.vfs.adicionarArquivos('imagem', [arquivo]);
-            } else if (tipo.startsWith('video/')) {
+            } else if (tipoMime.startsWith('video/') || this.configurador.isExtensaoValida('video', extensao)) {
                 this.vfs.adicionarArquivos('video', [arquivo]);
             }
         });
