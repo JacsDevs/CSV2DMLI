@@ -116,7 +116,8 @@ class ExportadorHtmlCards extends ExportadorBase {
             EXEMPLOS: s.EXEMPLOS.map(e => ({ TRANS: this.escaparHTML(e.TRANS), TRAD: this.escaparHTML(e.TRAD), AUDIO: this.escaparHTML(e.AUDIO) })),
             IMAGENS: s.IMAGENS.map(i => ({ ARQUIVO: this.escaparHTML(i.ARQUIVO), LEGENDA: this.escaparHTML(i.LEGENDA) })),
             VIDEOS: s.VIDEOS.map(v => ({ ARQUIVO: this.escaparHTML(v.ARQUIVO) })),
-            EXTRAS: s.EXTRAS.map(e => ({ TEXTO: this.escaparHTML(e.TEXTO) }))
+            EXTRAS: s.EXTRAS.map(e => ({ TEXTO: this.escaparHTML(e.TEXTO) })),
+            TEM_EXTRAS: s.EXTRAS && s.EXTRAS.length > 0
         }));
         
         if (dados.TEXTOS_ESTRUTURADOS) {

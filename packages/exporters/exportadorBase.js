@@ -114,7 +114,10 @@ class ExportadorBase {
                         }
                     });
                 }
-                if (ac.EXTRAS) ac.EXTRAS.forEach(ext => { if (ext) significado.EXTRAS.push({ TEXTO: ext }); });
+                if (ac.EXTRAS) ac.EXTRAS.forEach(ext => { 
+                    const textoVal = typeof ext === 'string' ? ext : (ext.TEXTO || '');
+                    if (textoVal) significado.EXTRAS.push({ TEXTO: textoVal }); 
+                });
                 
                 significados.push(significado);
             });
