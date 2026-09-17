@@ -170,15 +170,7 @@ export default class GerenciadorDados {
                 imagens
             };
             
-            const colunasConhecidas = [
-                'CLASSE_GRAMATICAL', 'CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO', 
-                'SUB_CAMPO_SEMANTICO_1', 'SUB_CAMPO_SEMANTICO_2', 'SUB_CAMPO_SEMANTICO_3',
-                'SUB_CAMPO_SEMANTICO_4', 'SUB_CAMPO_SEMANTICO_5', 'SUB_CAMPO_SEMANTICO_6',
-                'TEXTO', 'TITULO_TEXTO', 'TRADUCAO_SIGNIFICADO', 'ITENS_RELACIONADOS', 
-                'DESCRICAO', 'ARQUIVO_VIDEO', 'ITEM_LEXICAL', 'ARQUIVO_SONORO', 
-                'TRANSCRICAO_FONEMICA', 'TRANSCRICAO_FONETICA', 'ARQUIVO_SONORO_EXEMPLO', 
-                'TRANSCRICAO_EXEMPLO', 'TRADUCAO_EXEMPLO', 'IMAGEM', 'LEGENDA_IMAGEM'
-            ];
+              const colunasConhecidas = Object.keys(this.configurador.getMapeamentoColunas());
             const extras = [];
             const extrasEntrada = [];
             Object.keys(linhaMesclada).forEach(col => {

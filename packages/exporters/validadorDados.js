@@ -3,7 +3,7 @@ import { limparListaPipe } from '../core/helpers.js';
 class ValidadorDados {
     constructor(gerenciadorDados) {
         this.db = gerenciadorDados;
-        this.CAMPOS_OBRIGATORIOS = ["ITEM_LEXICAL", "TRADUCAO_SIGNIFICADO", "CAMPO_SEMANTICO"];
+        this.CAMPOS_OBRIGATORIOS = this.db.configurador.getColunasObrigatorias();
     }
 
     verificarBarras(linha, campos) {
@@ -32,14 +32,17 @@ class ValidadorDados {
         // 1. Campos obrigatórios
         const variacoes = dadosEditados.variacoes || [];
         if (variacoes.length === 0 || !variacoes[0].item || variacoes[0].item.trim() === '') {
-            erros.push("ITEM_LEXICAL principal é obrigatório.");
+            if (this.CAMPOS_OBRIGATORIOS.includes("ITEM_LEXICAL")) {
+                erros.push("ITEM_LEXICAL principal é obrigatório.");
+            }
         }
-        if (!dadosEditados.camposBasicos.TRADUCAO_SIGNIFICADO || String(dadosEditados.camposBasicos.TRADUCAO_SIGNIFICADO).trim() === '') {
-            erros.push("TRADUCAO_SIGNIFICADO é obrigatório.");
-        }
-        if (!dadosEditados.camposBasicos.CAMPO_SEMANTICO || String(dadosEditados.camposBasicos.CAMPO_SEMANTICO).trim() === '') {
-            erros.push("CAMPO_SEMANTICO é obrigatório.");
-        }
+        
+        this.CAMPOS_OBRIGATORIOS.forEach(campo => {
+            if (campo === "ITEM_LEXICAL") return;
+            if (!dadosEditados.camposBasicos[campo] || String(dadosEditados.camposBasicos[campo]).trim() === '') {
+                erros.push(`${campo} é obrigatório.`);
+            }
+        });
 
         // 2. Mídias faltantes (VFS)
         const verificarMidia = (tipo, nome, contexto) => {
