@@ -142,7 +142,7 @@ export default class GerenciadorDados {
             // Remove variações vazias
             const variacoesFiltradas = variacoes.filter(v => v.item || v.audio || v.fone || v.fonet);
 
-            return {
+            const linhaNormalizada = {
                 indice: index,
                 camposBasicos: {
                     CLASSE_GRAMATICAL: linhaMesclada.CLASSE_GRAMATICAL || '',
@@ -158,8 +158,12 @@ export default class GerenciadorDados {
                     TITULO_TEXTO: linhaMesclada.TITULO_TEXTO || '',
                     TRADUCAO_SIGNIFICADO: linhaMesclada.TRADUCAO_SIGNIFICADO || '',
                     ITENS_RELACIONADOS: linhaMesclada.ITENS_RELACIONADOS || '',
+                    DESCRICAO_ENTRADA: linhaMesclada.DESCRICAO_ENTRADA || '',
+                    DESCRICAO_ENTRADA_ORIGINAL: linhaMesclada.DESCRICAO_ENTRADA_ORIGINAL !== undefined ? linhaMesclada.DESCRICAO_ENTRADA_ORIGINAL : undefined,
                     DESCRICAO: linhaMesclada.DESCRICAO || '',
-                    ARQUIVO_VIDEO: linhaMesclada.ARQUIVO_VIDEO || ''
+                    DESCRICAO_ORIGINAL: linhaMesclada.DESCRICAO_ORIGINAL !== undefined ? linhaMesclada.DESCRICAO_ORIGINAL : undefined,
+                    ARQUIVO_VIDEO: linhaMesclada.ARQUIVO_VIDEO || '',
+                    METADADOS_EXTRAS: linhaMesclada.METADADOS_EXTRAS || {}
                 },
                 variacoes: variacoesFiltradas,
                 exemplos,
@@ -176,6 +180,7 @@ export default class GerenciadorDados {
                 'TRANSCRICAO_EXEMPLO', 'TRADUCAO_EXEMPLO', 'IMAGEM', 'LEGENDA_IMAGEM'
             ];
             const extras = [];
+            const extrasEntrada = [];
             Object.keys(linhaMesclada).forEach(col => {
                 if (col.startsWith('#')) return;
                 if (colunasConhecidas.includes(col)) return;
@@ -186,10 +191,15 @@ export default class GerenciadorDados {
                 
                 const val = linhaMesclada[col];
                 if (val !== undefined && val !== null && String(val).trim() !== '') {
-                    extras.push({ chave: col, valor: String(val).trim() });
+                    if (col.startsWith('EXTRA_ENTRADA_')) {
+                        extrasEntrada.push({ chave: col.replace('EXTRA_ENTRADA_', ''), valor: String(val).trim() });
+                    } else {
+                        extras.push({ chave: col, valor: String(val).trim() });
+                    }
                 }
             });
             linhaNormalizada.extras = extras;
+            linhaNormalizada.extrasEntrada = extrasEntrada;
 
             return linhaNormalizada;
         });

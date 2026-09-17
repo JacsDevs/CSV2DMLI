@@ -174,6 +174,9 @@ export class LeitorCLDF {
 
             entrySenses.forEach(sense => {
                 let row = { ...baseRow };
+                if (baseRow.METADADOS_EXTRAS) {
+                    row.METADADOS_EXTRAS = { ...baseRow.METADADOS_EXTRAS };
+                }
                 row.TRADUCAO_SIGNIFICADO = sense.Description || '';
                 row.DESCRICAO = sense.Description_Note || '';
                 row.DESCRICAO_ORIGINAL = sense.Description_Note || ''; // preserve for CLDF round-trip
