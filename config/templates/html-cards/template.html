@@ -272,9 +272,9 @@
             position: fixed;
             top: 0; left: 0; right: 0;
             min-height: var(--app-bar-h);
-            background: var(--cor-superficie);
+            background: var(--cor-primaria);
             border-bottom: 1px solid var(--cor-borda);
-            color: var(--cor-texto);
+            color: var(--cor-primaria-contraste);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -296,6 +296,8 @@
             text-overflow: ellipsis;
         }
         .app-bar-subtitle { font-size: 0.76rem; color: var(--cor-texto-secundario); }
+        .app-bar .app-bar-subtitle,
+        .topo-mobile .app-bar-subtitle { color: var(--cor-primaria-contraste); opacity: 0.8; }
         .app-bar-actions { display: flex; gap: 6px; align-items: center; }
         .app-bar-btn {
             font: inherit;
@@ -303,7 +305,8 @@
             font-weight: 600;
             background: transparent;
             border: 1px solid transparent;
-            color: var(--cor-texto-secundario);
+            color: var(--cor-primaria-contraste);
+            opacity: 0.9;
             padding: 9px 16px;
             min-height: 40px;
             border-radius: var(--raio-pilula);
@@ -311,8 +314,12 @@
             transition: var(--transicao);
             white-space: nowrap;
         }
-        .app-bar-btn:hover { background: var(--cor-primaria-light); color: var(--cor-primaria); }
+        .app-bar-btn:hover { background: var(--cor-primaria-light); color: var(--cor-primaria); opacity: 1; }
         .app-bar-toggle { display: none; }
+        .app-bar .btn-icone,
+        .topo-mobile .btn-icone { color: var(--cor-primaria-contraste); }
+        .app-bar .btn-icone:hover,
+        .topo-mobile .btn-icone:hover { background: rgba(0, 0, 0, 0.15); color: var(--cor-primaria-contraste); }
 
         /* ===== TOPO MOBILE ===== */
         .topo-mobile { display: none; }
@@ -1099,7 +1106,8 @@
                 position: fixed;
                 top: 0; left: 0; right: 0;
                 z-index: 1200;
-                background: var(--cor-superficie);
+                background: var(--cor-primaria);
+                color: var(--cor-primaria-contraste);
                 border-bottom: 1px solid var(--cor-borda);
                 padding: max(10px, env(safe-area-inset-top)) 14px 10px;
             }
