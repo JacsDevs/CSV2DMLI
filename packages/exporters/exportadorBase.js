@@ -86,8 +86,8 @@ class ExportadorBase {
                     if (ex) {
                         let audioEx = '';
                         if (ex.ARQUIVO_SONORO_EXEMPLO) {
-                            const raw = ex.ARQUIVO_SONORO_EXEMPLO.split(/[\/\\]/).pop();
-                            audioEx = (this.midiasGeradas && this.midiasGeradas[raw]) ? this.midiasGeradas[raw] : 'audio/' + raw;
+                            const raw = ex.ARQUIVO_SONORO_EXEMPLO;
+                            audioEx = (this.midiasGeradas && this.midiasGeradas[raw]) ? this.midiasGeradas[raw] : (raw.includes("/") || raw.includes("\\") ? raw : "audio/" + raw);
                         }
                         significado.EXEMPLOS.push({ TRANS: ex.TRANSCRICAO_EXEMPLO || '', TRAD: ex.TRADUCAO_EXEMPLO || '', AUDIO: audioEx });
                     }
@@ -95,11 +95,11 @@ class ExportadorBase {
                 if (ac.IMAGENS_IDS) ac.IMAGENS_IDS.forEach(imgId => {
                     const img = banco.imagens[imgId];
                     if (img && img.IMAGEM) {
-                        const raw = img.IMAGEM.split(/[\/\\]/).pop();
+                        const raw = img.IMAGEM;
                         let limpo;
                         try { limpo = decodeURIComponent(raw); } catch(e) { limpo = raw; }
                         limpo = limpo.replace(/[{}]/g, '').trim().toLowerCase();
-                        const fallbackPath = 'foto/' + limpo;
+                        const fallbackPath = (limpo.includes("/") || limpo.includes("\\") ? limpo : "foto/" + limpo);
                         const url = (this.midiasGeradas && this.midiasGeradas[raw]) ? this.midiasGeradas[raw] : fallbackPath;
                         significado.IMAGENS.push({ ARQUIVO: url, LEGENDA: img.LEGENDA_IMAGEM || '' });
                     }
@@ -108,8 +108,8 @@ class ExportadorBase {
                     ac.VIDEOS_IDS.forEach(vidId => {
                         const vid = this.db.bancoDados.videos?.[vidId];
                         if (vid && vid.ARQUIVO_VIDEO) {
-                            const raw = vid.ARQUIVO_VIDEO.split(/[\/\\]/).pop();
-                            const url = (this.midiasGeradas && this.midiasGeradas[raw]) ? this.midiasGeradas[raw] : 'video/' + raw;
+                            const raw = vid.ARQUIVO_VIDEO;
+                            const url = (this.midiasGeradas && this.midiasGeradas[raw]) ? this.midiasGeradas[raw] : (raw.includes("/") || raw.includes("\\") ? raw : "video/" + raw);
                             significado.VIDEOS.push({ ARQUIVO: url });
                         }
                     });
@@ -123,8 +123,8 @@ class ExportadorBase {
         const fonemicasStr = fonemicasUnicas.join(' ~ ');
         const foneticasStr = foneticasUnicas.join(' ~ ');
         const audiosUnicosResolved = audiosUnicos.map(a => {
-            const raw = a.split(/[\/\\]/).pop();
-            return (this.midiasGeradas && this.midiasGeradas[raw]) ? this.midiasGeradas[raw] : 'audio/' + raw;
+            const raw = a;
+            return (this.midiasGeradas && this.midiasGeradas[raw]) ? this.midiasGeradas[raw] : (raw.includes("/") || raw.includes("\\") ? raw : "audio/" + raw);
         });
 
         const result = {
@@ -172,13 +172,13 @@ class ExportadorBase {
                 });
                 ac.IMAGENS_IDS?.forEach(id => {
                     const img = db.imagens[id];
-                    if (img && img.IMAGEM) referenciadas.imagem.add(img.IMAGEM.split(/[\/\\]/).pop());
+                    if (img && img.IMAGEM) referenciadas.imagem.add(img.IMAGEM);
                 });
                 if (ac.VIDEOS_IDS && db.videos) {
                     ac.VIDEOS_IDS.forEach(vidId => {
                         const vid = db.videos[vidId];
                         if (vid && vid.ARQUIVO_VIDEO) {
-                            referenciadas.video.add(vid.ARQUIVO_VIDEO.split(/[\/\\]/).pop());
+                            referenciadas.video.add(vid.ARQUIVO_VIDEO);
                         }
                     });
                 }
@@ -197,7 +197,7 @@ class ExportadorBase {
                     if (arquivo instanceof File || arquivo instanceof Blob) {
                         arquivosParaConverter.push({ nome, arquivo });
                     } else {
-                        midias[nome] = prefixo + nome;
+                        midias[nome] = (nome.includes("/") || nome.includes("\\") ? nome : prefixo + nome);
                     }
                 }
             }
@@ -240,7 +240,7 @@ class ExportadorBase {
             // Apenas referenciar pelo caminho local relativo
             for (const [tipo, prefixo] of Object.entries(tipos)) {
                 for (const nome of referenciadas[tipo]) {
-                    midias[nome] = prefixo + nome;
+                    midias[nome] = (nome.includes("/") || nome.includes("\\") ? nome : prefixo + nome);
                 }
             }
         }

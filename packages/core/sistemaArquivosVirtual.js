@@ -171,7 +171,8 @@ class SistemaArquivosVirtual {
         const detalhes = { nomes: [], tamanhos: [], tipos: [] };
         
         for (const arquivo of listaArquivos) {
-            const nome = this._normalizarNome(arquivo.name);
+            const nomeFisico = arquivo.caminhoRelativo || arquivo.name;
+            const nome = this._normalizarChave(nomeFisico);
             const ext = nome.split('.').pop().toLowerCase();
             const extValidas = this.obterExtensoes(tipo);
             
@@ -217,7 +218,7 @@ class SistemaArquivosVirtual {
     removerArquivo(tipo, nome) {
         if (!this[tipo]) return false;
         
-        const nomeNormalizado = this._normalizarNome(nome);
+        const nomeNormalizado = this._normalizarChave(nome);
         const arquivo = this[tipo].get(nomeNormalizado);
         
         if (arquivo) {
@@ -252,14 +253,49 @@ class SistemaArquivosVirtual {
     
     obterArquivo(tipo, nome) {
         if (!this[tipo]) return null;
-        const nomeNormalizado = this._normalizarNome(nome);
-        return this[tipo].get(nomeNormalizado) || null;
+        const nomeBuscado = this._normalizarChave(nome);
+        
+        // 1. CLDF Mode: Busca caminho exato ("media/audio/d1/som.mp3")
+        if (this[tipo].has(nomeBuscado)) {
+            return this[tipo].get(nomeBuscado);
+        }
+        
+        // 2. Native Mode (Fallback 1): O CSV nativo pediu "som.mp3" e o arquivo salvo é "audio/som.mp3"
+        const nomeBuscadoFinal = '/' + nomeBuscado;
+        for (const [chave, arquivo] of this[tipo].entries()) {
+            if (chave === nomeBuscado || chave.endsWith(nomeBuscadoFinal)) {
+                return arquivo;
+            }
+        }
+        
+        // 3. Fallback Seguro 2: Buscar exclusivamente pelo nome final ("som.mp3" VS "som.mp3")
+        const apenasNome = nomeBuscado.split('/').pop();
+        for (const [chave, arquivo] of this[tipo].entries()) {
+            if (chave.split('/').pop() === apenasNome) {
+                return arquivo;
+            }
+        }
+        
+        return null;
     }
 
     obterMetadados(tipo, nome) {
         if (!this.metadados[tipo]) return null;
-        const nomeNormalizado = this._normalizarNome(nome);
-        return this.metadados[tipo].get(nomeNormalizado) || null;
+        const nomeBuscado = this._normalizarChave(nome);
+        
+        if (this.metadados[tipo].has(nomeBuscado)) return this.metadados[tipo].get(nomeBuscado);
+        
+        const nomeBuscadoFinal = '/' + nomeBuscado;
+        for (const [chave, meta] of this.metadados[tipo].entries()) {
+            if (chave === nomeBuscado || chave.endsWith(nomeBuscadoFinal)) return meta;
+        }
+        
+        const apenasNome = nomeBuscado.split('/').pop();
+        for (const [chave, meta] of this.metadados[tipo].entries()) {
+            if (chave.split('/').pop() === apenasNome) return meta;
+        }
+        
+        return null;
     }
 
     obterTodosNomes(tipo) {
@@ -288,7 +324,7 @@ class SistemaArquivosVirtual {
         const arquivo = this.obterArquivo(tipo, nome);
         if (!arquivo) return null;
         
-        const nomeNormalizado = this._normalizarNome(nome);
+        const nomeNormalizado = this._normalizarChave(nome);
         
         if (this.urlsTemporarias.has(nomeNormalizado)) {
             return this._getUrlFromStore(tipo, nomeNormalizado);
@@ -308,7 +344,7 @@ class SistemaArquivosVirtual {
     }
 
     async obterThumbnail(nome, tamanhoMaximo = 100) {
-        const nomeNormalizado = this._normalizarNome(nome);
+        const nomeNormalizado = this._normalizarChave(nome);
         
         if (this.thumbnails.has(nomeNormalizado)) {
             return this.thumbnails.get(nomeNormalizado);
@@ -517,8 +553,9 @@ class SistemaArquivosVirtual {
     // MÉTODOS PRIVADOS
     // ==========================================
     
-    _normalizarNome(nome) {
-        return nome.split('/').pop().split('\\').pop().trim();
+    _normalizarChave(caminho) {
+        if (!caminho) return '';
+        return caminho.replace(/\\/g, '/').trim();
     }
 
     _serializarMetadados(tipo) {

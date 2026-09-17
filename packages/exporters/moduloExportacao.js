@@ -2,6 +2,7 @@ import ExportadorHtmlCards from './exportadorHtmlCards.js';
 import ExportadorTypst from './exportadorTypst.js';
 import ExportadorLatex from './exportadorLatex.js';
 import ExportadorZip from './exportadorZip.js';
+import { ExportadorCLDF } from './exportadorCLDF.js';
 import CompiladorPdf from '../pdf/compiladorPdf.js';
 import { platform } from '../platform/index.js';
 
@@ -12,6 +13,7 @@ export default class ModuloExportacao {
         this.exportadorTypstModule = new ExportadorTypst(this.gerenciador);
         this.exportadorLatexModule = new ExportadorLatex(this.gerenciador);
         this.exportadorZipModule = new ExportadorZip(this.gerenciador);
+        this.exportadorCLDFModule = new ExportadorCLDF(this.gerenciador);
         this.compiladorPdf = new CompiladorPdf(this.gerenciador);
         console.log('📤 Módulo de Exportação inicializado.');
     }
@@ -93,6 +95,10 @@ export default class ModuloExportacao {
     async exportarZip(nomeArquivo) {
         const zipBlob = await this.exportadorZipModule.exportar();
         await this.salvarArquivoBlob(zipBlob, nomeArquivo);
+    }
+
+    async exportarCldfZip(opcoes = {}, nomeArquivo = 'dicionario_cldf.zip') {
+        return await this.exportadorCLDFModule.exportarCldfZip(opcoes, nomeArquivo);
     }
 
     salvarArquivo(conteudo, nomeArquivo, mimeType = 'text/html;charset=utf-8') {

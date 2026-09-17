@@ -72,8 +72,8 @@ class ConstrutorBancoDados {
         };
         
         let contEntradas = 1;
-        const mapaEntradas = {};
-        const mapaSignificados = {};
+        const mapaEntradas = Object.create(null);
+        const mapaSignificados = Object.create(null);
         let contSignificados = 1;
         let contExemplos = 1;
         let contImagens = 1;
@@ -134,8 +134,13 @@ class ConstrutorBancoDados {
                         camposBasicos.SUB_CAMPO_SEMANTICO_6
                     ].filter(Boolean).map(s => String(s).trim()),
                     ITENS_RELACIONADOS: String(camposBasicos.ITENS_RELACIONADOS || '').trim(),
+                    DESCRICAO_ENTRADA: String(camposBasicos.DESCRICAO_ENTRADA || '').trim(),
+                    DESCRICAO_ENTRADA_ORIGINAL: String(camposBasicos.DESCRICAO_ENTRADA_ORIGINAL || camposBasicos.DESCRICAO_ENTRADA || '').trim(),
+                    METADADOS_EXTRAS: camposBasicos.METADADOS_EXTRAS || {},
                     VARIACOES_IDS: [], 
-                    ACEPCOES: []
+                    ACEPCOES: [],
+                    EXTRAS_ENTRADA: (linhaNormalizada.extrasEntrada || []).map(e => ({ TEXTO: `<b>${e.chave}:</b> ${e.valor}` })),
+                    EXTRAS_ENTRADA_RAW: linhaNormalizada.extrasEntrada || []
                 };
             }
             const entrada = db.entradas[idEntrada];
@@ -178,11 +183,14 @@ class ConstrutorBancoDados {
                     ID: idAcepcao,
                     TRADUCAO: defRaw,
                     DESCRICAO: descRaw,
+                    DESCRICAO_ORIGINAL: String(camposBasicos.DESCRICAO_ORIGINAL || descRaw || '').trim(),
+                    METADADOS_EXTRAS: camposBasicos.METADADOS_EXTRAS || {},
                     EXEMPLOS_IDS: [],
                     IMAGENS_IDS: [],
                     VIDEOS_IDS: [],
                     TEXTOS_ESTRUTURADOS: [],
-                    EXTRAS: (linhaNormalizada.extras || []).map(e => ({ TEXTO: `<b>${e.chave}:</b> ${e.valor}` }))
+                    EXTRAS: (linhaNormalizada.extras || []).map(e => ({ TEXTO: `<b>${e.chave}:</b> ${e.valor}` })),
+                    EXTRAS_RAW: linhaNormalizada.extras || []
                 };
                 entrada.ACEPCOES.push({
                     SIGNIFICADO_ID: idAcepcao,
@@ -294,23 +302,27 @@ class ConstrutorBancoDados {
                 });
 
                 // ========== VÍDEOS ==========
-                if (camposBasicos.ARQUIVO_VIDEO) {
-                    const vidExiste = this.validarEContarMidia(db, 'video', camposBasicos.ARQUIVO_VIDEO, silenciarAvisos);
-                    const vidId = `${idAcepcao}_VID${contVideos++}`;
-                    if (!db.videos) db.videos = {};
-                    db.videos[vidId] = {
-                        ID: vidId,
-                        ARQUIVO_VIDEO: camposBasicos.ARQUIVO_VIDEO,
-                        VIDEO_EXISTE: vidExiste,
-                        VIDEO_URL: vidExiste ? this.obterMidiaUrl('video', camposBasicos.ARQUIVO_VIDEO) : null
-                    };
-                    acepcaoAlvo.VIDEOS_IDS.push(vidId);
-                }
+                const listaVideos = limparListaPipe(camposBasicos.ARQUIVO_VIDEO || '');
+                listaVideos.forEach(vid => {
+                    const vidObj = typeof vid === 'string' ? { vid: vid } : { vid: vid.item || vid };
+                    if (vidObj.vid) {
+                        const vidExiste = this.validarEContarMidia(db, 'video', vidObj.vid, silenciarAvisos);
+                        const vidId = `${idAcepcao}_VID${contVideos++}`;
+                        if (!db.videos) db.videos = {};
+                        db.videos[vidId] = {
+                            ID: vidId,
+                            ARQUIVO_VIDEO: vidObj.vid,
+                            VIDEO_EXISTE: vidExiste,
+                            VIDEO_URL: vidExiste ? this.obterMidiaUrl('video', vidObj.vid) : null
+                        };
+                        acepcaoAlvo.VIDEOS_IDS.push(vidId);
+                    }
+                });
             }
         });
         
         // Post-processamento: Homônimos
-        const contagemTermos = {};
+        const contagemTermos = Object.create(null);
         Object.values(db.entradas).forEach(entrada => {
             const termo = entrada._TERMO_PRINCIPAL;
             if (termo) {

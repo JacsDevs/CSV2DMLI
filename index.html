@@ -856,6 +856,7 @@
                             <button class="export-btn export-html" onclick="gerarExportacao('html')"><span class="export-icon">🌐</span><span class="export-label">Gerar Site HTML</span></button>
                             <button class="export-btn export-typst" onclick="gerarExportacao('typst')"><span class="export-icon">📘</span><span class="export-label">Gerar Typst</span></button>
                             <button class="export-btn export-latex" onclick="gerarExportacao('latex')"><span class="export-icon">📄</span><span class="export-label">Gerar LaTeX (ZIP)</span></button>
+                            <button class="export-btn export-cldf" onclick="document.getElementById('modalCldf').style.display='flex'"><span class="export-icon">🌍</span><span class="export-label">Gerar CLDF (ZIP)</span></button>
                             <button class="export-btn export-pdf" onclick="gerarExportacao('pdf')"><span class="export-icon">📑</span><span class="export-label">Gerar PDF</span></button>
                             <button class="export-btn export-android" onclick="abrirModalAndroid()"><span class="export-icon">📱</span><span class="export-label">Gerar Aplicativo</span></button>
                           </div>
@@ -905,6 +906,80 @@
 </div>
 
 <!-- MODAL CUSTOMIZAÇÃO E EDITOR (Escondidos mas mantidos para compatibilidade) -->
+<!-- MODAL IMPORTAÇÃO CLDF EXTRAS -->
+<div class="apk-wizard-overlay" id="modalCldfExtras" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999999; justify-content: center; align-items: center;">
+    <div class="modal-content" style="background: var(--bg-secondary); border-radius: 10px; max-width: 600px; width: 100%; padding: 20px;">
+        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0; color: var(--text-main);">Colunas Extras Detectadas</h3>
+            <button class="modal-close" style="background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.2em;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div style="max-height: 50vh; overflow-y: auto; padding-right: 5px; margin-bottom: 20px;">
+                <fieldset style="margin-bottom: 20px; border: 1px solid var(--border-color); padding: 15px; border-radius: 5px;">
+                    <legend style="color: var(--text-main); font-weight: bold; padding: 0 5px;">1. Textos e Descrições Extras</legend>
+                    <p style="font-size: 0.9em; color: var(--text-muted); margin-bottom: 15px;">Defina o que fazer com os dados textuais não mapeados:</p>
+                    <div id="cldfExtrasContainer" style="display: flex; flex-direction: column; gap: 10px;">
+                        <!-- Preenchido via JS -->
+                    </div>
+                </fieldset>
+
+                <fieldset style="border: 1px solid var(--border-color); padding: 15px; border-radius: 5px;">
+                    <legend style="color: var(--text-main); font-weight: bold; padding: 0 5px;">2. Hierarquia Semântica</legend>
+                    <p style="font-size: 0.9em; color: var(--text-muted); margin-bottom: 15px;">(Opcional) Vincule as colunas extras à estrutura de categorias:</p>
+                    <div id="cldfSemanticContainer" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <!-- Preenchido via JS -->
+                    </div>
+                </fieldset>
+            </div>
+            <div class="modal-actions" style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn btn-outline" id="btnSalvarMapeamentoCldf" style="margin-right: auto;"><i class="fas fa-download"></i> Salvar</button>
+                <button class="btn btn-outline" id="btnCarregarMapeamentoCldf"><i class="fas fa-upload"></i> Carregar</button>
+                <input type="file" id="fileCarregarMapeamentoCldf" accept=".json" style="display: none;">
+                <button class="btn btn-primary" id="btnConfirmarCldfExtras"><i class="fas fa-check"></i> Continuar Importação</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CLDF -->
+<div class="apk-wizard-overlay" id="modalCldf" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999999; justify-content: center; align-items: center;">
+    <div class="modal-content" style="background: var(--bg-secondary); border-radius: 10px; max-width: 500px; width: 100%; padding: 20px;">
+        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0; color: var(--text-main);">Configuração CLDF</h3>
+            <button class="modal-close" onclick="document.getElementById('modalCldf').style.display='none'" style="background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.2em;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <label style="display: block; margin-bottom: 15px;">
+                <span style="color: var(--text-muted); display: block; margin-bottom: 5px;">Nome da Língua (CLDF Name)</span>
+                <input type="text" id="cldfLangName" class="form-input" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-primary); color: var(--text-main);" placeholder="Ex: Karitiana">
+            </label>
+            <label style="display: block; margin-bottom: 15px;">
+                <span style="color: var(--text-muted); display: block; margin-bottom: 5px;">Código ISO 639-3</span>
+                <input type="text" id="cldfIsoCode" class="form-input" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-primary); color: var(--text-main);" placeholder="Ex: ktn">
+            </label>
+            <label style="display: block; margin-bottom: 15px;">
+                <span style="color: var(--text-muted); display: block; margin-bottom: 5px;">Glottocode</span>
+                <input type="text" id="cldfGlottocode" class="form-input" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-primary); color: var(--text-main);" placeholder="Ex: kari1311">
+            </label>
+            <label style="display: block; margin-bottom: 20px;">
+                <span style="color: var(--text-muted); display: block; margin-bottom: 5px;">Idioma das Traduções (Para Concepticon)</span>
+                <select id="cldfGlossLang" class="form-input" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-primary); color: var(--text-main);">
+                    <option value="pt">Português</option>
+                    <option value="en">Inglês</option>
+                    <option value="es">Espanhol</option>
+                </select>
+            </label>
+            <button class="btn btn-primary" onclick="iniciarExportacaoCldf()" style="width: 100%; padding: 10px; border-radius: 5px; font-weight: bold;">
+                <i class="fas fa-file-export"></i> Iniciar Exportação
+            </button>
+        </div>
+    </div>
+</div>
+
 <dialog id="modalCustomizacao" class="modal-custom">
     <!-- ... Todo o seu modal de customização antigo permanece inalterado para não quebrar IDs ... -->
     <div class="modal-custom-header">
@@ -921,10 +996,13 @@
         </div>
         <div id="tab-html" class="custom-tab-content active">
             <!-- Templates DropZones -->
-            <div class="drop-zone" id="templateHtmlZone"><p><strong>HTML Base</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste o template.html</span></p><input type="file" id="fileTemplateHtml" accept=".html" style="display:none"><div id="templateHtmlStatus"></div></div>
-            <div class="drop-zone" id="templateEntradaHtmlZone"><p><strong>Entrada  </strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste o entrada.html</span></p><input type="file" id="fileTemplateEntradaCardHtml" accept=".html" style="display:none"><div id="templateEntradaCardHtmlStatus"></div></div>
-            
-            <div class="drop-zone" id="templateCssCardZone"><p><strong>Estilos Globais (CSS)</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste estilos-globais.css</span></p><input type="file" id="fileTemplateCssCard" accept=".css" style="display:none"><div id="templateCssCardStatus"></div></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="drop-zone" id="templateHtmlZone"><p><strong>HTML Base</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste o template.html</span></p><input type="file" id="fileTemplateHtml" accept=".html" style="display:none"><div id="templateHtmlStatus"></div></div>
+                <div class="drop-zone" id="templateEntradaHtmlZone"><p><strong>Entrada</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste o entrada.tmpl</span></p><input type="file" id="fileTemplateEntradaHtml" accept=".tmpl,.html" style="display:none"><div id="templateEntradaHtmlStatus"></div></div>
+                <div class="drop-zone" id="templateListaHtmlZone"><p><strong>Item de Lista</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste o lista.tmpl</span></p><input type="file" id="fileTemplateListaHtml" accept=".tmpl,.html" style="display:none"><div id="templateListaHtmlStatus"></div></div>
+                <div class="drop-zone" id="templateCardHtmlZone"><p><strong>Mini Card</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste o card.tmpl</span></p><input type="file" id="fileTemplateCardHtml" accept=".tmpl,.html" style="display:none"><div id="templateCardHtmlStatus"></div></div>
+            </div>
+            <div class="drop-zone" id="templateCssCardZone" style="margin-top: 15px;"><p><strong>Estilos Globais (CSS)</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste estilos-globais.css</span></p><input type="file" id="fileTemplateCssCard" accept=".css" style="display:none"><div id="templateCssCardStatus"></div></div>
         </div>
         <div id="tab-typst" class="custom-tab-content">
             <h3 style="margin-bottom: 15px; color: var(--text-main);">📘 Templates Typst (Para PDFs)</h3>
@@ -984,9 +1062,13 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/estilos-globais.css', 'estilos-globais.css')">🎨 Estilos Globais (CSS)</button>
                 <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/html-cards/template.html', 'cards-template.html')">🃏 template.html</button>
-                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/html-cards/entrada.html', 'cards-entrada.html')">🃏 entrada.html</button>
+                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/html-cards/entrada.tmpl', 'cards-entrada.tmpl')">🃏 entrada.tmpl</button>
+                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/html-cards/lista.tmpl', 'cards-lista.tmpl')">🃏 lista.tmpl</button>
+                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/html-cards/card.tmpl', 'cards-card.tmpl')">🃏 card.tmpl</button>
                 <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/typst/template.typ', 'typst-template.typ')">📘 Typst: template.typ</button>
                 <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/typst/entrada.typ', 'typst-entrada.typ')">📘 Typst: entrada.typ</button>
+                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/latex/template.tex', 'latex-template.tex')">📄 LaTeX: template.tex</button>
+                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/latex/entrada.tex', 'latex-entrada.tex')">📄 LaTeX: entrada.tex</button>
             </div>
         </div>
     </div>
@@ -1828,6 +1910,11 @@
             }
         }
 
+        const cldfLangNameEl = document.getElementById('cldfLangName');
+        const cldfIsoCodeEl = document.getElementById('cldfIsoCode');
+        const cldfGlottocodeEl = document.getElementById('cldfGlottocode');
+        const cldfGlossLangEl = document.getElementById('cldfGlossLang');
+
         return {
             tituloHtml: document.getElementById('metaHtml')?.value.trim() || existente.html || 'Dicionário',
             tituloPdf:  document.getElementById('metaPdf')?.value.trim()  || existente.pdf  || 'Dicionário',
@@ -1835,11 +1922,226 @@
             ano:        document.getElementById('metaAno')?.value.trim()   || existente.ano  || '',
             versao:     existente.versao || '1.0',
             introHtml: introHtml || (window.sistema ? window.sistema.introHtml : ''),
-            introPdf: introPdf || (window.sistema ? window.sistema.introPdf : ''),
+            introPdf: introPdf,
+            introMd: introMd || (window.sistema ? window.sistema.introPdf : ''),
             iconeDataUrl: (window.sistema && window.sistema.icone && window.sistema.icone.dataUrl) || null,
             tema: window.coletarTemaExportacao ? window.coletarTemaExportacao() : null,
+            cldfLangName: cldfLangNameEl?.value.trim() || 'Language',
+            cldfIso: cldfIsoCodeEl?.value.trim() || 'und',
+            cldfGlottocode: cldfGlottocodeEl?.value.trim() || '',
+            cldfGlossLang: cldfGlossLangEl?.value || 'pt'
         };
     }
+
+    window.pedirMapeamentoCldf = function(extraCols, allCols) {
+        return new Promise((resolve, reject) => {
+            const modal = document.getElementById('modalCldfExtras');
+            const container = document.getElementById('cldfExtrasContainer');
+            const semContainer = document.getElementById('cldfSemanticContainer');
+            if (container) container.innerHTML = '';
+            if (semContainer) semContainer.innerHTML = '';
+            
+            // Section 1: Descrições
+            extraCols.forEach(col => {
+                const div = document.createElement('div');
+                div.style = "display: flex; flex-direction: column; background: var(--bg-primary); padding: 10px; border-radius: 5px; border: 1px solid var(--border-color); margin-bottom: 5px;";
+                div.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                        <strong>${col.origem}: ${col.id}</strong>
+                        <div>
+                            <button type="button" class="btn btn-sm btn-outline" onclick="const el = this.parentElement.parentElement.parentElement; if(el.previousElementSibling) el.parentElement.insertBefore(el, el.previousElementSibling);" title="Mover para cima"><i class="fas fa-arrow-up"></i></button>
+                            <button type="button" class="btn btn-sm btn-outline" onclick="const el = this.parentElement.parentElement.parentElement; if(el.nextElementSibling) el.parentElement.insertBefore(el.nextElementSibling, el);" title="Mover para baixo"><i class="fas fa-arrow-down"></i></button>
+                        </div>
+                    </div>
+                    <select id="sel_dest_${col.id}" class="form-input" style="padding: 5px; border-radius: 3px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-main); margin-bottom: 5px;" onchange="document.getElementById('prefix_container_${col.id}').style.display = (this.value === 'ignorar' ? 'none' : 'flex')">
+                        <option value="desc_entrada" ${col.origem !== "Significado" ? "selected" : ""}>Adicionar à informação da entrada</option>
+                        <option value="desc_significado" ${col.origem === "Significado" ? "selected" : ""}>Adicionar à informação do significado</option>
+                        <option value="ignorar">Ignorar coluna na Descrição (Mantém como Coluna Extra no CLDF)</option>
+                    </select>
+                    <div style="display: flex; align-items: center; gap: 5px; flex-wrap: wrap;" id="prefix_container_${col.id}">
+                        <label style="font-size: 0.85em; color: var(--text-muted); display: flex; align-items: center; gap: 4px; margin: 0; cursor: pointer;">
+                            <input type="checkbox" id="chk_prefix_${col.id}" checked onchange="document.getElementById('prefix_${col.id}').disabled = !this.checked">
+                            Prefixo:
+                        </label>
+                        <input type="text" id="prefix_${col.id}" class="form-input" style="padding: 4px; font-size: 0.9em; width: 100px;" value="${col.id}: ">
+                        
+                        <span style="font-size: 0.85em; color: var(--text-muted); margin-left: 10px;">Sufixo:</span>
+                        <input type="text" id="suffix_${col.id}" class="form-input" style="padding: 4px; font-size: 0.9em; width: 50px;" value=".">
+                    </div>
+                `;
+                container.appendChild(div);
+                setTimeout(() => {
+                    const selVal = document.getElementById(`sel_dest_${col.id}`).value;
+                    document.getElementById(`prefix_container_${col.id}`).style.display = (selVal === 'ignorar' ? 'none' : 'flex');
+                }, 0);
+            });
+
+            // Section 2: Semântica
+            const buildOptions = () => {
+                let html = `<option value="">-- Nenhuma --</option>`;
+                if (allCols) {
+                    allCols.forEach(c => html += `<option value="${c.id}">${c.origem}: ${c.id}</option>`);
+                } else {
+                    extraCols.forEach(c => html += `<option value="${c.id}">${c.origem}: ${c.id}</option>`);
+                }
+                return html;
+            };
+
+            const levels = [
+                { id: 'CAMPO_SEMANTICO', label: 'Campo Principal' },
+                { id: 'SUB_CAMPO_SEMANTICO_1', label: 'Subcampo Nível 1' },
+                { id: 'SUB_CAMPO_SEMANTICO_2', label: 'Subcampo Nível 2' },
+                { id: 'SUB_CAMPO_SEMANTICO_3', label: 'Subcampo Nível 3' },
+                { id: 'SUB_CAMPO_SEMANTICO_4', label: 'Subcampo Nível 4' },
+                { id: 'SUB_CAMPO_SEMANTICO_5', label: 'Subcampo Nível 5' },
+                { id: 'SUB_CAMPO_SEMANTICO_6', label: 'Subcampo Nível 6' },
+                { id: 'TRANSCRICAO_FONEMICA', label: 'Transcrição Fonêmica' },
+                { id: 'TRANSCRICAO_FONETICA', label: 'Transcrição Fonética' }
+            ];
+
+            levels.forEach(lvl => {
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <label style="font-size: 0.9em; color: var(--text-muted); display: block; margin-bottom: 3px;">${lvl.label}</label>
+                    <select id="sel_sem_${lvl.id}" class="form-input" style="width: 100%; padding: 5px; border-radius: 3px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-main);">
+                        ${buildOptions()}
+                    </select>
+                `;
+                semContainer.appendChild(div);
+            });
+            
+            const btn = document.getElementById('btnConfirmarCldfExtras');
+            
+            const btnSalvar = document.getElementById('btnSalvarMapeamentoCldf');
+            const btnCarregar = document.getElementById('btnCarregarMapeamentoCldf');
+            const fileCarregar = document.getElementById('fileCarregarMapeamentoCldf');
+
+            btnSalvar.onclick = () => {
+                const map = {};
+                extraCols.forEach(col => {
+                    const usePrefix = document.getElementById(`chk_prefix_${col.id}`).checked;
+                    map[col.id] = {
+                        dest: document.getElementById(`sel_dest_${col.id}`).value,
+                        prefix: usePrefix ? document.getElementById(`prefix_${col.id}`).value : '',
+                        suffix: document.getElementById(`suffix_${col.id}`).value,
+                        usePrefix: usePrefix,
+                        order: Array.from(document.getElementById('cldfExtrasContainer').children).findIndex(d => d.dataset.colId === col.id),
+                        semanticRole: null
+                    };
+                });
+                levels.forEach(lvl => {
+                    const sel = document.getElementById(`sel_sem_${lvl.id}`).value;
+                    if (sel) {
+                        if (!map[sel]) map[sel] = { dest: 'ignorar', prefix: '', semanticRole: null };
+                        map[sel].semanticRole = lvl.id;
+                    }
+                });
+                const blob = new Blob([JSON.stringify(map, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'cldf-mapeamento-extras.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            };
+
+            btnCarregar.onclick = () => fileCarregar.click();
+            fileCarregar.onchange = async (e) => {
+                if (e.target.files.length > 0) {
+                    try {
+                        const text = await e.target.files[0].text();
+                        const map = JSON.parse(text);
+                        extraCols.forEach(col => {
+                            if (map[col.id]) {
+                                const sel = document.getElementById(`sel_dest_${col.id}`);
+                                const prefix = document.getElementById(`prefix_${col.id}`);
+                                const chk = document.getElementById(`chk_prefix_${col.id}`);
+                                const suffix = document.getElementById(`suffix_${col.id}`);
+                                if (sel) {
+                                    sel.value = map[col.id].dest || map[col.id];
+                                    sel.dispatchEvent(new Event('change'));
+                                }
+                                if (prefix && map[col.id].prefix !== undefined) prefix.value = map[col.id].prefix;
+                                if (suffix && map[col.id].suffix !== undefined) suffix.value = map[col.id].suffix;
+                                if (chk && map[col.id].usePrefix !== undefined) {
+                                    chk.checked = map[col.id].usePrefix;
+                                    chk.dispatchEvent(new Event('change'));
+                                }
+                            }
+                        });
+                        
+                        // Restore Order in DOM
+                        const container = document.getElementById('cldfExtrasContainer');
+                        const children = Array.from(container.children);
+                        children.sort((a, b) => {
+                            const mapA = map[a.dataset.colId];
+                            const mapB = map[b.dataset.colId];
+                            const orderA = mapA && mapA.order !== undefined ? mapA.order : 999;
+                            const orderB = mapB && mapB.order !== undefined ? mapB.order : 999;
+                            return orderA - orderB;
+                        });
+                        children.forEach(c => container.appendChild(c));
+                        // Restore semantic roles
+                        levels.forEach(lvl => document.getElementById(`sel_sem_${lvl.id}`).value = '');
+                        Object.keys(map).forEach(colId => {
+                            const m = map[colId];
+                            if (m && m.semanticRole) {
+                                const s = document.getElementById(`sel_sem_${m.semanticRole}`);
+                                if (s) s.value = colId;
+                            }
+                        });
+                        alert('Mapeamento carregado com sucesso!');
+                    } catch (err) {
+                        alert('Erro ao carregar o arquivo de mapeamento.');
+                    }
+                    e.target.value = '';
+                }
+            };
+
+            // Handling Modal Close / Cancel
+            const cancelBtn = modal.querySelector('.modal-close');
+            const handleCancel = () => {
+                modal.style.display = 'none';
+                reject(new Error('Importação CLDF cancelada pelo usuário.'));
+            };
+            cancelBtn.onclick = handleCancel;
+
+            btn.onclick = () => {
+                const map = {};
+                extraCols.forEach(col => {
+                    const usePrefix = document.getElementById(`chk_prefix_${col.id}`).checked;
+                    map[col.id] = {
+                        dest: document.getElementById(`sel_dest_${col.id}`).value,
+                        prefix: usePrefix ? document.getElementById(`prefix_${col.id}`).value : '',
+                        suffix: document.getElementById(`suffix_${col.id}`).value,
+                        usePrefix: usePrefix,
+                        order: Array.from(document.getElementById('cldfExtrasContainer').children).findIndex(d => d.dataset.colId === col.id),
+                        semanticRole: null
+                    };
+                });
+                levels.forEach(lvl => {
+                    const sel = document.getElementById(`sel_sem_${lvl.id}`).value;
+                    if (sel) {
+                        if (!map[sel]) map[sel] = { dest: 'ignorar', prefix: '', semanticRole: null };
+                        map[sel].semanticRole = lvl.id;
+                    }
+                });
+                modal.style.display = 'none';
+                if (window.mostrarLoader) window.mostrarLoader('Processando Projeto', 'Finalizando importação CLDF...');
+                resolve(map);
+            };
+            
+            if (window.ocultarLoader) window.ocultarLoader();
+            modal.style.display = 'flex';
+        });
+    };
+
+    window.iniciarExportacaoCldf = async function() {
+        document.getElementById('modalCldf').style.display = 'none';
+        await window.gerarExportacao('cldf');
+    };
 
     window.gerarExportacao = async function(tipo) {
         if (!window.exportador) return alert('Exportador não inicializado!');
@@ -1990,6 +2292,18 @@
             } catch (e) {
                 console.error(e);
                 alert('Erro ao gerar Projeto LaTeX: ' + e.message);
+                window.ocultarLoader();
+                return;
+            }
+        } else if (tipo === 'cldf') {
+            window.mostrarLoader('Gerando CLDF', 'Convertendo modelo e compactando tabelas...');
+            try {
+                await window.exportador.exportarCldfZip({ metadados: coletarMetadadosExportacao() }, 'projeto_cldf.zip');
+                window.ocultarLoader();
+                return;
+            } catch (e) {
+                console.error(e);
+                alert('Erro ao gerar CLDF: ' + e.message);
                 window.ocultarLoader();
                 return;
             }
@@ -2315,7 +2629,10 @@
         // --- SISTEMA DE TEMPLATES CUSTOMIZADOS ---
         const templatesCustomizados = [
             { id: 'fileTemplateHtml', key: 'csv2dmli_template_html' },
-            { id: 'fileTemplateEntradaCardHtml', key: 'csv2dmli_templateEntradaCardHtml' },
+            { id: 'fileTemplateEntradaHtml', key: 'csv2dmli_templateEntradaHtml' },
+            { id: 'fileTemplateListaHtml', key: 'csv2dmli_templateListaHtml' },
+            { id: 'fileTemplateCardHtml', key: 'csv2dmli_templateCardHtml' },
+            { id: 'fileTemplateCssCard', key: 'csv2dmli_templateCssCard' },
             { id: 'fileTemplateTypst', key: 'csv2dmli_template_typst' },
             { id: 'fileTemplateEntradaTypst', key: 'csv2dmli_templateEntradaTypst' }
         ];
