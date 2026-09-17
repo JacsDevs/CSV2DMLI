@@ -1,4 +1,4 @@
-﻿import SistemaArquivosVirtual from './sistemaArquivosVirtual.js';
+import SistemaArquivosVirtual from './sistemaArquivosVirtual.js';
 import CarregadorCsv from './carregadorCsv.js';
 import ConstrutorBancoDados from './construtorBancoDados.js';
 import { buscaFuzzy } from './helpers.js';
@@ -150,6 +150,35 @@ export default class GerenciadorDados {
             // Remove variaÃ§Ãµes vazias
             const variacoesFiltradas = variacoes.filter(v => v.item || v.audio || v.fone || v.fonet);
 
+            const colunasConhecidas = [
+                'CLASSE_GRAMATICAL', 'CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO', 
+                'SUB_CAMPO_SEMANTICO_1', 'SUB_CAMPO_SEMANTICO_2', 'SUB_CAMPO_SEMANTICO_3',
+                'SUB_CAMPO_SEMANTICO_4', 'SUB_CAMPO_SEMANTICO_5', 'SUB_CAMPO_SEMANTICO_6',
+                'TEXTO', 'TITULO_TEXTO', 'TRADUCAO_SIGNIFICADO', 'ITENS_RELACIONADOS', 
+                'DESCRICAO', 'DESCRICAO_ENTRADA', 'ARQUIVO_VIDEO', 'ITEM_LEXICAL', 'ARQUIVO_SONORO', 
+                'TRANSCRICAO_FONEMICA', 'TRANSCRICAO_FONETICA', 'ARQUIVO_SONORO_EXEMPLO', 
+                'TRANSCRICAO_EXEMPLO', 'TRADUCAO_EXEMPLO', 'IMAGEM', 'LEGENDA_IMAGEM'
+            ];
+            const extras = [];
+            const extrasEntrada = [];
+            Object.keys(linhaMesclada).forEach(col => {
+                if (col.startsWith('#')) return;
+                if (colunasConhecidas.includes(col)) return;
+                if (col.match(/^VAR_\d+/)) return;
+                if (col.match(/^EX_\d+/)) return;
+                if (col.match(/^IMAGEM_\d+/)) return;
+                if (col.match(/^LEGENDA_\d+/)) return;
+                
+                const val = linhaMesclada[col];
+                if (val !== undefined && val !== null && String(val).trim() !== '') {
+                    if (col.startsWith('EXTRA_ENTRADA_')) {
+                        extrasEntrada.push({ chave: col.replace('EXTRA_ENTRADA_', ''), valor: String(val).trim() });
+                    } else {
+                        extras.push({ chave: col, valor: String(val).trim() });
+                    }
+                }
+            });
+
             return {
                 indice: index,
                 camposBasicos: {
@@ -166,40 +195,19 @@ export default class GerenciadorDados {
                     TITULO_TEXTO: linhaMesclada.TITULO_TEXTO || '',
                     TRADUCAO_SIGNIFICADO: linhaMesclada.TRADUCAO_SIGNIFICADO || '',
                     ITENS_RELACIONADOS: linhaMesclada.ITENS_RELACIONADOS || '',
+                    DESCRICAO_ENTRADA: linhaMesclada.DESCRICAO_ENTRADA || '',
+                    DESCRICAO_ENTRADA_ORIGINAL: linhaMesclada.DESCRICAO_ENTRADA_ORIGINAL || '',
                     DESCRICAO: linhaMesclada.DESCRICAO || '',
-                    ARQUIVO_VIDEO: linhaMesclada.ARQUIVO_VIDEO || ''
+                    DESCRICAO_ORIGINAL: linhaMesclada.DESCRICAO_ORIGINAL || '',
+                    ARQUIVO_VIDEO: linhaMesclada.ARQUIVO_VIDEO || '',
+                    METADADOS_EXTRAS: linhaMesclada.METADADOS_EXTRAS || {}
                 },
                 variacoes: variacoesFiltradas,
                 exemplos,
-                imagens
+                imagens,
+                extras,
+                extrasEntrada
             };
-            
-            const colunasConhecidas = [
-                'CLASSE_GRAMATICAL', 'CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO', 
-                'SUB_CAMPO_SEMANTICO_1', 'SUB_CAMPO_SEMANTICO_2', 'SUB_CAMPO_SEMANTICO_3',
-                'SUB_CAMPO_SEMANTICO_4', 'SUB_CAMPO_SEMANTICO_5', 'SUB_CAMPO_SEMANTICO_6',
-                'TEXTO', 'TITULO_TEXTO', 'TRADUCAO_SIGNIFICADO', 'ITENS_RELACIONADOS', 
-                'DESCRICAO', 'ARQUIVO_VIDEO', 'ITEM_LEXICAL', 'ARQUIVO_SONORO', 
-                'TRANSCRICAO_FONEMICA', 'TRANSCRICAO_FONETICA', 'ARQUIVO_SONORO_EXEMPLO', 
-                'TRANSCRICAO_EXEMPLO', 'TRADUCAO_EXEMPLO', 'IMAGEM', 'LEGENDA_IMAGEM'
-            ];
-            const extras = [];
-            Object.keys(linhaMesclada).forEach(col => {
-                if (col.startsWith('#')) return;
-                if (colunasConhecidas.includes(col)) return;
-                if (col.match(/^VAR_\d+/)) return;
-                if (col.match(/^EX_\d+/)) return;
-                if (col.match(/^IMAGEM_\d+/)) return;
-                if (col.match(/^LEGENDA_\d+/)) return;
-                
-                const val = linhaMesclada[col];
-                if (val !== undefined && val !== null && String(val).trim() !== '') {
-                    extras.push({ chave: col, valor: String(val).trim() });
-                }
-            });
-            linhaNormalizada.extras = extras;
-
-            return linhaNormalizada;
         });
 
         this.colunasPlanilha = resultado.colunas;
@@ -371,16 +379,25 @@ export default class GerenciadorDados {
     }
 
     limpar() {
-        // OpÃ§Ãµes
+        // Opções
         this.silenciarAvisosMidia = false;
         
-        // Estado
+        // Estado Principal
         this.dadosPlanilha = [];
         this.colunasPlanilha = [];
         this._bancoConstruido = null;
         this.icone = { dataUrl: null, bytes: null, nome: null };
+        
+        // Limpeza Adicional: Textos e Configurações (Evita vazamento entre projetos)
+        this.introHtml = null;
+        this.introPdf = null;
+        this.referencia = null;
+        this.alfabetoCustomizado = null;
+        this.configuracaoTextoLocal = null;
+
+        // Limpa o Virtual File System (IDB e memórias)
         this.vfs.limpar();
-        console.log('ðŸ§¹ Dados limpos com sucesso.');
+        console.log('🧹 Dados limpos com sucesso.');
     }
 
     async exportar(tipo) {

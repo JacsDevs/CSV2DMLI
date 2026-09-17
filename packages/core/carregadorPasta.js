@@ -40,9 +40,14 @@ class CarregadorPasta {
     async carregarPasta(arquivosLista) {
         console.log('📁 Processando pasta com', arquivosLista.length, 'arquivos');
         
-        // Ativar modo silencioso para não poluir terminal antes das mídias carregarem
+        // Ativar modo silencioso e limpar o estado do projeto anterior
         if (this.gerenciador) {
             this.gerenciador.silenciarAvisosMidia = true;
+            this.gerenciador.limpar();
+        }
+        
+        if (this.configurador) {
+            await this.configurador.carregar();
         }
         
         // Organizar arquivos por tipo e pasta

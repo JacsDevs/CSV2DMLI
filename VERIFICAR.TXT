@@ -1,1 +1,3 @@
 - AO BAIXAR O HTML O MODAL DE VISUALIZAÇÃO FECHA SOZINHO (USANDO LIVE SERVER LOCAL)
+
+- a exportação de cldf nao esta  gerando adequadamente as colunas que deveria

@@ -20,6 +20,13 @@ const PRE_CACHE = [
   BASE + '/vendor/font-awesome/css/all.min.css',
 ];
 
+
+const CLDF_CACHE = 'csv2dmli-cldf-v1';
+const CLDF_ASSETS = [
+  BASE + '/concepticon-cldf/concepticon.csv',
+  BASE + '/concepticon-cldf/glosses.csv',
+];
+
 const ANDROID_CACHE = 'csv2dmli-android-v1';
 const ANDROID_ASSETS = [
   BASE + '/vendor/fflate.min.js',
@@ -35,6 +42,13 @@ self.addEventListener('install', e => {
         console.log('[SW] Fazendo cache dos arquivos estáticos:', PRE_CACHE);
         return c.addAll(PRE_CACHE).catch(err => console.error('[SW] Erro no cache estático:', err));
       }),
+      caches.open(CLDF_CACHE).then(c =>
+        Promise.all(
+          CLDF_ASSETS.map(url =>
+            fetch(url).then(r => { if (r.ok) c.put(url, r); }).catch(err => console.error('[SW] Erro no asset CLDF:', url, err))
+          )
+        )
+      ),
       caches.open(ANDROID_CACHE).then(c =>
         Promise.all(
           ANDROID_ASSETS.map(url =>

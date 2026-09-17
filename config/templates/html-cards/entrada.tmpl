@@ -38,6 +38,12 @@
             {{#FONETICA}}<span class="dict-audio-chip transcricao-fonetica" style="pointer-events: none; background: transparent; border: none;"><span class="dict-chip-ipa">{{ FONETICA }}</span></span>{{/FONETICA}}
             {{/TEM_PRONUNCIA}}
         </div>
+        
+        {{#DESCRICAO_ENTRADA}}
+        <div style="margin-bottom: 16px; font-size: 0.95rem; color: #475569; line-height: 1.5;">
+            {{ DESCRICAO_ENTRADA }}
+        </div>
+        {{/DESCRICAO_ENTRADA}}
     </header>
 
     <!-- SIGNIFICADOS E MÍDIAS (CARTÕES) -->
