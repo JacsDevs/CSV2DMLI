@@ -262,13 +262,21 @@ class SistemaArquivosVirtual {
         
         // 2. Native Mode (Fallback 1): O CSV nativo pediu "som.mp3" e o arquivo salvo é "audio/som.mp3"
         const nomeBuscadoFinal = '/' + nomeBuscado;
+        // 3. Reverse Mode (Fallback 2): O CSV (ex: CLDF) pediu "audio/som.mp3" mas o arquivo salvo é apenas "som.mp3"
+        
         for (const [chave, arquivo] of this[tipo].entries()) {
-            if (chave === nomeBuscado || chave.endsWith(nomeBuscadoFinal)) {
+            if (chave === nomeBuscado) {
+                return arquivo;
+            }
+            if (chave.endsWith(nomeBuscadoFinal)) {
+                return arquivo;
+            }
+            if (nomeBuscado.endsWith('/' + chave)) {
                 return arquivo;
             }
         }
         
-        // 3. Fallback Seguro 2: Buscar exclusivamente pelo nome final ("som.mp3" VS "som.mp3")
+        // Fallback Seguro 2: Buscar exclusivamente pelo nome final ("som.mp3" VS "som.mp3")
         const apenasNome = nomeBuscado.split('/').pop();
         for (const [chave, arquivo] of this[tipo].entries()) {
             if (chave.split('/').pop() === apenasNome) {

@@ -175,150 +175,183 @@ class CarregadorPasta {
             referencia: null,
             alfabeto: null,
             configTxt: null
-        },
-        audio: [],
-        imagem: [],
-        video: []
-    };
-    
-    // Obter o nome da pasta raiz selecionada (primeiro segmento de qualquer caminho)
-    let pastaRaiz = null;
-    for (const arquivo of arquivosLista) {
-        const caminhoCompleto = arquivo.caminhoPersonalizado || arquivo.webkitRelativePath || arquivo.name;
-        const partes = caminhoCompleto.split('/');
-        if (partes.length > 1) {
-            pastaRaiz = partes[0];
-            break;
-        }
-    }
-    
-    console.log('📁 Pasta raiz selecionada:', pastaRaiz);
-    
-    const pastasAudio = this.configurador.getPastasMidia('audio');
-    const pastasImagem = this.configurador.getPastasMidia('imagem');
-    const pastasVideo = this.configurador.getPastasMidia('video');
-    
-    const nomesPlanilha = this.configurador.getNomesArquivo('planilha');
-    const nomesTextos = this.configurador.getNomesArquivo('textos');
-    const nomesConfig = this.configurador.getNomesArquivo('configuracao');
-    const nomesMetadados = this.configurador.getNomesArquivo('metadados');
-    const nomesIcone = this.configurador.getNomesArquivo('icone');
-    
-    for (const arquivo of arquivosLista) {
-        const caminhoCompleto = arquivo.caminhoPersonalizado || arquivo.webkitRelativePath || arquivo.name;
-        const partes = caminhoCompleto.split('/');
-        
-        // Remover o nome da pasta raiz do caminho para análise
-        let caminhoRelativo = caminhoCompleto;
-        let pastaPai = '';
-        
-        if (partes.length > 1 && partes[0] === pastaRaiz) {
-            // Remove a pasta raiz do caminho
-            caminhoRelativo = partes.slice(1).join('/');
-            pastaPai = partes.length > 2 ? partes[partes.length - 2] : '';
-        }
-        
-        const nomeArquivo = partes[partes.length - 1];
-        const extensao = nomeArquivo.split('.').pop().toLowerCase();
-        
-        // A planilha pode estar na raiz (após remover a pasta selecionada)
-        const estaNaRaiz = caminhoRelativo.split('/').length === 1;
-        
-        // Verificar se é o pacote de recuperação salvo (Projeto JSON)
-        
-        const isCldfMeta = (nomeArquivo.toLowerCase() === 'metadata.json' || nomeArquivo.toLowerCase() === 'cldf-metadata.json') && (estaNaRaiz || caminhoRelativo.toLowerCase().startsWith('cldf'));
-        
-        if (isCldfMeta) {
-            resultado.cldf.metadata = arquivo;
-            console.log("Metadados CLDF encontrados: " + nomeArquivo);
-        } else if (caminhoRelativo.toLowerCase().includes('entries.csv')) {
-            resultado.cldf.entries = arquivo;
-        } else if (caminhoRelativo.toLowerCase().includes('senses.csv')) {
-            resultado.cldf.senses = arquivo;
-        } else if (caminhoRelativo.toLowerCase().includes('forms.csv')) {
-            resultado.cldf.forms = arquivo;
-        } else if (caminhoRelativo.toLowerCase().includes('examples.csv')) {
-            resultado.cldf.examples = arquivo;
-        } else if (caminhoRelativo.toLowerCase().includes('media.csv')) {
-            resultado.cldf.media = arquivo;
-        } else if (estaNaRaiz && nomeArquivo.toLowerCase() === 'projeto.json') {
-
-            resultado.projeto = arquivo;
-            console.log(`📦 Projeto JSON de recuperação encontrado: ${nomeArquivo}`);
-        }
-        // Verificar se é planilha raiz normal
-        else if (estaNaRaiz && nomesPlanilha.includes(nomeArquivo.toLowerCase())) {
-            resultado.planilha = arquivo;
-            console.log(`📊 Planilha encontrada: ${nomeArquivo} (na raiz)`);
-        }
-        // Verificar se é arquivo de textos (na raiz)
-        else if (estaNaRaiz && nomesTextos.includes(nomeArquivo.toLowerCase())) {
-            resultado.textos = arquivo;
-            console.log(`📄 Textos encontrados: ${nomeArquivo}`);
-        }
-        // Verificar se é configuração local (na raiz)
-        else if (estaNaRaiz && (nomesConfig.includes(nomeArquivo.toLowerCase()) || nomeArquivo.toLowerCase() === 'configuracao.txt')) {
-            resultado.configuracao = arquivo;
-            console.log(`⚙️ Configuração local encontrada: ${nomeArquivo}`);
-        }
-        // Verificar se é metadados (na raiz)
-        else if (estaNaRaiz && nomesMetadados.includes(nomeArquivo.toLowerCase())) {
-            resultado.metadados = arquivo;
-            console.log(`📝 Metadados encontrados: ${nomeArquivo}`);
-        }
-        // Verificar se é o ícone do aplicativo (na raiz)
-        else if (estaNaRaiz && nomesIcone.includes(nomeArquivo.toLowerCase())) {
-            resultado.icone = arquivo;
-            console.log(`🖼️ Ícone do app encontrado: ${nomeArquivo}`);
-        }
-        // ARQUIVOS DE TEXTO LEGADOS DA RAIZ (app.js)
-        else if (estaNaRaiz && nomeArquivo.toLowerCase() === 'intro.txt') {
-            resultado.textosExtra.introHtml = arquivo;
-            console.log(`📄 Arquivo com texto de introdução encontrado: ${nomeArquivo}`);
-        }
-        else if (estaNaRaiz && nomeArquivo.toLowerCase() === 'intro.md') {
-            resultado.textosExtra.introPdf = arquivo;
-            console.log(`📄 Arquivo com texto de introdução encontrado: ${nomeArquivo}`);
-        }
-        else if (estaNaRaiz && nomeArquivo.toLowerCase() === 'referencia.txt') {
-            resultado.textosExtra.referencia = arquivo;
-            console.log(`📚 Referência encontrada: ${nomeArquivo}`);
-        }
-        else if (estaNaRaiz && (nomeArquivo.toLowerCase() === 'alfabeto.txt' || nomeArquivo.toLowerCase() === 'ordem-alfabeto.txt')) {
-            resultado.textosExtra.alfabeto = arquivo;
-            console.log(`🔤 Alfabeto encontrado: ${nomeArquivo}`);
-        }
-        else if (estaNaRaiz && nomeArquivo.toLowerCase() === 'configuracao.txt') {
-            resultado.textosExtra.configTxt = arquivo;
-            console.log(`⚙️ Configuração TXT encontrada: ${nomeArquivo}`);
-        }
-        // O usuário solicitou que mídias em subpastas sejam ignoradas.
-        // O arquivo deve estar diretamente dentro da pasta de mídia.
-        // Isso significa que o caminho relativo deve ter exatamente 2 partes: 'pasta_midia/arquivo.ext'
-        const partesRelativas = caminhoRelativo.split('/');
-        const estaDiretoNaPastaDeMidia = partesRelativas.length === 2;
-        const nomePastaMidia = estaDiretoNaPastaDeMidia ? partesRelativas[0].toLowerCase() : '';
-
-        // Helper para verificar a pasta exata
-        const nomeDaPastaBate = (pastasPermitidas) => {
-            return estaDiretoNaPastaDeMidia && pastasPermitidas.some(p => p.toLowerCase() === nomePastaMidia);
+        const resultado = {
+            projeto: null,
+            planilha: null,
+            textos: null,
+            configuracao: null,
+            metadados: null,
+            icone: null,
+            cldf: {
+                metadata: null,
+                entries: null,
+                senses: null,
+                forms: null,
+                examples: null,
+                media: null
+            },
+            textosExtra: {
+                introHtml: null,
+                introPdf: null,
+                referencia: null,
+                alfabeto: null,
+                configTxt: null
+            },
+            audio: [],
+            imagem: [],
+            video: []
         };
-
-        const isCldfMedia = partesRelativas.length >= 2 && partesRelativas[0].toLowerCase() === 'media';
         
-        if ((nomeDaPastaBate(pastasAudio) || isCldfMedia) && this.configurador.isExtensaoValida('audio', extensao)) {
-            resultado.audio.push(arquivo);
+        // Obter o nome da pasta raiz selecionada (primeiro segmento de qualquer caminho)
+        let pastaRaiz = null;
+        let isPacoteCldf = false;
+        
+        for (const arquivo of arquivosLista) {
+            const caminhoCompleto = arquivo.caminhoPersonalizado || arquivo.webkitRelativePath || arquivo.name;
+            const partes = caminhoCompleto.split('/');
+            if (partes.length > 1 && pastaRaiz === null) {
+                pastaRaiz = partes[0];
+            }
+            
+            let caminhoRelativo = caminhoCompleto;
+            if (partes.length > 1 && partes[0] === (pastaRaiz || partes[0])) {
+                caminhoRelativo = partes.slice(1).join('/');
+            }
+            
+            const nomeArquivo = partes[partes.length - 1];
+            const estaNaRaiz = caminhoRelativo.split('/').length === 1;
+            
+            if ((nomeArquivo.toLowerCase() === 'metadata.json' || nomeArquivo.toLowerCase() === 'cldf-metadata.json') && (estaNaRaiz || caminhoRelativo.toLowerCase().startsWith('cldf'))) {
+                isPacoteCldf = true;
+            } else if (caminhoRelativo.toLowerCase().includes('entries.csv') || caminhoRelativo.toLowerCase().includes('senses.csv')) {
+                isPacoteCldf = true;
+            }
         }
-        else if ((nomeDaPastaBate(pastasImagem) || isCldfMedia) && this.configurador.isExtensaoValida('imagem', extensao)) {
-            resultado.imagem.push(arquivo);
+        
+        console.log('📂 Pasta raiz selecionada:', pastaRaiz);
+        console.log('📦 Pacote detectado como CLDF?', isPacoteCldf);
+        
+        const pastasAudio = this.configurador.getPastasMidia('audio');
+        const pastasImagem = this.configurador.getPastasMidia('imagem');
+        const pastasVideo = this.configurador.getPastasMidia('video');
+        
+        const nomesPlanilha = this.configurador.getNomesArquivo('planilha');
+        const nomesTextos = this.configurador.getNomesArquivo('textos');
+        const nomesConfig = this.configurador.getNomesArquivo('configuracao');
+        const nomesMetadados = this.configurador.getNomesArquivo('metadados');
+        const nomesIcone = this.configurador.getNomesArquivo('icone');
+        
+        for (const arquivo of arquivosLista) {
+            const caminhoCompleto = arquivo.caminhoPersonalizado || arquivo.webkitRelativePath || arquivo.name;
+            const partes = caminhoCompleto.split('/');
+            
+            // Remover o nome da pasta raiz do caminho para análise
+            let caminhoRelativo = caminhoCompleto;
+            let pastaPai = '';
+            
+            if (partes.length > 1 && partes[0] === pastaRaiz) {
+                // Remove a pasta raiz do caminho
+                caminhoRelativo = partes.slice(1).join('/');
+                pastaPai = partes.length > 2 ? partes[partes.length - 2] : '';
+            }
+            
+            const nomeArquivo = partes[partes.length - 1];
+            const extensao = nomeArquivo.split('.').pop().toLowerCase();
+            
+            // A planilha pode estar na raiz (após remover a pasta selecionada)
+            const estaNaRaiz = caminhoRelativo.split('/').length === 1;
+            
+            // Verificar se é o pacote de recuperação salvo (Projeto JSON)
+            
+            const isCldfMeta = (nomeArquivo.toLowerCase() === 'metadata.json' || nomeArquivo.toLowerCase() === 'cldf-metadata.json') && (estaNaRaiz || caminhoRelativo.toLowerCase().startsWith('cldf'));
+            
+            if (isCldfMeta) {
+                resultado.cldf.metadata = arquivo;
+                console.log("Metadados CLDF encontrados: " + nomeArquivo);
+            } else if (caminhoRelativo.toLowerCase().includes('entries.csv')) {
+                resultado.cldf.entries = arquivo;
+            } else if (caminhoRelativo.toLowerCase().includes('senses.csv')) {
+                resultado.cldf.senses = arquivo;
+            } else if (caminhoRelativo.toLowerCase().includes('forms.csv')) {
+                resultado.cldf.forms = arquivo;
+            } else if (caminhoRelativo.toLowerCase().includes('examples.csv')) {
+                resultado.cldf.examples = arquivo;
+            } else if (caminhoRelativo.toLowerCase().includes('media.csv')) {
+                resultado.cldf.media = arquivo;
+            } else if (estaNaRaiz && nomeArquivo.toLowerCase() === 'projeto.json') {
+                resultado.projeto = arquivo;
+                console.log(`📥 Projeto JSON de recuperação encontrado: ${nomeArquivo}`);
+            }
+            // Verificar se é planilha raiz normal
+            else if (estaNaRaiz && nomesPlanilha.includes(nomeArquivo.toLowerCase())) {
+                resultado.planilha = arquivo;
+                console.log(`📄 Planilha encontrada: ${nomeArquivo} (na raiz)`);
+            }
+            // Verificar se é arquivo de textos (na raiz)
+            else if (estaNaRaiz && nomesTextos.includes(nomeArquivo.toLowerCase())) {
+                resultado.textos = arquivo;
+                console.log(`📄 Textos encontrados: ${nomeArquivo}`);
+            }
+            // Verificar se é configuração local (na raiz)
+            else if (estaNaRaiz && (nomesConfig.includes(nomeArquivo.toLowerCase()) || nomeArquivo.toLowerCase() === 'configuracao.txt')) {
+                resultado.configuracao = arquivo;
+                console.log(`⚙️ Configuração local encontrada: ${nomeArquivo}`);
+            }
+            // Verificar se é metadados (na raiz)
+            else if (estaNaRaiz && nomesMetadados.includes(nomeArquivo.toLowerCase())) {
+                resultado.metadados = arquivo;
+                console.log(`📄 Metadados encontrados: ${nomeArquivo}`);
+            }
+            // Verificar se é o ícone do aplicativo (na raiz)
+            else if (estaNaRaiz && nomesIcone.includes(nomeArquivo.toLowerCase())) {
+                resultado.icone = arquivo;
+                console.log(`🖼️ Ícone do app encontrado: ${nomeArquivo}`);
+            }
+            // ARQUIVOS DE TEXTO LEGADOS DA RAIZ (app.js)
+            else if (estaNaRaiz && nomeArquivo.toLowerCase() === 'intro.txt') {
+                resultado.textosExtra.introHtml = arquivo;
+                console.log(`📄 Arquivo com texto de introdução encontrado: ${nomeArquivo}`);
+            }
+            else if (estaNaRaiz && nomeArquivo.toLowerCase() === 'intro.md') {
+                resultado.textosExtra.introPdf = arquivo;
+                console.log(`📄 Arquivo com intro PDF encontrado: ${nomeArquivo}`);
+            }
+            else if (estaNaRaiz && nomeArquivo.toLowerCase() === 'referencia.txt') {
+                resultado.textosExtra.referencia = arquivo;
+                console.log(`📄 Arquivo de referência bibliográfica encontrado: ${nomeArquivo}`);
+            }
+            else if (estaNaRaiz && nomeArquivo.toLowerCase() === 'alfabeto.txt') {
+                resultado.textosExtra.alfabeto = arquivo;
+                console.log(`📄 Arquivo de alfabeto encontrado: ${nomeArquivo}`);
+            }
+            
+            // O usuário solicitou que mídias em subpastas sejam ignoradas PARA ARQUIVOS PADRÃO (DMLI).
+            // O arquivo deve estar diretamente dentro da pasta de mídia.
+            // Isso significa que o caminho relativo deve ter exatamente 2 partes: 'pasta_midia/arquivo.ext'
+            const partesRelativas = caminhoRelativo.split('/');
+            const estaDiretoNaPastaDeMidia = partesRelativas.length === 2;
+            const nomePastaMidia = estaDiretoNaPastaDeMidia ? partesRelativas[0].toLowerCase() : '';
+            
+            // Helper para verificar a pasta exata (Apenas para DMLI)
+            const nomeDaPastaBate = (pastasPermitidas) => {
+                return estaDiretoNaPastaDeMidia && pastasPermitidas.some(p => p.toLowerCase() === nomePastaMidia);
+            };
+
+            // Se for pacote CLDF, a mídia pode estar em qualquer lugar! (Atendendo aos requisitos do CLDF e do usuário)
+            
+            if ((nomeDaPastaBate(pastasAudio) || isPacoteCldf) && this.configurador.isExtensaoValida('audio', extensao)) {
+                resultado.audio.push(arquivo);
+            }
+            else if ((nomeDaPastaBate(pastasImagem) || isPacoteCldf) && this.configurador.isExtensaoValida('imagem', extensao)) {
+                resultado.imagem.push(arquivo);
+            }
+            else if ((nomeDaPastaBate(pastasVideo) || isPacoteCldf) && this.configurador.isExtensaoValida('video', extensao)) {
+                resultado.video.push(arquivo);
+            }
         }
-        else if ((nomeDaPastaBate(pastasVideo) || isCldfMedia) && this.configurador.isExtensaoValida('video', extensao)) {
-            resultado.video.push(arquivo);
-        }
+        
+        return resultado;
     }
-    
-    return resultado;
-}
 
     async _carregarTextos(arquivo) {
         try {
