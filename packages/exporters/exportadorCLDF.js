@@ -250,8 +250,8 @@ export class ExportadorCLDF extends ExportadorBase {
                     const v = this.db.bancoDados.variacoes[vid];
                     if (!v) return;
                     let mId = '';
-                    if (v.ARQUIVO_SONORO_URL) {
-                        mId = addMedia(v.ARQUIVO_SONORO_URL, v.ARQUIVO_SONORO);
+                    if (v.ARQUIVO_ENTRADA_URL) {
+                        mId = addMedia(v.ARQUIVO_ENTRADA_URL, v.ARQUIVO_ENTRADA);
                     }
                     const fId = "F" + String(formContador++).padStart(4, '0');
                     forms.push({

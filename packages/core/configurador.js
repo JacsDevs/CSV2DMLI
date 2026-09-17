@@ -42,6 +42,30 @@ class Configurador {
         return this.getConfig().colunas?.mapeamento || {};
     }
 
+    /**
+     * Aplica o mapeamento de colunas (colunas.mapeamento) a uma linha crua do CSV,
+     * preenchendo cada campo canônico a partir do primeiro alias presente na linha.
+     * O valor de cada entrada do mapeamento pode ser uma string (alias único,
+     * comportamento legado) ou um array de aliases aceitos, na ordem de prioridade.
+     * Não remove os campos originais da linha — só adiciona/preenche os canônicos.
+     * @param {object} linhaCrua - Linha do CSV já parseada (chave = cabeçalho).
+     * @returns {object} A própria linha, com os campos canônicos resolvidos.
+     */
+    resolverAliasColuna(linhaCrua) {
+        const mapeamento = this.getMapeamentoColunas();
+        for (const [canonico, aliasOuLista] of Object.entries(mapeamento)) {
+            if (linhaCrua[canonico] !== undefined && linhaCrua[canonico] !== '') continue;
+            const aliases = Array.isArray(aliasOuLista) ? aliasOuLista : [aliasOuLista];
+            for (const alias of aliases) {
+                if (alias && linhaCrua[alias] !== undefined && linhaCrua[alias] !== '') {
+                    linhaCrua[canonico] = linhaCrua[alias];
+                    break;
+                }
+            }
+        }
+        return linhaCrua;
+    }
+
     // ==========================================
     // MÉTODOS PARA MÍDIAS
     // ==========================================

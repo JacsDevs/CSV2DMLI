@@ -846,6 +846,37 @@
         }
         .lightbox-fechar:hover { background: rgba(255, 255, 255, 0.28); }
 
+        /* ===== MODAL DE VÍDEO (pronúncia em vídeo) ===== */
+        .video-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(12, 9, 6, 0.94);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+            padding: 20px;
+        }
+        .video-overlay.ativo { opacity: 1; visibility: visible; }
+        .video-overlay-player { max-width: 100%; max-height: 88vh; border-radius: var(--raio); background: #000; }
+        .video-overlay-fechar {
+            position: absolute;
+            top: 16px; right: 18px;
+            background: rgba(255, 255, 255, 0.14);
+            border: none;
+            color: #fff;
+            width: 46px; height: 46px;
+            border-radius: 50%;
+            font-size: 1.6rem;
+            line-height: 1;
+            cursor: pointer;
+            transition: var(--transicao);
+        }
+        .video-overlay-fechar:hover { background: rgba(255, 255, 255, 0.28); }
+
         /* ===== FLUTUANTES ===== */
         #btn-topo, #btn-voltar {
             position: fixed;
@@ -1257,6 +1288,7 @@
         <symbol id="ic-densidade" viewBox="0 -960 960 960"><path d="M212.31-172.31q-24.84 0-42.42-17.58-17.58-17.57-17.58-42.42v-495.38q0-24.85 17.58-42.42 17.58-17.58 42.42-17.58h535.38q24.85 0 42.42 17.58Q807.69-752.54 807.69-727.69v495.38q0 24.85-17.57 42.42-17.58 17.58-42.42 17.58H212.31Zm0-40h175.38v-535.38H212.31q-8.46 0-14.23 5.77t-5.77 14.23v495.38q0 8.46 5.77 14.23t14.23 5.77Zm215.38 0h104.62v-535.38H427.69v535.38Zm144.62 0h175.38q8.46 0 14.23-5.77t5.77-14.23v-495.38q0-8.46-5.77-14.23t-14.23-5.77H572.31v535.38Z"/></symbol>
         <symbol id="ic-som" viewBox="0 -960 960 960"><path d="M753.85-481q0-82.5-44.21-150.58-44.21-68.09-118.56-101.88-11.54-5.46-17-16.31-5.46-10.84-1.34-22.12 4.95-12.03 17.18-16.72 12.23-4.7 24.77.77 90.46 41.07 144.81 123.6 54.34 82.52 54.34 183.23 0 100.7-54.34 183.24-54.35 82.54-144.81 123.61-12.54 5.47-24.77.77-12.23-4.69-17.18-16.72-4.12-11.28 1.34-22.12 5.46-10.85 17-16.31 74.35-33.79 118.56-101.88Q753.85-398.5 753.85-481ZM294.62-380H182.31q-15.37 0-25.76-10.4-10.39-10.39-10.39-25.76v-127.68q0-15.37 10.39-25.76 10.39-10.4 25.76-10.4h112.31l119.69-119.69q14.38-14.38 33.11-6.49 18.73 7.89 18.73 28.18v396q0 20.29-18.73 28.18-18.73 7.89-33.11-6.49L294.62-380Zm351.53-99.96q0 37.43-15.54 70.85-15.53 33.42-41.88 56.19-8.5 5.69-17.85 1.15-9.34-4.54-9.34-15v-228.46q0-10.46 9.34-15 9.35-4.54 17.85 1.09 26.35 23.45 41.88 57.6 15.54 34.16 15.54 71.58ZM406.15-606l-86 86h-114v80h114l86 86v-252Zm-100 126Z"/></symbol>
         <symbol id="ic-pausa" viewBox="0 -960 960 960"><path d="M580-200v-560h180v560H580Zm-380 0v-560h180v560H200Z"/></symbol>
+        <symbol id="ic-play" viewBox="0 -960 960 960"><path d="M320-203v-560l440 280-440 280Z"/></symbol>
         <symbol id="ic-fechar" viewBox="0 -960 960 960"><path d="M480-437.85 277.08-234.92q-8.31 8.3-20.89 8.5-12.57.19-21.27-8.5-8.69-8.7-8.69-21.08 0-12.38 8.69-21.08L437.85-480 234.92-682.92q-8.3-8.31-8.5-20.89-.19-12.57 8.5-21.27 8.7-8.69 21.08-8.69 12.38 0 21.08 8.69L480-522.15l202.92-202.93q8.31-8.3 20.89-8.5 12.57-.19 21.27 8.5 8.69 8.7 8.69 21.08 0 12.38-8.69 21.08L522.15-480l202.93 202.92q8.3 8.31 8.5 20.89.19 12.57-8.5 21.27-8.7 8.69-21.08 8.69-12.38 0-21.08-8.69L480-437.85Z"/></symbol>
         <symbol id="ic-seta-direita" viewBox="0 -960 960 960"><path d="M593.23-480 291.92-781.31q-11.92-11.92-11.61-28.38.31-16.46 12.23-28.39Q304.46-850 320.92-850t28.39 11.92l306.23 306.85q10.84 10.85 16.07 24.31 5.24 13.46 5.24 26.92t-5.24 26.92q-5.23 13.46-16.07 24.31L348.69-121.92q-11.92 11.92-28.07 11.61-16.16-.31-28.08-12.23-11.92-11.92-11.92-28.38t11.92-28.39L593.23-480Z"/></symbol>
         <symbol id="ic-seta-esquerda" viewBox="-237.81 -960 960 960"><path d="m127.38-480 301.31 301.31q11.92 11.92 11.62 28.07-.31 16.16-12.23 28.08-11.93 11.92-28.08 11.92t-28.08-11.92L65.08-428.77Q54.23-439.62 49-453.08q-5.23-13.46-5.23-26.92T49-506.92q5.23-13.46 16.08-24.31l306.84-306.85q11.93-11.92 28.39-11.61 16.46.31 28.38 12.23 11.92 11.92 11.92 28.08 0 16.15-11.92 28.07L127.38-480Z"/></symbol>
@@ -1411,6 +1443,11 @@
     <div class="lightbox-overlay" id="lightbox-overlay" role="dialog" aria-modal="true" aria-label="Imagem ampliada">
         <button class="lightbox-fechar" id="lightbox-fechar" aria-label="Fechar imagem">&times;</button>
         <img class="lightbox-img" id="lightbox-img" alt="">
+    </div>
+
+    <div class="video-overlay" id="video-overlay" role="dialog" aria-modal="true" aria-label="Vídeo de pronúncia">
+        <button class="video-overlay-fechar" id="video-overlay-fechar" aria-label="Fechar vídeo">&times;</button>
+        <video class="video-overlay-player" id="video-overlay-player" playsinline controls></video>
     </div>
 
     <!-- ===== MODAL DE DETALHES ===== -->
@@ -1661,7 +1698,7 @@
 
         function fecharDialogo(container) {
             container.classList.remove('ativo');
-            const aindaTemModalAberto = document.querySelector('.modal-overlay.ativo, .lightbox-overlay.ativo');
+            const aindaTemModalAberto = document.querySelector('.modal-overlay.ativo, .lightbox-overlay.ativo, .video-overlay.ativo');
             if (!aindaTemModalAberto) document.body.style.overflow = '';
             if (ultimoElementoFocado) {
                 ultimoElementoFocado.focus();
@@ -1818,10 +1855,25 @@
             
             dados.CAMPO_SEMANTICO_EXIBIR = (modoVisualizacao === 'salvos' && item.CAMPO_SEMANTICO) ? true : false;
             
+            // TIPOS alinhado por índice com AUDIO ('audio'|'video' por pronúncia); fallback 'audio' se ausente
+            const audioTipos = item.AUDIO_TIPOS ? item.AUDIO_TIPOS.split('~').map(t => t.trim()) : [];
+            const tipoDaMidia = (index) => audioTipos[index] === 'video' ? 'video' : 'audio';
+
             if (item.AUDIO) {
                 const audios = item.AUDIO.split('~').map(a => a.trim()).filter(Boolean);
-                dados.AUDIOS_ARRAY = audios.map(a => ({ URL: resolverMidia(a, 'audio') }));
+                dados.AUDIOS_ARRAY = audios.map((a, index) => {
+                    const tipo = tipoDaMidia(index);
+                    return {
+                        URL: resolverMidia(a, tipo),
+                        TIPO: tipo,
+                        TEM_AUDIO: tipo === 'audio',
+                        TEM_VIDEO: tipo === 'video'
+                    };
+                });
                 dados.AUDIO_PRIMEIRO = dados.AUDIOS_ARRAY.length > 0 ? dados.AUDIOS_ARRAY[0].URL : '';
+                dados.TIPO_PRIMEIRO = dados.AUDIOS_ARRAY.length > 0 ? dados.AUDIOS_ARRAY[0].TIPO : 'audio';
+                dados.TEM_AUDIO_PRIMEIRO = dados.TIPO_PRIMEIRO === 'audio';
+                dados.TEM_VIDEO_PRIMEIRO = dados.TIPO_PRIMEIRO === 'video';
                 if (dados.AUDIOS_ARRAY.length > 1) {
                     dados.TEM_AUDIOS_ADICIONAIS = true;
                     dados.AUDIOS_ADICIONAIS = dados.AUDIOS_ARRAY.slice(1);
@@ -1831,14 +1883,16 @@
             if (item.TERMO) {
                 const termos = item.TERMO.split('~').map(t => t.trim());
                 const audios = item.AUDIO ? item.AUDIO.split('~').map(a => a.trim()).filter(Boolean) : [];
-                
+
                 dados.TEM_TERMOS_MISTOS = true;
                 dados.NAO_TEM_TERMOS_MISTOS = false;
                 dados.TERMOS_MISTOS = termos.map((t, index) => {
+                    const tipo = tipoDaMidia(index);
                     return {
                         TERMO_PARTE: t,
-                        URL: audios[index] ? resolverMidia(audios[index], 'audio') : null,
-                        TEM_AUDIO: !!audios[index],
+                        URL: audios[index] ? resolverMidia(audios[index], tipo) : null,
+                        TEM_AUDIO: !!audios[index] && tipo === 'audio',
+                        TEM_VIDEO: !!audios[index] && tipo === 'video',
                         NAO_E_O_ULTIMO: index < termos.length - 1
                     };
                 });
@@ -2489,12 +2543,15 @@
                         sigReverso.FONEMICA_REVERSO = item.FONEMICA || '';
                         sigReverso.FONETICA_REVERSO = item.FONETICA || '';
                         
-                        // Extrair o primeiro áudio original da palavra indígena, se houver
+                        // Extrair a primeira mídia de pronúncia original da palavra indígena, se houver
                         if (item.AUDIO) {
                             const audios = item.AUDIO.split('~').map(a => a.trim()).filter(Boolean);
+                            const tiposRev = item.AUDIO_TIPOS ? item.AUDIO_TIPOS.split('~').map(t => t.trim()) : [];
                             if (audios.length > 0) {
-                                sigReverso.TEM_AUDIO_REVERSO = true;
-                                sigReverso.AUDIO_REVERSO_URL = resolverMidia(audios[0], 'audio');
+                                const tipoRev = tiposRev[0] === 'video' ? 'video' : 'audio';
+                                sigReverso.TEM_AUDIO_REVERSO = tipoRev === 'audio';
+                                sigReverso.TEM_VIDEO_REVERSO = tipoRev === 'video';
+                                sigReverso.AUDIO_REVERSO_URL = resolverMidia(audios[0], tipoRev);
                             }
                         }
 
@@ -2723,6 +2780,8 @@
                 audioAtual.pause();
                 resetarBotaoAudio(botaoAudioAtual);
             }
+            // Áudio e vídeo de pronúncia não tocam ao mesmo tempo
+            if (typeof fecharModalVideoEntrada === 'function') fecharModalVideoEntrada();
 
             const audio = new Audio(src);
             audioAtual = audio;
@@ -2755,6 +2814,39 @@
             abrirDialogo(lightboxOverlay, lightboxFechar);
         }
 
+        // Modal de vídeo (pronúncia em vídeo)
+        const videoOverlay = document.getElementById('video-overlay');
+        const videoOverlayPlayer = document.getElementById('video-overlay-player');
+        const videoOverlayFechar = document.getElementById('video-overlay-fechar');
+
+        function abrirModalVideoEntrada(src) {
+            if (!src) return;
+            // Vídeo e áudio de pronúncia não tocam ao mesmo tempo
+            if (audioAtual) {
+                audioAtual.pause();
+                resetarBotaoAudio(botaoAudioAtual);
+            }
+            videoOverlayPlayer.src = src;
+            abrirDialogo(videoOverlay, videoOverlayFechar);
+            videoOverlayPlayer.currentTime = 0;
+            videoOverlayPlayer.play().catch(() => {
+                mostrarToast('Não foi possível reproduzir o vídeo.');
+            });
+        }
+        window.abrirModalVideoEntrada = abrirModalVideoEntrada;
+
+        function fecharModalVideoEntrada() {
+            if (!videoOverlay.classList.contains('ativo')) return;
+            videoOverlayPlayer.pause();
+            videoOverlayPlayer.removeAttribute('src');
+            videoOverlayPlayer.load();
+            fecharDialogo(videoOverlay);
+        }
+
+        videoOverlayPlayer.addEventListener('ended', fecharModalVideoEntrada);
+        videoOverlayFechar.addEventListener('click', fecharModalVideoEntrada);
+        videoOverlay.addEventListener('click', (e) => { if (e.target === videoOverlay) fecharModalVideoEntrada(); });
+
         modalBody.addEventListener('click', (e) => {
             if (e.target.tagName === 'IMG' && e.target.closest('.midia-item')) {
                 abrirLightbox(e.target.src);
@@ -2769,7 +2861,9 @@
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                if (lightboxOverlay.classList.contains('ativo')) {
+                if (videoOverlay.classList.contains('ativo')) {
+                    fecharModalVideoEntrada();
+                } else if (lightboxOverlay.classList.contains('ativo')) {
                     fecharDialogo(lightboxOverlay);
                 } else {
                     const activeModal = document.querySelector('.modal-overlay.ativo');
@@ -2782,7 +2876,9 @@
             }
 
             if (e.key === 'Tab') {
-                const dialogoAberto = lightboxOverlay.classList.contains('ativo')
+                const dialogoAberto = videoOverlay.classList.contains('ativo')
+                    ? videoOverlay
+                    : lightboxOverlay.classList.contains('ativo')
                     ? lightboxOverlay
                     : document.querySelector('.modal-overlay.ativo');
                 if (!dialogoAberto) return;

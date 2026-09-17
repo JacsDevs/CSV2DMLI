@@ -55,9 +55,11 @@ export default class GerenciadorDados {
     async carregarPlanilha(arquivo) {
         console.log(`📄 Processando planilha via CarregadorCsv: ${arquivo.name}`);
         const resultado = await this.carregadorCsv.processarCSV(arquivo);
-        
+
         // Normaliza os dados crus (flat) para o formato aninhado do Editor
-        this.dadosPlanilha = resultado.dados.map((linhaMesclada, index) => {
+        this.dadosPlanilha = resultado.dados.map((linhaCrua, index) => {
+            // Resolve aliases de coluna (ex.: ARQUIVO_SONORO -> ARQUIVO_ENTRADA) a partir do config.json
+            const linhaMesclada = this.configurador.resolverAliasColuna(linhaCrua);
             const imagens = [];
             if (linhaMesclada.IMAGEM || linhaMesclada.LEGENDA_IMAGEM) {
                 const imgsRaw = (linhaMesclada.IMAGEM || '').split('|').map(v=>v.trim());
@@ -112,7 +114,7 @@ export default class GerenciadorDados {
             // Verifica o formato com pipe
             if (linhaMesclada.ITEM_LEXICAL && linhaMesclada.ITEM_LEXICAL.includes('|')) {
                 const vi = (linhaMesclada.ITEM_LEXICAL || '').split('|').map(v=>v.trim());
-                const va = (linhaMesclada.ARQUIVO_SONORO || '').split('|').map(v=>v.trim());
+                const va = (linhaMesclada.ARQUIVO_ENTRADA || '').split('|').map(v=>v.trim());
                 const vf = (linhaMesclada.TRANSCRICAO_FONEMICA || '').split('|').map(v=>v.trim());
                 const vt = (linhaMesclada.TRANSCRICAO_FONETICA || '').split('|').map(v=>v.trim());
                 const lenV = Math.max(vi.length, va.length, vf.length, vt.length);
@@ -123,7 +125,7 @@ export default class GerenciadorDados {
                 // Formato de colunas (VAR_1_ITEM) ou item unico
                 variacoes.push({
                     item: linhaMesclada.ITEM_LEXICAL || '',
-                    audio: linhaMesclada.ARQUIVO_SONORO || '',
+                    audio: linhaMesclada.ARQUIVO_ENTRADA || '',
                     fone: linhaMesclada.TRANSCRICAO_FONEMICA || '',
                     fonet: linhaMesclada.TRANSCRICAO_FONETICA || ''
                 });
@@ -414,7 +416,7 @@ export default class GerenciadorDados {
                     SUB_CAMPO_SEMANTICO_4: cb.SUB_CAMPO_SEMANTICO_4 || '',
                     SUB_CAMPO_SEMANTICO_5: cb.SUB_CAMPO_SEMANTICO_5 || '',
                     SUB_CAMPO_SEMANTICO_6: cb.SUB_CAMPO_SEMANTICO_6 || '',
-                    ARQUIVO_SONORO: vars.map(v => v.audio || '').join(' | '),
+                    ARQUIVO_ENTRADA: vars.map(v => v.audio || '').join(' | '),
                     TRANSCRICAO_FONEMICA: vars.map(v => v.fone || '').join(' | '),
                     TRANSCRICAO_FONETICA: vars.map(v => v.fonet || '').join(' | '),
                     TRADUCAO_SIGNIFICADO: cb.TRADUCAO_SIGNIFICADO || '',

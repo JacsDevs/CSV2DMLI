@@ -46,11 +46,19 @@ const { data: rawRows } = Papa.parse(csvContent, { header: true, skipEmptyLines:
 console.log(`  CSV: ${rawRows.length} linhas — ${csvFiles[0]}`);
 
 // ── Mapeamento de colunas ──────────────────────────────────────────────────────
+// Cada entrada de colunas.mapeamento pode ser uma string (alias único, legado)
+// ou um array de aliases aceitos, na ordem de prioridade (ex.: ARQUIVO_ENTRADA
+// aceita tanto "ARQUIVO_ENTRADA" quanto o nome legado "ARQUIVO_SONORO").
 function applyMapping(row) {
     const r = { ...row };
-    for (const [canonical, alias] of Object.entries(mapeamento)) {
-        if (alias && row[alias] !== undefined && r[canonical] === undefined) {
-            r[canonical] = row[alias];
+    for (const [canonical, aliasOuLista] of Object.entries(mapeamento)) {
+        if (r[canonical] !== undefined && r[canonical] !== '') continue;
+        const aliases = Array.isArray(aliasOuLista) ? aliasOuLista : [aliasOuLista];
+        for (const alias of aliases) {
+            if (alias && row[alias] !== undefined && row[alias] !== '') {
+                r[canonical] = row[alias];
+                break;
+            }
         }
     }
     return r;
@@ -98,7 +106,7 @@ function normalizarLinha(rawRow, index) {
     const variacoes = [];
     if (lm.ITEM_LEXICAL?.includes('|')) {
         const vi = (lm.ITEM_LEXICAL || '').split('|').map(v => v.trim());
-        const va = (lm.ARQUIVO_SONORO || '').split('|').map(v => v.trim());
+        const va = (lm.ARQUIVO_ENTRADA || '').split('|').map(v => v.trim());
         const vf = (lm.TRANSCRICAO_FONEMICA || '').split('|').map(v => v.trim());
         const vt = (lm.TRANSCRICAO_FONETICA || '').split('|').map(v => v.trim());
         for (let i = 0; i < Math.max(vi.length, va.length, vf.length, vt.length); i++) {
@@ -107,7 +115,7 @@ function normalizarLinha(rawRow, index) {
     } else {
         variacoes.push({
             item:   lm.ITEM_LEXICAL          || '',
-            audio:  lm.ARQUIVO_SONORO        || '',
+            audio:  lm.ARQUIVO_ENTRADA       || '',
             fone:   lm.TRANSCRICAO_FONEMICA  || '',
             fonet:  lm.TRANSCRICAO_FONETICA  || ''
         });
@@ -156,9 +164,19 @@ const vfsStub = {
     }
 };
 
+// Configurador mínimo (só isExtensaoValida), lendo midias.*.extensoes do config.json
+// já carregado — usado por ConstrutorBancoDados para detectar áudio vs. vídeo em
+// ARQUIVO_ENTRADA por extensão.
+const configuradorStub = {
+    isExtensaoValida(tipo, extensao) {
+        const extensoes = config.midias?.[tipo]?.extensoes || [];
+        return extensoes.includes(String(extensao).toLowerCase());
+    }
+};
+
 // ── Banco de dados ─────────────────────────────────────────────────────────────
 const { default: ConstrutorBancoDados } = await import('../packages/core/construtorBancoDados.js');
-const construtor = new ConstrutorBancoDados(vfsStub);
+const construtor = new ConstrutorBancoDados(vfsStub, configuradorStub);
 const bancoDados = construtor.normalizarDados(dadosPlanilha, true);
 console.log(`  Banco: ${bancoDados.metadados.totalEntradas} entradas, ${bancoDados.metadados.totalVariacoes} variações`);
 
@@ -221,7 +239,10 @@ const referenciadas = { audio: new Set(), imagem: new Set(), video: new Set() };
 for (const entrada of Object.values(bancoDados.entradas)) {
     entrada.VARIACOES_IDS?.forEach(id => {
         const v = bancoDados.variacoes[id];
-        if (v?.ARQUIVO_SONORO) referenciadas.audio.add(v.ARQUIVO_SONORO);
+        if (v?.ARQUIVO_ENTRADA) {
+            const tipo = v.ARQUIVO_ENTRADA_TIPO === 'video' ? 'video' : 'audio';
+            referenciadas[tipo].add(v.ARQUIVO_ENTRADA);
+        }
     });
     entrada.ACEPCOES?.forEach(ac => {
         ac.EXEMPLOS_IDS?.forEach(id => {

@@ -62,9 +62,16 @@ class ExportadorBase {
         const variacoes = (entrada.VARIACOES_IDS || []).map(id => banco.variacoes[id]).filter(Boolean);
         
         const termosUnicos = [...new Set(variacoes.map(v => v.TRANSCRICAO_ORTOGRAFICA).filter(Boolean))];
-        const fonemicasUnicas = [...new Set(variacoes.map(v => v.TRANSCRICAO_FONEMICA).filter(Boolean))].map(f => `/${f}/`); 
+        const fonemicasUnicas = [...new Set(variacoes.map(v => v.TRANSCRICAO_FONEMICA).filter(Boolean))].map(f => `/${f}/`);
         const foneticasUnicas = [...new Set(variacoes.map(v => v.TRANSCRICAO_FONETICA).filter(Boolean))].map(f => `[${f}]`);
-        const audiosUnicos = [...new Set(variacoes.map(v => v.ARQUIVO_SONORO).filter(Boolean))];
+        // Mapa nome -> tipo ('audio'|'video'), na ordem de primeira ocorrência, para alinhar com audiosUnicos
+        const tiposPorArquivo = new Map();
+        variacoes.forEach(v => {
+            if (v.ARQUIVO_ENTRADA && !tiposPorArquivo.has(v.ARQUIVO_ENTRADA)) {
+                tiposPorArquivo.set(v.ARQUIVO_ENTRADA, v.ARQUIVO_ENTRADA_TIPO || 'audio');
+            }
+        });
+        const audiosUnicos = [...tiposPorArquivo.keys()];
 
         const significados = [];
         if (entrada.ACEPCOES && entrada.ACEPCOES.length > 0) {
@@ -127,8 +134,11 @@ class ExportadorBase {
         const foneticasStr = foneticasUnicas.join(' ~ ');
         const audiosUnicosResolved = audiosUnicos.map(a => {
             const raw = a;
-            return (this.midiasGeradas && this.midiasGeradas[raw]) ? this.midiasGeradas[raw] : (raw.includes("/") || raw.includes("\\") ? raw : "audio/" + raw);
+            const tipo = tiposPorArquivo.get(a) || 'audio';
+            const prefixoPadrao = tipo === 'video' ? 'video/' : 'audio/';
+            return (this.midiasGeradas && this.midiasGeradas[raw]) ? this.midiasGeradas[raw] : (raw.includes("/") || raw.includes("\\") ? raw : prefixoPadrao + raw);
         });
+        const audiosTiposResolved = audiosUnicos.map(a => tiposPorArquivo.get(a) || 'audio');
 
         const result = {
             TERMO: termosUnicos.length > 0 ? termosUnicos.join(' ~ ') : (entrada._TERMO_PRINCIPAL || '???'),
@@ -145,7 +155,8 @@ class ExportadorBase {
             FONEMICA: fonemicasStr,
             FONETICA: foneticasStr,
             AUDIO: audiosUnicosResolved.join(' ~ '),
-            SIGNIFICADOS: significados,  
+            AUDIO_TIPOS: audiosTiposResolved.join(' ~ '),
+            SIGNIFICADOS: significados,
             ITENS_RELACIONADOS: entrada.ITENS_RELACIONADOS || '',
             INDEX: significados.length > 0 ? significados[0].TRADUCAO : ''
         };
@@ -166,7 +177,10 @@ class ExportadorBase {
         for (const entrada of entradasConsideradas) {
             entrada.VARIACOES_IDS?.forEach(id => {
                 const v = db.variacoes[id];
-                if (v && v.ARQUIVO_SONORO) referenciadas.audio.add(v.ARQUIVO_SONORO);
+                if (v && v.ARQUIVO_ENTRADA) {
+                    const tipo = v.ARQUIVO_ENTRADA_TIPO === 'video' ? 'video' : 'audio';
+                    referenciadas[tipo].add(v.ARQUIVO_ENTRADA);
+                }
             });
             entrada.ACEPCOES?.forEach(ac => {
                 ac.EXEMPLOS_IDS?.forEach(id => {
