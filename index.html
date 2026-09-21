@@ -1571,12 +1571,6 @@
 
 <!-- Dependências Externas (vendorizadas) -->
 <script src="vendor/marked.min.js"></script>
-<script type="module">
-    try {
-        const module = await import('./vendor/markdown2typst.esm.js');
-        window.markdown2typst = module.default || module.markdown2typst;
-    } catch (err) {}
-</script>
 
 <!-- Toast UI Editor (avaliação em andamento - editor WYSIWYG p/ introdução).
      Para reverter: remover este <link> e o <script> abaixo. -->
@@ -1890,23 +1884,30 @@
     function coletarMetadadosExportacao() {
         const config = window.configurador ? window.configurador.getConfig() : {};
         const existente = (config && config.metadados) || {};
-        const introMd = window.obterIntroMarkdown ? window.obterIntroMarkdown() : '';
+        let introMd = window.obterIntroMarkdown ? window.obterIntroMarkdown() : '';
         // Código antigo (textarea direto) - reverter para isto se abandonar o Toast UI Editor:
         // const introMd = document.getElementById('introMarkdown')?.value.trim() || '';
 
+        // Editor ainda não inicializado (passo de Metadados nunca foi aberto nesta sessão):
+        // usa direto o que veio da importação, para a exportação não depender de o usuário
+        // ter passado por aquele passo.
+        if (!introMd && window.sistema) {
+            introMd = window.sistema.introHtml || window.sistema.introPdf || '';
+        }
+
         let introHtml = '';
-        let introPdf = '';
+        // O PDF (Typst) e o LaTeX fazem sua própria conversão de Markdown a partir do
+        // texto bruto (cmarker.typ no template Typst; converterMarkdownParaLatex no
+        // exportadorLatex.js). Convertê-lo aqui para Typst antes de repassar faria uma
+        // dupla conversão: a sintaxe do Typst (*negrito*, _itálico_) seria reinterpretada
+        // como Markdown (*itálico*, **negrito**), invertendo negrito e itálico no PDF.
+        const introPdf = introMd;
         if (introMd) {
             try {
                 introHtml = window.marked ? window.marked.parse(introMd) : introMd;
             } catch (e) {
                 console.error('Erro ao converter introdução (Markdown → HTML):', e);
                 introHtml = introMd;
-            }
-            try {
-                introPdf = window.markdown2typst ? window.markdown2typst(introMd) : '';
-            } catch (e) {
-                console.error('Erro ao converter introdução (Markdown → Typst):', e);
             }
         }
 
@@ -1921,9 +1922,10 @@
             autor:      document.getElementById('metaAutor')?.value.trim() || existente.autor || '',
             ano:        document.getElementById('metaAno')?.value.trim()   || existente.ano  || '',
             versao:     existente.versao || '1.0',
-            introHtml: introHtml || (window.sistema ? window.sistema.introHtml : ''),
+            introHtml: introHtml,
             introPdf: introPdf,
-            introMd: introMd || (window.sistema ? window.sistema.introPdf : ''),
+            introMd: introMd,
+            referencia: (window.sistema && window.sistema.referencia) ? String(window.sistema.referencia).trim() : '',
             iconeDataUrl: (window.sistema && window.sistema.icone && window.sistema.icone.dataUrl) || null,
             tema: window.coletarTemaExportacao ? window.coletarTemaExportacao() : null,
             cldfLangName: cldfLangNameEl?.value.trim() || 'Language',

@@ -10,7 +10,7 @@
         </button>
         {{/TEM_AUDIO_PRIMEIRO}}
         {{#TEM_VIDEO_PRIMEIRO}}
-        <button type="button" class="btn-audio btn-video btn-audio-sm" title="Assistir pronúncia" aria-label="Assistir pronúncia de {{ TERMO }}" onclick="event.stopPropagation(); window.abrirModalVideoEntrada('{{ AUDIO_PRIMEIRO }}')">
+        <button type="button" class="btn-audio btn-video btn-audio-sm" title="Assistir pronúncia" aria-label="Assistir pronúncia de {{ TERMO }}" onclick="event.stopPropagation(); window.abrirModalVideoEntrada('{{ AUDIO_PRIMEIRO }}', this)">
             <svg class="icone" aria-hidden="true"><use href="#ic-play"></use></svg>
         </button>
         {{/TEM_VIDEO_PRIMEIRO}}

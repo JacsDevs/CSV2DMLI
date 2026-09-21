@@ -25,7 +25,6 @@ Write-Host "`n=== JS Libraries ==="
 Get-Vendor "https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"  "vendor/papaparse.min.js"
 Get-Vendor "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"         "vendor/jszip.min.js"
 Get-Vendor "https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"                   "vendor/marked.min.js"
-Get-Vendor "https://cdn.jsdelivr.net/npm/markdown2typst@0.1.4/+esm"                    "vendor/markdown2typst.esm.js"
 # Toast UI Editor (avaliacao em andamento - editor WYSIWYG p/ introducao, ver index.html)
 # Bundle "-all" so existe no CDN oficial NHN (uicdn.toast.com), nao no pacote npm @toast-ui/editor
 Get-Vendor "https://uicdn.toast.com/editor/3.2.2/toastui-editor-all.min.js" "vendor/toastui-editor-all.min.js"
