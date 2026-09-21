@@ -292,8 +292,10 @@ class CarregadorPasta {
                 console.log(`📄 Arquivo com texto de introdução encontrado: ${nomeArquivo}`);
             }
             else if (estaNaRaiz && nomeArquivo.toLowerCase() === 'intro.md') {
-                resultado.textosExtra.introPdf = arquivo;
-                console.log(`📄 Arquivo com intro PDF encontrado: ${nomeArquivo}`);
+                // Mesmo slot que intro.txt (introHtml): a drop-zone "Introdução do Dicionário
+                // (HTML)" aceita .html e .md como fontes alternativas do mesmo texto.
+                resultado.textosExtra.introHtml = arquivo;
+                console.log(`📄 Arquivo com texto de introdução (Markdown) encontrado: ${nomeArquivo}`);
             }
             else if (estaNaRaiz && nomeArquivo.toLowerCase() === 'referencia.txt') {
                 resultado.textosExtra.referencia = arquivo;

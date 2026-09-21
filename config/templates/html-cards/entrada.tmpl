@@ -14,7 +14,7 @@
                     </button>
                     {{/TEM_AUDIO}}
                     {{#TEM_VIDEO}}
-                    <button type="button" class="btn-audio btn-video" title="Assistir pronúncia" aria-label="Assistir pronúncia" onclick="event.stopPropagation(); abrirModalVideoEntrada('{{ URL }}')">
+                    <button type="button" class="btn-audio btn-video" title="Assistir pronúncia" aria-label="Assistir pronúncia" onclick="event.stopPropagation(); abrirModalVideoEntrada('{{ URL }}', this)">
                         <svg class="icone" aria-hidden="true"><use href="#ic-play"></use></svg>
                     </button>
                     {{/TEM_VIDEO}}
@@ -32,7 +32,7 @@
                 </button>
                 {{/TEM_AUDIO}}
                 {{#TEM_VIDEO}}
-                <button type="button" class="btn-audio btn-video" title="Assistir pronúncia" aria-label="Assistir pronúncia" onclick="event.stopPropagation(); abrirModalVideoEntrada('{{ URL }}')">
+                <button type="button" class="btn-audio btn-video" title="Assistir pronúncia" aria-label="Assistir pronúncia" onclick="event.stopPropagation(); abrirModalVideoEntrada('{{ URL }}', this)">
                     <svg class="icone" aria-hidden="true"><use href="#ic-play"></use></svg>
                 </button>
                 {{/TEM_VIDEO}}
@@ -71,7 +71,7 @@
             </button>
             {{/TEM_AUDIO_REVERSO}}
             {{#TEM_VIDEO_REVERSO}}
-            <button type="button" class="btn-audio btn-video btn-audio-sm" style="margin-left: 8px;" title="Assistir pronúncia" aria-label="Assistir pronúncia" onclick="event.stopPropagation(); abrirModalVideoEntrada('{{ AUDIO_REVERSO_URL }}')">
+            <button type="button" class="btn-audio btn-video btn-audio-sm" style="margin-left: 8px;" title="Assistir pronúncia" aria-label="Assistir pronúncia" onclick="event.stopPropagation(); abrirModalVideoEntrada('{{ AUDIO_REVERSO_URL }}', this)">
                 <svg class="icone" aria-hidden="true"><use href="#ic-play"></use></svg>
             </button>
             {{/TEM_VIDEO_REVERSO}}

@@ -172,7 +172,11 @@ export default class GerenciadorDados {
                 imagens
             };
             
-              const colunasConhecidas = Object.keys(this.configurador.getMapeamentoColunas());
+            const mapeamentoColunas = this.configurador.getMapeamentoColunas();
+            const colunasConhecidas = Object.entries(mapeamentoColunas).flatMap(([canonico, aliasOuLista]) => {
+                const aliases = Array.isArray(aliasOuLista) ? aliasOuLista : [aliasOuLista];
+                return [canonico, ...aliases];
+            });
             const extras = [];
             const extrasEntrada = [];
             Object.keys(linhaMesclada).forEach(col => {

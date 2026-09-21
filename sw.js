@@ -1,5 +1,5 @@
 // const CACHE = 'csv2dmli-v2'; // versão anterior (antes do Toast UI Editor) - reverter para esta linha se abandonar o editor
-const CACHE = 'csv2dmli-v7';
+const CACHE = 'csv2dmli-v8';
 
 // Deriva o base path do próprio URL do SW.
 // Em GitHub Pages: '/CSV2DMLI'  |  Em localhost: ''
@@ -13,7 +13,6 @@ const PRE_CACHE = [
   BASE + '/vendor/papaparse.min.js',
   BASE + '/vendor/jszip.min.js',
   BASE + '/vendor/marked.min.js',
-  BASE + '/vendor/markdown2typst.esm.js',
   BASE + '/vendor/toastui-editor-all.min.js',
   BASE + '/vendor/toastui-editor.min.css',
   BASE + '/vendor/fonts/fonts.css',

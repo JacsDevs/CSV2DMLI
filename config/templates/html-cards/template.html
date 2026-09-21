@@ -666,7 +666,6 @@
         .dict-media-card {
             flex: 0 0 auto;
             width: 220px;
-            border-radius: var(--raio);
             overflow: hidden;
             background: var(--cor-superficie);
             border: 1px solid var(--cor-borda);
@@ -677,7 +676,6 @@
         .dict-media-card:hover { transform: translateY(-2px); box-shadow: var(--sombra-suave); }
         .dict-media-card img, .dict-media-card video {
             width: 100%;
-            height: 180px;
             object-fit: contain;
             display: block;
             padding: 10px;
@@ -755,6 +753,7 @@
         }
         .modal-overlay.ativo { opacity: 1; visibility: visible; }
         .modal-conteudo {
+            position: relative;
             background: var(--cor-fundo);
             border: 1px solid var(--cor-borda);
             border-radius: var(--raio);
@@ -767,6 +766,8 @@
             box-shadow: var(--sombra-modal);
         }
         .modal-header {
+            position: relative;
+            z-index: 2;
             background: var(--cor-superficie);
             padding: 12px 16px;
             border-bottom: 1px solid var(--cor-borda);
@@ -846,36 +847,31 @@
         }
         .lightbox-fechar:hover { background: rgba(255, 255, 255, 0.28); }
 
-        /* ===== MODAL DE VÍDEO (pronúncia em vídeo) ===== */
         .video-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(12, 9, 6, 0.94);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: min(320px, calc(100vw - 24px));
+            z-index: 1150;
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.2s ease, visibility 0.2s ease;
-            padding: 20px;
+            transform: translateY(8px);
+            transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+            pointer-events: none;
+            overflow: hidden;
+            padding: 10px;
+            background: var(--cor-superficie);
+            border: 1px solid var(--cor-borda);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
         }
-        .video-overlay.ativo { opacity: 1; visibility: visible; }
-        .video-overlay-player { max-width: 100%; max-height: 88vh; border-radius: var(--raio); background: #000; }
-        .video-overlay-fechar {
-            position: absolute;
-            top: 16px; right: 18px;
-            background: rgba(255, 255, 255, 0.14);
-            border: none;
-            color: #fff;
-            width: 46px; height: 46px;
-            border-radius: 50%;
-            font-size: 1.6rem;
-            line-height: 1;
-            cursor: pointer;
-            transition: var(--transicao);
+        .video-overlay.dentro-modal { z-index: 1; }
+        .video-overlay.ativo { opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto; }
+        .video-overlay-player {
+            display: block;
+            width: 100%;
+            max-height: 220px;
+            background: #000;
         }
-        .video-overlay-fechar:hover { background: rgba(255, 255, 255, 0.28); }
 
         /* ===== FLUTUANTES ===== */
         #btn-topo, #btn-voltar {
@@ -1310,7 +1306,7 @@
         <div class="app-bar-actions">
             <button class="app-bar-btn" onclick="abrirModalGlobal('modal-info')">Informações</button>
             <button class="app-bar-btn" onclick="abrirModalGlobal('modal-citar')">Como citar</button>
-            <button class="app-bar-btn" onclick="abrirModalGlobal('modal-referencias')">Referências</button>
+            <button class="app-bar-btn btn-referencias" onclick="abrirModalGlobal('modal-referencias')">Referências</button>
             <button class="btn btn-icone" id="btn-tema-desktop" onclick="alternarTema()" title="Alternar modo escuro" aria-label="Alternar modo escuro">
                 <svg class="icone icone-contorno tema-icone-claro"><use href="#ic-lua"></use></svg>
                 <svg class="icone tema-icone-escuro" style="display:none"><use href="#ic-sol"></use></svg>
@@ -1445,8 +1441,7 @@
         <img class="lightbox-img" id="lightbox-img" alt="">
     </div>
 
-    <div class="video-overlay" id="video-overlay" role="dialog" aria-modal="true" aria-label="Vídeo de pronúncia">
-        <button class="video-overlay-fechar" id="video-overlay-fechar" aria-label="Fechar vídeo">&times;</button>
+    <div class="video-overlay" id="video-overlay" role="dialog" aria-label="Vídeo de pronúncia">
         <video class="video-overlay-player" id="video-overlay-player" playsinline controls></video>
     </div>
 
@@ -1518,7 +1513,7 @@
             <div class="sheet-label">Sobre</div>
             <button type="button" class="linha-sheet" onclick="fecharBottomSheet(); abrirModalGlobal('modal-info')"><span>Informações e introdução</span><svg class="icone icone-sm" aria-hidden="true"><use href="#ic-seta-direita"></use></svg></button>
             <button type="button" class="linha-sheet" onclick="fecharBottomSheet(); abrirModalGlobal('modal-citar')"><span>Como citar</span><svg class="icone icone-sm" aria-hidden="true"><use href="#ic-seta-direita"></use></svg></button>
-            <button type="button" class="linha-sheet" onclick="fecharBottomSheet(); abrirModalGlobal('modal-referencias')"><span>Referências</span><svg class="icone icone-sm" aria-hidden="true"><use href="#ic-seta-direita"></use></svg></button>
+            <button type="button" class="linha-sheet btn-referencias" onclick="fecharBottomSheet(); abrirModalGlobal('modal-referencias')"><span>Referências</span><svg class="icone icone-sm" aria-hidden="true"><use href="#ic-seta-direita"></use></svg></button>
         </div>
 
         <div class="creditos-csv2dmli">
@@ -1569,12 +1564,8 @@
                 </button>
                 <div class="modal-header-titulo"><h2 id="titulo-modal-referencias">Referências</h2></div>
             </div>
-            <div class="modal-body modal-texto">
-                <p>Lista de referências bibliográficas utilizadas na construção deste dicionário:</p>
-                <ul>
-                    <li>Referência 1…</li>
-                    <li>Referência 2…</li>
-                </ul>
+            <div class="modal-body modal-texto" id="modal-referencias-corpo">
+                {{ textos.referencias_html | safe }}
             </div>
         </div>
     </div>
@@ -1698,7 +1689,7 @@
 
         function fecharDialogo(container) {
             container.classList.remove('ativo');
-            const aindaTemModalAberto = document.querySelector('.modal-overlay.ativo, .lightbox-overlay.ativo, .video-overlay.ativo');
+            const aindaTemModalAberto = document.querySelector('.modal-overlay.ativo, .lightbox-overlay.ativo');
             if (!aindaTemModalAberto) document.body.style.overflow = '';
             if (ultimoElementoFocado) {
                 ultimoElementoFocado.focus();
@@ -2738,12 +2729,14 @@
             if (direcao === 'anterior' && idx > 0) idx--;
             else if (direcao === 'proximo' && idx < dadosFiltrados.length - 1) idx++;
             else return;
+            fecharModalVideoEntrada(); // o botão que o player acompanhava vai ser substituído
             itemAtualNoModal = dadosFiltrados[idx];
             preencherModal(itemAtualNoModal);
             atualizarEstadoNavegacao();
         }
 
         function fecharModal() {
+            fecharModalVideoEntrada();
             fecharDialogo(modalOverlay);
             itemAtualNoModal = null;
         }
@@ -2817,17 +2810,96 @@
         // Modal de vídeo (pronúncia em vídeo)
         const videoOverlay = document.getElementById('video-overlay');
         const videoOverlayPlayer = document.getElementById('video-overlay-player');
-        const videoOverlayFechar = document.getElementById('video-overlay-fechar');
 
-        function abrirModalVideoEntrada(src) {
+        // Quando o botão está dentro do modal de detalhes, o player é movido para dentro do
+        // .modal-conteudo (mesmo contexto de empilhamento do .modal-header). Assim o z-index
+        // local (.video-overlay.dentro-modal) garante que o header fique sempre na frente do
+        // player, sem precisar limitar a posição dele.
+        function prepararContainerVideoOverlay(botao) {
+            const modalConteudo = botao && botao.closest ? botao.closest('.modal-overlay.ativo .modal-conteudo') : null;
+            if (modalConteudo) {
+                if (videoOverlay.parentElement !== modalConteudo) modalConteudo.appendChild(videoOverlay);
+                videoOverlay.classList.add('dentro-modal');
+            } else {
+                if (videoOverlay.parentElement !== document.body) document.body.appendChild(videoOverlay);
+                videoOverlay.classList.remove('dentro-modal');
+            }
+        }
+
+        function posicionarVideoOverlay(botao) {
+            const margem = 8;
+            if (!botao || !botao.getBoundingClientRect) {
+                videoOverlay.style.top = margem + 'px';
+                videoOverlay.style.left = margem + 'px';
+                return;
+            }
+            const rect = botao.getBoundingClientRect();
+            const largura = videoOverlay.offsetWidth || 320;
+            const alturaEstimada = videoOverlay.offsetHeight || 260;
+            const dentroModal = videoOverlay.classList.contains('dentro-modal');
+            // Limites: dentro do modal usa os limites do próprio .modal-conteudo (é o container
+            // posicionado do player ali); fora do modal usa a janela inteira.
+            const contRect = dentroModal ? videoOverlay.parentElement.getBoundingClientRect() : null;
+            const limiteEsq = dentroModal ? contRect.left : 0;
+            const limiteDir = dentroModal ? contRect.right : window.innerWidth;
+            const limiteTopo = dentroModal ? contRect.top : 0;
+            const limiteFundo = dentroModal ? contRect.bottom : window.innerHeight;
+
+            let left = rect.left;
+            if (left + largura > limiteDir - margem) left = limiteDir - largura - margem;
+            if (left < limiteEsq + margem) left = limiteEsq + margem;
+
+            let top = rect.bottom + margem;
+            if (top + alturaEstimada > limiteFundo - margem) {
+                // Sem espaço abaixo do botão: posiciona acima dele
+                const topAcima = rect.top - alturaEstimada - margem;
+                if (topAcima >= limiteTopo + margem) top = topAcima;
+            }
+
+            if (dentroModal) {
+                videoOverlay.style.left = (left - contRect.left) + 'px';
+                videoOverlay.style.top = (top - contRect.top) + 'px';
+            } else {
+                videoOverlay.style.left = (left + window.scrollX) + 'px';
+                videoOverlay.style.top = (top + window.scrollY) + 'px';
+            }
+        }
+
+        let videoOverlayBotaoAtual = null;
+
+        // O próprio botão de play assume a função de fechar: seu ícone e estado "tocando"
+        // mudam para indicar isso, e clicar nele de novo fecha o player.
+        function resetarBotaoVideo(btn) {
+            if (!btn) return;
+            btn.classList.remove('tocando');
+            const use = btn.querySelector('svg use');
+            if (use) use.setAttribute('href', '#ic-play');
+        }
+
+        function abrirModalVideoEntrada(src, botao) {
             if (!src) return;
+            // Clicar no mesmo botão enquanto o vídeo está aberto funciona como fechar
+            if (videoOverlay.classList.contains('ativo') && videoOverlayBotaoAtual === botao) {
+                fecharModalVideoEntrada();
+                return;
+            }
             // Vídeo e áudio de pronúncia não tocam ao mesmo tempo
             if (audioAtual) {
                 audioAtual.pause();
                 resetarBotaoAudio(botaoAudioAtual);
             }
+            resetarBotaoVideo(videoOverlayBotaoAtual);
             videoOverlayPlayer.src = src;
-            abrirDialogo(videoOverlay, videoOverlayFechar);
+            // Player pequeno e não bloqueante: não trava o scroll nem prende o foco na página
+            videoOverlayBotaoAtual = botao || null;
+            prepararContainerVideoOverlay(videoOverlayBotaoAtual);
+            videoOverlay.classList.add('ativo');
+            posicionarVideoOverlay(videoOverlayBotaoAtual);
+            if (botao) {
+                botao.classList.add('tocando');
+                const use = botao.querySelector('svg use');
+                if (use) use.setAttribute('href', '#ic-fechar');
+            }
             videoOverlayPlayer.currentTime = 0;
             videoOverlayPlayer.play().catch(() => {
                 mostrarToast('Não foi possível reproduzir o vídeo.');
@@ -2840,12 +2912,26 @@
             videoOverlayPlayer.pause();
             videoOverlayPlayer.removeAttribute('src');
             videoOverlayPlayer.load();
-            fecharDialogo(videoOverlay);
+            videoOverlay.classList.remove('ativo');
+            resetarBotaoVideo(videoOverlayBotaoAtual);
+            videoOverlayBotaoAtual = null;
         }
 
         videoOverlayPlayer.addEventListener('ended', fecharModalVideoEntrada);
-        videoOverlayFechar.addEventListener('click', fecharModalVideoEntrada);
         videoOverlay.addEventListener('click', (e) => { if (e.target === videoOverlay) fecharModalVideoEntrada(); });
+
+        // Mantém o player "linkado" ao botão: acompanha a posição dele em qualquer
+        // rolagem (da página ou de containers internos, como o corpo do modal).
+        function acompanharBotaoVideoOverlay() {
+            if (!videoOverlay.classList.contains('ativo')) return;
+            if (videoOverlayBotaoAtual && !videoOverlayBotaoAtual.isConnected) {
+                fecharModalVideoEntrada();
+                return;
+            }
+            posicionarVideoOverlay(videoOverlayBotaoAtual);
+        }
+        window.addEventListener('scroll', acompanharBotaoVideoOverlay, { capture: true, passive: true });
+        window.addEventListener('resize', acompanharBotaoVideoOverlay);
 
         modalBody.addEventListener('click', (e) => {
             if (e.target.tagName === 'IMG' && e.target.closest('.midia-item')) {
@@ -2876,9 +2962,7 @@
             }
 
             if (e.key === 'Tab') {
-                const dialogoAberto = videoOverlay.classList.contains('ativo')
-                    ? videoOverlay
-                    : lightboxOverlay.classList.contains('ativo')
+                const dialogoAberto = lightboxOverlay.classList.contains('ativo')
                     ? lightboxOverlay
                     : document.querySelector('.modal-overlay.ativo');
                 if (!dialogoAberto) return;
@@ -3218,6 +3302,12 @@
             // Abrir informações iniciais
             setTimeout(() => abrirModalGlobal('modal-info'), 100);
 
+            // Esconde o(s) botão(ões) de Referências quando o dicionário não tem
+            // nenhuma referência bibliográfica cadastrada (corpo do modal fica vazio).
+            const corpoReferencias = document.getElementById('modal-referencias-corpo');
+            if (!corpoReferencias || !corpoReferencias.textContent.trim()) {
+                document.querySelectorAll('.btn-referencias').forEach(btn => btn.style.display = 'none');
+            }
 
             inicializarPreferencias();
             sincronizarControlesMobile();

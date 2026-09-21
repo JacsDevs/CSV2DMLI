@@ -259,6 +259,11 @@ class ExportadorHtmlCards extends ExportadorBase {
                     ? `${ano}.`
                     : '';
 
+        const linhasReferencias = String(meta.referencia || '').split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+        const referenciasHtml = linhasReferencias.length
+            ? `<ul class="lista-referencias">${linhasReferencias.map(l => `<li>${this.escaparHTML(l)}</li>`).join('')}</ul>`
+            : '';
+
         const tema = meta.tema || null;
         const temaOverrideClaro = this.gerarBlocoTemaCSS(tema && tema.light, ':root');
         const temaOverrideEscuro = this.gerarBlocoTemaCSS(tema && tema.dark, 'html[data-tema="escuro"]');
@@ -275,6 +280,7 @@ class ExportadorHtmlCards extends ExportadorBase {
             .replace(/\{\{\s*metadados\.versao\s*\}\}/gi, versao)
             .replace(/\{\{\s*metadados\.ano\s*\}\}/gi, ano)
             .replace(/\{\{\s*textos\.intro_html\s*(\|\s*safe)?\s*\}\}/gi, meta.introHtml || '')
+            .replace(/\{\{\s*textos\.referencias_html\s*(\|\s*safe)?\s*\}\}/gi, referenciasHtml)
             .replace(/\{\{\s*estilos_globais\s*(\|\s*safe)?\s*\}\}/gi, this.estilosGlobais || '')
             .replace(/\{\{\s*tema\.override_claro\s*(\|\s*safe)?\s*\}\}/gi, temaOverrideClaro)
             .replace(/\{\{\s*tema\.override_escuro\s*(\|\s*safe)?\s*\}\}/gi, temaOverrideEscuro)
