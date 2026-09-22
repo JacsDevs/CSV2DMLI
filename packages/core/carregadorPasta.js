@@ -42,8 +42,8 @@ class CarregadorPasta {
         
         // Ativar modo silencioso e limpar o estado do projeto anterior
         if (this.gerenciador) {
-            this.gerenciador.silenciarAvisosMidia = true;
             this.gerenciador.limpar();
+            this.gerenciador.silenciarAvisosMidia = true;
         }
         
         if (this.configurador) {
