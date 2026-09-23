@@ -32,7 +32,10 @@ class ExportadorZip {
                 const dirName = tipo === 'imagem' ? 'foto' : tipo;
                 
                 for (let i = 0; i < arquivos.length; i++) {
-                    zip.file(`${dirName}/${nomes[i]}`, arquivos[i]);
+                    // Só o nome do arquivo: a reimportação do backup (projeto.json) exige
+                    // mídia direto em audio/, foto/ ou video/. Chaves de mídias CLDF têm caminho.
+                    const nomeArquivo = nomes[i].split('/').pop();
+                    zip.file(`${dirName}/${nomeArquivo}`, arquivos[i]);
                 }
             }
         }

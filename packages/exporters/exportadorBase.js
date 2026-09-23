@@ -1,3 +1,5 @@
+import { ehUrlRemota } from '../core/helpers.js';
+
 class ExportadorBase {
     constructor(gerenciadorDados) {
         this.db = gerenciadorDados;
@@ -210,6 +212,11 @@ class ExportadorBase {
             
             for (const [tipo, prefixo] of Object.entries(tipos)) {
                 for (const nome of referenciadas[tipo]) {
+                    // URL remota (Download_URL http/https do CLDF) é referenciada diretamente
+                    if (ehUrlRemota(nome)) {
+                        midias[nome] = nome;
+                        continue;
+                    }
                     const arquivo = this.db.vfs.obterArquivo(tipo, nome);
                     if (arquivo instanceof File || arquivo instanceof Blob) {
                         arquivosParaConverter.push({ nome, arquivo });
@@ -254,10 +261,19 @@ class ExportadorBase {
                 console.log('✅ Conversão concluída!');
             }
         } else {
-            // Apenas referenciar pelo caminho local relativo
+            // Apenas referenciar pelo caminho local relativo. Quando a mídia está no VFS, o caminho
+            // vem da chave real do arquivo — o mesmo usado para gravá-lo no ZIP/APK
+            // (caminhoMidiaExportada em index.html): chave com pasta (mídia CLDF) é mantida,
+            // chave só com o nome vai para a pasta padrão do tipo.
             for (const [tipo, prefixo] of Object.entries(tipos)) {
                 for (const nome of referenciadas[tipo]) {
-                    midias[nome] = (nome.includes("/") || nome.includes("\\") ? nome : prefixo + nome);
+                    const vfs = this.db.vfs;
+                    const chave = (vfs && typeof vfs.obterChave === 'function' && !ehUrlRemota(nome)) ? vfs.obterChave(tipo, nome) : null;
+                    if (chave !== null) {
+                        midias[nome] = chave.includes('/') ? chave : prefixo + chave;
+                    } else {
+                        midias[nome] = (nome.includes("/") || nome.includes("\\") ? nome : prefixo + nome);
+                    }
                 }
             }
         }
