@@ -28,12 +28,24 @@ export function limparListaPipe(valor) {
  */
 export function detectarTipoMidia(nomeArquivo, configurador) {
     if (!nomeArquivo) return 'desconhecido';
-    const extensao = String(nomeArquivo).split('.').pop().toLowerCase();
+    // Ignora query string/fragmento (ex.: URLs remotas do Download_URL do CLDF)
+    const semQuery = String(nomeArquivo).split(/[?#]/)[0];
+    const extensao = semQuery.split('/').pop().split('.').pop().toLowerCase();
     if (configurador && configurador.isExtensaoValida) {
         if (configurador.isExtensaoValida('video', extensao)) return 'video';
         if (configurador.isExtensaoValida('audio', extensao)) return 'audio';
     }
     return 'audio';
+}
+
+/**
+ * Indica se a referência de mídia é uma URL remota (http/https), que não
+ * existe no Sistema de Arquivos Virtual e deve ser usada diretamente.
+ * @param {string} referencia - Nome, caminho ou URL da mídia.
+ * @returns {boolean}
+ */
+export function ehUrlRemota(referencia) {
+    return /^https?:\/\//i.test(String(referencia || '').trim());
 }
 
 /**

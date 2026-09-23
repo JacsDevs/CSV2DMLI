@@ -167,7 +167,9 @@ class CarregadorPasta {
                 senses: null,
                 forms: null,
                 examples: null,
-                media: null
+                media: null,
+                pastaBase: '',
+                caminhosMidia: []
             },
             textosExtra: {
                 introHtml: null,
@@ -180,7 +182,7 @@ class CarregadorPasta {
             imagem: [],
             video: []
         };
-        
+
         // Obter o nome da pasta raiz selecionada (primeiro segmento de qualquer caminho)
         let pastaRaiz = null;
         let isPacoteCldf = false;
@@ -246,6 +248,9 @@ class CarregadorPasta {
             
             if (isCldfMeta) {
                 resultado.cldf.metadata = arquivo;
+                // Pasta do metadata: base para resolver os Download_URL relativos do media.csv (spec CLDF)
+                const partesMeta = caminhoRelativo.split('/');
+                resultado.cldf.pastaBase = partesMeta.length > 1 ? partesMeta.slice(0, -1).join('/') + '/' : '';
                 console.log("Metadados CLDF encontrados: " + nomeArquivo);
             } else if (caminhoRelativo.toLowerCase().includes('entries.csv')) {
                 resultado.cldf.entries = arquivo;
@@ -319,7 +324,13 @@ class CarregadorPasta {
             };
 
             // Se for pacote CLDF, a mídia pode estar em qualquer lugar! (Atendendo aos requisitos do CLDF e do usuário)
-            
+            // Nesse caso o VFS indexa a mídia pelo caminho relativo completo (ex.: "cldf/media/AUDIO/x.mp3"),
+            // que é o mesmo caminho resolvido a partir do Download_URL do media.csv.
+            if (isPacoteCldf && this._ehMidiaValida(extensao)) {
+                arquivo.caminhoRelativo = caminhoRelativo;
+                resultado.cldf.caminhosMidia.push(caminhoRelativo);
+            }
+
             if ((nomeDaPastaBate(pastasAudio) || isPacoteCldf) && this.configurador.isExtensaoValida('audio', extensao)) {
                 resultado.audio.push(arquivo);
             }
@@ -332,6 +343,10 @@ class CarregadorPasta {
         }
         
         return resultado;
+    }
+
+    _ehMidiaValida(extensao) {
+        return ['audio', 'imagem', 'video'].some(tipo => this.configurador.isExtensaoValida(tipo, extensao));
     }
 
     async _carregarTextos(arquivo) {

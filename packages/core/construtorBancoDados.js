@@ -1,4 +1,4 @@
-import { limparListaPipe, detectarTipoMidia } from './helpers.js';
+import { limparListaPipe, detectarTipoMidia, ehUrlRemota } from './helpers.js';
 
 // ============================================
 // CONSTRUTOR DO BANCO DE DADOS LEXICAL
@@ -149,9 +149,19 @@ class ConstrutorBancoDados {
             variacoes.forEach((v, i) => {
                 const lex = v.item || '';
                 const audioFile = v.audio || '';
-                const tipoMidiaEntrada = detectarTipoMidia(audioFile, this.configurador);
+                const audioRemoto = ehUrlRemota(audioFile);
+                // Tipo declarado na origem (ex.: Media_Type do CLDF) tem prioridade sobre a extensão
+                let tipoMidiaEntrada = (v.audioTipo === 'audio' || v.audioTipo === 'video')
+                    ? v.audioTipo
+                    : detectarTipoMidia(audioFile, this.configurador);
+                // O VFS separa por extensão; se o tipo declarado divergir dela, procura no outro balde
+                if (audioFile && !audioRemoto && !this.vfs.obterArquivo(tipoMidiaEntrada, audioFile)) {
+                    const outroTipo = tipoMidiaEntrada === 'video' ? 'audio' : 'video';
+                    if (this.vfs.obterArquivo(outroTipo, audioFile)) tipoMidiaEntrada = outroTipo;
+                }
 
-                const audioExiste = this.validarEContarMidia(db, tipoMidiaEntrada, audioFile, silenciarAvisos);
+                // URL remota (Download_URL http/https do CLDF) não passa pelo VFS: é usada diretamente
+                const audioExiste = audioRemoto || this.validarEContarMidia(db, tipoMidiaEntrada, audioFile, silenciarAvisos);
 
                 if (lex && !entrada.VARIACOES_IDS.some(vid => db.variacoes[vid] && db.variacoes[vid].TRANSCRICAO_ORTOGRAFICA === lex)) {
                     const varId = `${idEntrada}_VAR${i+1}`;
@@ -161,7 +171,7 @@ class ConstrutorBancoDados {
                         ARQUIVO_ENTRADA: audioFile,
                         ARQUIVO_ENTRADA_TIPO: tipoMidiaEntrada,
                         ARQUIVO_ENTRADA_EXISTE: audioExiste,
-                        ARQUIVO_ENTRADA_URL: audioExiste ? this.obterMidiaUrl(tipoMidiaEntrada, audioFile) : null,
+                        ARQUIVO_ENTRADA_URL: audioRemoto ? audioFile : (audioExiste ? this.obterMidiaUrl(tipoMidiaEntrada, audioFile) : null),
                         TRANSCRICAO_FONEMICA: v.fone || '',
                         TRANSCRICAO_FONETICA: v.fonet || ''
                     };

@@ -1265,7 +1265,7 @@
               <!-- Estado: sem chave -->
               <div id="apkKsBrNoKey">
                 <div style="padding:16px; background:#fff3e0; border:1px solid #ffcc80; border-radius:10px; margin-bottom:14px;">
-                  <strong>Nenhuma chave encontrada.</strong>
+                  <strong>Nenhuma chave de assinatura encontrada.</strong>
                   <p style="font-size:0.84em; margin:6px 0 0 0; color:#e65100;">Crie uma chave de assinatura ou importe um arquivo .p12 existente.</p>
                 </div>
                 <div style="display:flex; gap:10px; flex-wrap:wrap;">
@@ -1880,7 +1880,15 @@
             e.returnValue = 'Você tem dados carregados que não foram exportados. Tem certeza que deseja sair e perder as alterações?';
         }
     });
-    
+
+    // Caminho de uma mídia do VFS dentro do pacote exportado (ZIP do HTML / APK).
+    // Deve coincidir com o caminho que o HTML referencia (exportadorBase.gerarScriptsDadosEmLotes):
+    // chaves com pasta (mídias CLDF, ex.: "cldf/media/AUDIO/x.mp3") mantêm o caminho;
+    // chaves só com o nome (CSV nativo) vão para a pasta padrão do tipo (audio/, foto/, video/).
+    function caminhoMidiaExportada(dirName, chave) {
+        return chave.includes('/') ? chave : `${dirName}/${chave}`;
+    }
+
     function coletarMetadadosExportacao() {
         const config = window.configurador ? window.configurador.getConfig() : {};
         const existente = (config && config.metadados) || {};
@@ -2178,7 +2186,7 @@
                         const nomes = window.sistema.vfs.obterTodosNomes(tipoM);
                         const dirName = tipoM === 'imagem' ? 'foto' : tipoM;
                         for (let i = 0; i < arquivos.length; i++) {
-                            zip.file(`${dirName}/${nomes[i]}`, arquivos[i]);
+                            zip.file(caminhoMidiaExportada(dirName, nomes[i]), arquivos[i]);
                         }
                     }
                     conteudoParaBaixar = await zip.generateAsync({ type: 'blob' });
@@ -2201,7 +2209,11 @@
                                 if (el.tagName === 'VIDEO') tipoF = 'video';
                                 
                                 const keys = Array.from(window.sistema.vfs[tipoF].keys());
-                                const match = keys.find(k => k.toLowerCase() === nomeLimpo.toLowerCase() || k.toLowerCase() === nomeRaw.toLowerCase());
+                                const srcLimpo = decodeURIComponent(src).toLowerCase();
+                                const nomeDaChave = k => k.split('/').pop().toLowerCase();
+                                // Caminho completo primeiro (mídias CLDF indexadas pelo caminho relativo), depois só o nome
+                                const match = keys.find(k => k.toLowerCase() === srcLimpo)
+                                    || keys.find(k => nomeDaChave(k) === nomeLimpo.toLowerCase() || nomeDaChave(k) === nomeRaw.toLowerCase());
                                 if (match) {
                                     el.src = window.sistema.vfs.obterUrl(tipoF, match);
                                 } else {
@@ -2217,7 +2229,11 @@
                     for (const tipoMidia of tiposMidia) {
                         for (const key of window.sistema.vfs.obterTodosNomes(tipoMidia)) {
                             const arquivo = window.sistema.vfs.obterArquivo(tipoMidia, key);
-                            blobMap[key.toLowerCase()] = URL.createObjectURL(arquivo);
+                            const blobUrl = URL.createObjectURL(arquivo);
+                            blobMap[key.toLowerCase()] = blobUrl;
+                            // Também pelo nome do arquivo, para referências sem caminho (CSV nativo)
+                            const nomeKey = key.split('/').pop().toLowerCase();
+                            if (!blobMap[nomeKey]) blobMap[nomeKey] = blobUrl;
                         }
                     }
                     
@@ -2234,8 +2250,9 @@
                                             if ((k === 'ARQUIVO' || k === 'AUDIO') && typeof obj[k] === 'string') {
                                                 let parts = obj[k].split('~').map(p => p.trim());
                                                 parts = parts.map(p => {
+                                                    let completo = p.toLowerCase();
                                                     let raw = p.split('/').pop().toLowerCase();
-                                                    return bMap[raw] ? bMap[raw] : p;
+                                                    return bMap[completo] || bMap[raw] || p;
                                                 });
                                                 obj[k] = parts.join(' ~ ');
                                             } else {
@@ -3394,7 +3411,7 @@
                 const nomes   = window.sistema.vfs.obterTodosNomes(tipo);
                 const arqs    = window.sistema.vfs.obterTodosArquivos(tipo);
                 for (let i = 0; i < nomes.length; i++) {
-                    midias.set(`${dirName}/${nomes[i]}`, new Uint8Array(await arqs[i].arrayBuffer()));
+                    midias.set(caminhoMidiaExportada(dirName, nomes[i]), new Uint8Array(await arqs[i].arrayBuffer()));
                 }
             }
         }

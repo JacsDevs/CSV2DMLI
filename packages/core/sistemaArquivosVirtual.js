@@ -252,38 +252,45 @@ class SistemaArquivosVirtual {
     // ==========================================
     
     obterArquivo(tipo, nome) {
+        const chave = this.obterChave(tipo, nome);
+        return chave !== null ? this[tipo].get(chave) : null;
+    }
+
+    /**
+     * Retorna a chave sob a qual a mídia está guardada no VFS (ou null).
+     * Mídias de pacote CLDF são indexadas pelo caminho relativo à pasta importada
+     * (ex.: "cldf/media/AUDIO/som.mp3"); as demais, só pelo nome do arquivo.
+     */
+    obterChave(tipo, nome) {
         if (!this[tipo]) return null;
         const nomeBuscado = this._normalizarChave(nome);
-        
+
         // 1. CLDF Mode: Busca caminho exato ("media/audio/d1/som.mp3")
         if (this[tipo].has(nomeBuscado)) {
-            return this[tipo].get(nomeBuscado);
+            return nomeBuscado;
         }
-        
+
         // 2. Native Mode (Fallback 1): O CSV nativo pediu "som.mp3" e o arquivo salvo é "audio/som.mp3"
         const nomeBuscadoFinal = '/' + nomeBuscado;
         // 3. Reverse Mode (Fallback 2): O CSV (ex: CLDF) pediu "audio/som.mp3" mas o arquivo salvo é apenas "som.mp3"
-        
-        for (const [chave, arquivo] of this[tipo].entries()) {
-            if (chave === nomeBuscado) {
-                return arquivo;
-            }
+
+        for (const chave of this[tipo].keys()) {
             if (chave.endsWith(nomeBuscadoFinal)) {
-                return arquivo;
+                return chave;
             }
             if (nomeBuscado.endsWith('/' + chave)) {
-                return arquivo;
+                return chave;
             }
         }
-        
+
         // Fallback Seguro 2: Buscar exclusivamente pelo nome final ("som.mp3" VS "som.mp3")
         const apenasNome = nomeBuscado.split('/').pop();
-        for (const [chave, arquivo] of this[tipo].entries()) {
+        for (const chave of this[tipo].keys()) {
             if (chave.split('/').pop() === apenasNome) {
-                return arquivo;
+                return chave;
             }
         }
-        
+
         return null;
     }
 
