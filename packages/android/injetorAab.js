@@ -73,7 +73,7 @@ export class InjetorAab {
                     appName:          meta.appName,
                     versionCode:      meta.versionCode,
                     versionName:      meta.versionName,
-                    targetSdkVersion: meta.targetSdkVersion ?? 35,
+                    targetSdkVersion: meta.targetSdkVersion ?? 36,
                 });
             arquivos[manifestKey] = [patchado, { level: 0 }];
         }

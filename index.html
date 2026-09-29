@@ -1248,6 +1248,17 @@
                 <input type="file" id="apkHtmlProntoInputArquivo" accept=".html" style="display:none" onchange="apkProcessarArquivosHtmlPronto(this.files)">
                 <input type="file" id="apkHtmlProntoInputPasta" webkitdirectory style="display:none" onchange="apkProcessarArquivosHtmlPronto(this.files)">
             </div>
+
+            <label class="toggle-label" style="display:flex; align-items:center; gap:10px; padding:12px 14px; margin-top:14px; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:10px;">
+                <div>
+                    <div style="font-weight:700; font-size:0.92em; color:var(--text-main);">📸 Gerar capturas de tela para a Play Store</div>
+                    <div style="font-size:0.78em; color:var(--text-muted); margin-top:2px;">Inclui no zip 2 capturas de telefone (1080×1920) e 1 de tablet (1920×1080), geradas a partir da prévia do app.</div>
+                </div>
+                <div class="toggle-switch" style="margin-top:2px;">
+                    <input type="checkbox" id="apkSwCapturas" checked>
+                    <div class="toggle-slider"></div>
+                </div>
+            </label>
         </div>
 
         <!-- Seção: Segurança & Assinatura -->
@@ -1289,11 +1300,10 @@
                   <div class="apk-field-error">Informe a senha da chave.</div>
                 </div>
                 <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                  <button onclick="apkKsBrExportarP12()" class="btn btn-outline" style="font-size:0.85em;">Exportar .p12</button>
                   <button onclick="apkKsBrSubstituir()" class="btn btn-outline" style="font-size:0.85em; color:#c2410c; border-color:#c2410c;">↺ Substituir chave</button>
                 </div>
                 <div style="margin-top:10px; padding:10px 12px; background:#fefce8; border-radius:8px; border:1px solid #fef08a; font-size:0.79em; color:#854d0e;">
-                  <strong>⚠️</strong> Guarde o backup .p12 da sua chave. Ele é necessário para enviar atualizações ao Google Play. Sem ele, não será possível atualizar o app após publicação.
+                  <strong>⚠️</strong> O backup .p12 da sua chave é incluído automaticamente no zip gerado. Guarde-o em local seguro: ele é necessário para enviar atualizações ao Google Play. Sem ele, não será possível atualizar o app após publicação.
                 </div>
               </div>
 
@@ -2875,6 +2885,8 @@
     // Preview ao vivo (mockup de celular)
     // --------------------------------------------------------
     const APK_PREVIEW_LIMITE_ENTRADAS = 10;
+    // Nas capturas da Play Store o tablet mostra bem mais cards que o mockup
+    const APK_CAPTURAS_LIMITE_ENTRADAS = 24;
 
     window.apkAgendarPreviewLeve = function() {
         clearTimeout(_apkPreviewLeveTimer);
@@ -2955,11 +2967,12 @@
     // Corta o HTML importado em `limite` entradas para não travar o iframe com
     // dicionários gigantes: remove os cards excedentes do DOM antes de exibir,
     // assim suas mídias nem chegam a ser carregadas pelo iframe.
-    function apkLimitarEntradasPreviewDoc(doc, limite) {
+    function apkLimitarEntradasPreviewDoc(doc, limite, comAviso = true) {
         try {
             const entradas = doc.querySelectorAll('.entry-card');
             if (entradas.length <= limite) return;
             entradas.forEach((el, i) => { if (i >= limite) el.remove(); });
+            if (!comAviso) return;
             const aviso = doc.createElement('div');
             aviso.style.cssText = 'padding:14px; text-align:center; color:#888; font-size:0.85em; font-style:italic;';
             aviso.textContent = `Exibindo apenas as ${limite} primeiras entradas na prévia...`;
@@ -2967,6 +2980,24 @@
         } catch (e) {
             console.error('Erro ao limitar entradas do preview:', e);
         }
+    }
+
+    // HTML usado nas capturas da Play Store: o mesmo conteúdo do app final, mas com
+    // as mídias embutidas/resolvidas (o iframe de captura não enxerga as pastas) e
+    // só as primeiras entradas, suficientes para preencher as telas.
+    async function apkMontarHtmlCapturas(usarProjeto, nomeApp) {
+        if (usarProjeto) {
+            const iconeDataUrl = (window.sistema && window.sistema.icone && window.sistema.icone.dataUrl) || null;
+            return window.exportador.exportarHtmlCards({
+                embutirMidias: true,
+                limitePreview: APK_CAPTURAS_LIMITE_ENTRADAS,
+                metadados: { ...coletarMetadadosExportacao(), tituloHtml: nomeApp, iconeDataUrl }
+            });
+        }
+        const doc = new DOMParser().parseFromString(await _apkHtmlProntoArquivo.text(), 'text/html');
+        if (_apkHtmlProntoMidias.size > 0) apkResolverMidiasPreviewDoc(doc, _apkHtmlProntoMidias);
+        apkLimitarEntradasPreviewDoc(doc, APK_CAPTURAS_LIMITE_ENTRADAS, false);
+        return '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
     }
 
     function apkExibirPreviewHtml(htmlStr) {
@@ -3332,27 +3363,6 @@
         input.value = '';
     };
 
-    window.apkKsBrExportarP12 = async function() {
-        const senha = document.getElementById('apkKsBrSenha').value;
-        if (!senha) { alert('Informe a senha da chave para exportar.'); return; }
-        try {
-            window.mostrarLoader('Exportando…', 'Gerando arquivo .p12…');
-            const exp  = await _getExportador();
-            const blob = await exp.exportarP12(senha);
-            const exp2 = await exp.obterInfoChave();
-            const nome = `chave_${(exp2?.alias || 'upload').replace(/\s+/g, '_')}.p12`;
-            const url  = URL.createObjectURL(blob);
-            const a    = document.createElement('a');
-            a.href = url; a.download = nome;
-            document.body.appendChild(a); a.click();
-            document.body.removeChild(a); URL.revokeObjectURL(url);
-            window.ocultarLoader();
-        } catch (e) {
-            window.ocultarLoader();
-            alert('Erro ao exportar: ' + e.message);
-        }
-    };
-
     window.apkKsBrSubstituir = async function() {
         if (!confirm('Substituir a chave atual? A chave atual será apagada permanentemente.')) return;
         try {
@@ -3375,10 +3385,13 @@
         const packageName = document.getElementById('apkPackageName')?.value.trim() || 'br.com.csv2dmli.app';
         const versionCode = parseVersionCode(versaoStr);
 
+        const gerarCapturas = document.getElementById('apkSwCapturas').checked;
+
         const progEl = document.getElementById('apkProgressSteps');
         progEl.style.cssText = '';
         progEl.innerHTML = `
             <div class="apk-prog-step pending" id="apkPS1">⬜ Gerando HTML do dicionário…</div>
+            ${gerarCapturas ? '<div class="apk-prog-step pending" id="apkPSCapturas">⬜ Gerando capturas de tela…</div>' : ''}
             <div class="apk-prog-step pending" id="apkPS2">⬜ Carregando template AAB…</div>
             <div class="apk-prog-step pending" id="apkPS3">⬜ Injetando conteúdo e patches…</div>
             <div class="apk-prog-step pending" id="apkPS4">⬜ Assinando v1 + v2…</div>
@@ -3417,6 +3430,29 @@
         }
         apkSetProg('apkPS1', 'done', 'HTML gerado ✓');
 
+        // Capturas para a Play Store: falhas aqui não impedem a geração do app
+        let capturas = new Map();
+        let avisosCapturas = [];
+        if (gerarCapturas) {
+            apkSetProg('apkPSCapturas', 'running', 'Gerando capturas de tela…');
+            document.getElementById('apkStatusDesc').textContent = 'Renderizando o app em telefone e tablet…';
+            try {
+                const htmlCapturas = await apkMontarHtmlCapturas(usarProjeto, nomeApp);
+                const { gerarCapturasPlayStore } = await import('./packages/android/geradorCapturas.js');
+                ({ capturas, avisos: avisosCapturas } = await gerarCapturasPlayStore(htmlCapturas, {
+                    onProgress: (atual, total) => {
+                        if (atual < total) apkSetProg('apkPSCapturas', 'running', `Gerando capturas de tela (${atual + 1}/${total})…`);
+                    },
+                }));
+            } catch (e) {
+                console.error('Erro ao gerar capturas de tela:', e);
+                avisosCapturas = [e.message || String(e)];
+            }
+            avisosCapturas.forEach(a => adicionarLogAoTerminal('Captura de tela: ' + a, 'warn'));
+            apkSetProg('apkPSCapturas', capturas.size > 0 ? 'done' : 'error',
+                capturas.size > 0 ? `${capturas.size} captura(s) de tela gerada(s) ✓` : 'Não foi possível gerar as capturas de tela');
+        }
+
         apkSetProg('apkPS2', 'running', 'Carregando template AAB…');
 
         const onProgress = (pct, msg) => {
@@ -3451,13 +3487,27 @@
             cidade: document.getElementById('apkCidade').value.trim(),
             estado: document.getElementById('apkEstado').value.trim(),
             pais: (document.getElementById('apkPais').value.trim() || 'BR').toUpperCase(),
+            capturas,
             onProgress,
         });
+
+        const itensPlayStore = [];
+        if (arquivosGerados.capturas.length > 0) {
+            itensPlayStore.push(`${arquivosGerados.capturas.length} captura(s) de tela (${arquivosGerados.capturas.join(', ')})`);
+        }
+        if (arquivosGerados.iconeLoja) {
+            itensPlayStore.push(`o ícone 512×512 (${arquivosGerados.iconeLoja})`);
+        }
+        const linhaCapturas = itensPlayStore.length > 0
+            ? `- <b>play-store/</b>: ${itensPlayStore.join(' e ')} para a ficha da loja.<br>`
+            : '';
 
         apkSetProg('apkPS5', 'done', 'Concluído ✓');
 
         document.getElementById('apkSucessoDesc').textContent =
-            `Arquivo baixado. Descompacte o zip para encontrar o AAB, o APK e o resumo das informações.`;
+            arquivosGerados.p12
+                ? `Arquivo baixado. Descompacte o zip para encontrar o AAB, o APK, o backup da chave (.p12) e o resumo das informações.`
+                : `Arquivo baixado. Descompacte o zip para encontrar o AAB, o APK e o resumo das informações.`;
 
         // Show zip info
         const onlineLinkBox = document.getElementById('apkOnlineDownloadLinks');
@@ -3468,6 +3518,7 @@
               <div style="font-size:0.82em; color:#e65100; margin-top:8px;">
                 Zip baixado automaticamente, contendo:<br>
                 - <b>${arquivosGerados.aab}</b> e <b>${arquivosGerados.apk}</b>: assinados com uma <b>chave temporária</b>, úteis apenas para instalação/testes locais.<br>
+                ${linhaCapturas}
                 - <b>informacoes.txt</b>: resumo dos dados preenchidos.<br>
                 <strong>⚠️ Este pacote não pode ser publicado na Google Play.</strong> Crie ou importe uma chave de assinatura própria e gere o aplicativo novamente antes de publicar.
               </div>
@@ -3479,8 +3530,10 @@
                 Zip baixado automaticamente, contendo:<br>
                 - <b>${arquivosGerados.aab}</b>: envie ao Google Play Console para publicação.<br>
                 - <b>${arquivosGerados.apk}</b>: instalação direta e testes locais.<br>
+                - <b>${arquivosGerados.p12}</b>: backup da chave de assinatura (mesma senha). Guarde em local seguro — necessário para enviar atualizações.<br>
+                ${linhaCapturas}
                 - <b>informacoes.txt</b>: resumo dos dados preenchidos (inclui a senha da chave).<br>
-                Guarde o backup da sua chave .p12 — necessário para enviar atualizações.
+                <strong>⚠️ Não compartilhe este zip:</strong> com o .p12 e a senha, qualquer pessoa pode assinar versões do seu app.
               </div>
             </div>`;
 

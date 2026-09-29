@@ -1,5 +1,5 @@
 // Gera os bundles browser-ready das libs Node-only usadas pelo exportador Android.
-// Execute uma vez após: npm install fflate node-forge axml protobufjs
+// Execute uma vez após: npm install fflate node-forge axml protobufjs modern-screenshot
 //
 // Uso: node scripts/build-vendor-android.mjs
 
@@ -44,13 +44,19 @@ const libs = [
         'esm',
         '',
     ],
+    [
+        'node_modules/modern-screenshot/dist/index.mjs',
+        'vendor/modern-screenshot.min.js',
+        'esm',
+        '',
+    ],
 ];
 
 for (const [entry, out, fmt, extra] of libs) {
     const entryPath = resolve(root, entry);
     if (!existsSync(entryPath)) {
         console.warn(`⚠️  Arquivo não encontrado: ${entry} — pulando.`);
-        console.warn('   Execute: npm install fflate node-forge axml protobufjs');
+        console.warn('   Execute: npm install fflate node-forge axml protobufjs modern-screenshot');
         continue;
     }
     run(`npx esbuild ${entry} --bundle --format=${fmt} --outfile=${out} --minify ${extra}`.trim());

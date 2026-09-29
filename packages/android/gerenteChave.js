@@ -183,28 +183,28 @@ export class GerenteChave {
             privateKeyPkcs8: privKeyBuf,
             certPem: dados.certPem,
             certDer,
+            alias: dados.alias,
         };
     }
 
-    async exportarP12(senha) {
-        const dados = await this.#carregarIdb();
-        if (!dados) throw new Error('Nenhuma chave para exportar.');
-
-        const privKeyBuf = await this.#descriptografarChave(dados, senha);
+    /**
+     * Monta o backup .p12 (PKCS#12) a partir de uma chave já descriptografada
+     * (retorno de carregarChave), protegido com a mesma senha da chave.
+     */
+    async montarP12({ privateKeyPkcs8, certPem, senha, alias }) {
         const { default: forge } = await import(new URL('../../vendor/node-forge.min.js', import.meta.url).href);
 
-        const cert = forge.pki.certificateFromPem(dados.certPem);
+        const cert = forge.pki.certificateFromPem(certPem);
         const forgePriv = forge.pki.privateKeyFromAsn1(
-            forge.asn1.fromDer(forge.util.createBuffer(new Uint8Array(privKeyBuf)))
+            forge.asn1.fromDer(forge.util.createBuffer(new Uint8Array(privateKeyPkcs8)))
         );
 
         const p12Asn1 = forge.pkcs12.toPkcs12Asn1(forgePriv, [cert], senha, {
             algorithm: '3des',
-            friendlyName: dados.alias,
+            friendlyName: alias,
         });
         const p12DerStr = forge.asn1.toDer(p12Asn1).getBytes();
-        const bytes = Uint8Array.from(p12DerStr, c => c.charCodeAt(0));
-        return new Blob([bytes], { type: 'application/x-pkcs12' });
+        return Uint8Array.from(p12DerStr, c => c.charCodeAt(0));
     }
 
     async importarP12(arquivo, senha) {
