@@ -452,6 +452,24 @@
         .apk-prog-step.done    { color: var(--success); }
         .apk-prog-step.error   { color: var(--error); }
 
+        /* Barra de progresso por bytes e botão cancelar da geração do app */
+        .apk-progress-bar { width: 100%; max-width: 420px; height: 8px; margin: 14px auto 0; background: var(--primary-light); border-radius: 999px; overflow: hidden; }
+        .apk-progress-bar > div { height: 100%; width: 0; background: var(--primary); transition: width 0.3s ease; }
+
+        /* Resumo de tamanho do projeto (antes de gerar o app) */
+        .apk-resumo-tamanho { margin-top: 14px; padding: 12px 14px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; font-size: 0.82em; color: var(--text-main); }
+        .apk-resumo-tamanho h4 { margin: 0 0 8px 0; font-size: 0.95em; }
+        .apk-resumo-grid { display: flex; flex-wrap: wrap; gap: 6px 18px; color: var(--text-muted); }
+        .apk-resumo-grid b { color: var(--text-main); }
+        .apk-resumo-aviso { margin-top: 8px; padding: 8px 10px; border-radius: 8px; border: 1px solid; }
+        .apk-resumo-aviso.info     { background: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
+        .apk-resumo-aviso.atencao  { background: #fff7ed; border-color: #fdba74; color: #9a3412; }
+        .apk-resumo-aviso.bloqueio { background: #fef2f2; border-color: #fca5a5; color: #991b1b; }
+        .apk-resumo-tamanho details { margin-top: 8px; }
+        .apk-resumo-tamanho summary { cursor: pointer; color: var(--text-muted); }
+        .apk-resumo-tamanho ol { margin: 6px 0 0 0; padding-left: 20px; }
+        .apk-resumo-tamanho li { word-break: break-all; }
+
         .apk-result-row {
             display: flex; align-items: flex-start; gap: 12px;
             padding: 12px 0;
@@ -1248,6 +1266,20 @@
                 <input type="file" id="apkHtmlProntoInputArquivo" accept=".html" style="display:none" onchange="apkProcessarArquivosHtmlPronto(this.files)">
                 <input type="file" id="apkHtmlProntoInputPasta" webkitdirectory style="display:none" onchange="apkProcessarArquivosHtmlPronto(this.files)">
             </div>
+
+            <label class="toggle-label" style="display:flex; align-items:center; gap:10px; padding:12px 14px; margin-top:14px; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:10px;">
+                <div>
+                    <div style="font-weight:700; font-size:0.92em; color:var(--text-main);">📸 Gerar capturas de tela para a Play Store</div>
+                    <div style="font-size:0.78em; color:var(--text-muted); margin-top:2px;">Inclui no zip 2 capturas de telefone (1080×1920) e 1 de tablet (1920×1080), geradas a partir da prévia do app.</div>
+                </div>
+                <div class="toggle-switch" style="margin-top:2px;">
+                    <input type="checkbox" id="apkSwCapturas" checked>
+                    <div class="toggle-slider"></div>
+                </div>
+            </label>
+
+            <!-- Resumo de tamanho das mídias e avisos (preenchido por apkAtualizarResumoTamanho) -->
+            <div id="apkResumoTamanho" class="apk-resumo-tamanho" style="display:none;"></div>
         </div>
 
         <!-- Seção: Segurança & Assinatura -->
@@ -1289,11 +1321,10 @@
                   <div class="apk-field-error">Informe a senha da chave.</div>
                 </div>
                 <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                  <button onclick="apkKsBrExportarP12()" class="btn btn-outline" style="font-size:0.85em;">Exportar .p12</button>
                   <button onclick="apkKsBrSubstituir()" class="btn btn-outline" style="font-size:0.85em; color:#c2410c; border-color:#c2410c;">↺ Substituir chave</button>
                 </div>
                 <div style="margin-top:10px; padding:10px 12px; background:#fefce8; border-radius:8px; border:1px solid #fef08a; font-size:0.79em; color:#854d0e;">
-                  <strong>⚠️</strong> Guarde o backup .p12 da sua chave. Ele é necessário para enviar atualizações ao Google Play. Sem ele, não será possível atualizar o app após publicação.
+                  <strong>⚠️</strong> O backup .p12 da sua chave é incluído automaticamente no zip gerado. Guarde-o em local seguro: ele é necessário para enviar atualizações ao Google Play. Sem ele, não será possível atualizar o app após publicação.
                 </div>
               </div>
 
@@ -1356,7 +1387,9 @@
               <div class="apk-spinner"></div>
               <div id="apkStatusTitle" style="font-size:1.1em; font-weight:700; color:var(--primary); margin:16px 0 6px;">Gerando aplicativo…</div>
               <div id="apkStatusDesc" style="color:var(--text-muted); font-size:0.85em;">Aguarde enquanto o aplicativo é compilado e assinado.</div>
+              <div class="apk-progress-bar"><div id="apkProgressBar"></div></div>
               <div id="apkProgressSteps" style="margin-top:20px; text-align:left; max-width:420px; margin-left:auto; margin-right:auto;"></div>
+              <button type="button" id="apkBtnCancelar" class="btn btn-outline" style="margin-top:16px; font-size:0.85em;" onclick="apkCancelarGeracao()">Cancelar</button>
             </div>
 
             <!-- Estado: sucesso -->
@@ -2779,6 +2812,7 @@
     window.apkAtualizarFonteHtml = function() {
         const usarProjeto = document.getElementById('apkSwUsarProjeto').checked;
         document.getElementById('apkHtmlProntoFields').style.display = usarProjeto ? 'none' : 'block';
+        apkAtualizarResumoTamanho();
         if (usarProjeto) {
             apkGerarPreviewCompleto();
         } else if (_apkHtmlProntoArquivo) {
@@ -2803,7 +2837,87 @@
         document.getElementById('apkHtmlProntoSelecionado').style.display = 'none';
         document.getElementById('apkHtmlProntoInputArquivo').value = '';
         document.getElementById('apkHtmlProntoInputPasta').value = '';
+        apkAtualizarResumoTamanho();
     }
+
+    // Mídias que entram no app: caminho no app ("foto/x.jpg") → File/Blob.
+    // Não lê o conteúdo: o gerador lê cada arquivo sob demanda, sem manter cópias.
+    function apkColetarMidias(usarProjeto) {
+        const midias = new Map();
+        if (!usarProjeto) {
+            for (const [caminho, arquivo] of _apkHtmlProntoMidias) midias.set(caminho, arquivo);
+            return midias;
+        }
+        if (!window.sistema || !window.sistema.vfs) return midias;
+        for (const tipo of ['audio', 'imagem', 'video']) {
+            const dirName = tipo === 'imagem' ? 'foto' : tipo;
+            const nomes   = window.sistema.vfs.obterTodosNomes(tipo);
+            const arqs    = window.sistema.vfs.obterTodosArquivos(tipo);
+            for (let i = 0; i < nomes.length; i++) {
+                midias.set(caminhoMidiaExportada(dirName, nomes[i]), arqs[i]);
+            }
+        }
+        return midias;
+    }
+
+    let _apkLimitesTamanho = null;
+    async function apkCarregarLimitesTamanho() {
+        if (!_apkLimitesTamanho) _apkLimitesTamanho = await import('./packages/android/limitesTamanho.js');
+        return _apkLimitesTamanho;
+    }
+
+    async function apkAnalisarTamanho(usarProjeto) {
+        const { analisarTamanhoProjeto } = await apkCarregarLimitesTamanho();
+        // No modo projeto o HTML só existe depois de gerado; o peso dele é pequeno perto das mídias
+        const tamanhoHtml = (!usarProjeto && _apkHtmlProntoArquivo) ? _apkHtmlProntoArquivo.size : 0;
+        return analisarTamanhoProjeto({ tamanhoHtml, midias: apkColetarMidias(usarProjeto) });
+    }
+
+    function apkEscaparHtml(texto) {
+        return String(texto).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    // Resumo de tamanho exibido antes de gerar: total por tipo, estimativas, avisos e maiores arquivos
+    window.apkAtualizarResumoTamanho = async function() {
+        const el = document.getElementById('apkResumoTamanho');
+        if (!el) return;
+        try {
+            const usarProjeto = document.getElementById('apkSwUsarProjeto').checked;
+            if (!usarProjeto && !_apkHtmlProntoArquivo) { el.style.display = 'none'; return; }
+            const { formatarTamanho } = await apkCarregarLimitesTamanho();
+            const a = await apkAnalisarTamanho(usarProjeto);
+            if (a.totalMidias === 0) { el.style.display = 'none'; return; }
+
+            const tipos = [['foto', '🖼️ Fotos'], ['audio', '🔊 Áudios'], ['video', '🎬 Vídeos'], ['outros', '📎 Outros']]
+                .filter(([t]) => a.quantidade[t] > 0)
+                .map(([t, rotulo]) => `<span>${rotulo}: <b>${formatarTamanho(a.porTipo[t])}</b> (${a.quantidade[t]})</span>`)
+                .join('');
+            const avisos = a.avisos
+                .map(av => `<div class="apk-resumo-aviso ${av.nivel}">${apkEscaparHtml(av.texto)}</div>`)
+                .join('');
+            const maiores = a.maiores.length > 1
+                ? `<details><summary>Maiores arquivos (comprimi-los reduz o app com menos esforço)</summary><ol>${
+                    a.maiores.map(m => `<li>${apkEscaparHtml(m.caminho)} — <b>${formatarTamanho(m.tamanho)}</b></li>`).join('')
+                  }</ol></details>`
+                : '';
+
+            el.innerHTML = `
+                <h4>📦 Tamanho do aplicativo</h4>
+                <div class="apk-resumo-grid">
+                    <span>Mídias: <b>${formatarTamanho(a.totalMidias)}</b></span>${tipos}
+                </div>
+                <div class="apk-resumo-grid" style="margin-top:4px;">
+                    <span>AAB ≈ <b>${formatarTamanho(a.estimativas.aab)}</b></span>
+                    <span>APK ≈ <b>${formatarTamanho(a.estimativas.apk)}</b></span>
+                    <span>Zip final ≈ <b>${formatarTamanho(a.estimativas.zip)}</b></span>
+                </div>
+                ${avisos}${maiores}`;
+            el.style.display = 'block';
+        } catch (e) {
+            console.warn('Não foi possível calcular o resumo de tamanho:', e);
+            el.style.display = 'none';
+        }
+    };
 
     // Handler único para os dois inputs (arquivo/pasta) e para o drag-and-drop:
     // aceita um único .html solto (mídias embutidas) ou uma pasta contendo o
@@ -2825,6 +2939,7 @@
             _apkHtmlProntoMidias = new Map();
             apkExibirArquivoHtmlProntoSelecionado(arq.name, 'Arquivo HTML único (mídias embutidas)');
             apkPreviewDeArquivoPronto(arq);
+            apkAtualizarResumoTamanho();
             return;
         }
 
@@ -2858,6 +2973,7 @@
             midias.size > 0 ? `Pasta com ${midias.size} arquivo(s) de mídia` : 'Pasta sem mídias detectadas nas subpastas audio/imagem/video'
         );
         apkPreviewDeArquivoPronto(arquivoHtml);
+        apkAtualizarResumoTamanho();
     };
 
     setupDropZone(document.getElementById('apkHtmlProntoPicker'), files => apkProcessarArquivosHtmlPronto(files));
@@ -2875,11 +2991,43 @@
     // Preview ao vivo (mockup de celular)
     // --------------------------------------------------------
     const APK_PREVIEW_LIMITE_ENTRADAS = 10;
+    // Nas capturas da Play Store o tablet mostra bem mais cards que o mockup
+    const APK_CAPTURAS_LIMITE_ENTRADAS = 24;
+    // HTML pronto: áudios/imagens embutidos (Base64) maiores que isso ficam fora da prévia
+    const APK_PREVIEW_LIMITE_BYTES_MIDIA = 5 * 1024 * 1024;
 
+    // As mídias da prévia são referenciadas por URLs blob: (sem Base64), agrupadas em
+    // "lotes" ({ urls: [] }). Um lote é revogado quando deixa de ser usado tanto pelo
+    // HTML exibido no iframe quanto pelo cache da prévia do projeto.
+    // - _apkPreviewGeracao: descarta resultados de gerações que terminem depois de uma mais nova;
+    // - _apkPreviewCache: dados já gerados do projeto ({ chave, partes, lote }), reaproveitados
+    //   enquanto só nome/ícone mudam. Descartado ao abrir o modal ou trocar a fonte do HTML.
+    let _apkPreviewGeracao = 0;
+    let _apkPreviewCache = null;
+    let _apkLoteExibido = null;
+
+    function apkRevogarLote(lote) {
+        if (!lote) return;
+        lote.urls.forEach(u => URL.revokeObjectURL(u));
+        lote.urls.length = 0;
+    }
+
+    function apkRevogarSeLivre(lote) {
+        if (!lote || lote === _apkLoteExibido || lote === _apkPreviewCache?.lote) return;
+        apkRevogarLote(lote);
+    }
+
+    function apkDescartarCachePreview() {
+        const cache = _apkPreviewCache;
+        _apkPreviewCache = null;
+        if (cache) apkRevogarSeLivre(cache.lote);
+    }
+
+    // Mudanças só de metadados (nome, ícone): reaproveita entradas e mídias já geradas
     window.apkAgendarPreviewLeve = function() {
         clearTimeout(_apkPreviewLeveTimer);
         _apkPreviewLeveTimer = setTimeout(() => {
-            if (document.getElementById('apkSwUsarProjeto').checked) apkGerarPreviewCompleto();
+            if (document.getElementById('apkSwUsarProjeto').checked) apkGerarPreviewCompleto(true);
         }, 500);
     };
 
@@ -2893,8 +3041,16 @@
         document.getElementById('apkPreviewLoader')?.classList.remove('ativo');
     }
 
-    async function apkGerarPreviewCompleto() {
+    // Prévia do projeto. As mídias entram como URLs blob: dos próprios arquivos do VFS:
+    // converter vídeos em Base64 (e o iframe depois analisar esse texto) travava a interface.
+    async function apkGerarPreviewCompleto(reusarDados = false) {
         if (!window.exportador || !window.sistema) { apkLimparPreview(); return; }
+        const geracao = ++_apkPreviewGeracao;
+        if (!reusarDados || !_apkPreviewCache) {
+            apkDescartarCachePreview();
+            _apkPreviewCache = { lote: { urls: [] } };
+        }
+        const cache = _apkPreviewCache;
         apkMostrarPreviewLoader();
         try {
             const nomeApp = document.getElementById('apkNomeApp')?.value.trim() || 'Dicionário';
@@ -2903,82 +3059,221 @@
                 ? iconPreviewEl.src
                 : ((window.sistema.icone && window.sistema.icone.dataUrl) || null);
             const htmlStr = await window.exportador.exportarHtmlCards({
-                embutirMidias: true,
+                embutirMidias: false,
+                midiasComoUrl: true,
+                urlsCriadas: cache.lote.urls,
+                cachePrevia: cache,
                 limitePreview: APK_PREVIEW_LIMITE_ENTRADAS,
                 metadados: { ...coletarMetadadosExportacao(), tituloHtml: nomeApp, iconeDataUrl }
             });
-            apkExibirPreviewHtml(htmlStr);
+            if (geracao !== _apkPreviewGeracao) { apkRevogarSeLivre(cache.lote); return; }
+            apkExibirPreviewHtml(htmlStr, cache.lote);
         } catch (e) {
+            if (geracao !== _apkPreviewGeracao) return;
             console.error('Erro ao gerar preview do app:', e);
-            apkOcultarPreviewLoader();
             apkLimparPreview();
         }
     }
 
     async function apkPreviewDeArquivoPronto(file) {
+        const geracao = ++_apkPreviewGeracao;
         apkMostrarPreviewLoader();
         try {
-            const texto = await file.text();
-            const doc = new DOMParser().parseFromString(texto, 'text/html');
-            if (_apkHtmlProntoMidias.size > 0) apkResolverMidiasPreviewDoc(doc, _apkHtmlProntoMidias);
-            apkLimitarEntradasPreviewDoc(doc, APK_PREVIEW_LIMITE_ENTRADAS);
-            const htmlFinal = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
-            apkExibirPreviewHtml(htmlFinal);
+            const { html, lote } = await apkPrepararHtmlPronto(file, {
+                limiteEntradas: APK_PREVIEW_LIMITE_ENTRADAS,
+                limiteBytesMidia: APK_PREVIEW_LIMITE_BYTES_MIDIA,
+                comAviso: true
+            });
+            if (geracao !== _apkPreviewGeracao) { apkRevogarLote(lote); return; }
+            apkExibirPreviewHtml(html, lote);
         } catch (e) {
+            if (geracao !== _apkPreviewGeracao) return;
             console.error('Erro ao ler HTML pronto para preview:', e);
-            apkOcultarPreviewLoader();
             apkLimparPreview();
         }
     }
 
-    // Resolve <img>/<audio>/<video>/<source> que apontam para as pastas de mídia
-    // (audio/imagem/video) trocando o src pela URL blob do arquivo correspondente,
-    // já que o preview roda isolado (blob: URL) e não enxerga a pasta original.
-    function apkResolverMidiasPreviewDoc(doc, midiasMap) {
+    // Lê e reduz o HTML pronto num Web Worker (o arquivo pode ter centenas de MB de
+    // mídias em Base64): limita as entradas, descarta mídias não usadas e remove os
+    // vídeos embutidos (e áudios/imagens acima de `limiteBytesMidia`, se informado).
+    // Só depois disso o resultado, já pequeno, passa pelo DOMParser.
+    async function apkPrepararHtmlPronto(arquivo, { limiteEntradas, limiteBytesMidia = 0, comAviso = false }) {
+        const r = await apkProcessarHtmlProntoEmWorker(arquivo, { limiteEntradas, removerVideos: true, limiteBytesMidia });
+        const doc = new DOMParser().parseFromString(r.html, 'text/html');
+        const lote = { urls: [] };
+        if (_apkHtmlProntoMidias.size > 0) apkResolverMidiasPreviewDoc(doc, r.html, _apkHtmlProntoMidias, lote.urls);
+
+        // HTMLs sem os scripts adicionaDados (versões antigas, com os verbetes no corpo)
+        let cortou = r.totalEntradas !== null && r.entradasMantidas < r.totalEntradas;
+        if (r.totalEntradas === null) cortou = apkLimitarEntradasPreviewDoc(doc, limiteEntradas);
+
+        const avisos = [];
+        if (cortou) avisos.push(`Exibindo apenas as ${limiteEntradas} primeiras entradas.`);
+        if (r.videosRemovidos > 0) avisos.push('Vídeos omitidos na prévia.');
+        if (r.midiasGrandesRemovidas > 0) avisos.push('Mídias muito grandes omitidas na prévia.');
+        if (comAviso && avisos.length > 0 && doc.body) {
+            const aviso = doc.createElement('div');
+            aviso.className = 'preview-limite-aviso';
+            aviso.style.cssText = 'position:fixed; left:0; right:0; bottom:0; z-index:2147483647; padding:6px 10px;'
+                + ' background:rgba(0,0,0,0.72); color:#fff; font:italic 12px/1.4 sans-serif; text-align:center; pointer-events:none;';
+            aviso.textContent = avisos.join(' ') + ' O app final terá o conteúdo completo.';
+            doc.body.appendChild(aviso);
+        }
+        return { html: '<!DOCTYPE html>\n' + doc.documentElement.outerHTML, lote };
+    }
+
+    function apkProcessarHtmlProntoEmWorker(arquivo, opcoes) {
+        const processarLocal = async () => {
+            const { processarHtmlPrevia } = await import('./packages/android/previaHtml.js');
+            return processarHtmlPrevia(await arquivo.text(), opcoes);
+        };
+        return new Promise((resolve, reject) => {
+            let worker;
+            try {
+                worker = new Worker(new URL('./packages/android/previaHtmlWorker.js', location.href), { type: 'module' });
+                worker.onmessage = (e) => {
+                    worker.terminate();
+                    if (e.data.ok) resolve(e.data.resultado);
+                    else reject(new Error(e.data.erro));
+                };
+                // Worker indisponível (ex.: aberto via file://): processa aqui mesmo
+                worker.onerror = (e) => {
+                    e.preventDefault();
+                    worker.terminate();
+                    processarLocal().then(resolve, reject);
+                };
+                worker.postMessage({ arquivo, opcoes });
+            } catch (e) {
+                worker?.terminate();
+                processarLocal().then(resolve, reject);
+            }
+        });
+    }
+
+    // Faz as mídias da pasta selecionada aparecerem na prévia, que roda isolada (blob: URL)
+    // e não enxerga a pasta original: cada mídia citada no HTML ganha uma URL blob:
+    // (acumulada em `urls` para revogação) e
+    // - atributos src estáticos (HTMLs antigos) são trocados diretamente;
+    // - DicionarioMidias e os dados das entradas, de onde o template monta os cards via JS,
+    //   são remapeados por um script injetado após os scripts de dados.
+    function apkResolverMidiasPreviewDoc(doc, texto, midiasMap, urls) {
         try {
             const porNomeArquivo = new Map();
             for (const [caminho, arquivo] of midiasMap) {
                 porNomeArquivo.set(caminho.split('/').pop().toLowerCase(), arquivo);
             }
+            const urlPorNome = new Map();
+            const obterUrl = (nome) => {
+                if (!urlPorNome.has(nome)) {
+                    const arquivo = porNomeArquivo.get(nome);
+                    const url = arquivo ? URL.createObjectURL(arquivo) : null;
+                    if (url) urls.push(url);
+                    urlPorNome.set(nome, url);
+                }
+                return urlPorNome.get(nome);
+            };
+
             doc.querySelectorAll('img, audio, source, video').forEach(el => {
                 const src = el.getAttribute('src');
                 if (!src || src.startsWith('data:') || src.startsWith('blob:') || src.startsWith('http')) return;
-                const nome = decodeURIComponent(src.split('/').pop()).toLowerCase();
-                const arquivo = porNomeArquivo.get(nome);
-                if (arquivo) el.src = URL.createObjectURL(arquivo);
+                let nome = src.split('/').pop();
+                try { nome = decodeURIComponent(nome); } catch (e) { /* mantém como está */ }
+                const url = obterUrl(nome.toLowerCase());
+                if (url) el.setAttribute('src', url);
             });
+
+            const textoMinusculo = texto.toLowerCase();
+            const mapa = {};
+            for (const nome of porNomeArquivo.keys()) {
+                if (textoMinusculo.includes(nome) || textoMinusculo.includes(encodeURIComponent(nome).toLowerCase())) {
+                    mapa[nome] = obterUrl(nome);
+                }
+            }
+            if (Object.keys(mapa).length > 0 && doc.body) {
+                const script = doc.createElement('script');
+                script.textContent = `(${apkRemapearMidiasNoApp.toString()})(${JSON.stringify(mapa).replace(/<\//g, '<\\/')});`;
+                doc.body.appendChild(script);
+            }
         } catch (e) {
             console.error('Erro ao resolver mídias do preview:', e);
         }
     }
 
-    // Corta o HTML importado em `limite` entradas para não travar o iframe com
-    // dicionários gigantes: remove os cards excedentes do DOM antes de exibir,
-    // assim suas mídias nem chegam a ser carregadas pelo iframe.
+    // Executada DENTRO do iframe da prévia (serializada via toString): precisa ser autocontida.
+    // Troca caminhos de mídia ("audio/x.mp3", "x.mp3", "a.mp3 ~ b.mp3") pela URL blob: do arquivo.
+    function apkRemapearMidiasNoApp(mapa) {
+        const CAMPOS = ['AUDIO', 'ARQUIVO', 'AUDIO_ARQUIVO', 'ARQUIVO_AUDIO', 'AUDIO_SRC', 'PRIMEIRA_IMAGEM'];
+        const trocar = (valor) => valor.split('~').map(parte => {
+            const t = parte.trim();
+            if (!t || /^(data:|blob:|https?:)/i.test(t)) return parte;
+            let nome = t.split(/[\\/]/).pop();
+            try { nome = decodeURIComponent(nome); } catch (e) { /* mantém como está */ }
+            const url = mapa[nome.toLowerCase()];
+            return url ? parte.replace(t, url) : parte;
+        }).join('~');
+        const visitar = (obj) => {
+            if (Array.isArray(obj)) { obj.forEach(visitar); return; }
+            if (!obj || typeof obj !== 'object') return;
+            for (const k of Object.keys(obj)) {
+                const v = obj[k];
+                if (typeof v === 'string') { if (CAMPOS.includes(k)) obj[k] = trocar(v); }
+                else if (v && typeof v === 'object') visitar(v);
+            }
+        };
+        const midias = window.DicionarioMidias || {};
+        for (const k of Object.keys(midias)) {
+            if (typeof midias[k] === 'string') midias[k] = trocar(midias[k]);
+        }
+        visitar(window.dadosDicionarioLexical || []);
+    }
+
+    // Fallback para HTMLs antigos com os verbetes estáticos no corpo: remove os
+    // `.entry-card` excedentes. Retorna se algo foi cortado.
     function apkLimitarEntradasPreviewDoc(doc, limite) {
         try {
             const entradas = doc.querySelectorAll('.entry-card');
-            if (entradas.length <= limite) return;
+            if (entradas.length <= limite) return false;
             entradas.forEach((el, i) => { if (i >= limite) el.remove(); });
-            const aviso = doc.createElement('div');
-            aviso.style.cssText = 'padding:14px; text-align:center; color:#888; font-size:0.85em; font-style:italic;';
-            aviso.textContent = `Exibindo apenas as ${limite} primeiras entradas na prévia...`;
-            (doc.body || doc.documentElement).appendChild(aviso);
+            return true;
         } catch (e) {
             console.error('Erro ao limitar entradas do preview:', e);
+            return false;
         }
     }
 
-    function apkExibirPreviewHtml(htmlStr) {
+    // HTML usado nas capturas da Play Store: o mesmo conteúdo do app final, só com as
+    // primeiras entradas (suficientes para preencher as telas) e as mídias referenciadas
+    // por URLs blob: (o iframe de captura não enxerga as pastas). O chamador revoga o
+    // `lote` de URLs ao terminar.
+    async function apkMontarHtmlCapturas(usarProjeto, nomeApp) {
+        if (usarProjeto) {
+            const iconeDataUrl = (window.sistema && window.sistema.icone && window.sistema.icone.dataUrl) || null;
+            const lote = { urls: [] };
+            const html = await window.exportador.exportarHtmlCards({
+                embutirMidias: false,
+                midiasComoUrl: true,
+                urlsCriadas: lote.urls,
+                limitePreview: APK_CAPTURAS_LIMITE_ENTRADAS,
+                metadados: { ...coletarMetadadosExportacao(), tituloHtml: nomeApp, iconeDataUrl }
+            });
+            return { html, lote };
+        }
+        return apkPrepararHtmlPronto(_apkHtmlProntoArquivo, { limiteEntradas: APK_CAPTURAS_LIMITE_ENTRADAS });
+    }
+
+    function apkExibirPreviewHtml(htmlStr, lote = null) {
         const frame = document.getElementById('apkPreviewFrame');
         const empty = document.getElementById('apkPreviewEmpty');
         if (_apkPreviewUrl) URL.revokeObjectURL(_apkPreviewUrl);
         const blob = new Blob([htmlStr], { type: 'text/html;charset=utf-8' });
         _apkPreviewUrl = URL.createObjectURL(blob);
+        const loteAnterior = _apkLoteExibido;
+        _apkLoteExibido = lote;
         frame.onload = () => apkOcultarPreviewLoader();
         frame.src = _apkPreviewUrl;
         frame.style.display = 'block';
         empty.style.display = 'none';
+        if (loteAnterior !== lote) apkRevogarSeLivre(loteAnterior);
     }
 
     function apkAtualizarEscalaPreview() {
@@ -3004,6 +3299,11 @@
         const frame = document.getElementById('apkPreviewFrame');
         const empty = document.getElementById('apkPreviewEmpty');
         if (_apkPreviewUrl) { URL.revokeObjectURL(_apkPreviewUrl); _apkPreviewUrl = null; }
+        _apkPreviewGeracao++; // invalida gerações em andamento
+        const loteExibido = _apkLoteExibido;
+        _apkLoteExibido = null;
+        apkDescartarCachePreview();
+        apkRevogarSeLivre(loteExibido);
         apkOcultarPreviewLoader();
         frame.removeAttribute('src');
         frame.style.display = 'none';
@@ -3151,23 +3451,70 @@
         document.getElementById('apkProcessando').style.display  = 'block';
         document.getElementById('apkSucesso').style.display      = 'none';
         document.getElementById('apkErro').style.display         = 'none';
+        document.getElementById('apkProgressBar').style.width    = '0%';
+        const btnCancelar = document.getElementById('apkBtnCancelar');
+        btnCancelar.style.display = '';
+        btnCancelar.disabled = false;
+        btnCancelar.textContent = 'Cancelar';
         document.getElementById('apkStatusInline').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
+        _apkControleGeracao = new AbortController();
         try {
             await _apkGerarBrowser();
             btnLabel.textContent = '🔁 Gerar novamente';
         } catch (err) {
-            const msg = typeof err === 'string' ? err : (err.message || JSON.stringify(err));
+            if (err && err.name === 'AbortError') {
+                adicionarLogAoTerminal('Geração do aplicativo cancelada.', 'warn');
+                apkVoltarFormulario();
+                btnLabel.textContent = 'Gerar Aplicativo';
+                return;
+            }
+            const msg = apkMensagemErroGeracao(err);
             adicionarLogAoTerminal('Erro ao gerar APK: ' + msg, 'error');
             document.getElementById('apkErroMsg').textContent = msg;
             document.getElementById('apkProcessando').style.display = 'none';
             document.getElementById('apkErro').style.display        = 'block';
             btnLabel.textContent = '🔁 Tentar novamente';
         } finally {
+            _apkControleGeracao = null;
             btn.classList.remove('loading');
             btn.disabled = false;
         }
     };
+
+    // ---- Cancelamento e erros da geração do app ----
+    let _apkControleGeracao = null;
+
+    window.apkCancelarGeracao = function() {
+        if (!_apkControleGeracao) return;
+        _apkControleGeracao.abort();
+        const btn = document.getElementById('apkBtnCancelar');
+        btn.disabled = true;
+        btn.textContent = 'Cancelando…';
+    };
+
+    function apkErroCancelamento() {
+        const e = new Error('Geração cancelada pelo usuário.');
+        e.name = 'AbortError';
+        return e;
+    }
+
+    function apkVerificarCancelamento() {
+        if (_apkControleGeracao && _apkControleGeracao.signal.aborted) throw apkErroCancelamento();
+    }
+
+    // Falta de memória aparece como RangeError genérico; explica o que fazer
+    function apkMensagemErroGeracao(err) {
+        const msg = typeof err === 'string' ? err : (err && err.message) || JSON.stringify(err);
+        const semMemoria = (err && err.name === 'RangeError') ||
+            /allocation failed|out of memory|array buffer|memória insuficiente/i.test(msg);
+        return semMemoria
+            ? 'Memória insuficiente para gerar este aplicativo.\n\n' +
+              'Tente fechar outras abas e programas, usar o app desktop ou reduzir/comprimir as mídias maiores ' +
+              '(a lista aparece no resumo de tamanho, na seção "Conteúdo do Aplicativo").\n\n' +
+              `Detalhe técnico: ${msg}`
+            : msg;
+    }
 
     // Indica se o app está rodando dentro do runtime Tauri (App Desktop) ou de um navegador comum.
     function isTauriEnvironment() {
@@ -3332,27 +3679,6 @@
         input.value = '';
     };
 
-    window.apkKsBrExportarP12 = async function() {
-        const senha = document.getElementById('apkKsBrSenha').value;
-        if (!senha) { alert('Informe a senha da chave para exportar.'); return; }
-        try {
-            window.mostrarLoader('Exportando…', 'Gerando arquivo .p12…');
-            const exp  = await _getExportador();
-            const blob = await exp.exportarP12(senha);
-            const exp2 = await exp.obterInfoChave();
-            const nome = `chave_${(exp2?.alias || 'upload').replace(/\s+/g, '_')}.p12`;
-            const url  = URL.createObjectURL(blob);
-            const a    = document.createElement('a');
-            a.href = url; a.download = nome;
-            document.body.appendChild(a); a.click();
-            document.body.removeChild(a); URL.revokeObjectURL(url);
-            window.ocultarLoader();
-        } catch (e) {
-            window.ocultarLoader();
-            alert('Erro ao exportar: ' + e.message);
-        }
-    };
-
     window.apkKsBrSubstituir = async function() {
         if (!confirm('Substituir a chave atual? A chave atual será apagada permanentemente.')) return;
         try {
@@ -3375,28 +3701,40 @@
         const packageName = document.getElementById('apkPackageName')?.value.trim() || 'br.com.csv2dmli.app';
         const versionCode = parseVersionCode(versaoStr);
 
+        const gerarCapturas = document.getElementById('apkSwCapturas').checked;
+        const usarProjeto = document.getElementById('apkSwUsarProjeto').checked;
+        if (!usarProjeto && !_apkHtmlProntoArquivo) { alert('Selecione um arquivo .html ou uma pasta com o conteúdo pronto.'); throw new Error('HTML pronto não selecionado'); }
+
+        // Verificação de tamanho antes de começar (só metadados dos arquivos, nada é lido)
+        const analise = await apkAnalisarTamanho(usarProjeto);
+        const bloqueios = analise.avisos.filter(a => a.nivel === 'bloqueio');
+        if (bloqueios.length > 0) {
+            alert(bloqueios.map(a => a.texto).join('\n\n'));
+            throw new Error(bloqueios[0].texto);
+        }
+        const { LIMITES } = await apkCarregarLimitesTamanho();
+        if (analise.totalMidias > LIMITES.pacoteRecursos && !confirm(
+            'As mídias passam de 1,5 GB: o APK funciona, mas o AAB será recusado pelo Google Play Console.\n\n' +
+            'Deseja gerar mesmo assim?')) {
+            throw apkErroCancelamento();
+        }
+
         const progEl = document.getElementById('apkProgressSteps');
         progEl.style.cssText = '';
         progEl.innerHTML = `
             <div class="apk-prog-step pending" id="apkPS1">⬜ Gerando HTML do dicionário…</div>
-            <div class="apk-prog-step pending" id="apkPS2">⬜ Carregando template AAB…</div>
-            <div class="apk-prog-step pending" id="apkPS3">⬜ Injetando conteúdo e patches…</div>
-            <div class="apk-prog-step pending" id="apkPS4">⬜ Assinando v1 + v2…</div>
-            <div class="apk-prog-step pending" id="apkPS5">⬜ Finalizando…</div>
+            ${gerarCapturas ? '<div class="apk-prog-step pending" id="apkPSCapturas">⬜ Gerando capturas de tela…</div>' : ''}
+            <div class="apk-prog-step pending" id="apkPS2">⬜ Carregando templates e chave…</div>
+            <div class="apk-prog-step pending" id="apkPS3">⬜ Gerando e assinando o AAB…</div>
+            <div class="apk-prog-step pending" id="apkPS4">⬜ Gerando e assinando o APK…</div>
+            <div class="apk-prog-step pending" id="apkPS5">⬜ Empacotando e salvando…</div>
         `;
 
-        const usarProjeto = document.getElementById('apkSwUsarProjeto').checked;
-
-        let htmlBytes, midias;
+        let htmlBytes;
         if (!usarProjeto) {
             apkSetProg('apkPS1', 'running', 'Lendo HTML selecionado…');
             document.getElementById('apkStatusDesc').textContent = 'Lendo arquivo/pasta selecionados…';
-            if (!_apkHtmlProntoArquivo) { alert('Selecione um arquivo .html ou uma pasta com o conteúdo pronto.'); throw new Error('HTML pronto não selecionado'); }
             htmlBytes = new Uint8Array(await _apkHtmlProntoArquivo.arrayBuffer());
-            midias = new Map();
-            for (const [caminho, arquivoMidia] of _apkHtmlProntoMidias) {
-                midias.set(caminho, new Uint8Array(await arquivoMidia.arrayBuffer()));
-            }
         } else {
             apkSetProg('apkPS1', 'running', 'Gerando HTML do dicionário…');
             document.getElementById('apkStatusDesc').textContent = 'Gerando HTML com caminhos relativos…';
@@ -3404,35 +3742,66 @@
             const iconeParaHtml = (window.sistema && window.sistema.icone && window.sistema.icone.dataUrl) || null;
             const htmlStr = await window.exportador.exportarHtmlCards({ embutirMidias: false, metadados: { ...coletarMetadadosExportacao(), tituloHtml: nomeApp, iconeDataUrl: iconeParaHtml } });
             htmlBytes = new TextEncoder().encode(htmlStr);
+        }
 
-            midias = new Map();
-            for (const tipo of ['audio', 'imagem', 'video']) {
-                const dirName = tipo === 'imagem' ? 'foto' : tipo;
-                const nomes   = window.sistema.vfs.obterTodosNomes(tipo);
-                const arqs    = window.sistema.vfs.obterTodosArquivos(tipo);
-                for (let i = 0; i < nomes.length; i++) {
-                    midias.set(caminhoMidiaExportada(dirName, nomes[i]), new Uint8Array(await arqs[i].arrayBuffer()));
-                }
-            }
+        // Mídias entram como File/Blob (referências a disco/IndexedDB): o gerador as lê sob
+        // demanda, sem manter cópias em memória. Itens que não são Blob (legado) são lidos aqui.
+        const midias = apkColetarMidias(usarProjeto);
+        for (const [caminho, arquivo] of midias) {
+            if (!(arquivo instanceof Blob)) midias.set(caminho, new Uint8Array(await arquivo.arrayBuffer()));
         }
         apkSetProg('apkPS1', 'done', 'HTML gerado ✓');
+        apkVerificarCancelamento();
 
-        apkSetProg('apkPS2', 'running', 'Carregando template AAB…');
+        // Capturas para a Play Store: falhas aqui não impedem a geração do app
+        let capturas = new Map();
+        let avisosCapturas = [];
+        if (gerarCapturas) {
+            apkSetProg('apkPSCapturas', 'running', 'Gerando capturas de tela…');
+            document.getElementById('apkStatusDesc').textContent = 'Renderizando o app em telefone e tablet…';
+            let loteCapturas = null;
+            try {
+                const { html: htmlCapturas, lote } = await apkMontarHtmlCapturas(usarProjeto, nomeApp);
+                loteCapturas = lote;
+                const { gerarCapturasPlayStore } = await import('./packages/android/geradorCapturas.js');
+                ({ capturas, avisos: avisosCapturas } = await gerarCapturasPlayStore(htmlCapturas, {
+                    onProgress: (atual, total) => {
+                        if (atual < total) apkSetProg('apkPSCapturas', 'running', `Gerando capturas de tela (${atual + 1}/${total})…`);
+                    },
+                }));
+            } catch (e) {
+                console.error('Erro ao gerar capturas de tela:', e);
+                avisosCapturas = [e.message || String(e)];
+            } finally {
+                apkRevogarLote(loteCapturas);
+            }
+            avisosCapturas.forEach(a => adicionarLogAoTerminal('Captura de tela: ' + a, 'warn'));
+            apkSetProg('apkPSCapturas', capturas.size > 0 ? 'done' : 'error',
+                capturas.size > 0 ? `${capturas.size} captura(s) de tela gerada(s) ✓` : 'Não foi possível gerar as capturas de tela');
+        }
 
+        apkVerificarCancelamento();
+        apkSetProg('apkPS2', 'running', 'Carregando templates e chave…');
+
+        // Faixas de progresso definidas em ExportadorAndroid.gerarAmbos:
+        // 5–20 templates/chave · 20–50 AAB · 50–80 APK · 80–95 zip final · 95–100 salvamento
         const onProgress = (pct, msg) => {
             document.getElementById('apkStatusDesc').textContent = msg;
-            if (pct >= 25 && pct < 55) {
-                apkSetProg('apkPS2', 'done', 'Template carregado ✓');
+            document.getElementById('apkProgressBar').style.width = `${Math.max(0, Math.min(100, pct))}%`;
+            if (pct < 20) {
+                apkSetProg('apkPS2', 'running', msg);
+            } else if (pct < 50) {
+                apkSetProg('apkPS2', 'done', 'Templates e chave carregados ✓');
                 apkSetProg('apkPS3', 'running', msg);
-            } else if (pct >= 55 && pct < 75) {
-                apkSetProg('apkPS3', 'done', 'Conteúdo injetado ✓');
+            } else if (pct < 80) {
+                apkSetProg('apkPS3', 'done', 'AAB gerado e assinado ✓');
                 apkSetProg('apkPS4', 'running', msg);
-            } else if (pct >= 75 && pct < 95) {
-                apkSetProg('apkPS4', 'done', 'Assinado ✓');
-                apkSetProg('apkPS5', 'running', msg);
-            } else if (pct >= 95) {
+            } else {
+                apkSetProg('apkPS4', 'done', 'APK gerado e assinado ✓');
                 apkSetProg('apkPS5', 'running', msg);
             }
+            // Durante o salvamento o arquivo já está sendo gravado: não dá mais para cancelar
+            if (pct >= 95) document.getElementById('apkBtnCancelar').style.display = 'none';
         };
 
         const exp = await _getExportador();
@@ -3451,13 +3820,40 @@
             cidade: document.getElementById('apkCidade').value.trim(),
             estado: document.getElementById('apkEstado').value.trim(),
             pais: (document.getElementById('apkPais').value.trim() || 'BR').toUpperCase(),
+            capturas,
             onProgress,
+            sinal: _apkControleGeracao ? _apkControleGeracao.signal : undefined,
         });
+
+        const itensPlayStore = [];
+        if (arquivosGerados.capturas.length > 0) {
+            itensPlayStore.push(`${arquivosGerados.capturas.length} captura(s) de tela (${arquivosGerados.capturas.join(', ')})`);
+        }
+        if (arquivosGerados.iconeLoja) {
+            itensPlayStore.push(`o ícone 512×512 (${arquivosGerados.iconeLoja})`);
+        }
+        const pastas = arquivosGerados.pastas;
+        const leiaMe = arquivosGerados.leiaMe;
+        const linhaCapturas = itensPlayStore.length > 0
+            ? `&nbsp;&nbsp;- <b>play-store/</b>: ${itensPlayStore.join(' e ')} para a ficha da loja.<br>`
+            : '';
 
         apkSetProg('apkPS5', 'done', 'Concluído ✓');
 
-        document.getElementById('apkSucessoDesc').textContent =
-            `Arquivo baixado. Descompacte o zip para encontrar o AAB, o APK e o resumo das informações.`;
+        const { formatarTamanho } = await apkCarregarLimitesTamanho();
+        const t = arquivosGerados.tamanhos || {};
+        const linhaTamanhos = t.zip
+            ? `<br>Tamanhos: AAB ${formatarTamanho(t.aab)} · APK ${formatarTamanho(t.apk)} · zip ${formatarTamanho(t.zip)}.`
+            : '';
+        const linhaPacoteMidia = arquivosGerados.usarPacoteMidia
+            ? '<br>As mídias passam de 500 MB e foram colocadas no <b>pacote de recursos da Play</b> (Play Asset Delivery, entregue na instalação). Nenhuma ação necessária.'
+            : '';
+
+        document.getElementById('apkSucessoDesc').textContent = !arquivosGerados.salvo
+            ? 'O aplicativo foi gerado, mas o salvamento foi cancelado. Clique em "Gerar novamente" para salvar.'
+            : arquivosGerados.p12
+                ? `Arquivo baixado. Descompacte o zip e abra o ${leiaMe}: a pasta ${pastas.publicar}/ tem o AAB e o backup da chave (.p12); a pasta ${pastas.instalar}/ tem o APK.`
+                : `Arquivo baixado. Descompacte o zip e abra o ${leiaMe}: a pasta ${pastas.publicar}/ tem o AAB e a pasta ${pastas.instalar}/ tem o APK.`;
 
         // Show zip info
         const onlineLinkBox = document.getElementById('apkOnlineDownloadLinks');
@@ -3467,8 +3863,10 @@
               <div style="font-weight:700; color:#e65100;">📦 ${arquivosGerados.zip}</div>
               <div style="font-size:0.82em; color:#e65100; margin-top:8px;">
                 Zip baixado automaticamente, contendo:<br>
-                - <b>${arquivosGerados.aab}</b> e <b>${arquivosGerados.apk}</b>: assinados com uma <b>chave temporária</b>, úteis apenas para instalação/testes locais.<br>
-                - <b>informacoes.txt</b>: resumo dos dados preenchidos.<br>
+                - <b>${leiaMe}</b>: o que é cada arquivo, como usar e o resumo dos dados preenchidos.<br>
+                - <b>${pastas.publicar}/</b>: <b>${arquivosGerados.aab}</b>, assinado com uma <b>chave temporária</b>.<br>
+                ${linhaCapturas}
+                - <b>${pastas.instalar}/</b>: <b>${arquivosGerados.apk}</b>, útil apenas para instalação/testes locais.${linhaTamanhos}<br>
                 <strong>⚠️ Este pacote não pode ser publicado na Google Play.</strong> Crie ou importe uma chave de assinatura própria e gere o aplicativo novamente antes de publicar.
               </div>
             </div>`
@@ -3477,10 +3875,13 @@
               <div style="font-weight:700; color:#166534;">📦 ${arquivosGerados.zip}</div>
               <div style="font-size:0.82em; color:#166534; margin-top:8px;">
                 Zip baixado automaticamente, contendo:<br>
-                - <b>${arquivosGerados.aab}</b>: envie ao Google Play Console para publicação.<br>
-                - <b>${arquivosGerados.apk}</b>: instalação direta e testes locais.<br>
-                - <b>informacoes.txt</b>: resumo dos dados preenchidos (inclui a senha da chave).<br>
-                Guarde o backup da sua chave .p12 — necessário para enviar atualizações.
+                - <b>${leiaMe}</b>: o que é cada arquivo, como usar e o resumo dos dados preenchidos (inclui a senha da chave).<br>
+                - <b>${pastas.publicar}/</b>: para publicar na Google Play.<br>
+                &nbsp;&nbsp;- <b>${arquivosGerados.aab}</b>: envie ao Google Play Console.<br>
+                &nbsp;&nbsp;- <b>${arquivosGerados.p12}</b>: backup da chave de assinatura (mesma senha). Guarde em local seguro — necessário para enviar atualizações.<br>
+                ${linhaCapturas}
+                - <b>${pastas.instalar}/</b>: <b>${arquivosGerados.apk}</b>, para instalação direta e testes.${linhaTamanhos}${linhaPacoteMidia}<br>
+                <strong>⚠️ Não compartilhe este zip:</strong> com o .p12 e a senha, qualquer pessoa pode assinar versões do seu app.
               </div>
             </div>`;
 

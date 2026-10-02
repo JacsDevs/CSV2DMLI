@@ -26,10 +26,13 @@ const CLDF_ASSETS = [
   BASE + '/concepticon-cldf/glosses.csv',
 ];
 
-const ANDROID_CACHE = 'csv2dmli-android-v1';
+// v2: template.aab passou a incluir o pacote de recursos midia_pack (Play Asset Delivery).
+// O template.aab é servido cache-first: trocar a versão força baixar o novo.
+const ANDROID_CACHE = 'csv2dmli-android-v2';
 const ANDROID_ASSETS = [
   BASE + '/vendor/fflate.min.js',
   BASE + '/vendor/node-forge.min.js',
+  BASE + '/vendor/modern-screenshot.min.js',
   BASE + '/vendor/android/template.aab',
 ];
 

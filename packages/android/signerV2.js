@@ -8,6 +8,8 @@
 //   [ZIP Central Directory]
 //   [ZIP End of Central Directory]
 
+import { paraCadaPedaco, verificarCancelamento, tamanhoDe } from './zipUtil.js';
+
 const SIGNING_BLOCK_MAGIC = 'APK Sig Block 42';
 const V2_SCHEME_ID = 0x7109871a;
 const DIGEST_ALGO_SHA256_RSA = 0x0103;  // RSASSA-PKCS1-v1_5 com SHA-256
@@ -21,14 +23,37 @@ const CHUNK_SIZE = 1024 * 1024;          // 1 MB
  * @returns {Promise<Uint8Array>}
  */
 export async function assinarV2(zipBytes, privateKeyPkcs8, certDer) {
-    // 1. Localizar seções do ZIP
+    // 1. Localizar seções do ZIP (subarray: vistas sobre o original, sem cópia)
     const { cdOffset, eocdOffset, eocdBytes } = localizarSecoesZip(zipBytes);
 
-    const contentBytes = zipBytes.slice(0, cdOffset);
-    const cdBytes      = zipBytes.slice(cdOffset, eocdOffset);
+    const contentBytes = zipBytes.subarray(0, cdOffset);
+    const cdBytes      = zipBytes.subarray(cdOffset, eocdOffset);
+
+    const { signingBlock, eocdAtualizado } = await gerarBlocoAssinaturaV2(
+        [contentBytes], cdBytes, eocdBytes, privateKeyPkcs8, certDer
+    );
+
+    // Concatenar tudo
+    return concat([contentBytes, signingBlock, cdBytes, eocdAtualizado]);
+}
+
+/**
+ * Calcula o APK Signing Block para um ZIP descrito em partes, sem precisar dele
+ * num buffer contíguo. O arquivo final é: [...partesConteudo, signingBlock, cdBytes, eocdAtualizado].
+ * @param {Array<Uint8Array|Blob>} partesConteudo - entradas do ZIP (tudo antes do diretório central)
+ * @param {Uint8Array} cdBytes - diretório central
+ * @param {Uint8Array} eocdBytes - End of Central Directory original
+ * @param {ArrayBuffer} privateKeyPkcs8
+ * @param {Uint8Array} certDer
+ * @param {{ sinal?: AbortSignal, onPedaco?: (pedaco: Uint8Array) => (void|Promise<void>) }} [opcoes]
+ *   onPedaco recebe cada trecho lido do conteúdo, em ordem (útil para CRC/progresso na mesma leitura).
+ * @returns {Promise<{ signingBlock: Uint8Array, eocdAtualizado: Uint8Array }>}
+ */
+export async function gerarBlocoAssinaturaV2(partesConteudo, cdBytes, eocdBytes, privateKeyPkcs8, certDer, opcoes = {}) {
+    const cdOffset = partesConteudo.reduce((s, p) => s + tamanhoDe(p), 0);
 
     // 2. Calcular digests de conteúdo em chunks de 1 MB
-    const chunkDigests = await calcularDigestsConteudo(contentBytes);
+    const chunkDigests = await calcularDigestsConteudo(partesConteudo, opcoes);
 
     // 3. Digest do Central Directory
     const cdDigest = new Uint8Array(
@@ -65,8 +90,7 @@ export async function assinarV2(zipBytes, privateKeyPkcs8, certDer) {
     const novoCdOffset = cdOffset + signingBlock.length;
     const eocdAtualizado = eocdComOffsetCd(eocdBytes, novoCdOffset);
 
-    // 10. Concatenar tudo
-    return concat([contentBytes, signingBlock, cdBytes, eocdAtualizado]);
+    return { signingBlock, eocdAtualizado };
 }
 
 // ─── ZIP parsing ─────────────────────────────────────────────────────────────
@@ -92,20 +116,39 @@ function localizarSecoesZip(bytes) {
 
 // ─── Digest computation ──────────────────────────────────────────────────────
 
-async function calcularDigestsConteudo(contentBytes) {
-    const chunks = [];
-    for (let off = 0; off < contentBytes.length; off += CHUNK_SIZE) {
-        chunks.push(contentBytes.slice(off, Math.min(off + CHUNK_SIZE, contentBytes.length)));
-    }
-    if (chunks.length === 0) chunks.push(new Uint8Array(0));
+// Percorre as partes em sequência, montando cada chunk de 1 MB num único buffer
+// reutilizado ([0xa5][uint32 tamanho][dados]). Os chunks atravessam as fronteiras
+// entre partes, exatamente como se o conteúdo fosse contíguo.
+async function calcularDigestsConteudo(partes, { sinal, onPedaco } = {}) {
+    const buf = new Uint8Array(5 + CHUNK_SIZE);
+    const bv  = new DataView(buf.buffer);
+    buf[0] = 0xa5;
+    let preenchido = 0;
+    const digests = [];
 
-    return Promise.all(chunks.map(async chunk => {
-        const prefixed = new Uint8Array(5 + chunk.length);
-        prefixed[0] = 0xa5;
-        new DataView(prefixed.buffer).setUint32(1, chunk.length, true);
-        prefixed.set(chunk, 5);
-        return new Uint8Array(await crypto.subtle.digest('SHA-256', prefixed));
-    }));
+    const fecharChunk = async () => {
+        bv.setUint32(1, preenchido, true);
+        digests.push(new Uint8Array(await crypto.subtle.digest('SHA-256', buf.subarray(0, 5 + preenchido))));
+        preenchido = 0;
+    };
+
+    for (const parte of partes) {
+        await paraCadaPedaco(parte, async (pedaco) => {
+            verificarCancelamento(sinal);
+            let o = 0;
+            while (o < pedaco.length) {
+                const n = Math.min(CHUNK_SIZE - preenchido, pedaco.length - o);
+                buf.set(pedaco.subarray(o, o + n), 5 + preenchido);
+                preenchido += n;
+                o += n;
+                if (preenchido === CHUNK_SIZE) await fecharChunk();
+            }
+            if (onPedaco) await onPedaco(pedaco);
+        });
+    }
+    // Conteúdo vazio gera um único chunk vazio (mesmo comportamento anterior)
+    if (preenchido > 0 || digests.length === 0) await fecharChunk();
+    return digests;
 }
 
 async function calcularTopDigest(digests) {

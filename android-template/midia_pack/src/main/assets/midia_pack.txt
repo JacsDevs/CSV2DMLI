@@ -1,0 +1,1 @@
+Marcador do pacote de recursos midia_pack (Play Asset Delivery). Mantido no AAB pelo gerador.
