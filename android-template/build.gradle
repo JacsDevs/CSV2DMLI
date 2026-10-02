@@ -1,3 +1,4 @@
 plugins {
+    // Também fornece o plugin 'com.android.asset-pack' (mesmo artefato do AGP), usado em :midia_pack
     id 'com.android.application' version '8.13.2' apply false
 }

@@ -22,6 +22,7 @@ android-template/.gradle/
 android-template/.idea/
 android-template/build/
 android-template/app/build/
+android-template/midia_pack/build/
 android-template/local.properties
 android-template/gradle/wrapper/gradle-wrapper.jar
 

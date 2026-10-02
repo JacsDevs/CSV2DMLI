@@ -281,8 +281,7 @@ O ZIP carrega a mídia **duas vezes** (AAB e APK). Para projetos grandes, oferec
 
 | Faixa (mídias) | Mensagem |
 |---|---|
-| < 200 MB | Nenhum aviso. |
-| 200–500 MB | Informativo: "Usuários em dados móveis verão um aviso de download grande na Play Store." |
+| < 500 MB | Nenhum aviso. |
 | 500 MB–1,5 GB | Informativo: "As mídias serão entregues como pacote de recursos da Play (Play Asset Delivery). Nenhuma ação necessária." |
 | > 1,5 GB | Atenção: exige múltiplos pacotes (fora do escopo atual) — sugerir otimizar mídias. |
 | Acima da capacidade estimada do dispositivo | Atenção: "Seu computador pode não ter memória suficiente; feche outras abas" ou recomendar o app desktop. |
@@ -303,7 +302,6 @@ O ZIP carrega a mídia **duas vezes** (AAB e APK). Para projetos grandes, oferec
 ### 8.3 Depois de gerar
 
 - Tela de conclusão com tamanhos finais, o que cada arquivo é, e próximo passo (publicar o AAB / instalar o APK).
-- No `LEIA-ME.txt`: explicar que apps > 200 MB mostram aviso de dados móveis; que a instalação precisa de ~2× o tamanho livre no aparelho; e, quando houver pack, que isso é normal e transparente.
 
 ### 8.4 Mensagens de erro
 
@@ -321,10 +319,6 @@ O ZIP carrega a mídia **duas vezes** (AAB e APK). Para projetos grandes, oferec
 | **4** | Nível 2: gravador de ZIP único (injeção + v1 + alinhamento), reutilização de hashes entre AAB e APK | `injetorAab.js`, `signerV1.js`, `zipalign.js`, `signerV2.js` | Pico ≈ 1–1,5 × M; processamento de ~15 para 3–5 passagens |
 | **5** | PAD *install-time* com `midia_pack` | `android-template/`, workflow, `injetorAab.js`, `patcherManifestAab.js` (chamada extra) | Projetos de 500 MB a 1,5 GB aceitos pela Play |
 | **6** | Web Worker + progresso por bytes + cancelar | `exportadorAndroid.js`, novo worker, `index.html` | Interface responsiva em gerações longas |
-| **7 (opcional)** | Nível 3 (mídias como `Blob`, hash incremental) | idem Fase 4 + `vendor/` | Pico de poucos MB; suporta vídeos individuais muito grandes |
-| **Futuro** | Fast-follow/on-demand, múltiplos packs, pipeline nativo no Tauri | template Java, Rust | Apps > 1,5 GB ou download inicial menor |
-
-Com as Fases 1–5, **um projeto de 1 GB é gerado em uma máquina comum e aceito pela Play**.
 
 ---
 

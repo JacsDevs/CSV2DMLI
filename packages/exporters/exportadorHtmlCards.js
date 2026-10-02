@@ -152,8 +152,8 @@ class ExportadorHtmlCards extends ExportadorBase {
         return html;
     }
 
-    async gerarScriptsDados(embutir = false, entradasLimitadas = null) {
-        return await this.gerarScriptsDadosEmLotes('card', embutir, entradasLimitadas);
+    async gerarScriptsDados(embutir = false, entradasLimitadas = null, opcoesMidia = {}) {
+        return await this.gerarScriptsDadosEmLotes('card', embutir, entradasLimitadas, opcoesMidia);
     }
 
     // Percorre a árvore na mesma ordem/recursão de processarEntradasHTML, mas só
@@ -181,10 +181,8 @@ class ExportadorHtmlCards extends ExportadorBase {
         return lista;
     }
 
-    async exportar(opcoes = {}) {
-        if (!this.db.bancoDados) throw new Error('Banco de dados não gerado');
-        if (!this.templatePrincipal) throw new Error('Template principal HTML não carregado');
-
+    // Scripts de dados + corpo estático do dicionário (a parte cara da exportação).
+    async gerarPartesDados(opcoes) {
         const { arvore, categoriasRaizes } = this.db.obterArvoreOrdenada();
 
         const limitePreview = opcoes.limitePreview;
@@ -192,7 +190,16 @@ class ExportadorHtmlCards extends ExportadorBase {
             ? this.coletarEntradasAteLimite(arvore, categoriasRaizes, limitePreview)
             : null;
 
-        const scriptsDados = await this.gerarScriptsDados(opcoes.embutirMidias, entradasLimitadas);
+        const scriptsDados = await this.gerarScriptsDados(opcoes.embutirMidias, entradasLimitadas, {
+            comoUrl: !!opcoes.midiasComoUrl,
+            urlsCriadas: opcoes.urlsCriadas
+        });
+
+        // O template atual monta os cards via JS a partir dos scripts de dados; o corpo
+        // estático só é gerado para templates (personalizados/antigos) que o utilizam.
+        if (!/\{\{\s*corpo_dicionario\s*(\|\s*safe)?\s*\}\}/i.test(this.templatePrincipal)) {
+            return { scriptsDados, corpoHtml: '' };
+        }
 
         let contadorEntradas = 0;
         let limiteAtingido = false;
@@ -223,6 +230,35 @@ class ExportadorHtmlCards extends ExportadorBase {
         if (limiteAtingido) {
             corpoHtml += `<p class="preview-limite-aviso" style="padding:14px; text-align:center; color:#888; font-size:0.85em; font-style:italic;">Exibindo apenas as ${limitePreview} primeiras entradas na prévia...</p>\n`;
         }
+
+        return { scriptsDados, corpoHtml };
+    }
+
+    // Opções da prévia:
+    // - midiasComoUrl + urlsCriadas: mídias referenciadas por URL blob: (ver gerarScriptsDadosEmLotes);
+    // - cachePrevia: objeto mantido pelo chamador; guarda dados e corpo já gerados para
+    //   que mudanças só de metadados (nome, ícone) não reprocessem entradas e mídias.
+    //   O chamador descarta o objeto quando os dados puderem ter mudado.
+    async exportar(opcoes = {}) {
+        if (!this.db.bancoDados) throw new Error('Banco de dados não gerado');
+        if (!this.templatePrincipal) throw new Error('Template principal HTML não carregado');
+
+        const limitePreview = opcoes.limitePreview;
+        const cache = opcoes.cachePrevia || null;
+        const chaveCache = [limitePreview || 0, !!opcoes.embutirMidias, !!opcoes.midiasComoUrl, this.templatePrincipal.length].join('|');
+
+        let partes = (cache && cache.chave === chaveCache) ? cache.partes : null;
+        if (!partes) {
+            try {
+                partes = await this.gerarPartesDados(opcoes);
+            } finally {
+                // Não reter strings Base64/URLs blob: nem vazá-las para outros exportadores
+                // que usam extrairDadosEntrada (Typst, LaTeX...).
+                this.midiasGeradas = null;
+            }
+            if (cache) { cache.chave = chaveCache; cache.partes = partes; }
+        }
+        const { scriptsDados, corpoHtml } = partes;
 
         const meta = opcoes.metadados || {};
 

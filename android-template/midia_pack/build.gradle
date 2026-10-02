@@ -1,0 +1,15 @@
+// Pacote de recursos (Play Asset Delivery) entregue junto com a instalação.
+// O gerador (packages/android/injetorAab.js) coloca as mídias aqui quando elas
+// passam do limite de 500 MB do módulo base; caso contrário, remove o módulo do AAB.
+// No aparelho, os assets deste pacote ficam acessíveis em file:///android_asset/,
+// como os do módulo base — nenhuma mudança no app ou no HTML é necessária.
+plugins {
+    id 'com.android.asset-pack'
+}
+
+assetPack {
+    packName = "midia_pack"
+    dynamicDelivery {
+        deliveryType = "install-time"
+    }
+}

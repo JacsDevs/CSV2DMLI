@@ -16,7 +16,6 @@ const te = new TextEncoder();
  */
 export async function assinarV1(zipBytes, privateKeyPkcs8, certPem) {
     const { unzipSync, zipSync } = await import(new URL('../../vendor/fflate.min.js', import.meta.url).href);
-    const { default: forge } = await import(new URL('../../vendor/node-forge.min.js', import.meta.url).href);
 
     // Ler métodos de compressão originais antes do unzip, para preservá-los ao remontar.
     const metodosOriginais = lerMetodosCompressao(zipBytes);
@@ -29,17 +28,54 @@ export async function assinarV1(zipBytes, privateKeyPkcs8, certPem) {
     }
 
     // 1. Calcular SHA-256 de cada entrada (exceto META-INF/)
-    const entradas = Object.entries(arquivos)
-        .filter(([p]) => !p.startsWith('META-INF/'))
-        .sort(([a], [b]) => a.localeCompare(b));
-
-    const secoes = [];
-    for (const [path, content] of entradas) {
-        const bytes  = content instanceof Uint8Array ? content : content[0];
-        const digest = await crypto.subtle.digest('SHA-256', bytes);
-        const b64    = btoa(String.fromCharCode(...new Uint8Array(digest)));
-        secoes.push(`Name: ${path}\r\nSHA-256-Digest: ${b64}\r\n\r\n`);
+    const digests = [];
+    for (const [path, content] of Object.entries(arquivos)) {
+        const bytes = content instanceof Uint8Array ? content : content[0];
+        digests.push([path, await sha256Base64(bytes)]);
     }
+
+    // 2–6. MANIFEST.MF, CERT.SF e CERT.RSA
+    Object.assign(arquivos, await gerarArquivosAssinaturaV1(digests, privateKeyPkcs8, certPem));
+
+    // Remontar preservando o método de compressão original de cada entrada.
+    // META-INF deve ser STORED (level 0) obrigatoriamente.
+    // Entradas não encontradas (não deveria ocorrer) ficam STORED por segurança.
+    const resultado = {};
+    for (const [path, content] of Object.entries(arquivos)) {
+        const bytes = content instanceof Uint8Array ? content : content[0];
+        if (path.startsWith('META-INF/')) {
+            resultado[path] = [bytes, { level: 0 }];
+        } else {
+            const origMethod = metodosOriginais.get(path);
+            const level = (origMethod === undefined || origMethod === 0) ? 0 : 6;
+            resultado[path] = [bytes, { level }];
+        }
+    }
+    return zipSync(resultado);
+}
+
+/** SHA-256 em base64, no formato usado pelo MANIFEST.MF. */
+export async function sha256Base64(bytes) {
+    const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
+    return btoa(String.fromCharCode(...digest));
+}
+
+/**
+ * Gera os arquivos da assinatura v1 (JAR) a partir dos digests SHA-256 já calculados
+ * de cada entrada. Permite que o chamador calcule os hashes uma única vez e reutilize.
+ * @param {Array<[string, string]>} digests - pares [caminho, SHA-256 em base64] (sem META-INF/)
+ * @param {ArrayBuffer} privateKeyPkcs8
+ * @param {string} certPem
+ * @returns {Promise<Record<string, Uint8Array>>} META-INF/MANIFEST.MF, META-INF/CERT.SF, META-INF/CERT.RSA
+ */
+export async function gerarArquivosAssinaturaV1(digests, privateKeyPkcs8, certPem) {
+    const { default: forge } = await import(new URL('../../vendor/node-forge.min.js', import.meta.url).href);
+    const arquivos = {};
+
+    const secoes = digests
+        .filter(([p]) => !p.startsWith('META-INF/'))
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([path, b64]) => `Name: ${path}\r\nSHA-256-Digest: ${b64}\r\n\r\n`);
 
     // 2. MANIFEST.MF
     const manifestHeader  = 'Manifest-Version: 1.0\r\nCreated-By: CSV2DMLI\r\n\r\n';
@@ -48,16 +84,13 @@ export async function assinarV1(zipBytes, privateKeyPkcs8, certPem) {
     arquivos['META-INF/MANIFEST.MF'] = manifestBytes;
 
     // 3. CERT.SF
-    const manifestDigest    = await crypto.subtle.digest('SHA-256', manifestBytes);
-    const manifestDigestB64 = btoa(String.fromCharCode(...new Uint8Array(manifestDigest)));
+    const manifestDigestB64 = await sha256Base64(manifestBytes);
 
     let sfContent = 'Signature-Version: 1.0\r\nCreated-By: CSV2DMLI\r\n' +
         `SHA-256-Digest-Manifest: ${manifestDigestB64}\r\n\r\n`;
 
     for (const secao of secoes) {
-        const sBytes  = te.encode(secao);
-        const sDigest = await crypto.subtle.digest('SHA-256', sBytes);
-        const sB64    = btoa(String.fromCharCode(...new Uint8Array(sDigest)));
+        const sB64     = await sha256Base64(te.encode(secao));
         const nameLine = secao.split('\r\n')[0];
         sfContent += `${nameLine}\r\nSHA-256-Digest: ${sB64}\r\n\r\n`;
     }
@@ -91,22 +124,7 @@ export async function assinarV1(zipBytes, privateKeyPkcs8, certPem) {
     const certRsa  = Uint8Array.from(p7Der, c => c.charCodeAt(0));
 
     arquivos['META-INF/CERT.RSA'] = certRsa;
-
-    // Remontar preservando o método de compressão original de cada entrada.
-    // META-INF deve ser STORED (level 0) obrigatoriamente.
-    // Entradas não encontradas (não deveria ocorrer) ficam STORED por segurança.
-    const resultado = {};
-    for (const [path, content] of Object.entries(arquivos)) {
-        const bytes = content instanceof Uint8Array ? content : content[0];
-        if (path.startsWith('META-INF/')) {
-            resultado[path] = [bytes, { level: 0 }];
-        } else {
-            const origMethod = metodosOriginais.get(path);
-            const level = (origMethod === undefined || origMethod === 0) ? 0 : 6;
-            resultado[path] = [bytes, { level }];
-        }
-    }
-    return zipSync(resultado);
+    return arquivos;
 }
 
 // ─── authenticatedAttributes ─────────────────────────────────────────────────

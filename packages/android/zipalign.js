@@ -17,7 +17,8 @@ const SIG_EOCD = 0x06054b50;
  * @returns {Uint8Array}
  */
 export function zipalign(zipBytes) {
-    const src = new Uint8Array(zipBytes);
+    // Apenas leitura: não é preciso copiar a entrada (economiza 1 × o tamanho do arquivo)
+    const src = zipBytes;
     const sv  = new DataView(src.buffer, src.byteOffset, src.byteLength);
 
     // ── 1. Localizar EOCD ───────────────────────────────────────────────────

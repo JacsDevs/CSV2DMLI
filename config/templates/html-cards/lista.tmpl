@@ -129,7 +129,7 @@
             <div class="dict-media-carousel">
                 {{#VIDEOS}}
                 <figure class="dict-media-card">
-                    <video controls loading="lazy" onclick="event.stopPropagation()">
+                    <video controls preload="none" loading="lazy" onclick="event.stopPropagation()">
                         <source src="{{ ARQUIVO }}" type="video/mp4">
                     </video>
                 </figure>

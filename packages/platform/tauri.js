@@ -1,7 +1,15 @@
 import { BrowserPlatform } from './browser.js';
 
+// Pedaço gravado por chamada: o arquivo nunca é materializado inteiro na memória
+const PEDACO_GRAVACAO = 8 * 1024 * 1024;
+
 export class TauriPlatform {
-    async salvarArquivo(nomeArquivo, blob) {
+    /**
+     * @param {string} nomeArquivo
+     * @param {Blob} blob
+     * @param {{ onProgress?: (gravado: number, total: number) => void }} [opcoes]
+     */
+    async salvarArquivo(nomeArquivo, blob, { onProgress } = {}) {
         try {
             const { core } = window.__TAURI__;
             const ext = nomeArquivo.split('.').pop();
@@ -16,18 +24,26 @@ export class TauriPlatform {
                 console.log('❌ Salvamento cancelado pelo usuário.');
                 return false;
             }
-            const arrayBuffer = await blob.arrayBuffer();
-            const uint8Array = new Uint8Array(arrayBuffer);
+            // Grava em pedaços: o primeiro cria/trunca o arquivo, os demais anexam
+            // (append). Evita blob.arrayBuffer() do arquivo inteiro + cópia no IPC.
             // Tauri v2: payload binário + path pelo header evita congelamento da UI.
             // Nomes de header exigidos pelo plugin fs (ver @tauri-apps/plugin-fs writeFile):
             // 'path' (URL-encoded) e 'options'. Um nome diferente faz o comando falhar
             // silenciosamente e cair no fallback web.
-            await core.invoke('plugin:fs|write_file', uint8Array, {
-                headers: {
-                    path: encodeURIComponent(savePath),
-                    options: JSON.stringify(undefined)
-                }
-            });
+            const total = blob.size;
+            let gravado = 0;
+            do {
+                const fim = Math.min(gravado + PEDACO_GRAVACAO, total);
+                const pedaco = new Uint8Array(await blob.slice(gravado, fim).arrayBuffer());
+                await core.invoke('plugin:fs|write_file', pedaco, {
+                    headers: {
+                        path: encodeURIComponent(savePath),
+                        options: JSON.stringify(gravado === 0 ? undefined : { append: true })
+                    }
+                });
+                gravado = fim;
+                if (onProgress) onProgress(gravado, total);
+            } while (gravado < total);
             console.log(`✅ Arquivo salvo nativamente em: ${savePath}`);
             return true;
         } catch (err) {

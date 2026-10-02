@@ -165,7 +165,11 @@ class ExportadorBase {
         return result;
     }
 
-    async gerarScriptsDadosEmLotes(tipoAtivo, embutirMidias = false, entradasLimitadas = null) {
+    // `opcoesMidia.comoUrl` (prévia): em vez de converter as mídias em Base64, referencia
+    // cada File/Blob do VFS por uma URL blob: — instantâneo, sem copiar bytes. Só serve para
+    // HTML aberto nesta mesma sessão (iframe blob: da mesma origem); as URLs criadas são
+    // acumuladas em `opcoesMidia.urlsCriadas` para o chamador revogá-las depois.
+    async gerarScriptsDadosEmLotes(tipoAtivo, embutirMidias = false, entradasLimitadas = null, opcoesMidia = {}) {
         const db = this.db.bancoDados;
         if (!db) return '';
 
@@ -207,7 +211,21 @@ class ExportadorBase {
         const midias = {};
         const tipos = { audio: 'audio/', imagem: 'foto/', video: 'video/' };
         
-        if (embutirMidias && this.db.vfs) {
+        if (opcoesMidia.comoUrl && this.db.vfs) {
+            for (const [tipo, prefixo] of Object.entries(tipos)) {
+                for (const nome of referenciadas[tipo]) {
+                    if (ehUrlRemota(nome)) { midias[nome] = nome; continue; }
+                    const arquivo = this.db.vfs.obterArquivo(tipo, nome);
+                    if (arquivo instanceof File || arquivo instanceof Blob) {
+                        const url = URL.createObjectURL(arquivo);
+                        if (Array.isArray(opcoesMidia.urlsCriadas)) opcoesMidia.urlsCriadas.push(url);
+                        midias[nome] = url;
+                    } else {
+                        midias[nome] = (nome.includes("/") || nome.includes("\\") ? nome : prefixo + nome);
+                    }
+                }
+            }
+        } else if (embutirMidias && this.db.vfs) {
             const arquivosParaConverter = [];
             
             for (const [tipo, prefixo] of Object.entries(tipos)) {
@@ -281,11 +299,22 @@ class ExportadorBase {
         this.midiasGeradas = midias;
 
         // 2. Preparar os dados para a UI
+        // Mídias embutidas (data:) já estão em DicionarioMidias: nas entradas fica só o nome,
+        // que o resolverMidia() do app troca pelo Base64 — senão cada mídia seria gravada duas
+        // vezes no HTML. Só vale para nomes sem pasta: um "video/x.mp4" o app devolveria como
+        // caminho, sem consultar DicionarioMidias.
+        const midiasParaDados = {};
+        for (const [nome, valor] of Object.entries(midias)) {
+            const soNome = !/[\/\\~]/.test(nome) && !nome.startsWith('data:') && !nome.startsWith('blob:');
+            midiasParaDados[nome] = (soNome && String(valor).startsWith('data:')) ? nome : valor;
+        }
+        this.midiasGeradas = midiasParaDados;
         const entradasConvertidas = [];
         for (const entrada of entradasConsideradas) {
             const dados = this.extrairDadosEntrada(entrada);
             entradasConvertidas.push({ ...entrada, ...dados });
         }
+        this.midiasGeradas = midias;
 
         // 3. Empacotar em Scripts por Lotes
         // Escapa </ para evitar que dados do dicionário que contenham </script>

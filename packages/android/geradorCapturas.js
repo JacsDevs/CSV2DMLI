@@ -37,7 +37,7 @@ function comTimeout(promessa, ms, mensagem) {
 /**
  * Gera as capturas de tela para a Play Store.
  *
- * @param {string} htmlStr HTML completo do app, com mídias embutidas (data URI)
+ * @param {string} htmlStr HTML completo do app, com mídias embutidas (data URI) ou em URLs blob: desta sessão
  * @param {{ onProgress?: (atual: number, total: number, arquivo: string) => void }} [opcoes]
  * @returns {Promise<{ capturas: Map<string, Uint8Array>, avisos: string[] }>}
  */
