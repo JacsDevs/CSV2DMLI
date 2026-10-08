@@ -58,10 +58,15 @@ class CarregadorPasta {
         
         // 1. Carregar o pacote mestre (Projeto JSON) ou Planilha base e textos
         
+        // Formato de origem detectado ('projeto' | 'cldf' | 'csv' | null), exibido na UI do Passo 1
+        this.formatoDetectado = null;
+
         if (organizados.projeto) {
+            this.formatoDetectado = 'projeto';
             await this.gerenciador.carregarProjeto(organizados.projeto);
             this.arquivosEncontrados.projeto = organizados.projeto;
         } else if (organizados.cldf && organizados.cldf.metadata) {
+            this.formatoDetectado = 'cldf';
             console.log("Iniciando conversao de pacote CLDF...");
             const leitorCldf = new LeitorCLDF(this.gerenciador);
             await leitorCldf.carregarCldf(organizados.cldf);
@@ -75,6 +80,7 @@ class CarregadorPasta {
             }
 
             if (organizados.planilha) {
+                this.formatoDetectado = 'csv';
                 await this.gerenciador.carregarPlanilha(organizados.planilha);
                 this.arquivosEncontrados.planilha = organizados.planilha;
             } else {

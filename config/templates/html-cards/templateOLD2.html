@@ -587,7 +587,7 @@
         .conteudo-principal {
             margin-left: var(--sidebar-w);
             margin-top: var(--app-bar-h);
-            padding: 28px 50px 64px;
+            padding: 28px 32px 64px;
             min-height: calc(100vh - var(--app-bar-h));
             transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -600,7 +600,7 @@
             padding: 14px 18px;
             margin-bottom: 24px;
         }
-        .barra-titulo { margin: 0; font-size: 1.3rem; font-weight: 700; letter-spacing: -0.1px; }
+        .barra-titulo { margin: 0; font-size: 1rem; font-weight: 700; letter-spacing: -0.1px; }
         .barra-cabecalho {
             display: flex;
             align-items: center;
@@ -631,9 +631,6 @@
         /* Fechada: some também para teclado/leitor de tela (visibility entra após a animação) */
         .barra-content-animado.barra-escondida { grid-template-rows: 0fr; visibility: hidden; }
         .barra-cabecalho[aria-expanded="false"] #barra-icone { transform: rotate(-90deg); }
-        /* Recorte da animação: sem padding/borda/margem próprios, chega a 0px com a linha em 0fr.
-           O espaçamento do #barra fica dentro da área recortada. */
-        .barra-content-interno { min-height: 0; overflow: hidden; }
         #barra {
             display: flex;
             flex-wrap: wrap;
@@ -641,6 +638,8 @@
             border-top: 1px solid var(--cor-borda);
             padding-top: 14px;
             margin-top: 12px;
+            min-height: 0;
+            overflow: hidden;
         }
         .btn-barra {
             background: var(--cor-superficie-2);
@@ -736,165 +735,52 @@
         .btn-audio-sm { width: 28px; height: 28px; }
         .btn-audio-sm .icone { width: 15px; height: 15px; }
 
-        /* ===== TÍTULOS DE CATEGORIAS =====
-           3 estilos visuais, independentemente da profundidade dos dados:
-           n0 = campo semântico (divisor de seção, fixo no topo ao rolar)
-           n1 = subcampo (grupo) · n2 = níveis 2+ (rótulo com trilha) */
-        .cat-titulo {
-            grid-column: 1 / -1;
-            width: 100%;
-            margin: 0;
-            font-size: inherit;
-            scroll-margin-top: calc(var(--app-bar-h) + 4.75rem);
-        }
-        .cat-botao {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            min-height: 44px;
-            padding: 0;
-            border: none;
-            background: transparent;
-            font: inherit;
-            color: inherit;
-            text-align: left;
-            cursor: pointer;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-        .cat-nome { flex: 1; min-width: 0; overflow-wrap: anywhere; }
-        .cat-seta {
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
-            transition: transform 0.2s ease;
-        }
-        .cat-seta .icone { width: 100%; height: 100%; }
-        .cat-titulo.colapsado .cat-seta { transform: rotate(-90deg); }
-        .cat-contagem { flex-shrink: 0; font-variant-numeric: tabular-nums; }
-
-        /* Nível 0 · Campo semântico */
-        .cat-n0 {
-            --cat-sangria: 32px;
-            position: sticky;
-            top: var(--cat-fixo-top, var(--app-bar-h));
-            z-index: 10;
-            margin: 28px calc(-1 * var(--cat-sangria)) 0;
-            padding: 8px var(--cat-sangria) 0;
-            width: auto;
-            background: var(--cor-fundo);
-            scroll-margin-top: var(--app-bar-h);
-            transition: top 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
-        }
-        .grid-container > .cat-n0:first-child { margin-top: 4px; }
-        .cat-n0 .cat-botao {
-            min-height: 48px;
+        /* ===== CABEÇALHOS SEMÂNTICOS ===== */
+        .header-campo-semantico {
+            margin: 30px 0 14px;
             padding-bottom: 10px;
-            font-size: 1.375rem;
+            border-bottom: 2px solid var(--cor-primaria);
+            color: var(--cor-texto);
+            font-size: 1.32rem;
             font-weight: 700;
             letter-spacing: -0.3px;
-            line-height: 1.25;
-            color: var(--cor-texto);
+            width: 100%;
+            grid-column: 1 / -1;
+            scroll-margin-top: 100px;
         }
-        .cat-n0 .cat-seta {
-            width: 30px; height: 30px; padding: 7px;
-            border-radius: 50%;
-            background: var(--cor-primaria-light);
-            color: var(--cor-primaria);
-        }
-        .cat-n0 .cat-contagem {
-            font-size: 0.8125rem;
-            font-weight: 700;
-            letter-spacing: 0;
-            color: var(--cor-primaria);
-            background: var(--cor-primaria-light);
-            border-radius: var(--raio-pilula);
-            padding: 3px 10px;
-        }
-        .cat-n0.colapsado .cat-botao { border-bottom-color: var(--cor-borda-forte); }
-        /* Subcampo atual ao lado do nome, só enquanto o título está grudado no topo */
-        .cat-n0 .cat-nome { display: flex; align-items: baseline; gap: 8px; }
-        .cat-nome-principal { flex-shrink: 0; max-width: 100%; }
-        .cat-sub-fixa {
-            display: none;
-            min-width: 0;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            font-size: 0.75em;
-            font-weight: 600;
-            letter-spacing: 0;
+        .header-sub-campo {
+            margin: 18px 0 10px;
+            padding-bottom: 6px;
             color: var(--cor-texto-secundario);
-        }
-        .cat-n0.fixado .cat-sub-fixa:not(:empty) { display: block; }
-        .cat-n0.fixado .cat-nome-principal { flex-shrink: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-        /* Âncoras dos níveis agrupados num mesmo título */
-        .cat-ancora { position: absolute; width: 0; height: 0; overflow: hidden; scroll-margin-top: inherit; }
-        /* Estado "grudado" no topo: ganha sombra para se separar do conteúdo que passa por baixo */
-        .cat-n0.fixado { box-shadow: 0 10px 14px -12px rgba(60, 44, 26, 0.45); }
-        html[data-tema="escuro"] .cat-n0.fixado,
-        html[data-tema="contraste"] .cat-n0.fixado { box-shadow: 0 10px 14px -12px rgba(0, 0, 0, 0.9); }
-
-        /* Nível 1 · Subcampo */
-        .cat-n1 { margin-top: 12px; }
-        .cat-n1 .cat-botao {
-            gap: 8px;
-            font-size: 1.125rem;
+            font-size: 1.05rem;
             font-weight: 700;
-            line-height: 1.3;
-            color: var(--cor-primaria-hover);
+            width: 100%;
+            grid-column: 1 / -1;
+            border-bottom: 1px solid var(--cor-borda);
+            scroll-margin-top: 100px;
         }
-        .cat-n1 .cat-seta { width: 18px; height: 18px; }
-
-        /* Nível 2+ · Rótulo com trilha ("Pai › Filho") */
-        .cat-n2 { margin-top: 8px; }
-        .cat-n2 .cat-botao {
-            gap: 8px;
-            font-size: 0.8125rem;
-            font-weight: 700;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            line-height: 1.35;
-            color: var(--cor-texto-secundario);
-        }
-        .cat-n2 .cat-seta { width: 15px; height: 15px; }
-        .cat-n2 .cat-nome-atual { color: var(--cor-texto); }
-        .cat-n1 .cat-contagem,
-        .cat-n2 .cat-contagem { font-size: 0.8125rem; font-weight: 600; letter-spacing: 0; color: var(--cor-texto-secundario); }
-
-        .cat-botao:hover .cat-nome { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
-
-        /* Atalhos para os subcampos (só abaixo do nível 0) */
+        .toggle-icon { color: var(--cor-primaria); font-size: 0.7em; }
         .subcategorias-inline {
             grid-column: 1 / -1;
             width: 100%;
-            display: flex;
-            flex-wrap: nowrap;
-            gap: 8px;
-            margin: 4px 0 0;
-            padding: 2px 0 4px;
-            overflow-x: auto;
-            scrollbar-width: none;
-            -webkit-overflow-scrolling: touch;
-        }
-        .subcategorias-inline::-webkit-scrollbar { display: none; }
-        .btn-subcategoria-inline {
-            flex-shrink: 0;
-            font-size: 0.875rem;
-            padding: 7px 14px;
-            white-space: nowrap;
-            background: transparent;
+            padding: 0;
+            margin: 0 0 8px;
         }
 
         /* ===== MODO LISTA ===== */
         .grid-container.modo-lista { display: block; }
         .entrada_lexical {
             position: relative;
-            border-left: 3px solid var(--cor-primaria);
+            background: var(--cor-superficie);
+            border: 1px solid var(--cor-borda);
+            border-radius: var(--raio);
             padding: 20px;
-            margin-bottom: 20px;
+            box-shadow: var(--sombra-suave);
+            margin-bottom: 14px;
             transition: var(--transicao);
         }
         .modo-lista .entrada_lexical { padding: 22px 20px; }
+        .entrada_lexical:hover { box-shadow: var(--sombra-hover); }
         .palavra_entrada { font-size: 1.6rem; font-weight: 700; color: var(--cor-primaria); }
         .item-bookmark-btn {
             position: absolute;
@@ -923,7 +809,7 @@
 
         /* ===== VERBETE (compartilhado modal + lista) ===== */
         .dict-entry { display: flex; flex-direction: column; gap: 14px; color: var(--cor-texto); }
-        .dict-header { padding-bottom: 10px; }
+        .dict-header { border-bottom: 1px solid var(--cor-borda); padding-bottom: 10px; }
         .dict-headword-container { display: flex; flex-direction: column; gap: 8px; }
         .dict-headword {
             font-size: 2rem;
@@ -948,6 +834,12 @@
         .dict-audio-chip svg { width: 16px; height: 16px; fill: var(--cor-primaria); }
         .dict-chip-ipa { font-family: ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, monospace; font-size: 1rem; }
 
+        .dict-sense-card {
+            background: var(--cor-superficie-2);
+            border: 1px solid var(--cor-borda);
+            border-radius: var(--raio);
+            padding: 18px;
+        }
         .dict-sense-header { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
         .dict-sense-number { font-size: 1.05rem; font-weight: 800; color: var(--cor-acento-forte); }
         .dict-sense-translation { font-size: 1.16rem; font-weight: 700; }
@@ -971,7 +863,7 @@
         .dict-media-carousel { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 14px; }
         .dict-media-card {
             flex: 0 0 auto;
-            width: 380px;
+            width: 220px;
             overflow: hidden;
             background: var(--cor-superficie);
             border: 1px solid var(--cor-borda);
@@ -994,7 +886,7 @@
             background: var(--cor-superficie);
             border: 1px solid var(--cor-borda);
             border-radius: var(--raio);
-            padding: 14px;
+            padding: 18px;
         }
         .dict-text-phrase {
             background: var(--cor-superficie-2);
@@ -1063,7 +955,7 @@
             background: var(--cor-fundo);
             border: 1px solid var(--cor-borda);
             border-radius: var(--raio);
-            max-width: 890px;
+            max-width: 820px;
             width: 100%;
             max-height: 88vh;
             overflow: hidden;
@@ -1519,27 +1411,19 @@
             .grid-container { gap: 12px; }
             body.densidade-2 .grid-container:not(.modo-lista) { grid-template-columns: 1fr 1fr; }
             body.densidade-1 .grid-container:not(.modo-lista) { grid-template-columns: 1fr; }
-            /* No modo lista as colunas não têm efeito: esconde o seletor */
-            body.visao-lista .seg-colunas,
-            body.visao-lista #linha-densidade { display: none; }
 
             body.densidade-2 .card { flex-direction: column-reverse; align-items: stretch; gap: 10px; padding: 10px; }
             body.densidade-2 .card-media { flex: none; width: 100%; }
             body.densidade-2 .card-termo { font-size: 1rem; }
             body.densidade-2 .card-traducao { font-size: 0.85rem; }
 
-            .modo-lista .entrada_lexical { padding: 18px 0 20px 16px; }
+            .modo-lista .entrada_lexical { padding: 18px 16px; }
             .palavra_entrada, .dict-headword { font-size: 1.6rem; }
-            .dict-media-card { width: 85%; }
+            .dict-media-card { width: 100%; }
+            .dict-media-card img, .dict-media-card video { height: 200px; }
 
-            .cat-titulo { scroll-margin-top: calc(var(--topo-compacto-h) + 4.75rem); }
-            .cat-n0 {
-                --cat-sangria: 14px;
-                top: var(--cat-fixo-top, var(--topo-mobile-h));
-                margin-top: 20px;
-                scroll-margin-top: var(--topo-compacto-h);
-            }
-            .cat-n0 .cat-botao { font-size: 1.25rem; }
+            .header-campo-semantico { font-size: 1.18rem; margin-top: 22px; scroll-margin-top: calc(var(--topo-compacto-h) + 16px); }
+            .header-sub-campo { font-size: 1rem; scroll-margin-top: calc(var(--topo-compacto-h) + 16px); }
 
             /* Modal em tela cheia, como um app */
             .modal-overlay { padding: 0; align-items: flex-end; }
@@ -1650,7 +1534,6 @@
         <symbol id="ic-seta-direita" viewBox="0 -960 960 960"><path d="M593.23-480 291.92-781.31q-11.92-11.92-11.61-28.38.31-16.46 12.23-28.39Q304.46-850 320.92-850t28.39 11.92l306.23 306.85q10.84 10.85 16.07 24.31 5.24 13.46 5.24 26.92t-5.24 26.92q-5.23 13.46-16.07 24.31L348.69-121.92q-11.92 11.92-28.07 11.61-16.16-.31-28.08-12.23-11.92-11.92-11.92-28.38t11.92-28.39L593.23-480Z"/></symbol>
         <symbol id="ic-seta-esquerda" viewBox="-237.81 -960 960 960"><path d="m127.38-480 301.31 301.31q11.92 11.92 11.62 28.07-.31 16.16-12.23 28.08-11.93 11.92-28.08 11.92t-28.08-11.92L65.08-428.77Q54.23-439.62 49-453.08q-5.23-13.46-5.23-26.92T49-506.92q5.23-13.46 16.08-24.31l306.84-306.85q11.93-11.92 28.39-11.61 16.46.31 28.38 12.23 11.92 11.92 11.92 28.08 0 16.15-11.92 28.07L127.38-480Z"/></symbol>
         <symbol id="ic-info" viewBox="0 -960 960 960"><path d="M480-280q8.5 0 14.25-5.75T500-300v-180q0-8.5-5.75-14.25T480-500q-8.5 0-14.25 5.75T460-480v180q0 8.5 5.75 14.25T480-280Zm0-286.15q9.46 0 16.58-7.12 7.11-7.11 7.11-16.58 0-9.46-7.11-16.57-7.12-7.12-16.58-7.12-9.46 0-16.58 7.12-7.11 7.11-7.11 16.57 0 9.47 7.11 16.58 7.12 7.12 16.58 7.12ZM480.13-120q-74.44 0-139.79-28.34t-114.48-77.42q-49.13-49.08-77.49-114.29Q120-405.25 120-479.87q0-74.44 28.34-139.79t77.42-114.48q49.08-49.13 114.29-77.49Q405.25-840 479.87-840q74.44 0 139.79 28.34t114.48 77.42q49.13 49.08 77.49 114.29Q840-554.75 840-480.13q0 74.44-28.34 139.79t-77.42 114.48q-49.08 49.13-114.29 77.49Q554.75-120 480.13-120Zm-.13-40q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Z"/></symbol>
-        <symbol id="ic-chevron" viewBox="0 -960 960 960"><path d="M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z"/></symbol>
         <symbol id="ic-acessibilidade" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="4.5" r="1.8" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="M5 8.5l7 1.5 7-1.5M12 10v4.5M12 14.5l-3 6M12 14.5l3 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
         <symbol id="ic-olho" viewBox="0 0 24 24" fill="none"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" fill="none"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8" fill="none"/></symbol>
         <symbol id="ic-coluna-1" viewBox="0 0 24 24" fill="none"><rect x="5" y="4" width="14" height="16" rx="2" stroke="currentColor" stroke-width="1.9" fill="none"/></symbol>
@@ -1801,9 +1684,7 @@
                 </button>
             </h3>
             <div id="barra-content" class="barra-content-animado barra-escondida">
-                <div class="barra-content-interno">
-                    <div class="panel" id="barra"><!-- injetado via JS --></div>
-                </div>
+                <div class="panel" id="barra"><!-- injetado via JS --></div>
             </div>
         </div>
 
@@ -1878,7 +1759,7 @@
                 <span>Acessibilidade e tema</span>
                 <svg class="icone icone-sm" aria-hidden="true"><use href="#ic-seta-direita"></use></svg>
             </button>
-            <button type="button" class="linha-sheet" id="linha-densidade" onclick="alternarDensidade()">
+            <button type="button" class="linha-sheet" onclick="alternarDensidade()">
                 <span>Colunas nos cards</span>
                 <span id="rotulo-densidade" style="color: var(--cor-texto-secundario); font-weight: 600;">1</span>
             </button>
@@ -2211,214 +2092,19 @@
             }
         }
 
-        // ==============================================
-        // TÍTULOS DE CATEGORIAS (hierarquia + nível 0 fixo ao rolar)
-        // ==============================================
-        const CHAVES_SEMANTICAS = [
-            'CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO_1',
-            'SUB_CAMPO_SEMANTICO_2', 'SUB_CAMPO_SEMANTICO_3', 'SUB_CAMPO_SEMANTICO_4',
-            'SUB_CAMPO_SEMANTICO_5', 'SUB_CAMPO_SEMANTICO_6'
-        ];
-        window.contagemCaminhos = {};
-        window.contagemDireta = {};
-
-        // Conta quantos termos (do resultado filtrado inteiro, não só do lote exibido) há em cada caminho.
-        // contagemDireta: termos que pertencem ao próprio nível, sem subnível abaixo
-        // ("Geral" no fim conta como direto do pai, pois esse título não é exibido).
-        function calcularContagemCaminhos(lista) {
-            const mapa = {};
-            const direta = {};
-            (lista || []).forEach(item => {
-                const vals = CHAVES_SEMANTICAS.map((k, i) => item[k] || (i === 0 ? 'Outros' : ''));
-                for (let i = 0; i < vals.length; i++) {
-                    if (!vals[i]) continue;
-                    const caminho = vals.slice(0, i + 1).filter(Boolean).join('|');
-                    mapa[caminho] = (mapa[caminho] || 0) + 1;
-                }
-                const proprios = vals.filter(Boolean);
-                while (proprios.length > 1 && proprios[proprios.length - 1] === 'Geral') proprios.pop();
-                const caminhoDireto = proprios.join('|');
-                direta[caminhoDireto] = (direta[caminhoDireto] || 0) + 1;
-            });
-            window.contagemCaminhos = mapa;
-            window.contagemDireta = direta;
-        }
-
-        function marcarTituloCategoria(header, aberto) {
-            header.classList.toggle('colapsado', !aberto);
-            const btn = header.querySelector('.cat-botao');
-            if (btn) btn.setAttribute('aria-expanded', String(aberto));
-        }
-
-        // agrupados: nomes dos níveis intermediários sem termos diretos, exibidos neste mesmo
-        // título como trilha ("Aves › Rapina"); o estilo segue o nível do primeiro deles.
-        function criarTituloCategoria(nivel, nome, idCaminho, ancestrais, agrupados) {
-            agrupados = agrupados || [];
-            const nivelBase = nivel - agrupados.length;
-            const nivelVisual = Math.min(nivelBase, 2);
-            const tag = nivelBase === 0 ? 'h2' : (nivelBase === 1 ? 'h3' : 'h4');
-            const header = document.createElement(tag);
-            header.className = 'cat-titulo cat-n' + nivelVisual;
-            if (nivelBase > 2) header.setAttribute('aria-level', String(Math.min(nivelBase + 2, 6)));
-            header.id = nome;
-            header.dataset.caminho = idCaminho;
-            // Âncoras dos níveis agrupados, para links "#Nome" continuarem chegando aqui
-            agrupados.forEach(n => {
-                const ancora = document.createElement('span');
-                ancora.className = 'cat-ancora';
-                ancora.id = n;
-                header.appendChild(ancora);
-            });
-
-            const aberto = !window.categoriasColapsadas.has(idCaminho);
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'cat-botao';
-            btn.setAttribute('aria-expanded', String(aberto));
-
-            const seta = document.createElement('span');
-            seta.className = 'cat-seta';
-            seta.setAttribute('aria-hidden', 'true');
-            seta.innerHTML = '<svg class="icone"><use href="#ic-chevron"></use></svg>';
-            btn.appendChild(seta);
-
-            const nomeEl = document.createElement('span');
-            nomeEl.className = 'cat-nome';
-            if (nivelVisual === 2 || agrupados.length) {
-                // Trilha: níveis agrupados; nos níveis 2+ sem agrupamento, o nível imediatamente acima
-                const trilhaNomes = agrupados.length ? agrupados
-                    : [(ancestrais || []).filter(v => v && v !== 'Geral').pop()].filter(Boolean);
-                if (trilhaNomes.length) {
-                    const trilha = document.createElement('span');
-                    trilha.className = 'cat-trilha';
-                    trilha.textContent = trilhaNomes.join(' › ') + ' › ';
-                    nomeEl.appendChild(trilha);
-                }
-                const atual = document.createElement('span');
-                atual.className = 'cat-nome-atual';
-                atual.textContent = nome;
-                nomeEl.appendChild(atual);
-            } else {
-                nomeEl.textContent = nome;
-            }
-            if (nivel === 0) {
-                // Subcampo em que a pessoa está, exibido ao lado quando o título gruda no topo
-                const principal = document.createElement('span');
-                principal.className = 'cat-nome-principal';
-                principal.textContent = nome;
-                const sub = document.createElement('span');
-                sub.className = 'cat-sub-fixa';
-                sub.setAttribute('aria-hidden', 'true');
-                nomeEl.textContent = '';
-                nomeEl.appendChild(principal);
-                nomeEl.appendChild(sub);
-            }
-            btn.appendChild(nomeEl);
-
-            const total = window.contagemCaminhos[idCaminho];
-            if (total) {
-                const cont = document.createElement('span');
-                cont.className = 'cat-contagem';
-                cont.textContent = String(total);
-                cont.setAttribute('aria-label', total === 1 ? '1 termo' : total + ' termos');
-                btn.appendChild(cont);
-            }
-
-            btn.addEventListener('click', () => alternarColapsoCategoria(idCaminho, header));
-            header.appendChild(btn);
-            if (!aberto) header.classList.add('colapsado');
-            return header;
-        }
-
-        // Distância do topo onde o título nível 0 "gruda", acompanhando a barra superior mobile
-        function atualizarTopoFixoCategorias() {
-            const raiz = document.documentElement;
-            if (window.innerWidth > 768) { raiz.style.removeProperty('--cat-fixo-top'); return; }
-            const topo = document.getElementById('topo-mobile');
-            if (!topo) return;
-            let valor;
-            if (topo.classList.contains('oculto')) valor = 'env(safe-area-inset-top, 0px)';
-            else if (topo.classList.contains('compacto')) valor = 'var(--topo-compacto-h)';
-            else valor = 'var(--topo-mobile-h)';
-            raiz.style.setProperty('--cat-fixo-top', valor);
-        }
-
-        // Marca qual título nível 0 está grudado no topo (para a sombra) e mostra ao lado dele
-        // o subcampo em que a pessoa está ("Animais › Répteis")
-        function atualizarTitulosFixados() {
-            const titulos = document.querySelectorAll('.cat-n0');
-            let atual = null;
-            titulos.forEach(h => {
-                if (h.style.display === 'none') return;
-                const topoFixo = parseFloat(getComputedStyle(h).top) || 0;
-                const r = h.getBoundingClientRect();
-                if (Math.abs(r.top - topoFixo) < 1.5 && window.scrollY > 0) atual = h;
-            });
-            titulos.forEach(h => {
-                h.classList.toggle('fixado', h === atual);
-                if (h !== atual) definirSubFixa(h, '');
-            });
-            if (!atual) return;
-
-            // Último subtítulo visível da seção que já passou por baixo do título grudado
-            const prefixo = atual.dataset.caminho + '|';
-            const limite = atual.getBoundingClientRect().bottom + 1;
-            let sub = null;
-            for (let el = atual.nextElementSibling; el; el = el.nextElementSibling) {
-                if (el.classList.contains('cat-n0')) break;
-                if (el.style.display === 'none') continue;
-                // A ordem do DOM segue a visual: o primeiro elemento abaixo do limite encerra a busca
-                if (el.getBoundingClientRect().top > limite) break;
-                if (el.classList.contains('cat-titulo') && (el.dataset.caminho || '').startsWith(prefixo)) sub = el;
-            }
-            let texto = '';
-            if (sub) {
-                const nomes = sub.dataset.caminho.slice(prefixo.length).split('|').filter(n => n && n !== 'Geral');
-                if (nomes.length) texto = '› ' + nomes.join(' › ');
-            }
-            definirSubFixa(atual, texto);
-        }
-
-        function definirSubFixa(header, texto) {
-            const span = header.querySelector('.cat-sub-fixa');
-            if (span && span.textContent !== texto) span.textContent = texto;
-        }
-
-        // Ao recolher um título que estava grudado, leva a página até a posição real dele,
-        // para que a pessoa não "caia" no meio da seção seguinte.
-        function reposicionarTituloFixado(header) {
-            const antes = header.style.position;
-            header.style.position = 'static';
-            const yReal = header.getBoundingClientRect().top + window.scrollY;
-            header.style.position = antes;
-            const topoFixo = parseFloat(getComputedStyle(header).top) || 0;
-            const semAnimacao = document.documentElement.classList.contains('a11y-sem-animacao');
-            window.scrollTo({ top: Math.max(0, yReal - topoFixo), behavior: semAnimacao ? 'auto' : 'smooth' });
-        }
-
-        function configurarTitulosFixos() {
-            let agendado = false;
-            const tick = () => { agendado = false; atualizarTopoFixoCategorias(); atualizarTitulosFixados(); };
-            const agendar = () => { if (!agendado) { agendado = true; requestAnimationFrame(tick); } };
-            window.addEventListener('scroll', agendar, { passive: true });
-            window.addEventListener('resize', agendar);
-            const topo = document.getElementById('topo-mobile');
-            if (topo && window.MutationObserver) {
-                new MutationObserver(agendar).observe(topo, { attributes: true, attributeFilter: ['class'] });
-            }
-            agendar();
-        }
-
         window.categoriasColapsadas = new Set();
 
         window.alternarColapsoCategoria = function(caminho, headerEl) {
-            const estavaFixado = headerEl.classList.contains('fixado');
             if (window.categoriasColapsadas.has(caminho)) {
                 window.categoriasColapsadas.delete(caminho);
-                marcarTituloCategoria(headerEl, true);
+                headerEl.classList.remove('colapsado');
+                const icon = headerEl.querySelector('.toggle-icon');
+                if (icon) icon.textContent = '▼ ';
             } else {
                 window.categoriasColapsadas.add(caminho);
-                marcarTituloCategoria(headerEl, false);
+                headerEl.classList.add('colapsado');
+                const icon = headerEl.querySelector('.toggle-icon');
+                if (icon) icon.textContent = '▶ ';
             }
             
             const container = document.getElementById('grid-container');
@@ -2427,7 +2113,7 @@
                 const item = items[i];
                 if (!item.dataset.caminho) continue;
                 
-                if (item.classList.contains('cat-titulo')) {
+                if (item.tagName === 'H2' || item.tagName === 'H3') {
                     const parts = item.dataset.caminho.split('|');
                     let hideHeader = false;
                     for (let j = 1; j < parts.length; j++) {
@@ -2444,8 +2130,6 @@
                     item.style.display = hideItem ? 'none' : '';
                 }
             }
-            if (estavaFixado) reposicionarTituloFixado(headerEl);
-            atualizarTitulosFixados();
         };
 
         window.abrirCategoriaSeColapsada = function(caminho) {
@@ -2456,9 +2140,11 @@
                 if (window.categoriasColapsadas.has(p)) {
                     window.categoriasColapsadas.delete(p);
                     abriuAlguma = true;
-                    const headers = document.querySelectorAll(`.cat-titulo[data-caminho="${CSS.escape(p)}"]`);
+                    const headers = document.querySelectorAll(`h2[data-caminho="${p}"], h3[data-caminho="${p}"]`);
                     headers.forEach(h => {
-                        marcarTituloCategoria(h, true);
+                        h.classList.remove('colapsado');
+                        const icon = h.querySelector('.toggle-icon');
+                        if (icon) icon.textContent = '▼ ';
                     });
                 }
             }
@@ -2469,7 +2155,7 @@
                     const item = items[i];
                     if (!item.dataset.caminho) continue;
                     
-                    if (item.classList.contains('cat-titulo')) {
+                    if (item.tagName === 'H2' || item.tagName === 'H3') {
                         const hParts = item.dataset.caminho.split('|');
                         let hideHeader = false;
                         for (let j = 1; j < hParts.length; j++) {
@@ -3017,7 +2703,6 @@
             estilizarBotao(btnCards, modo === 'cards');
             estilizarBotao(btnLista, modo === 'lista');
             estilizarBotao(btnSalvos, modo === 'salvos');
-            document.body.classList.toggle('visao-lista', modo === 'lista');
 
             if (modo === 'lista') {
                 gridContainer.className = 'grid-container modo-lista';
@@ -3158,33 +2843,27 @@
                         }
                         
                         if (mudouNivel !== -1) {
-                            const ehTitulo = (i) => {
-                                const v = ultimosCamposSemanticos[i];
-                                return !!v && v !== 'Geral';
-                            };
-                            // Nível intermediário sem termos diretos não ganha linha própria:
-                            // o nome dele vai como trilha no título do nível seguinte ("Aves › Rapina")
-                            const agrupavel = (i) => {
-                                if (i === 0 || !ehTitulo(i)) return false;
-                                const temFilho = ultimosCamposSemanticos.slice(i + 1).some(v => v && v !== 'Geral');
-                                if (!temFilho) return false;
-                                const caminho = ultimosCamposSemanticos.slice(0, i + 1).filter(Boolean).join('|');
-                                return !window.contagemDireta[caminho];
-                            };
-                            // Níveis agrupados acima do ponto de mudança continuam na trilha do próximo título
-                            let agrupados = [];
-                            for (let i = 1; i < mudouNivel; i++) {
-                                if (!ehTitulo(i)) continue;
-                                if (agrupavel(i)) agrupados.push(ultimosCamposSemanticos[i]);
-                                else agrupados = [];
-                            }
                             for (let i = mudouNivel; i < chavesSemanticas.length; i++) {
                                 const val = ultimosCamposSemanticos[i];
-                                if (ehTitulo(i)) {
-                                    if (agrupavel(i)) { agrupados.push(val); continue; }
+                                if (val && val !== 'Geral') {
+                                    const header = document.createElement(i === 0 ? 'h2' : 'h3');
+                                    header.className = i === 0 ? 'header-campo-semantico' : 'header-sub-campo';
+                                    header.id = val;
+                                    
                                     const idCaminho = ultimosCamposSemanticos.slice(0, i + 1).filter(Boolean).join('|');
-                                    const header = criarTituloCategoria(i, val, idCaminho, ultimosCamposSemanticos.slice(0, i), agrupados);
-                                    agrupados = [];
+                                    header.dataset.caminho = idCaminho;
+                                    header.style.cursor = 'pointer';
+                                    header.style.userSelect = 'none';
+                                    
+                                    const icone = document.createElement('span');
+                                    icone.className = 'toggle-icon';
+                                    icone.textContent = window.categoriasColapsadas.has(idCaminho) ? '▶ ' : '▼ ';
+                                    header.appendChild(icone);
+                                    
+                                    const textoNode = document.createTextNode(val);
+                                    header.appendChild(textoNode);
+                                    
+                                    header.onclick = () => alternarColapsoCategoria(idCaminho, header);
 
                                     const paiCaminho = ultimosCamposSemanticos.slice(0, i).filter(Boolean).join('|');
                                     let hideHeader = false;
@@ -3198,10 +2877,14 @@
                                     }
                                     if (hideHeader) header.style.display = 'none';
 
+                                    if (i > 0) {
+                                        header.style.fontSize = Math.max(1, 1.3 - (i * 0.05)) + 'rem';
+                                        header.style.color = '#555';
+                                    }
                                     fragment.appendChild(header);
 
-                                    // Atalhos para os subcampos: só abaixo do nível 0
-                                    if (i === 0 && window.arvoreSemantica) {
+                                    // Render subcategories inline
+                                    if (window.arvoreSemantica) {
                                         let node = window.arvoreSemantica;
                                         const pathParts = idCaminho.split('|');
                                         let foundNode = true;
@@ -3214,9 +2897,9 @@
                                             }
                                         }
                                         if (foundNode && Object.keys(node).length > 0) {
-                                            const inlineFilhos = document.createElement('nav');
+                                            const inlineFilhos = document.createElement('div');
                                             inlineFilhos.className = 'subcategorias-inline';
-                                            inlineFilhos.setAttribute('aria-label', 'Subcampos de ' + val);
+                                            inlineFilhos.style = 'display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;';
                                             
                                             const chavesFilhos = Object.keys(node).sort((a, b) => a.localeCompare(b));
                                             chavesFilhos.forEach(filho => {
@@ -3481,7 +3164,6 @@
             }
 
             dadosFiltrados = resultados;
-            calcularContagemCaminhos(resultados);
             itensExibidos = [];
             ultimoIndiceExibido = 0;
             ultimosCamposSemanticos = [];
@@ -4204,7 +3886,6 @@
 
             inicializarPreferencias();
             configurarTopoAutoOcultavel();
-            configurarTitulosFixos();
             sincronizarControlesMobile();
             renderizarCategoriasLista();
             inicializarFiltros();
