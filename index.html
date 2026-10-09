@@ -704,24 +704,27 @@
                     <div class="wizard-step active" id="step1">
                         <span id="badgeCsv" class="step-badge">Pendente</span>
                         <h2 class="step-title-large"><span class="step-title-top">📊</span> Fonte de Dados</h2>
-                        <p class="step-desc" style="margin-bottom: 20px;">Selecione a pasta do projeto (recomendado) ou apenas o arquivo CSV.</p>
-                        
-                        <div class="drop-zone drop-zone-highlight" id="pastaProjetoDropZone">
-                            <p>📁 <b>Selecionar Pasta do Projeto</b></p>
-                            <p class="drop-desc">Carrega CSV, mídias e configurações automaticamente</p>
+                        <p class="step-desc" style="margin-bottom: 20px;">Selecione a pasta do projeto, no formato CSV ou CLDF.</p>
+
+                        <div class="drop-zone drop-zone-highlight drop-zone-projeto" id="pastaProjetoDropZone">
+                            <div class="drop-zone-projeto-icone">📁</div>
+                            <p><b>Selecionar ou arrastar a pasta do projeto</b></p>
+                            <div class="formatos-projeto">
+                                <div class="formato-projeto">
+                                    <span class="formato-projeto-titulo">📊 CSV</span>
+                                    <span class="formato-projeto-desc">dicionario.csv + mídias e configurações</span>
+                                </div>
+                                <div class="formato-projeto">
+                                    <span class="formato-projeto-titulo">🌍 CLDF</span>
+                                    <span class="formato-projeto-desc">metadata.json + tabelas (entries, senses, forms…) + mídias</span>
+                                </div>
+                            </div>
+                            <p class="drop-desc">O formato é detectado automaticamente</p>
                             <input type="file" id="filePastaProjeto" webkitdirectory multiple style="display:none">
                         </div>
 
-                        <div class="divider-text" style="margin: 20px 0; text-align: center;"><span>ou</span></div>
-
-                        <div style="display: grid; grid-template-columns: 1fr; gap: 15px;">
-                            <div class="drop-zone" id="csvDropZone">
-                                <p>📄 Arraste o <b>dicionario.csv</b> aqui</p>
-                                <input type="file" id="fileCsv" accept=".csv" style="display:none">
-                            </div>
-                        </div>
-                        
                         <div class="mini-stats" style="margin-top: 15px;">
+                            <span id="formatoDetectado" class="formato-detectado" style="display:none"></span>
                             <span id="csvLinhas">0 linhas</span>
                             <span id="csvColunas">0 colunas</span>
                             <span id="csvCategorias">0 categorias</span>
@@ -2620,60 +2623,50 @@
         
         // Vincula botões HTML aos Eventos do Carregador de Arquivos (Upload)
         const filePastaProj = document.getElementById('filePastaProjeto');
+
+        // Fluxo único do Passo 1 (seleção ou arraste da pasta): o carregador detecta CSV ou CLDF
+        const NOMES_FORMATO = { csv: '📊 Projeto CSV', cldf: '🌍 Projeto CLDF', projeto: '💾 Projeto salvo' };
+        const processarPastaProjeto = async (arquivos) => {
+            if (!arquivos || arquivos.length === 0) return;
+            const numArquivos = arquivos.length;
+            window.mostrarLoader('Processando Projeto', 'Lendo a estrutura da pasta e arquivos...');
+            // Permite que o navegador renderize o modal antes de travar a thread
+            await new Promise(r => setTimeout(r, 50));
+
+            try {
+                await window.carregadorPasta.carregarPasta(arquivos);
+                if(window.preencherUIComMetadados) window.preencherUIComMetadados();
+                if(window.atualizarUIIconeApp) window.atualizarUIIconeApp();
+
+                const nomeFormato = NOMES_FORMATO[window.carregadorPasta.formatoDetectado];
+                const formatoEl = document.getElementById('formatoDetectado');
+                if (formatoEl) {
+                    formatoEl.textContent = nomeFormato ? `${nomeFormato} detectado` : '';
+                    formatoEl.style.display = nomeFormato ? '' : 'none';
+                }
+
+                if (window.adicionarLogAoTerminal) {
+                    const stats = window.sistema ? window.sistema.obterEstatisticas() : null;
+                    const numRegistros = stats ? stats.totalBases : 0;
+                    const sufixoFormato = nomeFormato ? ` — ${nomeFormato}` : '';
+                    window.adicionarLogAoTerminal(`✅ Passo 1 Concluído! Pasta processada (${numArquivos} arquivos, ${numRegistros} registros)${sufixoFormato}.`, 'info');
+                }
+
+                // Avança para a aba "Mídias e Validação"
+                if (window.irParaPasso) {
+                    window.irParaPasso(2);
+                }
+            } finally {
+                window.ocultarLoader();
+            }
+        };
+
         if (filePastaProj) {
             filePastaProj.addEventListener('change', async e => {
-                if (e.target.files.length > 0) {
-                    const numArquivos = e.target.files.length;
-                    window.mostrarLoader('Processando Projeto', 'Lendo a estrutura da pasta e arquivos...');
-                    // Permite que o navegador renderize o modal antes de travar a thread
-                    await new Promise(r => setTimeout(r, 50));
-                    
-                    try {
-                        await window.carregadorPasta.carregarPasta(e.target.files);
-                        if(window.preencherUIComMetadados) window.preencherUIComMetadados();
-                        if(window.atualizarUIIconeApp) window.atualizarUIIconeApp();
-
-                        if (window.adicionarLogAoTerminal) {
-                            const stats = window.sistema ? window.sistema.obterEstatisticas() : null;
-                            const numRegistros = stats ? stats.totalBases : 0;
-                            window.adicionarLogAoTerminal(`✅ Passo 1 Concluído! Pasta processada (${numArquivos} arquivos, ${numRegistros} registros).`, 'info');
-                        }
-                        
-                        // Avança para a aba "Mídias e Validação"
-                        if (window.irParaPasso) {
-                            window.irParaPasso(2);
-                        }
-                        
-                    } finally {
-                        window.ocultarLoader();
-                        e.target.value = ''; // Limpa o input
-                    }
-                }
-            });
-        }
-        
-        const fileCsvIn = document.getElementById('fileCsv');
-        if (fileCsvIn) {
-            fileCsvIn.addEventListener('change', async e => {
-                if (e.target.files.length > 0) {
-                    window.mostrarLoader('Processando CSV', 'Lendo entradas do dicionário...');
-                    await new Promise(r => setTimeout(r, 50));
-                    try {
-                        await window.sistema.carregarPlanilha(e.target.files[0]);
-                        
-                        if (window.adicionarLogAoTerminal) {
-                            const stats = window.sistema ? window.sistema.obterEstatisticas() : null;
-                            const numRegistros = stats ? stats.totalBases : 0;
-                            window.adicionarLogAoTerminal(`✅ Passo 1 Concluído! Planilha carregada (${numRegistros} registros).`, 'info');
-                        }
-                        
-                        if (window.irParaPasso) {
-                            window.irParaPasso(2);
-                        }
-                    } finally {
-                        window.ocultarLoader();
-                        e.target.value = ''; // Limpa o input
-                    }
+                try {
+                    await processarPastaProjeto(e.target.files);
+                } finally {
+                    e.target.value = ''; // Limpa o input
                 }
             });
         }
@@ -2714,31 +2707,11 @@
         // -----------------------------------------
 
         // Engatilha os inputs escondidos nas DropZones
-        const csvDrop = document.getElementById('csvDropZone');
-        if (csvDrop && fileCsvIn) {
-            csvDrop.addEventListener('click', () => { fileCsvIn.value = null; fileCsvIn.click(); });
-            fileCsvIn.addEventListener('click', e => e.stopPropagation());
-            setupDropZone(csvDrop, files => {
-                fileCsvIn.files = files;
-                fileCsvIn.dispatchEvent(new Event('change', { bubbles: true }));
-            });
-        }
-
         const pastaDrop = document.getElementById('pastaProjetoDropZone');
         if (pastaDrop && filePastaProj) {
             pastaDrop.addEventListener('click', () => { filePastaProj.value = null; filePastaProj.click(); });
             filePastaProj.addEventListener('click', e => e.stopPropagation());
-            setupDropZone(pastaDrop, async files => {
-                // Emula o processo da pasta
-                window.mostrarLoader('Processando Projeto', 'Lendo a estrutura da pasta e arquivos...');
-                try {
-                    await window.carregadorPasta.carregarPasta(files);
-                    if(window.preencherUIComMetadados) window.preencherUIComMetadados();
-                    if(window.atualizarUIIconeApp) window.atualizarUIIconeApp();
-                } finally {
-                    window.ocultarLoader();
-                }
-            });
+            setupDropZone(pastaDrop, processarPastaProjeto);
         }
 
         // Configura áreas de mídia para aceitarem drop
@@ -2770,6 +2743,7 @@
                 document.getElementById('csvLinhas').textContent = '0 linhas';
                 document.getElementById('csvColunas').textContent = '0 colunas';
                 document.getElementById('csvCategorias').textContent = '0 categorias';
+                document.getElementById('formatoDetectado').style.display = 'none';
                 document.getElementById('badgeCsv').textContent = 'Pendente';
                 document.getElementById('badgeCsv').className = 'step-badge';
             }

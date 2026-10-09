@@ -418,6 +418,35 @@ body {
 .drop-zone p { font-size: 1.1rem; color: var(--text-main); margin-bottom: 8px; }
 .drop-zone .drop-desc { font-size: 0.9rem; color: var(--text-muted); }
 
+/* Área única de importação do Passo 1 (CSV ou CLDF) */
+.drop-zone.drop-zone-projeto { padding: 48px 24px; }
+.drop-zone-projeto-icone { font-size: 2.6rem; line-height: 1; margin-bottom: 12px; }
+.drop-zone.drop-zone-projeto > p:first-of-type { font-size: 1.2rem; margin-bottom: 0; }
+.formatos-projeto {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    max-width: 560px;
+    margin: 20px auto 16px;
+}
+.formato-projeto {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-primary, #fff);
+}
+.formato-projeto-titulo { font-weight: 600; color: var(--text-main); }
+.formato-projeto-desc { font-size: 0.85rem; color: var(--text-muted); }
+.mini-stats .formato-detectado { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+
+@media (max-width: 600px) {
+    .drop-zone.drop-zone-projeto { padding: 32px 16px; }
+    .formatos-projeto { grid-template-columns: 1fr; }
+}
+
 .mini-stats {
     display: flex;
     gap: 16px;
