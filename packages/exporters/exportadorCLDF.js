@@ -380,6 +380,52 @@ export class ExportadorCLDF extends ExportadorBase {
             }
         });
 
+        if (this.db.vfs && this.db.vfs.textosExtra) {
+            Object.values(this.db.vfs.textosExtra).forEach(texto => {
+                if (texto.textos_variacoes && Array.isArray(texto.textos_variacoes)) {
+                    texto.textos_variacoes.forEach((v, vIdx) => {
+                        if (v.frases && Array.isArray(v.frases)) {
+                            v.frases.forEach((f, idx) => {
+                                let mId = '';
+                                let urlOrPath = '';
+                                if (f.audio) {
+                                    if (f.audio.dados) {
+                                        const formato = f.audio.formato || 'mp3';
+                                        urlOrPath = f.audio.dados.startsWith('data:') ? f.audio.dados : `data:audio/${formato};base64,${f.audio.dados}`;
+                                    } else if (f.audio.URL || f.audio.arquivo) {
+                                        urlOrPath = f.audio.URL || f.audio.arquivo;
+                                    }
+                                }
+                                if (urlOrPath) {
+                                    let fileName = f.audio && f.audio.arquivo ? f.audio.arquivo : null;
+                                    if (!fileName && f.arquivo_origem) {
+                                        const ext = (f.audio && f.audio.formato) ? f.audio.formato : 'mp3';
+                                        const baseOrigem = f.arquivo_origem.replace(/\.[^/.]+$/, "");
+                                        const fraseId = f.id ? f.id : String(idx).padStart(2, '0');
+                                        fileName = `${baseOrigem}_${fraseId}.${ext}`;
+                                    }
+                                    mId = addMedia(urlOrPath, fileName);
+                                }
+                                const cleanId = texto.titulo_base ? texto.titulo_base.replace(/[^a-zA-Z0-9]/g, '_') : 'UNK';
+                                const newExId = "EX_TXT_" + cleanId + "_" + vIdx + "_" + idx;
+                                examples.push({
+                                    ID: newExId,
+                                    Sense_ID: '', 
+                                    Primary_Text: f.texto_original || f.original || f.ORIGINAL || '',
+                                    Translated_Text: f.traducao || f.TRADUCAO || '',
+                                    Media_ID: mId,
+                                    Structured_Text_ID: texto.titulo_base || '',
+                                    Text_Title: texto.titulo_exibicao || texto.titulo_base || '',
+                                    Text_Non_Literal: texto.texto_nao_literal || '',
+                                    Phrase_Order: idx + 1
+                                });
+                            });
+                        }
+                    });
+                }
+            });
+        }
+
         const cldfFolder = zip.folder("cldf");
         const mediaZipFolder = cldfFolder.folder("media");
         const audioFolder = mediaZipFolder.folder("AUDIO");
@@ -456,13 +502,17 @@ export class ExportadorCLDF extends ExportadorBase {
         ].concat(extraColsSenseArr.map(k => ({ "name": k })));
         const senseFiltered = filterEmptyCols(senseCols, senseSchema, senses);
 
-        const exampleCols = ["ID", "Sense_ID", "Primary_Text", "Translated_Text", "Media_ID"];
+        const exampleCols = ["ID", "Sense_ID", "Primary_Text", "Translated_Text", "Media_ID", "Structured_Text_ID", "Text_Title", "Text_Non_Literal", "Phrase_Order"];
         const exampleSchema = [
             {"name": "ID", "required": true, "propertyUrl": "http://cldf.clld.org/v1.0/terms.rdf#id"},
-            {"name": "Sense_ID", "required": true, "propertyUrl": "http://cldf.clld.org/v1.0/terms.rdf#senseReference", "separator": ","},
+            {"name": "Sense_ID", "propertyUrl": "http://cldf.clld.org/v1.0/terms.rdf#senseReference", "separator": ","},
             {"name": "Primary_Text", "propertyUrl": "http://cldf.clld.org/v1.0/terms.rdf#primaryText"},
             {"name": "Translated_Text", "propertyUrl": "http://cldf.clld.org/v1.0/terms.rdf#translatedText"},
-            {"name": "Media_ID", "propertyUrl": "http://cldf.clld.org/v1.0/terms.rdf#mediaReference", "separator": ","}
+            {"name": "Media_ID", "propertyUrl": "http://cldf.clld.org/v1.0/terms.rdf#mediaReference", "separator": ","},
+            {"name": "Structured_Text_ID"},
+            {"name": "Text_Title"},
+            {"name": "Text_Non_Literal"},
+            {"name": "Phrase_Order", "datatype": "integer"}
         ];
         const exampleFiltered = filterEmptyCols(exampleCols, exampleSchema, examples);
 
@@ -492,10 +542,6 @@ export class ExportadorCLDF extends ExportadorBase {
 
         if (ambiguidadeConcepticon.length > 0) {
             cldfFolder.file("revisao_concepticon.txt", ambiguidadeConcepticon.join('\n'));
-        }
-
-        if (this.db.vfs && this.db.vfs.textosExtra && Object.keys(this.db.vfs.textosExtra).length > 0) {
-            cldfFolder.file("textos.json", JSON.stringify(this.db.vfs.textosExtra, null, 2));
         }
 
         if (opcoes.metadados && opcoes.metadados.introMd) {
