@@ -2154,7 +2154,7 @@
             };
             cancelBtn.onclick = handleCancel;
 
-            btn.onclick = () => {
+            btn.onclick = async () => {
                 const map = {};
                 extraCols.forEach(col => {
                     const usePrefix = document.getElementById(`chk_prefix_${col.id}`).checked;
@@ -2176,6 +2176,8 @@
                 });
                 modal.style.display = 'none';
                 if (window.mostrarLoader) window.mostrarLoader('Processando Projeto', 'Finalizando importação CLDF...');
+                // Permite que o navegador renderize a animação do loader antes de travar a thread com o processamento do CLDF
+                await new Promise(r => setTimeout(r, 60));
                 resolve(map);
             };
             
