@@ -32,6 +32,9 @@ jobs:
           cp -r assets   dist/assets
           cp -r config   dist/config
           cp -r vendor   dist/vendor
+          mkdir -p dist/concepticon-cldf
+          cp concepticon-cldf/concepticon.csv dist/concepticon-cldf/
+          cp concepticon-cldf/glosses.csv     dist/concepticon-cldf/
           # Desativa processamento Jekyll (necessário para arquivos com _ no nome)
           touch dist/.nojekyll
 
