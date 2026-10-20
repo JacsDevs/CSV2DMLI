@@ -50,7 +50,7 @@ export class TauriPlatform {
             console.error('Erro ao salvar no Desktop, usando fallback web:', err);
             alert(
                 `Não foi possível salvar em "${nomeArquivo}" no local escolhido.\n` +
-                `O arquivo foi baixado para a pasta padrão de Downloads.\n\n` +
+                `Será usado o salvamento do navegador como alternativa.\n\n` +
                 `Detalhe técnico: ${err && err.message ? err.message : err}`
             );
             return new BrowserPlatform().salvarArquivo(nomeArquivo, blob);

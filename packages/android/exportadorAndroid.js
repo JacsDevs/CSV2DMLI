@@ -1,6 +1,6 @@
 // Orquestrador de geração de AAB 100% no browser.
 // Coordena: carregamento do template, injeção de conteúdo, AXML patching,
-// assinatura v1 + v2 e download do arquivo final.
+// assinatura v1 + v2 e montagem do zip final (salvo pela tela de conclusão).
 //
 // Memória: AAB, APK e o zip final são montados como Blobs compostos por partes
 // (montadorPacote.js / zipUtil.js). Mídias recebidas como File/Blob não são
@@ -12,7 +12,6 @@ import { InjetorAab, gerarIconesDensidades } from './injetorAab.js';
 import { montarPacoteAssinado, CacheHashes } from './montadorPacote.js';
 import { montarZipStored, verificarCancelamento, somarTamanhos } from './zipUtil.js';
 import { deveUsarPacoteMidia, formatarTamanho } from './limitesTamanho.js';
-import { platform }     from '../platform/index.js';
 import { redimensionarParaPng } from '../core/iconeUtil.js';
 
 // Ícone da ficha da Play Store: PNG 512×512, até 1 MB (o Google aplica a máscara)
@@ -236,20 +235,14 @@ export class ExportadorAndroid {
         const blobZip = await montarZipStored(arquivosZip, { sinal });
         verificarCancelamento(sinal);
 
-        // A partir daqui não há mais cancelamento: o arquivo está sendo gravado
-        onProgress(95, `Salvando ${nomeZip} (${formatarTamanho(blobZip.size)})…`);
-        const salvo = await platform.salvarArquivo(nomeZip, blobZip, {
-            onProgress: (gravado, total) => onProgress(95 + Math.floor(4 * gravado / Math.max(1, total)),
-                `Salvando ${nomeZip} — ${formatarTamanho(gravado)} de ${formatarTamanho(total)}`),
-        });
-
         onProgress(100, 'Concluído!');
         return {
             zip: nomeZip, aab: nomeAab, apk: nomeApk, p12: nomeP12,
             capturas: nomesCapturas, iconeLoja: iconeLoja ? iconeLoja.nome : null,
             leiaMe: ARQUIVO_LEIA_ME,
             pastas: { publicar: PASTA_PUBLICAR, loja: PASTA_LOJA, instalar: PASTA_INSTALAR },
-            salvo: salvo !== false,
+            // O zip não é salvo aqui: a tela de conclusão oferece o botão "Salvar"
+            blob: blobZip,
             usarPacoteMidia,
             tamanhos: { aab: aab.tamanho, apk: apk.tamanho, zip: blobZip.size },
         };
