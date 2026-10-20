@@ -1723,13 +1723,13 @@
     };
     // Ouvinte do Web Worker (Passo 3)
     window.addEventListener('exportacaoProgresso', (e) => {
-        const { progresso, total } = e.detail;
+        const { progresso, total, mensagem } = e.detail;
         const loaderDesc = document.getElementById('loaderDesc');
         const loader = document.getElementById('globalLoader');
-        
+
         const percent = Math.round((progresso / total) * 100);
         if (loader && loader.style.display !== 'none' && loaderDesc) {
-            loaderDesc.textContent = `Processando mídias (Base64): ${progresso}/${total} (${percent}%)`;
+            loaderDesc.textContent = mensagem || `Processando mídias (Base64): ${progresso}/${total} (${percent}%)`;
         }
     });
     
@@ -1737,6 +1737,9 @@
     
     window.fecharModalGenerico = function() {
         document.getElementById('modalOverlay').style.display = 'none';
+        // URLs blob: da prévia de exportação HTML (página e mídias do VFS)
+        (window._urlsPreviewExportacao || []).forEach(url => URL.revokeObjectURL(url));
+        window._urlsPreviewExportacao = null;
         const modalBox = document.getElementById('modalBox');
         modalBox.style.width = '';
         modalBox.style.maxWidth = '';
@@ -2202,7 +2205,12 @@
             try {
                 let htmlGerado;
                 const metadadosExport = coletarMetadadosExportacao();
-                htmlGerado = await window.exportador.exportarHtmlCards({ embutirMidias: embutir, metadados: metadadosExport });
+                // Com mídias embutidas, a prévia segue o gerador de APK: mídias referenciadas por
+                // URL blob:, sem converter nada para Base64. O HTML embutido só é gerado ao baixar.
+                const urlsPreview = [];
+                htmlGerado = embutir
+                    ? await window.exportador.exportarHtmlCards({ embutirMidias: false, midiasComoUrl: true, urlsCriadas: urlsPreview, metadados: metadadosExport })
+                    : await window.exportador.exportarHtmlCards({ embutirMidias: false, metadados: metadadosExport });
                 nomeArquivo = embutir ? 'dicionario-cards-embutido.html' : 'dicionario-cards.zip';
 
                 let htmlPreview = htmlGerado;
@@ -2305,13 +2313,18 @@
                     const previewUrl = URL.createObjectURL(previewBlob);
                     previewContentHtml = `<iframe style="width: 100%; height: 100%; border: none; background: white;" src="${previewUrl}"></iframe>`;
                 } else {
-                    conteudoParaBaixar = htmlGerado;
+                    // Gerado só no clique em "Baixar", gravado em streaming direto no arquivo:
+                    // com muitas mídias pesadas o HTML não cabe numa string (nem na memória).
+                    conteudoParaBaixar = (destino) => window.exportador.gravarHtmlCardsEmbutido(destino, { metadados: metadadosExport });
                     mimeType = 'text/html;charset=utf-8';
                     modalTitle = 'Pré-visualização do Site HTML';
                     const previewBlob = new Blob([htmlPreview], { type: 'text/html;charset=utf-8' });
                     const previewUrl = URL.createObjectURL(previewBlob);
+                    urlsPreview.push(previewUrl);
                     previewContentHtml = `<iframe style="width: 100%; height: 100%; border: none; background: white;" src="${previewUrl}"></iframe>`;
                 }
+                // Revogadas ao fechar o modal (fecharModalGenerico)
+                window._urlsPreviewExportacao = urlsPreview;
             } catch (e) {
                 console.error(e);
                 alert('Erro ao gerar HTML: ' + e.message);
@@ -2399,10 +2412,45 @@
         }
     };
 
-    window.baixarArquivoGerado = function() {
+    window.baixarArquivoGerado = async function() {
         if (!window.arquivoParaBaixarAtual || !window.exportador) return;
         const { conteudo, nomeArquivo, mimeType } = window.arquivoParaBaixarAtual;
-        
+
+        // Conteúdo pesado (HTML com mídias embutidas) chega como função que grava direto
+        // no arquivo escolhido. O "Salvar como" abre antes de qualquer espera: depois de
+        // um processamento longo o clique já não vale como gesto do usuário.
+        if (typeof conteudo === 'function') {
+            const destino = await window.exportador.abrirDestinoArquivo(nomeArquivo, mimeType);
+            if (!destino) return; // cancelado pelo usuário
+            window.mostrarLoader('Gerando HTML', 'Preparando os dados do dicionário...');
+            let finalizando = false;
+            try {
+                await conteudo(destino);
+                finalizando = true;
+                // Ao fechar, o navegador move o arquivo temporário para o destino e pode
+                // verificá-lo inteiro (segurança/antivírus): com arquivos grandes, demora
+                window.mostrarLoader('Finalizando arquivo', 'O navegador está concluindo a gravação e pode verificar o arquivo. Com arquivos grandes isso pode levar alguns minutos.');
+                const inicioFechar = performance.now();
+                console.log('⏳ HTML embutido: finalizando o arquivo...');
+                const resultado = await destino.fechar();
+                console.log(`✅ HTML embutido: arquivo finalizado em ${((performance.now() - inicioFechar) / 1000).toFixed(1)}s`);
+                if (resultado && resultado.erroLocalEscolhido) {
+                    alert(`O navegador não conseguiu concluir a gravação no local escolhido, então o arquivo "${nomeArquivo}" foi entregue pelo gerenciador de downloads do navegador (normalmente a pasta Downloads). Acompanhe o download pela barra/lista de downloads.\n\nDetalhe técnico: ${resultado.erroLocalEscolhido.message}`);
+                }
+            } catch (e) {
+                console.error(e);
+                try { await destino.abortar(); } catch (_) { /* destino já inválido */ }
+                alert(finalizando
+                    ? 'Erro ao finalizar o arquivo HTML (o conteúdo foi gerado, mas o navegador não conseguiu concluir a gravação no local escolhido): ' + e.message
+                    : 'Erro ao gerar HTML: ' + e.message);
+                return;
+            } finally {
+                window.ocultarLoader();
+            }
+            window.fecharModalGenerico();
+            return;
+        }
+
         if (conteudo instanceof Blob) {
             window.exportador.salvarArquivoBlob(conteudo, nomeArquivo);
         } else {

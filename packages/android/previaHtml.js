@@ -14,6 +14,8 @@ const RE_DICIONARIO_MIDIAS = /(window\.DicionarioMidias\s*=\s*)(.*);(?=\s*\n)/;
 // Base64 pode aparecer com "/" escapado ("\/") dentro de strings JS/JSON; a barra
 // invertida só é consumida quando seguida de "/" para não quebrar aspas escapadas.
 const RE_DATA_URI = /data:(video|audio|image)\/[^;,"'\s\\]+(?:;[^;,"'\s\\]+)*;base64,(?:[A-Za-z0-9+=]|\\?\/)+/g;
+// Vídeos embutidos em blocos inertes (ver exporters/runtimeMidiasEmbutidas.js)
+const RE_BLOCO_VIDEO = /<script type="application\/octet-stream" data-midia="(\d+)"[^>]*>[^<]*<\/script>\s*/g;
 
 const jsonSeguro = (obj) => JSON.stringify(obj).replace(/<\//g, '<\\/');
 
@@ -78,6 +80,14 @@ export function processarHtmlPrevia(texto, { limiteEntradas = 0, removerVideos =
         }
         return uri;
     });
+    if (removerVideos) {
+        const blocosRemovidos = new Set();
+        texto = texto.replace(RE_BLOCO_VIDEO, (bloco, numero) => {
+            blocosRemovidos.add(numero);
+            return '';
+        });
+        videosRemovidos += blocosRemovidos.size;
+    }
 
     return { html: texto, totalEntradas, entradasMantidas, videosRemovidos, midiasGrandesRemovidas };
 }

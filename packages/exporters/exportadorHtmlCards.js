@@ -60,6 +60,12 @@ class ExportadorHtmlCards extends ExportadorBase {
                 } catch(e) { console.warn('Fetch de config/templates/estilos-globais.css falhou, usando fallback.'); }
             }
 
+            // O Live Server (VS Code) injeta um script de recarga automática em todo .html que
+            // serve; sem isso ele iria para a prévia e para o HTML exportado.
+            if (this.templatePrincipal) {
+                this.templatePrincipal = this.templatePrincipal.replace(/<!-- Code injected by live-server -->\s*<script[^>]*>[\s\S]*?<\/script>\s*/gi, '');
+            }
+
             // Fallback de emergência caso os templates não sejam encontrados
             if (!this.templatePrincipal) {
                 this.templatePrincipal = `<!DOCTYPE html>
@@ -192,7 +198,9 @@ class ExportadorHtmlCards extends ExportadorBase {
 
         const scriptsDados = await this.gerarScriptsDados(opcoes.embutirMidias, entradasLimitadas, {
             comoUrl: !!opcoes.midiasComoUrl,
-            urlsCriadas: opcoes.urlsCriadas
+            urlsCriadas: opcoes.urlsCriadas,
+            comoPartes: !!opcoes.comoPartes,
+            midiasPorMarcador: opcoes.midiasPorMarcador
         });
 
         // O template atual monta os cards via JS a partir dos scripts de dados; o corpo
@@ -239,13 +247,17 @@ class ExportadorHtmlCards extends ExportadorBase {
     // - cachePrevia: objeto mantido pelo chamador; guarda dados e corpo já gerados para
     //   que mudanças só de metadados (nome, ícone) não reprocessem entradas e mídias.
     //   O chamador descarta o objeto quando os dados puderem ter mudado.
+    // - comoPartes: devolve uma lista de strings em vez de uma string única (os scripts de
+    //   dados nunca são concatenados) — usada por gravarEmbutido.
+    // - midiasPorMarcador: { prefixo, mapa }: mídias embutidas viram marcadores em vez de
+    //   Base64 (ver gerarScriptsDadosEmLotes e gravarEmbutido).
     async exportar(opcoes = {}) {
         if (!this.db.bancoDados) throw new Error('Banco de dados não gerado');
         if (!this.templatePrincipal) throw new Error('Template principal HTML não carregado');
 
         const limitePreview = opcoes.limitePreview;
         const cache = opcoes.cachePrevia || null;
-        const chaveCache = [limitePreview || 0, !!opcoes.embutirMidias, !!opcoes.midiasComoUrl, this.templatePrincipal.length].join('|');
+        const chaveCache = [limitePreview || 0, !!opcoes.embutirMidias, !!opcoes.midiasComoUrl, !!opcoes.comoPartes, !!opcoes.midiasPorMarcador, this.templatePrincipal.length].join('|');
 
         let partes = (cache && cache.chave === chaveCache) ? cache.partes : null;
         if (!partes) {
@@ -320,8 +332,26 @@ class ExportadorHtmlCards extends ExportadorBase {
             .replace(/\{\{\s*estilos_globais\s*(\|\s*safe)?\s*\}\}/gi, this.estilosGlobais || '')
             .replace(/\{\{\s*tema\.override_claro\s*(\|\s*safe)?\s*\}\}/gi, temaOverrideClaro)
             .replace(/\{\{\s*tema\.override_escuro\s*(\|\s*safe)?\s*\}\}/gi, temaOverrideEscuro)
-            .replace(/\{\{\s*corpo_dicionario\s*(\|\s*safe)?\s*\}\}/gi, corpoHtml)
-            .replace(/\{\{\s*scripts_dados_js\s*(\|\s*safe)?\s*\}\}/gi, scriptsDados);
+            .replace(/\{\{\s*corpo_dicionario\s*(\|\s*safe)?\s*\}\}/gi, corpoHtml);
+
+        if (Array.isArray(scriptsDados)) {
+            // Marca o(s) ponto(s) de inserção e intercala os trechos do template com as
+            // partes dos scripts de dados.
+            const marcador = `\u0000SCRIPTS_DADOS_${Date.now()}\u0000`;
+            html = html.replace(/\{\{\s*scripts_dados_js\s*(\|\s*safe)?\s*\}\}/gi, () => marcador);
+            if (!html.includes(marcador) && !html.includes('window.dadosDicionarioLexical')) {
+                html = html.replace(/<\/body>\s*<\/html>/i, () => `${marcador}\n</body>\n</html>`);
+            }
+            const conteudo = [];
+            html.split(marcador).forEach((trecho, i) => {
+                // Laço em vez de push(...): dicionários grandes geram partes demais para spread
+                if (i > 0) for (const parte of scriptsDados) conteudo.push(parte);
+                conteudo.push(trecho);
+            });
+            return conteudo;
+        }
+
+        html = html.replace(/\{\{\s*scripts_dados_js\s*(\|\s*safe)?\s*\}\}/gi, scriptsDados);
 
         // Prevenção inteligente: Se o template não possui a variável {{ scripts_dados_js }}, 
         // ou já possuía mas falhou na troca, injetamos como última coisa antes de fechar o HTML
@@ -330,6 +360,147 @@ class ExportadorHtmlCards extends ExportadorBase {
         }
 
         return html;
+    }
+
+    // Grava o HTML com mídias embutidas em `destino` (ver BrowserPlatform.abrirDestino) sem
+    // nunca montá-lo inteiro na memória: o HTML é gerado com marcadores no lugar das mídias,
+    // e cada marcador é trocado na gravação pelo Base64 lido do arquivo original em pedaços.
+    // Assim nem o arquivo final nem uma mídia isolada esbarram no limite de tamanho de
+    // string do motor JS, e o uso de memória não depende do tamanho dos vídeos.
+    //
+    // Vídeos não vão inline: os dados citam só "midia:N" e o Base64 de cada vídeo é gravado
+    // em blocos inertes antes do </body>, decodificados pela página só quando o vídeo é
+    // aberto (ver runtimeMidiasEmbutidas.js). Inline, o Base64 dos vídeos passava pelo
+    // JavaScript, pelo template e pelo innerHTML ao abrir a página e estourava a memória.
+    async gravarEmbutido(destino, opcoes = {}) {
+        const prefixo = `__CSV2DMLI_MIDIA_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}_`;
+        const midiasPorMarcador = { prefixo, mapa: new Map(), videos: new Map() };
+        const MB = 1024 * 1024;
+        const inicio = performance.now();
+        const segundos = () => ((performance.now() - inicio) / 1000).toFixed(1);
+        console.log('⏳ HTML embutido: gerando dados...');
+        const partes = await this.exportar({ ...opcoes, embutirMidias: true, comoPartes: true, midiasPorMarcador });
+        const { mapa, videos } = midiasPorMarcador;
+
+        // Junta trechos pequenos para não fazer uma escrita por trecho
+        const LIMITE_BUFFER = 4 * 1024 * 1024;
+        let buffer = [];
+        let tamanhoBuffer = 0;
+        const descarregar = async () => {
+            if (!buffer.length) return;
+            const texto = buffer.join('');
+            buffer = [];
+            tamanhoBuffer = 0;
+            await destino.escrever(texto);
+        };
+        const escrever = async (texto) => {
+            if (!texto) return;
+            buffer.push(texto);
+            tamanhoBuffer += texto.length;
+            if (tamanhoBuffer >= LIMITE_BUFFER) await descarregar();
+        };
+
+        // As mídias do projeto são referências aos arquivos no disco (seleção de pasta): se um
+        // arquivo foi alterado, substituído ou movido depois de carregado, o navegador recusa a
+        // leitura. A mensagem original não diz qual arquivo nem o que fazer.
+        const lerBase64 = (arquivo, pos) => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result.slice(reader.result.indexOf(',') + 1));
+            reader.onerror = () => {
+                const nome = arquivo.webkitRelativePath || arquivo.name || 'mídia sem nome';
+                const erro = new Error(`Não foi possível ler o arquivo "${nome}". Ele provavelmente foi alterado, substituído ou movido no disco depois de ser carregado no projeto. Recarregue a pasta do projeto (ou as mídias) e gere o HTML novamente.\n\nDetalhe técnico: ${reader.error && reader.error.message}`);
+                erro.cause = reader.error;
+                reject(erro);
+            };
+            reader.readAsDataURL(arquivo.slice(pos, pos + PEDACO));
+        });
+        // Múltiplo de 3 bytes: o Base64 de cada pedaço não tem preenchimento ("=") e os
+        // pedaços concatenados formam exatamente o Base64 do arquivo inteiro.
+        const PEDACO = 3 * 2 * 1024 * 1024;
+
+        // Progresso em MB, atualizado a cada pedaço: vídeos grandes levam tempo e, contando
+        // só mídias concluídas, a tela ficava parada e parecia travada. Uma mídia citada
+        // mais de uma vez (gravada de novo) não soma ao progresso.
+        const totalBytes = [...mapa.values(), ...videos.values()].reduce((soma, a) => soma + a.size, 0);
+        let bytesGravados = 0;
+        const concluidas = new Set();
+        const avisarProgresso = (fase) => {
+            const pct = totalBytes ? Math.min(100, Math.round(bytesGravados / totalBytes * 100)) : 100;
+            window.dispatchEvent(new CustomEvent('exportacaoProgresso', { detail: {
+                progresso: bytesGravados, total: totalBytes,
+                mensagem: `${fase}: ${(bytesGravados / MB).toFixed(0)} de ${(totalBytes / MB).toFixed(0)} MB (${pct}%)`
+            } }));
+        };
+        console.log(`⏳ HTML embutido: dados prontos em ${segundos()}s; gravando ${mapa.size} mídias e ${videos.size} vídeos (${(totalBytes / MB).toFixed(0)} MB)...`);
+
+        // Grava o Base64 do arquivo em pedaços; `antesDoPedaco`/`depoisDoPedaco` envolvem cada
+        // pedaço (tags dos blocos de vídeo)
+        const gravarBase64 = async (chave, arquivo, fase, antesDoPedaco = null, depoisDoPedaco = null) => {
+            const primeiraVez = !concluidas.has(chave);
+            let pos = 0;
+            do {
+                if (antesDoPedaco) await escrever(antesDoPedaco);
+                await descarregar();
+                await destino.escrever(await lerBase64(arquivo, pos));
+                if (depoisDoPedaco) await escrever(depoisDoPedaco);
+                if (primeiraVez) bytesGravados += Math.min(PEDACO, arquivo.size - pos);
+                avisarProgresso(fase);
+                pos += PEDACO;
+            } while (pos < arquivo.size);
+            concluidas.add(chave);
+        };
+        const gravarMidia = async (marcador, arquivo) => {
+            // Mesmo prefixo que o FileReader.readAsDataURL usaria para o arquivo inteiro
+            await escrever(`data:${arquivo.type || 'application/octet-stream'};base64,`);
+            await gravarBase64(marcador, arquivo, 'Gravando áudios e imagens');
+        };
+        // Um bloco por pedaço (~8 MB de texto): a página decodifica um de cada vez
+        const gravarBlocosVideos = async () => {
+            let k = 0;
+            for (const [id, arquivo] of videos) {
+                k++;
+                const numero = id.slice('midia:'.length);
+                const tipo = this.escaparHTML(arquivo.type || 'application/octet-stream');
+                console.log(`⏳ HTML embutido: vídeo ${k}/${videos.size} "${arquivo.name || id}" (${(arquivo.size / MB).toFixed(0)} MB) — ${segundos()}s`);
+                await gravarBase64(id, arquivo, `Gravando vídeo ${k} de ${videos.size}`,
+                    `<script type="application/octet-stream" data-midia="${numero}" data-tipo="${tipo}">`, '</script>\n');
+            }
+        };
+
+        const reMarcador = new RegExp(`${prefixo}\\d+__`, 'g');
+        const escreverParte = async (parte) => {
+            if (!mapa.size || !parte.includes(prefixo)) { await escrever(parte); return; }
+            let ultimo = 0;
+            let m;
+            reMarcador.lastIndex = 0;
+            while ((m = reMarcador.exec(parte))) {
+                await escrever(parte.slice(ultimo, m.index));
+                const arquivo = mapa.get(m[0]);
+                if (arquivo) await gravarMidia(m[0], arquivo);
+                else await escrever(m[0]);
+                ultimo = m.index + m[0].length;
+            }
+            await escrever(parte.slice(ultimo));
+        };
+
+        // Os blocos dos vídeos entram antes do último </body> (ou no fim, se não houver)
+        let parteBody = -1;
+        let posBody = -1;
+        if (videos.size) {
+            for (let i = partes.length - 1; i >= 0 && parteBody < 0; i--) {
+                const pos = partes[i].lastIndexOf('</body>');
+                if (pos >= 0) { parteBody = i; posBody = pos; }
+            }
+        }
+        for (let i = 0; i < partes.length; i++) {
+            if (i !== parteBody) { await escreverParte(partes[i]); continue; }
+            await escreverParte(partes[i].slice(0, posBody));
+            await gravarBlocosVideos();
+            await escreverParte(partes[i].slice(posBody));
+        }
+        if (videos.size && parteBody < 0) await gravarBlocosVideos();
+        await descarregar();
+        console.log(`✅ HTML embutido: conteúdo gravado em ${segundos()}s`);
     }
 }
 export default ExportadorHtmlCards;

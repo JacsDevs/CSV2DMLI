@@ -109,4 +109,15 @@ export default class ModuloExportacao {
     async salvarArquivoBlob(blob, nomeArquivo) {
         return platform.salvarArquivo(nomeArquivo, blob);
     }
+
+    // Destino para gravação em streaming (null se o usuário cancelar). Chamar direto
+    // no clique do usuário, antes de gerar o conteúdo — ver BrowserPlatform.abrirDestino.
+    abrirDestinoArquivo(nomeArquivo, mimeType) {
+        return platform.abrirDestino(nomeArquivo, mimeType);
+    }
+
+    // Grava o HTML com mídias embutidas direto no destino, sem montá-lo na memória
+    async gravarHtmlCardsEmbutido(destino, opcoes = {}) {
+        return await this.exportadorCards.gravarEmbutido(destino, opcoes);
+    }
 }

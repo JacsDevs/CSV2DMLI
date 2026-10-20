@@ -5,6 +5,60 @@ const PEDACO_GRAVACAO = 8 * 1024 * 1024;
 
 export class TauriPlatform {
     /**
+     * Abre um destino para gravar o arquivo aos poucos (ver BrowserPlatform.abrirDestino).
+     * Cada escrita é anexada ao arquivo escolhido; o primeiro pedaço cria/trunca o arquivo.
+     * @param {string} nomeArquivo
+     * @param {string} mimeType
+     */
+    async abrirDestino(nomeArquivo, mimeType) {
+        let savePath;
+        try {
+            savePath = await this.#escolherCaminho(nomeArquivo);
+        } catch (err) {
+            console.error('Erro ao abrir o diálogo de salvar no Desktop, usando fallback web:', err);
+            return new BrowserPlatform().abrirDestino(nomeArquivo, mimeType);
+        }
+        if (!savePath) {
+            console.log('❌ Salvamento cancelado pelo usuário.');
+            return null;
+        }
+        const { core } = window.__TAURI__;
+        const codificador = new TextEncoder();
+        let primeiro = true;
+        const gravar = async (bytes) => {
+            await core.invoke('plugin:fs|write_file', bytes, {
+                headers: {
+                    path: encodeURIComponent(savePath),
+                    options: JSON.stringify(primeiro ? undefined : { append: true })
+                }
+            });
+            primeiro = false;
+        };
+        return {
+            escrever: (texto) => gravar(codificador.encode(texto)),
+            fechar: async () => {
+                if (primeiro) await gravar(new Uint8Array(0));
+                console.log(`✅ Arquivo salvo nativamente em: ${savePath}`);
+                return { baixadoEmDownloads: false };
+            },
+            // O arquivo parcial fica no disco; o chamador avisa o usuário do erro
+            abortar: async () => {},
+        };
+    }
+
+    async #escolherCaminho(nomeArquivo) {
+        const { core } = window.__TAURI__;
+        const ext = nomeArquivo.split('.').pop();
+        return core.invoke('plugin:dialog|save', {
+            options: {
+                title: 'Salvar Arquivo',
+                defaultPath: nomeArquivo,
+                filters: [{ name: ext.toUpperCase(), extensions: [ext] }]
+            }
+        });
+    }
+
+    /**
      * @param {string} nomeArquivo
      * @param {Blob} blob
      * @param {{ onProgress?: (gravado: number, total: number) => void }} [opcoes]
@@ -12,14 +66,7 @@ export class TauriPlatform {
     async salvarArquivo(nomeArquivo, blob, { onProgress } = {}) {
         try {
             const { core } = window.__TAURI__;
-            const ext = nomeArquivo.split('.').pop();
-            const savePath = await core.invoke('plugin:dialog|save', {
-                options: {
-                    title: 'Salvar Arquivo',
-                    defaultPath: nomeArquivo,
-                    filters: [{ name: ext.toUpperCase(), extensions: [ext] }]
-                }
-            });
+            const savePath = await this.#escolherCaminho(nomeArquivo);
             if (!savePath) {
                 console.log('❌ Salvamento cancelado pelo usuário.');
                 return false;
