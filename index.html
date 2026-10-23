@@ -709,17 +709,7 @@
                         <div class="drop-zone drop-zone-highlight drop-zone-projeto" id="pastaProjetoDropZone">
                             <div class="drop-zone-projeto-icone">📁</div>
                             <p><b>Selecionar ou arrastar a pasta do projeto</b></p>
-                            <div class="formatos-projeto">
-                                <div class="formato-projeto">
-                                    <span class="formato-projeto-titulo">📊 CSV</span>
-                                    <span class="formato-projeto-desc">dicionario.csv + mídias e configurações</span>
-                                </div>
-                                <div class="formato-projeto">
-                                    <span class="formato-projeto-titulo">🌍 CLDF</span>
-                                    <span class="formato-projeto-desc">metadata.json + tabelas (entries, senses, forms…) + mídias</span>
-                                </div>
-                            </div>
-                            <p class="drop-desc">O formato é detectado automaticamente</p>
+                            <p class="drop-desc">Importe projetos nos formatos CSV (dicionario.csv, mídias e configurações) ou CLDF (metadata.json, tabelas de dados e mídias). <br>O formato é detectado automaticamente.</p>
                             <input type="file" id="filePastaProjeto" webkitdirectory multiple style="display:none">
                         </div>
 
@@ -1403,8 +1393,13 @@
                 <p id="apkSucessoDesc" style="color:var(--text-muted); font-size:0.88em;">Os arquivos foram gerados e assinados.</p>
               </div>
 
+              <div id="apkSalvarBox" style="text-align:center; margin-bottom:20px;">
+                <button type="button" id="apkBtnSalvar" class="btn btn-primary" style="font-size:1em; padding:10px 28px;" onclick="apkSalvarZip()">Salvar</button>
+                <div id="apkSalvarStatus" style="font-size:0.82em; color:var(--text-muted); margin-top:8px;">Escolha a pasta onde o zip será salvo.</div>
+              </div>
+
               <div id="apkOnlineResultados" style="margin-bottom:16px;">
-                <h3 style="font-size:0.92em; color:var(--success); margin-bottom:10px;">⬇️ Arquivos gerados:</h3>
+                <h3 style="font-size:0.92em; color:var(--success); margin-bottom:10px;">Arquivos gerados:</h3>
                 <div id="apkOnlineDownloadLinks" style="display:flex; flex-direction:column; gap:8px;"></div>
               </div>
 
@@ -1434,7 +1429,6 @@
       <div class="apk-preview-col" id="apkPreviewCol">
         <button type="button" class="apk-preview-close-btn" onclick="apkTogglePreviewMobile(false)">✕</button>
         <div class="apk-phone-mockup">
-          <div class="apk-phone-notch"></div>
           <div class="apk-phone-screen">
             <iframe id="apkPreviewFrame" title="Preview do aplicativo" style="display:none;"></iframe>
             <div id="apkPreviewLoader" class="apk-preview-loader">
@@ -3423,6 +3417,7 @@
         btn.disabled = true;
         btnLabel.textContent = 'Gerando…';
 
+        apkDefinirZipGerado(null, null); // descarta o zip de uma geração anterior
         apkMostrarStatusInline();
         document.getElementById('apkProcessando').style.display  = 'block';
         document.getElementById('apkSucesso').style.display      = 'none';
@@ -3547,7 +3542,63 @@
         apkGerarPreviewCompleto();
     };
 
+    // ---- Salvamento do zip gerado (botão "Salvar" da tela de conclusão) ----
+    // O zip fica em memória (Blob) até o usuário escolher onde salvá-lo.
+    let _apkZipGerado = null; // { nome, blob, salvo }
+
+    function apkDefinirZipGerado(nome, blob) {
+        _apkZipGerado = nome && blob ? { nome, blob, salvo: false } : null;
+        const btn = document.getElementById('apkBtnSalvar');
+        btn.disabled = !_apkZipGerado;
+        btn.textContent = 'Salvar';
+        btn.className = 'btn btn-primary';
+        const status = document.getElementById('apkSalvarStatus');
+        status.style.color = 'var(--text-muted)';
+        status.textContent = 'Escolha a pasta onde o zip será salvo.';
+    }
+
+    window.apkSalvarZip = async function() {
+        if (!_apkZipGerado) return;
+        const { nome, blob } = _apkZipGerado;
+        const btn = document.getElementById('apkBtnSalvar');
+        const status = document.getElementById('apkSalvarStatus');
+        const { formatarTamanho } = await apkCarregarLimitesTamanho();
+        btn.disabled = true;
+        btn.textContent = 'Salvando…';
+        try {
+            const salvo = await platform.salvarArquivo(nome, blob, {
+                onProgress: (gravado, total) => {
+                    status.style.color = 'var(--text-muted)';
+                    status.textContent = `Salvando ${nome} — ${formatarTamanho(gravado)} de ${formatarTamanho(total)}`;
+                },
+            });
+            if (salvo === false) {
+                status.style.color = 'var(--text-muted)';
+                status.textContent = 'Salvamento cancelado. Clique em "Salvar…" para escolher a pasta.';
+                btn.textContent = '💾 Salvar…';
+                return;
+            }
+            _apkZipGerado.salvo = true;
+            status.style.color = 'var(--success)';
+            status.textContent = `✓ ${nome} salvo. Você pode salvar outra cópia, se quiser.`;
+            btn.textContent = '💾 Salvar outra cópia…';
+            btn.className = 'btn btn-outline';
+        } catch (e) {
+            console.error('Erro ao salvar o zip do aplicativo:', e);
+            status.style.color = 'var(--error)';
+            status.textContent = `Não foi possível salvar: ${e && e.message ? e.message : e}`;
+            btn.textContent = '💾 Tentar salvar novamente…';
+        } finally {
+            btn.disabled = false;
+        }
+    };
+
     window.fecharModalAndroid = function() {
+        if (_apkZipGerado && !_apkZipGerado.salvo
+            && !confirm('O aplicativo gerado ainda não foi salvo e será descartado. Fechar mesmo assim?')) {
+            return;
+        }
+        apkDefinirZipGerado(null, null);
         document.getElementById('modalAndroid').style.display = 'none';
         apkLimparPreview();
     };
@@ -3703,7 +3754,7 @@
             <div class="apk-prog-step pending" id="apkPS2">⬜ Carregando templates e chave…</div>
             <div class="apk-prog-step pending" id="apkPS3">⬜ Gerando e assinando o AAB…</div>
             <div class="apk-prog-step pending" id="apkPS4">⬜ Gerando e assinando o APK…</div>
-            <div class="apk-prog-step pending" id="apkPS5">⬜ Empacotando e salvando…</div>
+            <div class="apk-prog-step pending" id="apkPS5">⬜ Empacotando arquivos…</div>
         `;
 
         let htmlBytes;
@@ -3760,7 +3811,8 @@
         apkSetProg('apkPS2', 'running', 'Carregando templates e chave…');
 
         // Faixas de progresso definidas em ExportadorAndroid.gerarAmbos:
-        // 5–20 templates/chave · 20–50 AAB · 50–80 APK · 80–95 zip final · 95–100 salvamento
+        // 5–20 templates/chave · 20–50 AAB · 50–80 APK · 80–100 zip final
+        // (o salvamento é feito depois, pelo botão "Salvar" da tela de conclusão)
         const onProgress = (pct, msg) => {
             document.getElementById('apkStatusDesc').textContent = msg;
             document.getElementById('apkProgressBar').style.width = `${Math.max(0, Math.min(100, pct))}%`;
@@ -3776,8 +3828,6 @@
                 apkSetProg('apkPS4', 'done', 'APK gerado e assinado ✓');
                 apkSetProg('apkPS5', 'running', msg);
             }
-            // Durante o salvamento o arquivo já está sendo gravado: não dá mais para cancelar
-            if (pct >= 95) document.getElementById('apkBtnCancelar').style.display = 'none';
         };
 
         const exp = await _getExportador();
@@ -3825,11 +3875,11 @@
             ? '<br>As mídias passam de 500 MB e foram colocadas no <b>pacote de recursos da Play</b> (Play Asset Delivery, entregue na instalação). Nenhuma ação necessária.'
             : '';
 
-        document.getElementById('apkSucessoDesc').textContent = !arquivosGerados.salvo
-            ? 'O aplicativo foi gerado, mas o salvamento foi cancelado. Clique em "Gerar novamente" para salvar.'
-            : arquivosGerados.p12
-                ? `Arquivo baixado. Descompacte o zip e abra o ${leiaMe}: a pasta ${pastas.publicar}/ tem o AAB e o backup da chave (.p12); a pasta ${pastas.instalar}/ tem o APK.`
-                : `Arquivo baixado. Descompacte o zip e abra o ${leiaMe}: a pasta ${pastas.publicar}/ tem o AAB e a pasta ${pastas.instalar}/ tem o APK.`;
+        document.getElementById('apkSucessoDesc').textContent = arquivosGerados.p12
+            ? `Salve o zip, descompacte-o e abra o ${leiaMe}: a pasta ${pastas.publicar}/ tem o AAB e o backup da chave (.p12); a pasta ${pastas.instalar}/ tem o APK.`
+            : `Salve o zip, descompacte-o e abra o ${leiaMe}: a pasta ${pastas.publicar}/ tem o AAB e a pasta ${pastas.instalar}/ tem o APK.`;
+
+        apkDefinirZipGerado(arquivosGerados.zip, arquivosGerados.blob);
 
         // Show zip info
         const onlineLinkBox = document.getElementById('apkOnlineDownloadLinks');
@@ -3838,7 +3888,7 @@
             <div style="padding:12px 16px; background:#fff3e0; border:1px solid #ffcc80; border-radius:8px;">
               <div style="font-weight:700; color:#e65100;">📦 ${arquivosGerados.zip}</div>
               <div style="font-size:0.82em; color:#e65100; margin-top:8px;">
-                Zip baixado automaticamente, contendo:<br>
+                Conteúdo do zip:<br>
                 - <b>${leiaMe}</b>: o que é cada arquivo, como usar e o resumo dos dados preenchidos.<br>
                 - <b>${pastas.publicar}/</b>: <b>${arquivosGerados.aab}</b>, assinado com uma <b>chave temporária</b>.<br>
                 ${linhaCapturas}
@@ -3850,7 +3900,7 @@
             <div style="padding:12px 16px; background:#f0fdf4; border:1px solid #86efac; border-radius:8px;">
               <div style="font-weight:700; color:#166534;">📦 ${arquivosGerados.zip}</div>
               <div style="font-size:0.82em; color:#166534; margin-top:8px;">
-                Zip baixado automaticamente, contendo:<br>
+                Conteúdo do zip:<br>
                 - <b>${leiaMe}</b>: o que é cada arquivo, como usar e o resumo dos dados preenchidos (inclui a senha da chave).<br>
                 - <b>${pastas.publicar}/</b>: para publicar na Google Play.<br>
                 &nbsp;&nbsp;- <b>${arquivosGerados.aab}</b>: envie ao Google Play Console.<br>
