@@ -3050,7 +3050,12 @@
             if (nomeArquivo.startsWith('data:') || nomeArquivo.startsWith('blob:')) {
                 return nomeArquivo;
             }
-            
+
+            // Vídeo embutido em blocos ("midia:N"), decodificado só ao ser aberto
+            if (typeof window.ehMidiaEmbutida === 'function' && window.ehMidiaEmbutida(nomeArquivo)) {
+                return nomeArquivo;
+            }
+
             // Se já tiver a pasta no caminho (ex: foto/gato.jpg)
             if (nomeArquivo.startsWith(pasta + '/')) {
                 return nomeArquivo;
@@ -3058,13 +3063,21 @@
             
             const midias = window.DicionarioMidias || {};
             const fonte = midias[nomeArquivo];
-            
+
             if (fonte) {
                 return fonte;
             }
-            
+
             // Fallback: caminho relativo
             return `${pasta}/${nomeArquivo}`;
+        }
+
+        // Converte um vídeo embutido ("midia:N") em URL tocável; demais valores voltam iguais
+        function obterUrlTocavel(src) {
+            if (typeof window.ehMidiaEmbutida === 'function' && window.ehMidiaEmbutida(src)) {
+                return window.obterUrlMidiaEmbutida(src);
+            }
+            return Promise.resolve(src);
         }
 
         function criarCard(item) {
@@ -3764,12 +3777,29 @@
             if (use) use.setAttribute('href', '#ic-play');
         }
 
-        function abrirModalVideoEntrada(src, botao) {
+        let videoOverlaySolicitacao = 0;
+        async function abrirModalVideoEntrada(src, botao) {
             if (!src) return;
             // Clicar no mesmo botão enquanto o vídeo está aberto funciona como fechar
             if (videoOverlay.classList.contains('ativo') && videoOverlayBotaoAtual === botao) {
                 fecharModalVideoEntrada();
                 return;
+            }
+            // Vídeo embutido: decodifica antes de tocar (o primeiro play pode levar alguns segundos)
+            const solicitacao = ++videoOverlaySolicitacao;
+            if (typeof window.ehMidiaEmbutida === 'function' && window.ehMidiaEmbutida(src)) {
+                if (botao) botao.style.cursor = 'progress';
+                try {
+                    src = await obterUrlTocavel(src);
+                } catch (e) {
+                    console.error(e);
+                    mostrarToast('Não foi possível carregar o vídeo.');
+                    return;
+                } finally {
+                    if (botao) botao.style.cursor = '';
+                }
+                // Outro vídeo foi pedido enquanto este carregava
+                if (solicitacao !== videoOverlaySolicitacao) return;
             }
             // Vídeo e áudio de pronúncia não tocam ao mesmo tempo
             if (audioAtual) {

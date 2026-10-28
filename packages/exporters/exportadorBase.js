@@ -1,4 +1,5 @@
 import { ehUrlRemota } from '../core/helpers.js';
+import { RUNTIME_MIDIAS_EMBUTIDAS } from './runtimeMidiasEmbutidas.js';
 
 class ExportadorBase {
     constructor(gerenciadorDados) {
@@ -212,11 +213,14 @@ class ExportadorBase {
         const tipos = { audio: 'audio/', imagem: 'foto/', video: 'video/' };
         
         if (opcoesMidia.comoUrl && this.db.vfs) {
+            // Tamanho das mídias locais: decide como gravar o HTML embutido (ver index.html)
+            this.bytesMidiasLocais = 0;
             for (const [tipo, prefixo] of Object.entries(tipos)) {
                 for (const nome of referenciadas[tipo]) {
                     if (ehUrlRemota(nome)) { midias[nome] = nome; continue; }
                     const arquivo = this.db.vfs.obterArquivo(tipo, nome);
                     if (arquivo instanceof File || arquivo instanceof Blob) {
+                        this.bytesMidiasLocais += arquivo.size;
                         const url = URL.createObjectURL(arquivo);
                         if (Array.isArray(opcoesMidia.urlsCriadas)) opcoesMidia.urlsCriadas.push(url);
                         midias[nome] = url;
@@ -237,14 +241,39 @@ class ExportadorBase {
                     }
                     const arquivo = this.db.vfs.obterArquivo(tipo, nome);
                     if (arquivo instanceof File || arquivo instanceof Blob) {
-                        arquivosParaConverter.push({ nome, arquivo });
+                        arquivosParaConverter.push({ nome, arquivo, tipo });
                     } else {
                         midias[nome] = (nome.includes("/") || nome.includes("\\") ? nome : prefixo + nome);
                     }
                 }
             }
             
-            if (arquivosParaConverter.length > 0) {
+            const marcadores = opcoesMidia.midiasPorMarcador;
+            if (marcadores && arquivosParaConverter.length > 0) {
+                // Gravação em streaming: cada mídia vira um marcador curto, trocado pelo
+                // Base64 (lido do arquivo em pedaços) só no momento de gravar — ver
+                // ExportadorHtmlCards.gravarEmbutido.
+                // Vídeos (com `marcadores.videos`) viram o identificador "midia:N" e são
+                // gravados em blocos à parte, decodificados só quando abertos — ver
+                // runtimeMidiasEmbutidas.js. O mesmo arquivo citado por nomes diferentes
+                // é gravado uma vez só.
+                const idPorVideo = new Map();
+                arquivosParaConverter.forEach((item, i) => {
+                    if (item.tipo === 'video' && marcadores.videos) {
+                        let id = idPorVideo.get(item.arquivo);
+                        if (!id) {
+                            id = `midia:${idPorVideo.size}`;
+                            idPorVideo.set(item.arquivo, id);
+                            marcadores.videos.set(id, item.arquivo);
+                        }
+                        midias[item.nome] = id;
+                        return;
+                    }
+                    const marcador = `${marcadores.prefixo}${i}__`;
+                    marcadores.mapa.set(marcador, item.arquivo);
+                    midias[item.nome] = marcador;
+                });
+            } else if (arquivosParaConverter.length > 0) {
                 console.log(`⏳ Iniciando conversão de ${arquivosParaConverter.length} mídias para Base64 na thread principal...`);
                 
                 const converterParaBase64 = (blob) => new Promise((resolve, reject) => {
@@ -303,10 +332,15 @@ class ExportadorBase {
         // que o resolverMidia() do app troca pelo Base64 — senão cada mídia seria gravada duas
         // vezes no HTML. Só vale para nomes sem pasta: um "video/x.mp4" o app devolveria como
         // caminho, sem consultar DicionarioMidias.
+        const prefixoMarcador = opcoesMidia.midiasPorMarcador && opcoesMidia.midiasPorMarcador.prefixo;
+        const videosEmBlocos = opcoesMidia.midiasPorMarcador && opcoesMidia.midiasPorMarcador.videos;
+        const ehEmbutida = (valor) => String(valor).startsWith('data:')
+            || (!!prefixoMarcador && String(valor).startsWith(prefixoMarcador))
+            || (!!videosEmBlocos && videosEmBlocos.has(String(valor)));
         const midiasParaDados = {};
         for (const [nome, valor] of Object.entries(midias)) {
             const soNome = !/[\/\\~]/.test(nome) && !nome.startsWith('data:') && !nome.startsWith('blob:');
-            midiasParaDados[nome] = (soNome && String(valor).startsWith('data:')) ? nome : valor;
+            midiasParaDados[nome] = (soNome && ehEmbutida(valor)) ? nome : valor;
         }
         this.midiasGeradas = midiasParaDados;
         const entradasConvertidas = [];
@@ -320,24 +354,42 @@ class ExportadorBase {
         // Escapa </ para evitar que dados do dicionário que contenham </script>
         // encerrem prematuramente o bloco <script> e corrompam o HTML gerado.
         const jsonSeguro = (obj) => JSON.stringify(obj).replace(/<\//g, '<\\/');
+        // Base64 de mídia não tem aspas, barra invertida nem "<": vai entre aspas sem passar
+        // por JSON.stringify/replace, que copiariam a string inteira (pode ter centenas de MB).
+        const stringJsonSegura = (valor) => (typeof valor === 'string' && valor.startsWith('data:') && !/["\\<\u0000-\u001f\u2028\u2029]/.test(valor))
+            ? ['"', valor, '"']
+            : [jsonSeguro(valor)];
+
+        // O resultado é montado como lista de partes, serializando cada mídia e cada entrada
+        // separadamente: com muitas mídias embutidas o total passa do limite de tamanho de
+        // string do motor JS ("Invalid string length"). Juntas, as partes produzem exatamente
+        // o mesmo texto que serializar os objetos inteiros.
+        const partes = [];
+        partes.push('<script>\n');
+        partes.push('window.DicionarioMidias = {');
+        Object.entries(midias).forEach(([nome, valor], i) => {
+            partes.push(i > 0 ? ',' : '', jsonSeguro(nome), ':', ...stringJsonSegura(valor));
+        });
+        partes.push('};\n');
+        let cabecalho = `window.dadosDicionarioLexical = [];\n`;
+        cabecalho += `window.templateEntradaAtivo = "${tipoAtivo}";\n`;
+        if (this.templateEntrada) cabecalho += `window.templateEntrada = ${jsonSeguro(this.templateEntrada)};\n`;
+        if (this.templateCard) cabecalho += `window.templateCard = ${jsonSeguro(this.templateCard)};\n`;
+        if (this.templateLista) cabecalho += `window.templateLista = ${jsonSeguro(this.templateLista)};\n`;
+        cabecalho += `function adicionaDados(lote) { window.dadosDicionarioLexical.push(...lote); }\n`;
+        if (videosEmBlocos && videosEmBlocos.size > 0) cabecalho += RUNTIME_MIDIAS_EMBUTIDAS;
+        cabecalho += '<\/script>\n';
+        partes.push(cabecalho);
 
         const LOTES = 50;
-        let scripts = '<script>\n';
-        scripts += `window.DicionarioMidias = ${jsonSeguro(midias)};\n`;
-        scripts += `window.dadosDicionarioLexical = [];\n`;
-        scripts += `window.templateEntradaAtivo = "${tipoAtivo}";\n`;
-        if (this.templateEntrada) scripts += `window.templateEntrada = ${jsonSeguro(this.templateEntrada)};\n`;
-        if (this.templateCard) scripts += `window.templateCard = ${jsonSeguro(this.templateCard)};\n`;
-        if (this.templateLista) scripts += `window.templateLista = ${jsonSeguro(this.templateLista)};\n`;
-        scripts += `function adicionaDados(lote) { window.dadosDicionarioLexical.push(...lote); }\n`;
-        scripts += '<\/script>\n';
-
         for (let i = 0; i < entradasConvertidas.length; i += LOTES) {
             const lote = entradasConvertidas.slice(i, i + LOTES);
-            scripts += `<script>adicionaDados(${jsonSeguro(lote)});<\/script>\n`;
+            partes.push('<script>adicionaDados([');
+            lote.forEach((entrada, j) => partes.push(j > 0 ? ',' : '', jsonSeguro(entrada)));
+            partes.push(']);<\/script>\n');
         }
 
-        return scripts;
+        return opcoesMidia.comoPartes ? partes : partes.join('');
     }
 }
 export default ExportadorBase;
