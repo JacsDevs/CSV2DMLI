@@ -213,11 +213,14 @@ class ExportadorBase {
         const tipos = { audio: 'audio/', imagem: 'foto/', video: 'video/' };
         
         if (opcoesMidia.comoUrl && this.db.vfs) {
+            // Tamanho das mídias locais: decide como gravar o HTML embutido (ver index.html)
+            this.bytesMidiasLocais = 0;
             for (const [tipo, prefixo] of Object.entries(tipos)) {
                 for (const nome of referenciadas[tipo]) {
                     if (ehUrlRemota(nome)) { midias[nome] = nome; continue; }
                     const arquivo = this.db.vfs.obterArquivo(tipo, nome);
                     if (arquivo instanceof File || arquivo instanceof Blob) {
+                        this.bytesMidiasLocais += arquivo.size;
                         const url = URL.createObjectURL(arquivo);
                         if (Array.isArray(opcoesMidia.urlsCriadas)) opcoesMidia.urlsCriadas.push(url);
                         midias[nome] = url;

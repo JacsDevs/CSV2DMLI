@@ -382,22 +382,54 @@ class ExportadorHtmlCards extends ExportadorBase {
         const partes = await this.exportar({ ...opcoes, embutirMidias: true, comoPartes: true, midiasPorMarcador });
         const { mapa, videos } = midiasPorMarcador;
 
-        // Junta trechos pequenos para não fazer uma escrita por trecho
+        // Tempo gasto lendo as mídias e escrevendo no destino, separados no log final: mostra
+        // se uma gravação lenta vem da origem (disco/antivírus na pasta do projeto) ou do destino
+        let tempoLeitura = 0;
+        let tempoEscrita = 0;
+        let escritas = 0;
+        let bytesEscritos = 0;
+        // Escritas lentas vão para o console com a posição no arquivo: distingue uma escrita
+        // presa por minutos (antivírus, cota do navegador) de muitas escritas um pouco lentas
+        const ESCRITA_LENTA_MS = 1000;
+        let escritasLentas = 0;
+        let tempoEscritasLentas = 0;
+        const escreverNoDestino = async (blob) => {
+            const t = performance.now();
+            await destino.escrever(blob);
+            const duracao = performance.now() - t;
+            tempoEscrita += duracao;
+            if (duracao >= ESCRITA_LENTA_MS) {
+                escritasLentas++;
+                tempoEscritasLentas += duracao;
+                console.warn(`🐢 HTML embutido: escrita ${escritas + 1} lenta — ${(duracao / 1000).toFixed(1)}s para ${(blob.size / MB).toFixed(1)} MB, na posição ${(bytesEscritos / MB).toFixed(0)} MB do arquivo (${segundos()}s desde o início)`);
+            }
+            escritas++;
+            bytesEscritos += blob.size;
+        };
+
+        // Junta os trechos e grava como Blob (sem concatenar strings): no máximo uma escrita a
+        // cada 4 MB, e cada pedaço de mídia sai na mesma escrita que a tag que o antecede.
+        // No começo do arquivo o limite é bem maior: com antivírus, cada escrita no arquivo
+        // temporário custava uma nova verificação do arquivo inteiro (até ~0,3 s por MB já
+        // gravado, até ele passar de ~85 MB), mesmo para poucos bytes — o custo vem do número
+        // de escritas, não do tamanho. Os primeiros 128 MB vão numa escrita só.
         const LIMITE_BUFFER = 4 * 1024 * 1024;
+        const LIMITE_BUFFER_INICIAL = 128 * 1024 * 1024;
         let buffer = [];
         let tamanhoBuffer = 0;
         const descarregar = async () => {
             if (!buffer.length) return;
-            const texto = buffer.join('');
+            const blob = new Blob(buffer);
             buffer = [];
             tamanhoBuffer = 0;
-            await destino.escrever(texto);
+            await escreverNoDestino(blob);
         };
         const escrever = async (texto) => {
             if (!texto) return;
             buffer.push(texto);
             tamanhoBuffer += texto.length;
-            if (tamanhoBuffer >= LIMITE_BUFFER) await descarregar();
+            const limite = escritas === 0 ? LIMITE_BUFFER_INICIAL : LIMITE_BUFFER;
+            if (tamanhoBuffer >= limite) await descarregar();
         };
 
         // As mídias do projeto são referências aos arquivos no disco (seleção de pasta): se um
@@ -424,7 +456,13 @@ class ExportadorHtmlCards extends ExportadorBase {
         const totalBytes = [...mapa.values(), ...videos.values()].reduce((soma, a) => soma + a.size, 0);
         let bytesGravados = 0;
         const concluidas = new Set();
+        // No máximo um aviso a cada 100 ms: com muitas mídias pequenas, um aviso por mídia
+        // atualizava a tela milhares de vezes
+        let ultimoAviso = 0;
         const avisarProgresso = (fase) => {
+            const agora = performance.now();
+            if (agora - ultimoAviso < 100) return;
+            ultimoAviso = agora;
             const pct = totalBytes ? Math.min(100, Math.round(bytesGravados / totalBytes * 100)) : 100;
             window.dispatchEvent(new CustomEvent('exportacaoProgresso', { detail: {
                 progresso: bytesGravados, total: totalBytes,
@@ -433,19 +471,39 @@ class ExportadorHtmlCards extends ExportadorBase {
         };
         console.log(`⏳ HTML embutido: dados prontos em ${segundos()}s; gravando ${mapa.size} mídias e ${videos.size} vídeos (${(totalBytes / MB).toFixed(0)} MB)...`);
 
+        // Lê um pedaço somando a duração da leitura. A rejeição fica tratada para o caso de a
+        // leitura antecipada nunca ser aguardada (erro na escrita); quem a aguarda ainda a recebe.
+        let esperaLeitura = 0;
+        const lerPedaco = (arquivo, pos) => {
+            const inicio = performance.now();
+            const leitura = lerBase64(arquivo, pos).then((base64) => {
+                tempoLeitura += performance.now() - inicio;
+                return base64;
+            });
+            leitura.catch(() => {});
+            return leitura;
+        };
+
         // Grava o Base64 do arquivo em pedaços; `antesDoPedaco`/`depoisDoPedaco` envolvem cada
-        // pedaço (tags dos blocos de vídeo)
+        // pedaço (tags dos blocos de vídeo). O próximo pedaço é lido enquanto o atual é escrito:
+        // leitura (origem) e escrita (destino) são lentas por motivos independentes (antivírus,
+        // disco), e em sequência os tempos se somavam.
         const gravarBase64 = async (chave, arquivo, fase, antesDoPedaco = null, depoisDoPedaco = null) => {
             const primeiraVez = !concluidas.has(chave);
             let pos = 0;
+            let leitura = lerPedaco(arquivo, 0);
             do {
                 if (antesDoPedaco) await escrever(antesDoPedaco);
-                await descarregar();
-                await destino.escrever(await lerBase64(arquivo, pos));
+                const inicioEspera = performance.now();
+                const base64 = await leitura;
+                esperaLeitura += performance.now() - inicioEspera;
+                const proximo = pos + PEDACO;
+                leitura = proximo < arquivo.size ? lerPedaco(arquivo, proximo) : null;
+                await escrever(base64);
                 if (depoisDoPedaco) await escrever(depoisDoPedaco);
                 if (primeiraVez) bytesGravados += Math.min(PEDACO, arquivo.size - pos);
                 avisarProgresso(fase);
-                pos += PEDACO;
+                pos = proximo;
             } while (pos < arquivo.size);
             concluidas.add(chave);
         };
@@ -501,6 +559,10 @@ class ExportadorHtmlCards extends ExportadorBase {
         if (videos.size && parteBody < 0) await gravarBlocosVideos();
         await descarregar();
         console.log(`✅ HTML embutido: conteúdo gravado em ${segundos()}s`);
+        const mbEscritos = bytesEscritos / MB;
+        console.log(`⏱️ HTML embutido: leitura das mídias ${(tempoLeitura / 1000).toFixed(1)}s (${(totalBytes / MB).toFixed(0)} MB, ${(tempoLeitura ? totalBytes / MB / (tempoLeitura / 1000) : 0).toFixed(1)} MB/s; espera pela leitura ${(esperaLeitura / 1000).toFixed(1)}s); `
+            + `escrita no destino ${(tempoEscrita / 1000).toFixed(1)}s (${escritas} escritas, ${mbEscritos.toFixed(0)} MB, ${(tempoEscrita ? mbEscritos / (tempoEscrita / 1000) : 0).toFixed(1)} MB/s; `
+            + `${escritasLentas} lentas (≥ ${ESCRITA_LENTA_MS / 1000}s) somando ${(tempoEscritasLentas / 1000).toFixed(1)}s)`);
     }
 }
 export default ExportadorHtmlCards;

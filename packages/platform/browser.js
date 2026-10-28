@@ -31,14 +31,48 @@ export class BrowserPlatform {
      * from disk") em máquinas com antivírus corporativo; se a cópia para o local escolhido
      * falhar, o arquivo já pronto é entregue pelo gerenciador de downloads (lido do disco,
      * sem passar pela memória). Sem OPFS, grava direto no local escolhido como antes.
+     *
+     * Com `emMemoria` (arquivos pequenos), o conteúdo é juntado num Blob e gravado no local
+     * escolhido de uma vez só em fechar(), sem o temporário: cada escrita e cada finalização
+     * de arquivo custam caro (antivírus), e para poucos MB a cópia via OPFS era só custo.
+     * Se a gravação falhar, o Blob é entregue pelo gerenciador de downloads.
      * @param {string} nomeArquivo
      * @param {string} mimeType
-     * @returns {Promise<{ escrever: (texto: string) => Promise<void>, fechar: () => Promise<{ baixadoEmDownloads: boolean, erroLocalEscolhido?: Error }>, abortar: () => Promise<void> } | null>}
+     * @param {{ emMemoria?: boolean }} [opcoes]
+     * @returns {Promise<{ escrever: (dados: string | Blob) => Promise<void>, fechar: () => Promise<{ baixadoEmDownloads: boolean, erroLocalEscolhido?: Error }>, abortar: () => Promise<void> } | null>}
      *          null se o usuário cancelou o diálogo
      */
-    async abrirDestino(nomeArquivo, mimeType) {
+    async abrirDestino(nomeArquivo, mimeType, { emMemoria = false } = {}) {
         const handle = await this.#escolherArquivo(nomeArquivo, mimeType);
         if (handle === false) return null;
+
+        if (emMemoria) {
+            // Cada trecho vira um Blob na hora: o navegador guarda os dados fora do heap JS
+            const partes = [];
+            return {
+                escrever: async (dados) => { partes.push(dados instanceof Blob ? dados : new Blob([dados])); },
+                fechar: async () => {
+                    const blob = new Blob(partes, { type: mimeType });
+                    partes.length = 0;
+                    if (handle) {
+                        const inicio = performance.now();
+                        try {
+                            await this.#gravarEmStreaming(handle, blob);
+                            console.log(`✅ Arquivo salvo (Modo Web, em memória): ${handle.name} — gravação no local escolhido em ${BrowserPlatform.#segundosDesde(inicio)}s`);
+                            return { baixadoEmDownloads: false };
+                        } catch (err) {
+                            console.warn('Não foi possível gravar no local escolhido; entregando pelo download:', err);
+                            try { if (typeof handle.remove === 'function') await handle.remove(); } catch (_) { /* fica vazio */ }
+                            this.#baixar(nomeArquivo, blob);
+                            return { baixadoEmDownloads: true, erroLocalEscolhido: err };
+                        }
+                    }
+                    this.#baixar(nomeArquivo, blob);
+                    return { baixadoEmDownloads: true };
+                },
+                abortar: async () => { partes.length = 0; },
+            };
+        }
 
         const temporario = await this.#abrirTemporario();
         if (temporario) {
@@ -46,20 +80,39 @@ export class BrowserPlatform {
             return {
                 escrever: (texto) => writable.write(texto),
                 fechar: async () => {
+                    const inicioTemporario = performance.now();
                     await writable.close();
                     const arquivo = await arquivoHandle.getFile();
+                    console.log(`⏱️ Temporário (OPFS) fechado em ${BrowserPlatform.#segundosDesde(inicioTemporario)}s`);
                     if (handle) {
+                        const inicioCopia = performance.now();
+                        // Marca se o erro veio da leitura do temporário ou da gravação no destino
+                        let erroNaLeitura = false;
                         try {
                             const destino = await handle.createWritable();
+                            const leitor = arquivo.stream().getReader();
+                            const origem = new ReadableStream({
+                                async pull(controller) {
+                                    let lido;
+                                    try { lido = await leitor.read(); } catch (e) { erroNaLeitura = true; throw e; }
+                                    if (lido.done) controller.close();
+                                    else controller.enqueue(lido.value);
+                                },
+                                cancel: (motivo) => leitor.cancel(motivo),
+                            });
                             // pipeTo fecha o writable ao final (ou aborta em caso de erro)
-                            await arquivo.stream().pipeTo(destino);
-                            console.log(`✅ Arquivo salvo (Modo Web): ${handle.name}`);
+                            await origem.pipeTo(destino);
+                            console.log(`✅ Arquivo salvo (Modo Web): ${handle.name} — cópia para o local escolhido em ${BrowserPlatform.#segundosDesde(inicioCopia)}s`);
                             return { baixadoEmDownloads: false };
                         } catch (err) {
-                            console.warn('Não foi possível gravar no local escolhido; entregando pelo download:', err);
+                            console.warn(`Não foi possível gravar no local escolhido (erro na ${erroNaLeitura ? 'leitura do temporário' : 'gravação no local escolhido'}, após ${BrowserPlatform.#segundosDesde(inicioCopia)}s); entregando pelo download:`, err);
                             // Remove o arquivo vazio que o "Salvar como" criou
                             try { if (typeof handle.remove === 'function') await handle.remove(); } catch (_) { /* fica vazio */ }
-                            this.#baixar(nomeArquivo, arquivo, null, BrowserPlatform.#ESPERA_REVOGAR_TEMPORARIO);
+                            // O File lido acima é uma "foto" do temporário: se algo (antivírus) mexeu
+                            // no arquivo depois de fechado, a foto fica inválida e o download dela
+                            // também falharia. O download usa uma foto nova.
+                            const arquivoAtual = await this.#reabrirTemporario(arquivoHandle, arquivo);
+                            this.#baixar(nomeArquivo, arquivoAtual, null, BrowserPlatform.#ESPERA_REVOGAR_TEMPORARIO);
                             return { baixadoEmDownloads: true, erroLocalEscolhido: err };
                         }
                     }
@@ -101,6 +154,10 @@ export class BrowserPlatform {
     // download inteiro de um arquivo de GBs
     static #ESPERA_REVOGAR_TEMPORARIO = 30 * 60 * 1000;
 
+    static #segundosDesde(inicio) {
+        return ((performance.now() - inicio) / 1000).toFixed(1);
+    }
+
     /**
      * Cria o arquivo temporário da exportação no armazenamento privado do navegador (OPFS),
      * substituindo o da exportação anterior — que fica guardado até aqui porque o download
@@ -118,6 +175,25 @@ export class BrowserPlatform {
         } catch (err) {
             console.warn('Armazenamento temporário do navegador indisponível, gravando direto no destino:', err);
             return null;
+        }
+    }
+
+    // Nova "foto" (File) do temporário, registrando se ele mudou desde a foto anterior
+    // (data ou tamanho diferentes = alguém mexeu no arquivo depois de fechado). Se não
+    // conseguir reabrir, devolve a foto anterior.
+    async #reabrirTemporario(arquivoHandle, anterior) {
+        try {
+            const atual = await arquivoHandle.getFile();
+            const mudou = atual.lastModified !== anterior.lastModified || atual.size !== anterior.size;
+            if (mudou) {
+                console.warn(`🔍 Temporário (OPFS) ALTERADO depois de fechado: data ${new Date(anterior.lastModified).toISOString()} → ${new Date(atual.lastModified).toISOString()}, tamanho ${anterior.size} → ${atual.size} bytes`);
+            } else {
+                console.log('🔍 Temporário (OPFS) sem alteração depois de fechado (mesma data e tamanho)');
+            }
+            return atual;
+        } catch (err) {
+            console.warn('🔍 Não foi possível reabrir o temporário (OPFS); o download usa a foto anterior:', err);
+            return anterior;
         }
     }
 

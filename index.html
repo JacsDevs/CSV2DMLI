@@ -2194,6 +2194,7 @@
         let modalTitle = '';
         let previewContentHtml = '';
         let conteudoParaBaixar = null;
+        let opcoesDestino = {};
         let nomeArquivo = '';
         let mimeType = 'text/plain;charset=utf-8';
         
@@ -2211,6 +2212,8 @@
                 htmlGerado = embutir
                     ? await window.exportador.exportarHtmlCards({ embutirMidias: false, midiasComoUrl: true, urlsCriadas: urlsPreview, metadados: metadadosExport })
                     : await window.exportador.exportarHtmlCards({ embutirMidias: false, metadados: metadadosExport });
+                // Lido já: outras prévias (APK) recalculam o valor
+                const bytesMidias = embutir ? window.exportador.bytesMidiasPrevia : 0;
                 nomeArquivo = embutir ? 'dicionario-cards-embutido.html' : 'dicionario-cards.zip';
 
                 let htmlPreview = htmlGerado;
@@ -2316,6 +2319,11 @@
                     // Gerado só no clique em "Baixar", gravado em streaming direto no arquivo:
                     // com muitas mídias pesadas o HTML não cabe numa string (nem na memória).
                     conteudoParaBaixar = (destino) => window.exportador.gravarHtmlCardsEmbutido(destino, { metadados: metadadosExport });
+                    // Projeto pequeno: monta o arquivo na memória e grava de uma vez, sem o
+                    // temporário no OPFS (que só compensa para arquivos enormes)
+                    const LIMITE_HTML_EMBUTIDO_EM_MEMORIA = 200 * 1024 * 1024;
+                    opcoesDestino = { emMemoria: bytesMidias < LIMITE_HTML_EMBUTIDO_EM_MEMORIA };
+                    console.log(`ℹ️ HTML embutido: ${(bytesMidias / 1024 / 1024).toFixed(1)} MB de mídias locais — gravação ${opcoesDestino.emMemoria ? 'em memória' : 'via temporário (OPFS)'}`);
                     mimeType = 'text/html;charset=utf-8';
                     modalTitle = 'Pré-visualização do Site HTML';
                     const previewBlob = new Blob([htmlPreview], { type: 'text/html;charset=utf-8' });
@@ -2390,7 +2398,7 @@
         }
         
         if (conteudoParaBaixar) {
-            window.arquivoParaBaixarAtual = { conteudo: conteudoParaBaixar, nomeArquivo, mimeType };
+            window.arquivoParaBaixarAtual = { conteudo: conteudoParaBaixar, nomeArquivo, mimeType, opcoesDestino };
             
             document.getElementById('modalBox').style.width = '95vw';
             document.getElementById('modalBox').style.maxWidth = '1400px';
@@ -2414,13 +2422,13 @@
 
     window.baixarArquivoGerado = async function() {
         if (!window.arquivoParaBaixarAtual || !window.exportador) return;
-        const { conteudo, nomeArquivo, mimeType } = window.arquivoParaBaixarAtual;
+        const { conteudo, nomeArquivo, mimeType, opcoesDestino } = window.arquivoParaBaixarAtual;
 
         // Conteúdo pesado (HTML com mídias embutidas) chega como função que grava direto
         // no arquivo escolhido. O "Salvar como" abre antes de qualquer espera: depois de
         // um processamento longo o clique já não vale como gesto do usuário.
         if (typeof conteudo === 'function') {
-            const destino = await window.exportador.abrirDestinoArquivo(nomeArquivo, mimeType);
+            const destino = await window.exportador.abrirDestinoArquivo(nomeArquivo, mimeType, opcoesDestino);
             if (!destino) return; // cancelado pelo usuário
             window.mostrarLoader('Gerando HTML', 'Preparando os dados do dicionário...');
             let finalizando = false;

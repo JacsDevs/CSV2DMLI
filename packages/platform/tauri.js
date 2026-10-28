@@ -9,14 +9,16 @@ export class TauriPlatform {
      * Cada escrita é anexada ao arquivo escolhido; o primeiro pedaço cria/trunca o arquivo.
      * @param {string} nomeArquivo
      * @param {string} mimeType
+     * @param {{ emMemoria?: boolean }} [opcoes] só usado no fallback web: aqui a gravação já
+     *        é direta no disco, sem temporário
      */
-    async abrirDestino(nomeArquivo, mimeType) {
+    async abrirDestino(nomeArquivo, mimeType, opcoes = {}) {
         let savePath;
         try {
             savePath = await this.#escolherCaminho(nomeArquivo);
         } catch (err) {
             console.error('Erro ao abrir o diálogo de salvar no Desktop, usando fallback web:', err);
-            return new BrowserPlatform().abrirDestino(nomeArquivo, mimeType);
+            return new BrowserPlatform().abrirDestino(nomeArquivo, mimeType, opcoes);
         }
         if (!savePath) {
             console.log('❌ Salvamento cancelado pelo usuário.');
@@ -35,7 +37,13 @@ export class TauriPlatform {
             primeiro = false;
         };
         return {
-            escrever: (texto) => gravar(codificador.encode(texto)),
+            // Blob grande (ex.: os primeiros 128 MB juntos) vai em pedaços, sem ser lido inteiro
+            escrever: async (dados) => {
+                if (typeof dados === 'string') return gravar(codificador.encode(dados));
+                for (let pos = 0; pos < dados.size; pos += PEDACO_GRAVACAO) {
+                    await gravar(new Uint8Array(await dados.slice(pos, pos + PEDACO_GRAVACAO).arrayBuffer()));
+                }
+            },
             fechar: async () => {
                 if (primeiro) await gravar(new Uint8Array(0));
                 console.log(`✅ Arquivo salvo nativamente em: ${savePath}`);

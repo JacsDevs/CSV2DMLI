@@ -112,8 +112,14 @@ export default class ModuloExportacao {
 
     // Destino para gravação em streaming (null se o usuário cancelar). Chamar direto
     // no clique do usuário, antes de gerar o conteúdo — ver BrowserPlatform.abrirDestino.
-    abrirDestinoArquivo(nomeArquivo, mimeType) {
-        return platform.abrirDestino(nomeArquivo, mimeType);
+    abrirDestinoArquivo(nomeArquivo, mimeType, opcoes = {}) {
+        return platform.abrirDestino(nomeArquivo, mimeType, opcoes);
+    }
+
+    // Soma dos tamanhos das mídias locais referenciadas na última prévia com
+    // `midiasComoUrl` — estimativa do tamanho do HTML embutido antes de gerá-lo
+    get bytesMidiasPrevia() {
+        return this.exportadorCards.bytesMidiasLocais || 0;
     }
 
     // Grava o HTML com mídias embutidas direto no destino, sem montá-lo na memória
