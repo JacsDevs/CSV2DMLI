@@ -111,32 +111,56 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 40px;
+    min-height: 72px;
+    padding: 12px 40px;
     background: var(--bg-card);
     border-bottom: 1px solid var(--border-color);
-    box-shadow: var(--shadow-sm);
     z-index: 10;
 }
 
 .app-header img {
-    width: clamp(60px, 6vw, 80px);
+    width: 72px;
+    height: auto;
+    display: block;
 }
 
 .logo-header {
     display: flex;
+    flex-wrap: wrap;
     width: 100%;
-    gap: 12px;
+    gap: 12px 24px;
     justify-content: space-between;
     align-items: center;
 }
 
-.app-header h1 {
-    font-size: 1.4rem;
-    font-weight: 700;
+.app-marca {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 16px;
+    min-width: 0;
+}
+
+.app-marca-divisor {
+    width: 1px;
+    height: 32px;
+    background: var(--border-color);
+}
+
+.app-marca-texto {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+}
+
+.app-header h1 {
+    font-size: 20px;
+    font-weight: 700;
     color: var(--primary);
+}
+
+.app-subtitulo {
+    font-size: 13px;
+    color: var(--text-muted);
 }
 
 .badge {
@@ -153,7 +177,75 @@ body {
 
 .header-actions {
     display: flex;
-    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Botões do cabeçalho (Histórico, Configurações) e grupo de tamanho da interface */
+.btn-cabecalho,
+.tamanho-interface {
+    min-height: var(--control-min-height);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-control);
+    background: var(--bg-card);
+    color: var(--text-strong);
+    font-family: inherit;
+}
+
+.btn-cabecalho {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 14px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.btn-cabecalho:hover { border-color: var(--border-strong); color: var(--text-main); }
+.btn-cabecalho.open { background: var(--primary-light); border-color: var(--primary-border); color: var(--primary); }
+
+.btn-cabecalho .terminal-badge {
+    position: static;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border: 0;
+    background: var(--warning-bg);
+    color: var(--warning-text);
+    font-size: 12px;
+}
+
+.tamanho-interface {
+    display: inline-flex;
+    align-items: center;
+}
+
+.tamanho-btn {
+    width: 44px;
+    height: 42px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.tamanho-btn:first-child { border-radius: var(--radius-control) 0 0 var(--radius-control); }
+.tamanho-btn:last-child { border-radius: 0 var(--radius-control) var(--radius-control) 0; }
+.tamanho-btn:hover { background: var(--bg-main); color: var(--primary); }
+.tamanho-maior { font-size: 17px; }
+
+.tamanho-valor {
+    width: auto;
+    min-width: 56px;
+    padding: 0 4px;
+    border-left: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
 }
 
 /* =========================================
@@ -295,43 +387,109 @@ body {
     overflow: hidden;
 }
 
+/* Stepper: círculo numerado + nome + estado, ligados por uma linha de progresso */
 .wizard-stepper {
     display: flex;
-    background: var(--bg-secondary);
+    align-items: center;
+    min-height: 80px;
+    padding: 12px 24px;
+    background: var(--bg-card);
     border-bottom: 1px solid var(--border-color);
+    overflow-x: auto;
 }
+
+.stepper-lista {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.step-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1 1 0;
+    min-width: 0;
+}
+.step-item:last-child { flex: 0 0 auto; }
 
 .step-indicator {
-    flex: 1;
-    text-align: center;
-    padding: 18px 10px;
-    font-weight: 600;
-    font-size: 0.95rem;
-    color: var(--text-light);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 48px;
+    padding: 4px 8px;
+    border: 0;
+    border-radius: var(--radius-control);
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    text-align: left;
     cursor: pointer;
-    transition: var(--transition);
-    border-bottom: 3px solid transparent;
     user-select: none;
-    position: relative;
+    transition: var(--transition);
 }
+.step-indicator:hover { background: var(--bg-main); }
 
-.step-indicator:hover {
-    color: var(--text-muted);
-    background: rgba(255, 255, 255, 0.5);
-}
-
-.step-indicator.active {
-    color: var(--primary);
+.step-indicator-num {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    border-radius: var(--radius-pill);
+    border: 2px solid var(--border-strong);
     background: var(--bg-card);
+    color: var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
 }
 
-.step-indicator.active::after {
-    content: '';
-    position: absolute;
-    bottom: -1px; left: 0; width: 100%; height: 3px;
-    background: var(--primary);
-    border-radius: 3px 3px 0 0;
+.step-indicator-texto {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
 }
+
+.step-indicator-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-strong);
+    white-space: nowrap;
+}
+
+.step-indicator-estado {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.step-indicator.concluida .step-indicator-num {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #ffffff;
+}
+
+.step-indicator.active .step-indicator-num {
+    border-color: var(--primary);
+    color: var(--primary);
+    box-shadow: 0 0 0 4px var(--primary-ring);
+}
+.step-indicator.active .step-indicator-title { font-weight: 700; color: var(--text-main); }
+.step-indicator.active .step-indicator-estado { font-weight: 600; color: var(--primary); }
+
+.step-linha {
+    flex: 1 1 auto;
+    min-width: 16px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--border-color);
+}
+.step-linha.feita { background: var(--primary); }
 
 .wizard-body {
     padding: 40px;
@@ -637,28 +795,6 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     width: 380px;
 }
 
-.terminal-toggle-tab {
-    position: relative;
-    background: #0f172a;
-    color: #e2e8f0;
-    border: 1px solid #1e293b;
-    border-radius: 999px;
-    width: 44px;
-    height: 44px;
-    padding: 0;
-    cursor: pointer;
-    box-shadow: var(--shadow-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    transition: background 0.2s, border-color 0.2s, transform 0.2s;
-}
-
-.terminal-toggle-tab:hover { background: #1e293b; transform: scale(1.06); }
-.terminal-toggle-tab.open { background: var(--primary); border-color: var(--primary); }
-.terminal-toggle-icon { font-size: 1.2rem; }
-
 .terminal-badge {
     position: absolute;
     top: -4px;
@@ -746,48 +882,8 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
 /* =========================================
    MISCELLANEOUS
 ========================================= */
-/* Container fixo que agrupa o botão do terminal e o controle de zoom lado a
-   lado, sempre flutuando no canto inferior direito. Quando o terminal abre,
-   o próprio wrapper desliza para a esquerda para não ficar em cima do painel. */
-.floating-controls {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    z-index: 50;
-    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1), bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.floating-controls.terminal-open {
-    right: 404px; /* 380px do painel + 24px de respiro */
-}
-
-.zoom-control {
-    background: var(--bg-card);
-    padding: 8px 12px;
-    border-radius: var(--radius-pill);
-    box-shadow: var(--shadow-md);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    border: 1px solid var(--border-color);
-}
-
-.zoom-control button {
-    background: transparent;
-    border: none;
-    font-size: 1.1rem;
-    cursor: pointer;
-    color: var(--text-muted);
-    transition: var(--transition);
-}
-.zoom-control button:hover { color: var(--primary); transform: scale(1.1); }
-.zoom-level { font-weight: 600; font-size: 0.9rem; color: var(--text-main); min-width: 45px; text-align: center; }
-
 /* =========================================
-   TERMINAL & CONTROLES FLUTUANTES — MOBILE
+   TERMINAL — MOBILE
    No mobile o painel vira uma gaveta que sobe da borda inferior
    (ocupando menos da metade da tela) em vez de empurrar as laterais.
 ========================================= */
@@ -813,14 +909,21 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
         height: 45vh; /* menos da metade da tela */
     }
 
-    .floating-controls.terminal-open {
-        right: 16px; /* sem painel lateral no mobile, não desliza horizontalmente */
-        bottom: calc(45vh + 16px); /* sobe para não ficar coberto pela gaveta aberta */
-    }
-
     .scroll-content {
         padding: 24px 14px 90px;
     }
+
+    /* Stepper: só a etapa atual mostra o nome; as demais ficam só com o círculo */
+    .wizard-stepper { padding: 8px 12px; min-height: 64px; }
+    .step-indicator-estado { display: none; }
+    .step-indicator:not(.active) .step-indicator-texto { display: none; }
+    .step-item:has(.step-indicator.active) { flex: 2 1 auto; }
+
+    /* Cabeçalho: sem subtítulo e botões só com ícone */
+    .app-header { padding: 8px 14px; min-height: 0; }
+    .app-header img { width: 56px; }
+    .app-subtitulo, .app-marca-divisor, .btn-cabecalho-texto { display: none; }
+    .btn-cabecalho { padding: 0 12px; }
 }
 
 /* Custom Scrollbars */
