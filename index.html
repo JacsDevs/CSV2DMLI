@@ -762,7 +762,8 @@
                         <li class="step-item"><button type="button" class="step-indicator" id="indicator2" onclick="window.irParaPasso(2)"><span class="step-indicator-num" aria-hidden="true">2</span><span class="step-indicator-texto"><span class="step-indicator-title">Mídias e Validação</span><span class="step-indicator-estado">Pendente</span></span></button><span class="step-linha" aria-hidden="true"></span></li>
                         <li class="step-item"><button type="button" class="step-indicator" id="indicator3" onclick="window.irParaPasso(3)"><span class="step-indicator-num" aria-hidden="true">3</span><span class="step-indicator-texto"><span class="step-indicator-title">Metadados</span><span class="step-indicator-estado">Pendente</span></span></button><span class="step-linha" aria-hidden="true"></span></li>
                         <li class="step-item"><button type="button" class="step-indicator" id="indicator4" onclick="window.irParaPasso(4)"><span class="step-indicator-num" aria-hidden="true">4</span><span class="step-indicator-texto"><span class="step-indicator-title">Estrutura</span><span class="step-indicator-estado">Pendente</span></span></button><span class="step-linha" aria-hidden="true"></span></li>
-                        <li class="step-item"><button type="button" class="step-indicator" id="indicator5" onclick="window.irParaPasso(5)"><span class="step-indicator-num" aria-hidden="true">5</span><span class="step-indicator-texto"><span class="step-indicator-title">Exportar</span><span class="step-indicator-estado">Pendente</span></span></button></li>
+                        <li class="step-item"><button type="button" class="step-indicator" id="indicator5" onclick="window.irParaPasso(5)"><span class="step-indicator-num" aria-hidden="true">5</span><span class="step-indicator-texto"><span class="step-indicator-title">Aparência</span><span class="step-indicator-estado">Opcional</span></span></button><span class="step-linha" aria-hidden="true"></span></li>
+                        <li class="step-item"><button type="button" class="step-indicator" id="indicator6" onclick="window.irParaPasso(6)"><span class="step-indicator-num" aria-hidden="true">6</span><span class="step-indicator-texto"><span class="step-indicator-title">Exportar</span><span class="step-indicator-estado">Pendente</span></span></button></li>
                     </ol>
                 </nav>
                 
@@ -773,7 +774,7 @@
                     <div class="wizard-step active etapa-importar" id="step1">
                         <span id="badgeCsv" class="step-badge" hidden>Pendente</span>
                         <div class="etapa-cabecalho">
-                            <span class="etapa-contador">Etapa 1 de 5</span>
+                            <span class="etapa-contador">Etapa 1 de 6</span>
                             <h2 class="etapa-titulo">Fonte de Dados</h2>
                             <p class="etapa-descricao importar-vazio">Escolha a pasta do seu dicionário. Aceitamos projetos em CSV ou CLDF, e o formato é reconhecido automaticamente.</p>
                             <p class="etapa-descricao importar-carregado">Projeto carregado. Confira se é a pasta certa antes de continuar.</p>
@@ -843,7 +844,7 @@
                     <div class="wizard-step" id="step2">
                         <span id="badgeMidias" class="step-badge" hidden>Pendente</span>
                         <div class="etapa-cabecalho">
-                            <span class="etapa-contador">Etapa 2 de 5</span>
+                            <span class="etapa-contador">Etapa 2 de 6</span>
                             <h2 class="etapa-titulo">Mídias e Validação</h2>
                             <p class="etapa-descricao">Verificamos o dicionário e as mídias logo após a importação. Corrija os erros e revise os avisos antes de exportar.</p>
                         </div>
@@ -909,7 +910,7 @@
                     <div class="wizard-step" id="step3">
                         <span id="badgeMeta" class="step-badge" hidden>Pendente</span>
                         <div class="etapa-cabecalho">
-                            <span class="etapa-contador">Etapa 3 de 5</span>
+                            <span class="etapa-contador">Etapa 3 de 6</span>
                             <h2 class="etapa-titulo">Metadados</h2>
                             <p class="etapa-descricao">Dados que aparecem na capa, no cabeçalho e nos créditos de todos os formatos gerados.</p>
                         </div>
@@ -1021,7 +1022,7 @@
                     <div class="wizard-step" id="step4">
                         <span id="badgeEstrutura" class="step-badge" hidden>Automático</span>
                         <div class="etapa-cabecalho">
-                            <span class="etapa-contador">Etapa 4 de 5</span>
+                            <span class="etapa-contador">Etapa 4 de 6</span>
                             <h2 class="etapa-titulo">Estrutura</h2>
                             <p class="etapa-descricao">Defina em que ordem as categorias e as entradas aparecem no dicionário. Se não mudar nada, tudo fica em ordem alfabética.</p>
                         </div>
@@ -1082,30 +1083,119 @@
 
                     <!-- PASSO 5 -->
                     <div class="wizard-step" id="step5">
-                        <h2 class="step-title-large">✅ Exportação</h2>
-                        <p class="step-desc" style="margin-bottom: 20px;">Escolha o formato no qual deseja compilar seus dados.</p>
-                        
-                        <div class="export-options" style="margin-bottom: 25px;">
-                            <label class="toggle-label mb-3" style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; margin-bottom: 20px;">
-                                <div class="toggle-switch">
-                                    <input type="checkbox" id="swMidia" checked>
-                                    <div class="toggle-slider"></div>
-                                </div>
-                                <div>
-                                    <strong>Embutir mídias no HTML (Base64)</strong>
-                                    <p style="font-size: 0.85em; color: #0369a1; margin: 4px 0 0 0;">Ideal para compartilhar o site como arquivo único sem precisar enviar pastas separadas.</p>
-                                </div>
-                            </label>
+                        <div class="etapa-cabecalho">
+                            <span class="etapa-contador">Etapa 5 de 6 <span class="etapa-selo">Opcional</span></span>
+                            <h2 class="etapa-titulo">Aparência</h2>
+                            <p class="etapa-descricao">Escolha as cores do dicionário gerado (site e aplicativo), nos modos claro e escuro. Isso não muda a aparência deste assistente.</p>
                         </div>
-                          
-                          <div class="export-grid">
-                            <button class="export-btn export-html" onclick="gerarExportacao('html')"><span class="export-icon">🌐</span><span class="export-label">Gerar Site HTML</span></button>
-                            <button class="export-btn export-typst" onclick="gerarExportacao('typst')"><span class="export-icon">📘</span><span class="export-label">Gerar Typst</span></button>
-                            <button class="export-btn export-latex" onclick="gerarExportacao('latex')"><span class="export-icon">📄</span><span class="export-label">Gerar LaTeX (ZIP)</span></button>
-                            <button class="export-btn export-cldf" onclick="document.getElementById('modalCldf').style.display='flex'"><span class="export-icon">🌍</span><span class="export-label">Gerar CLDF (ZIP)</span></button>
-                            <button class="export-btn export-pdf" onclick="gerarExportacao('pdf')"><span class="export-icon">📑</span><span class="export-label">Gerar PDF</span></button>
-                            <button class="export-btn export-android" onclick="abrirModalAndroid()"><span class="export-icon">📱</span><span class="export-label">Gerar Aplicativo</span></button>
-                          </div>
+
+                        <!-- Tema do HTML exportado: lógica em PALETAS_TEMA / renderizarPaletasTema (mesmos ids da antiga aba "Tema") -->
+                        <div class="aparencia-grade">
+                            <fieldset class="aparencia-paletas">
+                                <legend>Paleta de cores</legend>
+                                <div class="aparencia-lista" id="temaPaletasGrid" role="radiogroup" aria-label="Paleta de cores"></div>
+
+                                <div class="aparencia-custom" id="temaCustomPainel" style="display: none;">
+                                    <label class="campo">
+                                        <span class="campo-rotulo">Fundo</span>
+                                        <input type="color" id="temaCustomFundo" value="#f5ead8" oninput="window.atualizarTemaCustom()">
+                                    </label>
+                                    <label class="campo">
+                                        <span class="campo-rotulo">Superfície (cartões)</span>
+                                        <input type="color" id="temaCustomSuperficie" value="#fffbf2" oninput="window.atualizarTemaCustom()">
+                                    </label>
+                                    <label class="campo">
+                                        <span class="campo-rotulo">Principal</span>
+                                        <input type="color" id="temaCustomPrimaria" value="#5c6b41" oninput="window.atualizarTemaCustom()">
+                                    </label>
+                                    <label class="campo">
+                                        <span class="campo-rotulo">Destaque</span>
+                                        <input type="color" id="temaCustomAcento" value="#c67139" oninput="window.atualizarTemaCustom()">
+                                    </label>
+                                    <p class="campo-ajuda aparencia-custom-nota">As demais tonalidades (hover, bordas, contraste e o modo escuro) são geradas a partir destas 4 cores.</p>
+                                </div>
+                            </fieldset>
+
+                            <div class="aparencia-previa">
+                                <h3>Pré-visualização</h3>
+                                <div class="aparencia-previa-grade">
+                                    <div>
+                                        <span class="aparencia-previa-rotulo">Modo claro</span>
+                                        <div id="temaPreviewClaro"></div>
+                                    </div>
+                                    <div>
+                                        <span class="aparencia-previa-rotulo">Modo escuro</span>
+                                        <div id="temaPreviewEscuro"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PASSO 6 -->
+                    <div class="wizard-step" id="step6">
+                        <div class="etapa-cabecalho">
+                            <span class="etapa-contador">Etapa 6 de 6</span>
+                            <h2 class="etapa-titulo">Exportar</h2>
+                            <p class="etapa-descricao">Escolha como o dicionário vai chegar às pessoas. Você pode gerar quantos formatos quiser.</p>
+                        </div>
+
+                        <div class="publicar-conteudo">
+                            <section class="publicar-resumo" aria-labelledby="resumoTitulo">
+                                <h3 id="resumoTitulo">Resumo do projeto</h3>
+                                <ul id="publicarResumo"></ul>
+                            </section>
+
+                            <section class="publicar-secao" aria-labelledby="publicoTitulo">
+                                <h3 id="publicoTitulo">Para o público</h3>
+                                <div class="publicar-cartoes">
+                                    <div class="publicar-cartao destaque">
+                                        <span class="publicar-cartao-icone" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"></rect><path d="M11 18h2"></path></svg></span>
+                                        <strong>Aplicativo Android</strong>
+                                        <span class="publicar-cartao-texto">Para instalar no celular. Funciona sem internet, com áudios e imagens.</span>
+                                        <button type="button" class="btn-principal" onclick="abrirModalAndroid()">Gerar aplicativo</button>
+                                    </div>
+                                    <div class="publicar-cartao">
+                                        <span class="publicar-cartao-icone" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"></path></svg></span>
+                                        <strong>Site</strong>
+                                        <span class="publicar-cartao-texto">Para abrir no navegador ou publicar na internet.</span>
+                                        <label class="publicar-opcao">
+                                            <input type="checkbox" id="swMidia" checked>
+                                            <span><strong>Arquivo único</strong>Mídias embutidas no HTML: é só enviar um arquivo, mas ele fica maior.</span>
+                                        </label>
+                                        <button type="button" class="btn-contorno" onclick="gerarExportacao('html')">Gerar site</button>
+                                    </div>
+                                    <div class="publicar-cartao">
+                                        <span class="publicar-cartao-icone" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6M8 13h8M8 17h5"></path></svg></span>
+                                        <strong>PDF</strong>
+                                        <span class="publicar-cartao-texto">Para imprimir ou distribuir como livro.</span>
+                                        <button type="button" class="btn-contorno" onclick="gerarExportacao('pdf')">Gerar PDF</button>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <details class="publicar-tecnicos" open>
+                                <summary>
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+                                    Formatos técnicos e arquivamento
+                                    <span class="campo-ajuda">Para pesquisadores e edição avançada</span>
+                                </summary>
+                                <ul>
+                                    <li>
+                                        <div><strong>CLDF</strong> <span class="campo-ajuda">· ZIP</span><span class="publicar-tecnico-texto">Padrão aberto para arquivamento e pesquisa linguística.</span></div>
+                                        <button type="button" class="btn-secundario" onclick="document.getElementById('modalCldf').style.display='flex'">Gerar CLDF</button>
+                                    </li>
+                                    <li>
+                                        <div><strong>Typst</strong> <span class="campo-ajuda">· código-fonte do PDF</span><span class="publicar-tecnico-texto">Para ajustar a diagramação do PDF à mão.</span></div>
+                                        <button type="button" class="btn-secundario" onclick="gerarExportacao('typst')">Gerar Typst</button>
+                                    </li>
+                                    <li>
+                                        <div><strong>LaTeX</strong> <span class="campo-ajuda">· ZIP</span><span class="publicar-tecnico-texto">Para editoras e revistas que trabalham com LaTeX.</span></div>
+                                        <button type="button" class="btn-secundario" onclick="gerarExportacao('latex')">Gerar LaTeX</button>
+                                    </li>
+                                </ul>
+                            </details>
+                        </div>
                     </div>
                     
                 </div>
@@ -1222,7 +1312,6 @@
             <button class="custom-tab active" onclick="switchCustomTab(event, 'tab-html')">🌐 HTML</button>
             <button class="custom-tab" onclick="switchCustomTab(event, 'tab-typst')">📘 Typst</button>
             <button class="custom-tab" onclick="switchCustomTab(event, 'tab-geral')">⚙️ Geral</button>
-            <button class="custom-tab" onclick="switchCustomTab(event, 'tab-tema')">🎨 Tema</button>
             <button class="custom-tab" onclick="switchCustomTab(event, 'tab-download')">📥 Download</button>
         </div>
         <div id="tab-html" class="custom-tab-content active">
@@ -1253,39 +1342,7 @@
                 <div class="drop-zone" id="alfabetoDropZone"><p><strong>Ordem Alfabética Customizada</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Defina o próprio alfabeto para ordenação</span></p><input type="file" id="fileAlfabeto" style="display:none"><div id="alfabetoPreview" style="display:none;"></div><div id="alfabetoActions" style="display:none;"></div></div>
             </div>
         </div>
-        <div id="tab-tema" class="custom-tab-content">
-            <h3 style="margin-bottom: 15px; color: var(--text-main);">🎨 Tema do Dicionário (HTML exportado)</h3>
-            <p style="font-size: 0.9em; color: var(--text-muted); margin-bottom: 20px;">Escolha as cores do arquivo HTML gerado ao final da exportação. Isso não muda a aparência deste assistente, só a do dicionário exportado — nos modos claro e escuro.</p>
-
-            <div id="temaPaletasGrid" style="display: flex; flex-wrap: nowrap; align-items: center; gap: 12px; margin-bottom: 20px;"></div>
-
-            <div id="temaCustomPainel" style="display: none; margin-bottom: 20px; padding: 15px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px;">
-                <strong style="display: block; margin-bottom: 12px; color: var(--text-main);">Cores personalizadas</strong>
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 14px;">
-                    <label style="display: flex; flex-direction: column; gap: 6px; font-size: 0.85em; color: var(--text-muted);">Fundo
-                        <input type="color" id="temaCustomFundo" value="#f5ead8" oninput="window.atualizarTemaCustom()">
-                    </label>
-                    <label style="display: flex; flex-direction: column; gap: 6px; font-size: 0.85em; color: var(--text-muted);">Superfície (cards)
-                        <input type="color" id="temaCustomSuperficie" value="#fffbf2" oninput="window.atualizarTemaCustom()">
-                    </label>
-                    <label style="display: flex; flex-direction: column; gap: 6px; font-size: 0.85em; color: var(--text-muted);">Cor primária
-                        <input type="color" id="temaCustomPrimaria" value="#5c6b41" oninput="window.atualizarTemaCustom()">
-                    </label>
-                    <label style="display: flex; flex-direction: column; gap: 6px; font-size: 0.85em; color: var(--text-muted);">Cor de acento
-                        <input type="color" id="temaCustomAcento" value="#c67139" oninput="window.atualizarTemaCustom()">
-                    </label>
-                </div>
-                <p style="font-size: 0.78em; color: var(--text-muted); margin-top: 10px;">As demais tonalidades (hover, bordas, contraste e o modo escuro completo) são geradas automaticamente a partir destas 4 cores.</p>
-            </div>
-
-            <div>
-                <strong style="display: block; margin-bottom: 8px; color: var(--text-main); font-size: 0.9em;">Pré-visualização</strong>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                    <div id="temaPreviewClaro"></div>
-                    <div id="temaPreviewEscuro"></div>
-                </div>
-            </div>
-        </div>
+        <!-- A antiga aba "Tema" virou a etapa 5 (Aparência) do assistente -->
         <div id="tab-download" class="custom-tab-content">
             <h3 style="margin-bottom: 15px; color: var(--text-main);">📥 Baixar Templates Originais</h3>
             <p style="font-size: 0.9em; color: var(--text-muted); margin-bottom: 20px;">Você pode baixar os templates padrão do sistema, editá-los em seu computador e depois fazer o upload nas abas "HTML" e "Typst".</p>
@@ -2064,6 +2121,7 @@
         const diag = window.validador.diagnosticar();
         lista.replaceChildren();
         window._pendenciasValidacao = 0;
+        window._resumoValidacao = { carregado: false, erros: 0, avisos: 0 };
 
         if (!diag.sucesso) {
             const vazio = document.createElement('li');
@@ -2137,6 +2195,7 @@
 
         atualizarDetalhesMidias(diag);
         window._pendenciasValidacao = erros + tiposFaltando;
+        window._resumoValidacao = { carregado: true, erros, avisos };
         if (typeof atualizarStepper === 'function') atualizarStepper(window.passoAtual);
     };
 
@@ -5028,7 +5087,8 @@
     // LÓGICA DO ASSISTENTE
     // ===================================
     window.passoAtual = 1;
-    const totalPassos = 5;
+    const totalPassos = 6;
+    const PASSO_OPCIONAL = 5; // Aparência: sem escolha, usa o tema padrão
     const passosVisitados = new Set();
     const ICONE_CONCLUIDA = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"></path></svg>';
     const ICONE_PENDENCIA = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7v6M12 17h.01"></path></svg>';
@@ -5050,7 +5110,7 @@
             else indicador.removeAttribute('aria-current');
             indicador.querySelector('.step-indicator-num').innerHTML = concluida ? ICONE_CONCLUIDA : (comPendencias ? ICONE_PENDENCIA : String(n));
             indicador.querySelector('.step-indicator-estado').textContent =
-                atual ? 'Etapa atual' : (comPendencias ? 'Com pendências' : (concluida ? 'Concluída' : 'Pendente'));
+                atual ? 'Etapa atual' : (comPendencias ? 'Com pendências' : (concluida ? 'Concluída' : (n === PASSO_OPCIONAL ? 'Opcional' : 'Pendente')));
             const linha = indicador.parentElement.querySelector('.step-linha');
             if (linha) linha.classList.toggle('feita', n < passo);
         }
@@ -5092,6 +5152,59 @@
 
         window.passoAtual = passo;
         if (passo === 2 && window.atualizarValidacaoEtapa2) window.atualizarValidacaoEtapa2();
+        if (passo === totalPassos) atualizarResumoExportar();
+    }
+
+    // Resumo da etapa Exportar: projeto, pendências da validação, título e tema
+    const ICONE_RESUMO_OK = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"></path></svg>';
+    const ICONE_RESUMO_AVISO = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path><path d="M12 9v4M12 17h.01"></path></svg>';
+    function descreverPendencias(erros, avisos) {
+        const partes = [];
+        if (erros) partes.push(`${erros} ${erros === 1 ? 'erro' : 'erros'}`);
+        if (avisos) partes.push(`${avisos} ${avisos === 1 ? 'aviso' : 'avisos'}`);
+        return `${partes.join(' e ')} na validação`;
+    }
+
+    function atualizarResumoExportar() {
+        const lista = document.getElementById('publicarResumo');
+        if (!lista) return;
+        if (window.atualizarValidacaoEtapa2) window.atualizarValidacaoEtapa2();
+        const validacao = window._resumoValidacao || { carregado: false, erros: 0, avisos: 0 };
+        const stats = window.sistema ? window.sistema.obterEstatisticas() : null;
+
+        const itens = [];
+        if (validacao.carregado && stats) {
+            const pasta = document.getElementById('nomePastaProjeto').textContent.replace(/\/$/, '');
+            itens.push({ ok: true, rotulo: 'Projeto', texto: `${pasta} · ${(stats.entradas || 0).toLocaleString('pt-BR')} ${stats.entradas === 1 ? 'entrada' : 'entradas'}` });
+            const pendentes = validacao.erros + validacao.avisos;
+            itens.push(pendentes === 0
+                ? { ok: true, rotulo: 'Dados', texto: 'nenhuma pendência na validação' }
+                : { ok: false, rotulo: 'Dados', texto: descreverPendencias(validacao.erros, validacao.avisos), passo: 2, acao: 'Revisar' });
+        } else {
+            itens.push({ ok: false, rotulo: 'Projeto', texto: 'nenhum projeto importado', passo: 1, acao: 'Importar' });
+        }
+        itens.push({ ok: true, rotulo: 'Título', texto: document.getElementById('metaHtml').value.trim() || 'sem título' });
+        itens.push({ ok: true, rotulo: 'Aparência', texto: window.nomeTemaAtual ? window.nomeTemaAtual() : 'padrão' });
+
+        lista.replaceChildren(...itens.map(item => {
+            const li = document.createElement('li');
+            li.className = item.ok ? 'ok' : 'aviso';
+            li.innerHTML = item.ok ? ICONE_RESUMO_OK : ICONE_RESUMO_AVISO;
+            const texto = document.createElement('span');
+            const forte = document.createElement('strong');
+            forte.textContent = `${item.rotulo}: `;
+            texto.append(forte, item.texto);
+            li.append(texto);
+            if (item.acao) {
+                const botao = document.createElement('button');
+                botao.type = 'button';
+                botao.className = 'btn-link';
+                botao.textContent = item.acao;
+                botao.addEventListener('click', () => window.irParaPasso(item.passo));
+                li.append(botao);
+            }
+            return li;
+        }));
     }
 
     window.proximoPasso = function() {
@@ -5499,6 +5612,10 @@
     // Consumido em coletarMetadadosExportacao() e, por conseguinte, por todas
     // as chamadas a exportarHtmlCards() (site, preview do APK e app Android).
     window.coletarTemaExportacao = function() { return resolverTemaAtual(); };
+    window.nomeTemaAtual = function() {
+        if (temaSelecionado.tipo === 'custom') return 'Personalizada';
+        return (PALETAS_TEMA.find(p => p.id === temaSelecionado.paletaId) || PALETAS_TEMA[0]).nome;
+    };
 
     function preencherCamposCustom() {
         const c = temaSelecionado.custom;
@@ -5511,28 +5628,29 @@
         const grid = document.getElementById('temaPaletasGrid');
         if (!grid) return;
         grid.innerHTML = '';
-        PALETAS_TEMA.forEach(p => {
-            const ativo = temaSelecionado.tipo === 'paleta' && temaSelecionado.paletaId === p.id;
+        const ICONE_MARCADA = '<svg class="aparencia-marca" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"></path></svg>';
+        const criarOpcao = (id, ativo, conteudoVisual, nome) => {
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.title = p.nome;
-            btn.setAttribute('aria-label', p.nome);
-            btn.style.cssText = `display:flex; gap:5px; align-items:center; padding:10px 12px; border-radius:10px; cursor:pointer; border:2px solid ${ativo ? p.amostra[1] : 'var(--border-color)'}; background:var(--bg-secondary); flex-shrink:0;`;
-            btn.innerHTML = p.amostra.map(cor => `<span style="width:20px; height:20px; border-radius:50%; background:${cor}; border:1px solid rgba(0,0,0,0.15);"></span>`).join('');
-            btn.onclick = () => selecionarPaletaTema(p.id);
+            btn.className = 'aparencia-opcao' + (ativo ? ' ativa' : '');
+            btn.setAttribute('role', 'radio');
+            btn.setAttribute('aria-checked', String(ativo));
+            btn.innerHTML = `${conteudoVisual}<span class="aparencia-opcao-nome">${nome}</span>${ativo ? ICONE_MARCADA : ''}`;
+            btn.onclick = () => selecionarPaletaTema(id);
             grid.appendChild(btn);
+        };
+        PALETAS_TEMA.forEach(p => {
+            const ativo = temaSelecionado.tipo === 'paleta' && temaSelecionado.paletaId === p.id;
+            const amostras = `<span class="aparencia-amostras" aria-hidden="true">${p.amostra.map(cor => `<span style="background:${cor};"></span>`).join('')}</span>`;
+            criarOpcao(p.id, ativo, amostras, p.nome);
         });
 
         const customAtivo = temaSelecionado.tipo === 'custom';
-        const btnCustom = document.createElement('button');
-        btnCustom.type = 'button';
-        btnCustom.style.cssText = `display:flex; align-items:center; gap:6px; padding:10px 12px; border-radius:10px; cursor:pointer; border:2px solid ${customAtivo ? 'var(--text-main)' : 'var(--border-color)'}; background:var(--bg-secondary); flex-shrink:0; white-space:nowrap;`;
-        btnCustom.innerHTML = `<span style="font-size:1.1em;">🎛️</span><span style="font-size:0.85em; font-weight:600; color:var(--text-main);">Personalizado</span>`;
-        btnCustom.onclick = () => selecionarPaletaTema('custom');
-        grid.appendChild(btnCustom);
+        const iconePaleta = '<svg class="aparencia-icone-custom" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13.5" cy="6.5" r="1.5"></circle><circle cx="17.5" cy="10.5" r="1.5"></circle><circle cx="8.5" cy="7.5" r="1.5"></circle><circle cx="6.5" cy="12.5" r="1.5"></circle><path d="M12 2a10 10 0 0 0 0 20c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1.1.9-2 2-2h2.4A5.6 5.6 0 0 0 22 10c0-4.4-4.5-8-10-8z"></path></svg>';
+        criarOpcao('custom', customAtivo, iconePaleta, 'Personalizada');
 
         const painelCustom = document.getElementById('temaCustomPainel');
-        if (painelCustom) painelCustom.style.display = customAtivo ? 'block' : 'none';
+        if (painelCustom) painelCustom.style.display = customAtivo ? 'grid' : 'none';
     }
 
     function selecionarPaletaTema(id) {
@@ -5545,6 +5663,9 @@
         persistirTema();
         renderizarPaletasTema();
         atualizarPreviewTema();
+        // A lista é recriada: devolve o foco à opção escolhida para quem navega pelo teclado
+        const ativa = document.querySelector('#temaPaletasGrid .aparencia-opcao.ativa');
+        if (ativa) ativa.focus();
     }
     window.selecionarPaletaTema = selecionarPaletaTema;
 
@@ -5565,8 +5686,8 @@
     function renderizarPreviewCardTema(container, vars, rotulo) {
         if (!container) return;
         container.innerHTML = `
-            <div style="border-radius:12px; padding:14px; background:${vars['--cor-fundo']}; border:1px solid ${vars['--cor-borda']};">
-                <div style="font-size:0.72em; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:${vars['--cor-texto-secundario']}; margin-bottom:8px;">${rotulo}</div>
+            <div style="border-radius:12px; padding:16px; background:${vars['--cor-fundo']}; border:1px solid ${vars['--cor-borda-forte']};">
+                <div style="font-size:14px; font-weight:700; color:${vars['--cor-primaria']}; margin-bottom:12px;">${rotulo}</div>
                 <div style="background:${vars['--cor-superficie']}; border:1px solid ${vars['--cor-borda']}; border-radius:10px; padding:12px; display:flex; flex-direction:column; gap:6px;">
                     <strong style="color:${vars['--cor-primaria']}; font-size:1.05em;">Palavra</strong>
                     <span style="color:${vars['--cor-texto']}; font-size:0.88em;">tradução de exemplo</span>
@@ -5579,8 +5700,8 @@
 
     function atualizarPreviewTema() {
         const tema = resolverTemaAtual();
-        renderizarPreviewCardTema(document.getElementById('temaPreviewClaro'), tema.light, '☀️ Claro');
-        renderizarPreviewCardTema(document.getElementById('temaPreviewEscuro'), tema.dark, '🌙 Escuro');
+        renderizarPreviewCardTema(document.getElementById('temaPreviewClaro'), tema.light, 'Dicionário');
+        renderizarPreviewCardTema(document.getElementById('temaPreviewEscuro'), tema.dark, 'Dicionário');
     }
 
     function iniciarTemaWizard() {
