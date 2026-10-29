@@ -8,37 +8,50 @@
     /* Colors */
     --primary: #4e4285;
     --primary-hover: #3b316e;
-    --primary-light: #e6e2f8;
-    --secondary: #0ea5e9;
+    --primary-light: #efedf8;
+    --primary-soft: #faf9fd;      /* fundo de áreas de destaque (dropzone, sugestões) */
+    --primary-border: #c4bde3;    /* borda de áreas de destaque */
+    --primary-ring: #e9e6f5;      /* anel da etapa atual */
+    --secondary: #4e4285;
     --accent: #f43f5e;
-    
+
     --bg-main: #f8fafc;
     --bg-secondary: #f1f5f9;
     --bg-card: #ffffff;
-    
+
+    /* Textos secundários escurecidos para contraste mínimo de 4.5:1 */
     --text-main: #0f172a;
-    --text-muted: #64748b;
-    --text-light: #94a3b8;
-    
+    --text-strong: #334155;
+    --text-muted: #475569;
+    --text-light: #64748b;
+
     --border-color: #e2e8f0;
+    --border-strong: #cbd5e1;     /* borda de botões secundários e campos */
     --border-focus: #9181da;
-    
-    --success: #10b981;
+
+    /* Cores de estado: a cor base serve para texto e borda; -bg e -text para selos */
+    --success: #047857;
     --success-bg: #d1fae5;
-    --warning: #f59e0b;
-    --error: #ef4444;
-    
+    --warning: #b45309;
+    --warning-bg: #fef3c7;
+    --warning-text: #92400e;
+    --error: #b91c1c;
+    --error-bg: #fee2e2;
+    --error-text: #991b1b;
+
     /* Layout */
     --radius-sm: 6px;
+    --radius-control: 8px;        /* botões e campos */
     --radius-md: 12px;
-    --radius-lg: 20px;
+    --radius-lg: 12px;
     --radius-pill: 9999px;
-    
+    --control-min-height: 44px;   /* área mínima de toque */
+
     /* Shadows */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --shadow-glow: 0 0 15px rgba(79, 70, 229, 0.3);
+    --shadow-sm: 0 1px 3px rgb(15 23 42 / 0.08);
+    --shadow-md: 0 4px 12px -2px rgb(15 23 42 / 0.10);
+    --shadow-lg: 0 10px 15px -3px rgb(15 23 42 / 0.10), 0 4px 6px -4px rgb(15 23 42 / 0.10);
+    --shadow-glow: 0 0 0 4px var(--primary-ring);
     
     /* Transitions */
     --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
