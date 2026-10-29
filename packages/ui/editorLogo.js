@@ -34,6 +34,7 @@ function els() {
         btnRestaurar: document.getElementById('btnLogoRestaurar'),
         info: document.getElementById('logoRecorteInfo'),
         previa: document.getElementById('logoPreviaCanvas'),
+        previaEscura: document.getElementById('logoPreviaCanvasEscuro'),
         previaTitulo: document.getElementById('logoPreviaTitulo'),
         btnAplicar: document.getElementById('btnAplicarEditorLogo'),
         btnCancelar: document.getElementById('btnCancelarEditorLogo'),
@@ -48,7 +49,7 @@ function els() {
  */
 export async function abrirEditorLogo(original, recorte = null, titulo = '') {
     garantirListeners();
-    const { dialog, canvas, previaTitulo } = els();
+    const { dialog, canvas } = els();
 
     _bitmap?.close?.();
     _bitmap = await carregarBitmap(original);
@@ -60,12 +61,27 @@ export async function abrirEditorLogo(original, recorte = null, titulo = '') {
     canvas.width = Math.max(1, Math.round(_bitmap.width * escala));
     canvas.height = Math.max(1, Math.round(_bitmap.height * escala));
 
-    previaTitulo.textContent = titulo || 'Dicionário';
+    document.querySelectorAll('#logoPreviaTitulo, #logoPreviaTituloEscuro').forEach((el) => { el.textContent = titulo || 'Dicionário'; });
+    aplicarCoresTema();
     dialog.showModal();
     redesenhar();   // depois de abrir: as alças dependem do tamanho exibido do canvas
 
     return new Promise((resolve) => {
         _resolver = resolve;
+    });
+}
+
+// Pinta as prévias de cabeçalho com as cores do tema escolhido na etapa Aparência
+// (window.coletarTemaExportacao, no index.html); sem ele, ficam as cores do CSS.
+function aplicarCoresTema() {
+    const tema = typeof window.coletarTemaExportacao === 'function' ? window.coletarTemaExportacao() : null;
+    if (!tema) return;
+    [['logoPreviaClara', tema.light], ['logoPreviaEscura', tema.dark]].forEach(([id, cores]) => {
+        const el = document.getElementById(id);
+        if (!el || !cores) return;
+        el.style.setProperty('--previa-fundo', cores['--cor-superficie']);
+        el.style.setProperty('--previa-borda', cores['--cor-borda-forte']);
+        el.style.setProperty('--previa-titulo', cores['--cor-primaria']);
     });
 }
 
@@ -317,16 +333,19 @@ function redesenhar() {
 }
 
 // Prévia do cabeçalho: o recorte com altura fixa, como .dicionario-icone-img no HTML exportado
+// (uma prévia para o modo claro e, se houver no markup, outra para o escuro)
 function desenharPrevia(r) {
-    const { previa } = els();
+    const { previa, previaEscura } = els();
     const altura = PREVIA_ALTURA;
     const largura = Math.max(1, Math.round(altura * r.largura / r.altura));
-    previa.width = largura;
-    previa.height = altura;
-    const ctx = previa.getContext('2d');
-    ctx.imageSmoothingQuality = 'high';
-    ctx.clearRect(0, 0, largura, altura);
-    ctx.drawImage(_bitmap, r.x, r.y, r.largura, r.altura, 0, 0, largura, altura);
+    [previa, previaEscura].filter(Boolean).forEach((alvo) => {
+        alvo.width = largura;
+        alvo.height = altura;
+        const ctx = alvo.getContext('2d');
+        ctx.imageSmoothingQuality = 'high';
+        ctx.clearRect(0, 0, largura, altura);
+        ctx.drawImage(_bitmap, r.x, r.y, r.largura, r.altura, 0, 0, largura, altura);
+    });
 }
 
 function finalizar(resultado) {

@@ -506,100 +506,109 @@
             animation: apk-spin 0.8s linear infinite;
         }
 
-        /* ---- Editor de ícone (recorte + prévia de densidades) ---- */
-        .modal-icone-editor { max-width: 880px; width: 92%; }
-        .icone-editor-body {
-            display: grid;
-            grid-template-columns: 360px 1fr;
-            gap: 28px;
-        }
-        .icone-editor-crop-col { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-        .icone-crop-viewport {
-            width: 360px; height: 360px;
-            border-radius: var(--radius-md);
-            overflow: hidden;
-            border: 2px dashed var(--primary);
-            background: var(--bg-secondary);
-        }
-        #iconeCropCanvas { width: 360px; height: 360px; display: block; touch-action: none; cursor: grab; }
+        /* ---- Editores de ícone e de logo (<dialog class="dialogo">) ----
+           Os canvas são desenhados por packages/ui/editorIcone.js e editorLogo.js. */
+        .dialogo.dialogo-icone { width: min(880px, calc(100vw - 32px)); height: min(780px, calc(100vh - 32px)); }
+        .dialogo.dialogo-logo { width: min(680px, calc(100vw - 32px)); height: min(820px, calc(100vh - 32px)); }
+        .editor-icone-corpo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
+        .editor-icone-coluna { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+        .editor-icone-area { position: relative; align-self: center; border-radius: var(--radius-md); overflow: hidden; }
+        /* Xadrez sob a imagem: deixa visível a transparência */
+        #iconeCropCanvas, #logoCropCanvas { background: repeating-conic-gradient(#e2e8f0 0% 25%, #ffffff 0% 50%) 0 0 / 20px 20px; }
+        #iconeCropCanvas { width: 340px; height: 340px; display: block; touch-action: none; cursor: grab; }
         #iconeCropCanvas.arrastando { cursor: grabbing; }
-        .icone-crop-controls {
-            display: flex; align-items: center; gap: 10px; width: 100%; flex-wrap: wrap;
+        .editor-icone-legenda {
+            position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%);
+            padding: 0 8px; border-radius: var(--radius-pill);
+            background: rgb(255 255 255 / 0.92); color: var(--primary-hover);
+            font-size: 12px; font-weight: 600; white-space: nowrap; pointer-events: none;
         }
-        .icone-crop-controls label { font-size: 0.85em; color: var(--text-muted); white-space: nowrap; }
-        .icone-crop-controls input[type="range"] { flex: 1; min-width: 120px; }
-        .icone-crop-zoom-valor { font-size: 0.8em; color: var(--text-muted); min-width: 3em; text-align: right; }
-        .icone-crop-controls input[type="color"] {
-            width: 32px; height: 28px; padding: 0; border: 1px solid var(--border-color);
-            border-radius: 6px; background: none; cursor: pointer;
-        }
-        .icone-crop-hint { color: var(--text-muted); text-align: center; }
+        .editor-icone-zoom { display: flex; align-items: center; gap: 8px; }
+        .editor-icone-zoom label { font-size: 14px; font-weight: 600; }
+        .editor-icone-zoom input[type="range"] { flex: 1; min-width: 80px; accent-color: var(--primary); }
+        .btn-secundario.btn-quadrado { width: 44px; padding: 0; font-size: 18px; font-weight: 600; }
+        .icone-crop-zoom-valor { min-width: 48px; text-align: right; font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
 
-        .icone-editor-info-col { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
-        .icone-info-panel {
-            background: var(--bg-secondary);
-            border-radius: var(--radius-md);
-            padding: 14px 16px;
+        /* Grupo de botões com aparência de controle segmentado */
+        .segmentado-botoes { display: flex; padding: 3px; border-radius: var(--radius-control); background: var(--bg-secondary); }
+        .segmentado-botoes button {
+            flex: 1; min-height: 40px; padding: 0 12px; border: 0; border-radius: var(--radius-sm);
+            background: transparent; color: var(--text-strong); font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer;
         }
-        .icone-info-dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0 0 8px; }
-        .icone-info-dl dt { color: var(--text-muted); font-size: 0.82em; }
-        .icone-info-dl dd { margin: 0; font-size: 0.82em; font-weight: 600; color: var(--text-main); }
-        .icone-info-avisos { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
-        .icone-info-avisos li { font-size: 0.8em; color: var(--warning); }
-        .icone-info-ok { margin: 8px 0 0; font-size: 0.8em; color: var(--success); }
+        .segmentado-botoes button:hover { background: var(--bg-card); }
+        .segmentado-botoes button[aria-pressed="true"] { background: var(--bg-card); color: var(--text-main); font-weight: 600; box-shadow: 0 1px 2px rgb(15 23 42 / 0.12); }
 
-        .icone-density-title { font-size: 0.85em; font-weight: 600; color: var(--text-main); margin-bottom: 10px; }
-        /* align-items: flex-end -> os ícones (de tamanhos diferentes) ficam
-           alinhados por baixo, como numa régua, deixando a diferença real de
-           tamanho entre densidades visível em vez de forçar tudo à mesma caixa. */
-        .icone-density-grid { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
-        .icone-density-item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .editor-icone-fundo { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+        .editor-icone-fundo .campo-rotulo { margin-right: 4px; }
+        .cor-pronta { width: 36px; height: 36px; border: 1px solid var(--border-strong); border-radius: var(--radius-pill); cursor: pointer; }
+        .cor-pronta[aria-pressed="true"] { border: 3px solid var(--primary); box-shadow: inset 0 0 0 2px #ffffff; }
+        .editor-icone-outra { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-strong); }
+        .editor-icone-outra input[type="color"] { width: 40px; height: 36px; padding: 2px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--bg-card); cursor: pointer; }
+
+        .editor-icone-secao { display: flex; flex-direction: column; gap: 8px; }
+        .editor-icone-secao h3 { margin: 0; padding: 0; border: 0; font-size: 15px; font-weight: 700; color: var(--text-main); }
+        .editor-icone-caixa { padding: 14px 16px; border: 1px solid var(--border-color); border-radius: var(--radius-md); }
+
+        .icone-formas { display: flex; justify-content: space-around; gap: 8px; padding: 24px 12px 16px; border-radius: var(--radius-md); background: #1e293b; }
+        .icone-forma { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .icone-forma canvas { width: 64px; height: 64px; display: block; }
+        .icone-forma-circulo { border-radius: 50%; }
+        .icone-forma-arredondado { border-radius: 22%; }
+        .icone-forma-gota { border-radius: 50% 50% 50% 12%; }
+        .icone-forma-app { font-size: 12px; color: #f1f5f9; }
+        .icone-forma-nome { font-size: 11px; color: #cbd5e1; }
+
+        .icone-verificacao { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+        .icone-verificacao li { display: flex; align-items: flex-start; gap: 8px; }
+        .icone-verificacao li > svg { flex-shrink: 0; margin-top: 3px; }
+        .icone-verificacao li.ok > svg { color: var(--success); }
+        .icone-verificacao li.aviso { color: var(--warning-text); }
+        .icone-verificacao li.aviso > svg { color: var(--warning); }
+
+        .editor-icone-detalhes { border: 1px solid var(--border-color); border-radius: var(--radius-md); }
+        .editor-icone-detalhes summary { display: flex; align-items: center; min-height: 48px; padding: 0 16px; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .editor-icone-detalhes .icone-density-grid { padding: 4px 16px 16px; }
+        /* align-items: flex-end -> os ícones (de tamanhos diferentes) ficam alinhados por baixo,
+           como numa régua, deixando visível a diferença real de tamanho entre densidades. */
+        .icone-density-grid { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
+        .icone-density-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
         .icone-density-thumb {
-            /* Sem width/height fixos: o canvas é renderizado no seu tamanho real
-               em pixels (48–192px, definido em editorIcone.js), então densidades
-               maiores aparecem visivelmente maiores que mdpi/hdpi. */
-            display: block;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            background: var(--bg-card);
+            /* Sem width/height fixos: o canvas é renderizado no seu tamanho real em pixels
+               (48–192px, definido em editorIcone.js). */
+            display: block; border-radius: 22%; border: 1px solid var(--border-color); background: var(--bg-card);
         }
         .icone-density-thumb-round { border-radius: 50%; }
-        .icone-density-item span { font-size: 0.68em; color: var(--text-muted); }
+        .icone-density-item span { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: var(--text-muted); }
 
-        .icone-editor-footer {
-            display: flex; justify-content: flex-end; gap: 10px;
-            padding: 16px 30px; border-top: 1px solid var(--border-color);
-            background: var(--bg-secondary);
-        }
+        .dialogo-rodape-acoes { display: flex; gap: 8px; margin-left: auto; }
+        .btn-link.btn-cancelar { padding: 0 16px; color: var(--text-strong); font-size: 15px; font-weight: 500; }
 
-        @media (max-width: 720px) {
-            .icone-editor-body { grid-template-columns: 1fr; }
-            .icone-crop-viewport, #iconeCropCanvas { width: 100%; height: auto; aspect-ratio: 1 / 1; }
-        }
-
-        /* ---- Editor de logo (recorte opcional, proporção livre) ---- */
-        .modal-logo-editor { max-width: 680px; width: 92%; }
-        .logo-editor-body { display: flex; flex-direction: column; gap: 14px; }
+        .editor-logo-corpo { display: flex; flex-direction: column; gap: 16px; }
         .logo-crop-area {
             display: flex; justify-content: center; align-items: center;
-            min-height: 200px; padding: 12px;
-            border-radius: var(--radius-md); background: var(--bg-secondary);
-        }
-        /* Xadrez sob a imagem: deixa visível a transparência do logo */
-        #logoCropCanvas {
-            background: repeating-conic-gradient(#d9d9d9 0% 25%, #ffffff 0% 50%) 0 0 / 16px 16px;
+            min-height: 200px; padding: 12px; border-radius: var(--radius-md); background: var(--bg-secondary);
         }
         #logoCropCanvas { display: block; max-width: 100%; height: auto; touch-action: none; }
-        .logo-crop-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .logo-proporcoes { display: inline-flex; gap: 4px; margin-right: auto; }
-        .logo-proporcoes button[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: #fff; }
+        .editor-logo-controles { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+        .editor-logo-proporcao { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+        .editor-logo-proporcao .segmentado-botoes button { flex: 0 0 auto; min-height: 38px; font-size: 13px; }
+        .editor-logo-acoes { display: flex; flex-wrap: wrap; gap: 8px; }
+        .logo-previas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
         .logo-previa-cabecalho {
-            display: flex; align-items: center; gap: 14px; padding: 10px 16px;
-            border-radius: var(--radius-md); background: var(--primary); color: #fff;
-            font-weight: 700; font-size: 1.05rem; min-width: 0;
+            display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 8px 14px;
+            border-radius: 10px; border: 1px solid var(--previa-borda, var(--border-color));
+            background: var(--previa-fundo, #f5ead8); color: var(--previa-titulo, #5c6b41);
+            font-weight: 700; font-size: 15px; min-width: 0;
         }
-        #logoPreviaCanvas { height: 2.6rem; width: auto; max-width: 10rem; object-fit: contain; flex-shrink: 0; }
-        #logoPreviaTitulo { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .logo-previa-cabecalho.escuro { background: var(--previa-fundo, #181b20); border-color: var(--previa-borda, #334155); color: var(--previa-titulo, #9fb07a); }
+        .logo-previa-cabecalho canvas { height: 32px; width: auto; max-width: 8rem; flex-shrink: 0; }
+        .logo-previa-cabecalho span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        @media (max-width: 760px) {
+            .editor-icone-corpo { grid-template-columns: 1fr; }
+            #iconeCropCanvas { width: min(340px, calc(100vw - 80px)); height: auto; aspect-ratio: 1 / 1; }
+            .logo-previas { grid-template-columns: 1fr; }
+        }
 
         /* Card de Entradas (não-clicável) na aba Mídias e Validação */
         #panelEntradas:hover { transform: none; box-shadow: none; border-color: var(--border-color); }
@@ -1383,81 +1392,124 @@
 <!-- ========================================================
      EDITOR DE ÍCONE (recorte + prévia de densidades)
 ======================================================== -->
-<dialog id="modalRecorteIcone" class="modal-custom modal-icone-editor">
-    <div class="modal-custom-header">
-        <h2>🖼️ Enquadrar Ícone do Aplicativo</h2>
-        <button class="btn-close" id="btnFecharEditorIcone" type="button">✕</button>
+<dialog id="modalRecorteIcone" class="dialogo dialogo-icone" aria-labelledby="iconeEditorTitulo">
+    <div class="dialogo-topo dialogo-topo-separado">
+        <div>
+            <h2 id="iconeEditorTitulo">Ícone do aplicativo</h2>
+            <p>É a imagem que aparece na tela inicial do celular. Cada aparelho recorta o ícone num formato diferente.</p>
+        </div>
+        <button type="button" class="btn-icone" id="btnFecharEditorIcone" aria-label="Fechar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
     </div>
-    <div class="modal-custom-body icone-editor-body">
-        <div class="icone-editor-crop-col">
-            <div class="icone-crop-viewport">
-                <canvas id="iconeCropCanvas" width="360" height="360"></canvas>
+    <div class="dialogo-corpo editor-icone-corpo">
+        <div class="editor-icone-coluna">
+            <div class="editor-icone-area">
+                <canvas id="iconeCropCanvas" width="360" height="360" aria-label="Enquadramento do ícone: arraste para posicionar"></canvas>
+                <span class="editor-icone-legenda">Dentro do círculo: sempre visível</span>
             </div>
-            <div class="icone-crop-controls">
+            <div class="editor-icone-zoom">
+                <button type="button" class="btn-secundario btn-quadrado" id="btnIconeZoomMenos" aria-label="Diminuir zoom">−</button>
                 <label for="iconeCropZoom">Zoom</label>
                 <input type="range" id="iconeCropZoom" min="10" max="400" value="100">
+                <button type="button" class="btn-secundario btn-quadrado" id="btnIconeZoomMais" aria-label="Aumentar zoom">+</button>
                 <span id="iconeCropZoomValor" class="icone-crop-zoom-valor">100%</span>
             </div>
-            <div class="icone-crop-controls">
-                <button type="button" id="btnIconeEncaixar" class="btn btn-sm btn-outline" title="Mostra a imagem inteira; as sobras ficam com a cor de fundo">Encaixar inteira</button>
-                <button type="button" id="btnIconePreencher" class="btn btn-sm btn-outline" title="Cobre todo o quadrado, cortando o que sobrar">Preencher</button>
-
-                <label for="iconeCropBgColor">Fundo</label>
-                <input type="color" id="iconeCropBgColor" value="#FFFFFF">
-
-                <button type="button" id="btnIconeTrocarImagem" class="btn btn-sm btn-outline">Trocar imagem</button>
-                <input type="file" id="inputIconeTrocarImagem" accept="image/png,image/jpeg,image/webp" style="display:none">
+            <div class="segmentado-botoes" role="group" aria-label="Enquadramento">
+                <button type="button" id="btnIconeEncaixar" title="Mostra a imagem inteira; as sobras ficam com a cor de fundo">Mostrar imagem inteira</button>
+                <button type="button" id="btnIconePreencher" title="Cobre todo o quadrado, cortando o que sobrar">Preencher o ícone</button>
             </div>
-            <small class="icone-crop-hint">Arraste para posicionar · role o mouse ou use o slider para dar zoom · a área fora da imagem fica com a cor de fundo.</small>
+            <div class="editor-icone-fundo" role="group" aria-label="Cor de fundo">
+                <span class="campo-rotulo">Cor de fundo</span>
+                <button type="button" class="cor-pronta" data-cor-fundo="#FFFFFF" aria-label="Fundo branco" style="background:#FFFFFF"></button>
+                <button type="button" class="cor-pronta" data-cor-fundo="#F5EAD8" aria-label="Fundo creme" style="background:#F5EAD8"></button>
+                <button type="button" class="cor-pronta" data-cor-fundo="#4E4285" aria-label="Fundo roxo" style="background:#4E4285"></button>
+                <button type="button" class="cor-pronta" data-cor-fundo="#5C6B41" aria-label="Fundo verde" style="background:#5C6B41"></button>
+                <button type="button" class="cor-pronta" data-cor-fundo="#0F172A" aria-label="Fundo preto" style="background:#0F172A"></button>
+                <label class="editor-icone-outra">Outra <input type="color" id="iconeCropBgColor" value="#FFFFFF"></label>
+            </div>
+            <span class="campo-ajuda">Arraste a imagem para posicionar e role o mouse para dar zoom. Partes fora do círculo podem ser cortadas em alguns aparelhos.</span>
         </div>
-        <div class="icone-editor-info-col">
-            <div id="iconeInfoPanel" class="icone-info-panel"></div>
-            <div>
-                <div class="icone-density-title">Prévia por densidade</div>
+        <div class="editor-icone-coluna">
+            <section class="editor-icone-secao">
+                <h3>Como vai aparecer</h3>
+                <div class="icone-formas" id="iconeFormas"></div>
+            </section>
+            <section class="editor-icone-secao editor-icone-caixa">
+                <h3>Verificação da imagem</h3>
+                <div id="iconeInfoPanel"></div>
+            </section>
+            <details class="editor-icone-detalhes">
+                <summary>Detalhes técnicos: tamanhos gerados</summary>
                 <div id="iconeDensityGrid" class="icone-density-grid"></div>
-            </div>
+            </details>
         </div>
     </div>
-    <div class="icone-editor-footer">
-        <button type="button" class="btn btn-outline" id="btnCancelarEditorIcone">Cancelar</button>
-        <button type="button" class="btn btn-primary" id="btnAplicarEditorIcone">Aplicar</button>
+    <div class="dialogo-rodape">
+        <button type="button" class="btn-secundario" id="btnIconeTrocarImagem">Trocar imagem</button>
+        <input type="file" id="inputIconeTrocarImagem" accept="image/png,image/jpeg,image/webp" hidden>
+        <div class="dialogo-rodape-acoes">
+            <button type="button" class="btn-link btn-cancelar" id="btnCancelarEditorIcone">Cancelar</button>
+            <button type="button" class="btn-principal btn-rodape" id="btnAplicarEditorIcone">Usar este ícone</button>
+        </div>
     </div>
 </dialog>
 
 <!-- ========================================================
      EDITOR DE LOGO (recorte opcional, proporção livre)
 ======================================================== -->
-<dialog id="modalRecorteLogo" class="modal-custom modal-logo-editor" aria-labelledby="logoEditorTitulo">
-    <div class="modal-custom-header">
-        <h2 id="logoEditorTitulo">🖼️ Ajustar Logo do Projeto</h2>
-        <button class="btn-close" id="btnFecharEditorLogo" type="button" aria-label="Fechar">✕</button>
-    </div>
-    <div class="modal-custom-body logo-editor-body">
-        <div class="logo-crop-area">
-            <canvas id="logoCropCanvas" width="560" height="340"></canvas>
-        </div>
-        <div class="logo-crop-controls">
-            <div class="logo-proporcoes" id="logoProporcoes" role="group" aria-label="Proporção do recorte">
-                <button type="button" class="btn btn-sm btn-outline" data-proporcao="livre" aria-pressed="true">Livre</button>
-                <button type="button" class="btn btn-sm btn-outline" data-proporcao="1">1:1</button>
-                <button type="button" class="btn btn-sm btn-outline" data-proporcao="2">2:1</button>
-                <button type="button" class="btn btn-sm btn-outline" data-proporcao="3">3:1</button>
-            </div>
-            <button type="button" id="btnLogoAparar" class="btn btn-sm btn-outline" title="Remove bordas transparentes ou da cor de fundo">Aparar margens</button>
-            <button type="button" id="btnLogoRestaurar" class="btn btn-sm btn-outline" title="Volta para a imagem inteira">Restaurar</button>
-        </div>
-        <small class="icone-crop-hint">Arraste a caixa para mover · arraste as alças para redimensionar · <span id="logoRecorteInfo"></span></small>
+<dialog id="modalRecorteLogo" class="dialogo dialogo-logo" aria-labelledby="logoEditorTitulo">
+    <div class="dialogo-topo dialogo-topo-separado">
         <div>
-            <div class="icone-density-title">Prévia no cabeçalho</div>
-            <div class="logo-previa-cabecalho">
-                <canvas id="logoPreviaCanvas" width="84" height="84" aria-hidden="true"></canvas>
-                <span id="logoPreviaTitulo">Dicionário</span>
+            <h2 id="logoEditorTitulo">Logo do projeto</h2>
+            <p>Recorte a área do logo que vai aparecer no cabeçalho do dicionário.</p>
+        </div>
+        <button type="button" class="btn-icone" id="btnFecharEditorLogo" aria-label="Fechar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+    </div>
+    <div class="dialogo-corpo editor-logo-corpo">
+        <div class="logo-crop-area">
+            <canvas id="logoCropCanvas" width="560" height="340" aria-label="Recorte do logo: arraste a caixa para mover e as alças para redimensionar"></canvas>
+        </div>
+        <span class="campo-ajuda">Arraste a caixa para mover e as alças para redimensionar. <span id="logoRecorteInfo"></span></span>
+        <div class="editor-logo-controles">
+            <div class="editor-logo-proporcao">
+                <span class="campo-rotulo">Proporção</span>
+                <div class="segmentado-botoes" id="logoProporcoes" role="group" aria-label="Proporção do recorte">
+                    <button type="button" data-proporcao="livre" aria-pressed="true">Livre</button>
+                    <button type="button" data-proporcao="1">1:1</button>
+                    <button type="button" data-proporcao="2">2:1</button>
+                    <button type="button" data-proporcao="3">3:1</button>
+                </div>
+            </div>
+            <div class="editor-logo-acoes">
+                <button type="button" id="btnLogoAparar" class="btn-secundario" title="Remove bordas transparentes ou da cor de fundo">Remover bordas vazias</button>
+                <button type="button" id="btnLogoRestaurar" class="btn-link" title="Volta para a imagem inteira">Desfazer recorte</button>
             </div>
         </div>
+        <section class="editor-icone-secao">
+            <h3>Prévia no cabeçalho</h3>
+            <div class="logo-previas">
+                <div>
+                    <span class="aparencia-previa-rotulo">Modo claro</span>
+                    <div class="logo-previa-cabecalho" id="logoPreviaClara">
+                        <canvas id="logoPreviaCanvas" width="84" height="84" aria-hidden="true"></canvas>
+                        <span id="logoPreviaTitulo">Dicionário</span>
+                    </div>
+                </div>
+                <div>
+                    <span class="aparencia-previa-rotulo">Modo escuro</span>
+                    <div class="logo-previa-cabecalho escuro" id="logoPreviaEscura">
+                        <canvas id="logoPreviaCanvasEscuro" width="84" height="84" aria-hidden="true"></canvas>
+                        <span id="logoPreviaTituloEscuro">Dicionário</span>
+                    </div>
+                </div>
+            </div>
+            <span class="campo-ajuda">Se o logo sumir no modo escuro, prefira uma versão com fundo transparente e cores claras, ou um PNG com contorno.</span>
+        </section>
     </div>
-    <div class="icone-editor-footer">
-        <button type="button" class="btn btn-outline" id="btnCancelarEditorLogo">Cancelar</button>
-        <button type="button" class="btn btn-primary" id="btnAplicarEditorLogo">Aplicar</button>
+    <div class="dialogo-rodape">
+        <div class="dialogo-rodape-acoes">
+            <button type="button" class="btn-link btn-cancelar" id="btnCancelarEditorLogo">Cancelar</button>
+            <button type="button" class="btn-principal btn-rodape" id="btnAplicarEditorLogo">Usar este logo</button>
+        </div>
     </div>
 </dialog>
 
