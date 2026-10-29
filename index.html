@@ -1213,16 +1213,27 @@
     <!-- ============================================ -->
     <!-- PAINEL DIREITO (TERMINAL) -->
     <!-- ============================================ -->
-    <aside class="terminal-panel" id="terminalPanel">
-        <div class="terminal-header">
-            <h3><span class="terminal-dot">●</span> Terminal</h3>
-            <div class="terminal-actions">
-                <span onclick="copiarTerminal()">Copiar</span>
-                <span onclick="limparTerminal()">Limpar</span>
-                <span onclick="window.toggleTerminal()" title="Fechar">✕</span>
-            </div>
+    <!-- Histórico de atividades: eventos guardados em `historicoEventos` e desenhados por adicionarLogAoTerminal -->
+    <aside class="terminal-panel" id="terminalPanel" aria-labelledby="historicoTitulo">
+        <div class="historico-topo">
+            <h2 id="historicoTitulo">Histórico de atividades</h2>
+            <button type="button" class="btn-icone" aria-label="Fechar histórico" onclick="window.toggleTerminal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
         </div>
-        <div class="terminal" id="terminal"></div>
+        <div class="historico-filtros">
+            <div class="segmentado historico-segmentado" role="radiogroup" aria-label="Mostrar">
+                <label><input type="radio" name="historicoFiltro" value="todos" checked onchange="window.renderizarHistorico()">Tudo</label>
+                <label><input type="radio" name="historicoFiltro" value="problemas" onchange="window.renderizarHistorico()"><span id="historicoRotuloProblemas">Só avisos e erros</span></label>
+            </div>
+            <label class="campo-opcao historico-tecnico">
+                <input type="checkbox" id="historicoTecnico" onchange="window.renderizarHistorico()">
+                Mostrar mensagens técnicas
+            </label>
+        </div>
+        <ol class="historico-lista" id="terminal" aria-live="polite"></ol>
+        <div class="historico-rodape">
+            <button type="button" class="btn-secundario" id="btnCopiarHistorico" onclick="copiarTerminal()">Copiar histórico</button>
+            <button type="button" class="btn-link" onclick="limparTerminal()">Limpar</button>
+        </div>
     </aside>
 </div>
 
@@ -1918,27 +1929,86 @@
     
     let terminalLogsNaoLidos = 0;
 
+    // Histórico de atividades. Cada evento: { tipo: 'erro'|'aviso'|'ok'|'info', hora, titulo, detalhe }.
+    // A 1ª linha da mensagem vira o título; o resto (ex.: pilha de erro) é detalhe técnico.
+    const historicoEventos = [];
+    const HISTORICO_ROTULOS = { erro: 'Erro', aviso: 'Aviso', ok: 'Concluído', info: 'Informação' };
+    const EMOJI_INICIAL = /^[\p{Extended_Pictographic}️‍\s]+/u;
+
+    function criarEventoHistorico(msg, tipo) {
+        const texto = formatarMensagem(msg);
+        const sucesso = /^\s*✅/.test(texto);
+        const linhas = texto.replace(EMOJI_INICIAL, '').split('\n');
+        return {
+            tipo: tipo === 'error' ? 'erro' : tipo === 'warn' ? 'aviso' : (tipo === 'success' || sucesso) ? 'ok' : 'info',
+            hora: new Date().toLocaleTimeString('pt-BR'),
+            titulo: linhas[0].trim() || texto.trim(),
+            detalhe: linhas.slice(1).join('\n').trim()
+        };
+    }
+
+    function criarItemHistorico(evento, comTecnico) {
+        const li = document.createElement('li');
+        li.className = `historico-item ${evento.tipo}`;
+        const marca = document.createElement('span');
+        marca.className = 'historico-marca';
+        marca.setAttribute('role', 'img');
+        marca.setAttribute('aria-label', HISTORICO_ROTULOS[evento.tipo]);
+        const corpo = document.createElement('div');
+        corpo.className = 'historico-item-corpo';
+        const linha = document.createElement('div');
+        linha.className = 'historico-item-linha';
+        const titulo = document.createElement('strong');
+        titulo.textContent = evento.titulo;
+        const hora = document.createElement('span');
+        hora.className = 'historico-hora';
+        hora.textContent = evento.hora;
+        linha.append(titulo, hora);
+        corpo.append(linha);
+        if (comTecnico && evento.detalhe) {
+            const detalhe = document.createElement('pre');
+            detalhe.className = 'historico-detalhe';
+            detalhe.textContent = evento.detalhe;
+            corpo.append(detalhe);
+        }
+        li.append(marca, corpo);
+        return li;
+    }
+
+    const historicoMostra = (evento, soProblemas) => !soProblemas || evento.tipo === 'erro' || evento.tipo === 'aviso';
+    const historicoSoProblemas = () => document.querySelector('input[name="historicoFiltro"]:checked')?.value === 'problemas';
+
+    function atualizarContagemProblemas() {
+        const n = historicoEventos.filter(e => e.tipo === 'erro' || e.tipo === 'aviso').length;
+        document.getElementById('historicoRotuloProblemas').textContent = n ? `Só avisos e erros · ${n}` : 'Só avisos e erros';
+    }
+
+    window.renderizarHistorico = function() {
+        const lista = document.getElementById('terminal');
+        const soProblemas = historicoSoProblemas();
+        const comTecnico = document.getElementById('historicoTecnico').checked;
+        lista.replaceChildren(...historicoEventos.filter(e => historicoMostra(e, soProblemas)).map(e => criarItemHistorico(e, comTecnico)));
+        if (!lista.children.length) {
+            const vazio = document.createElement('li');
+            vazio.className = 'historico-vazio';
+            vazio.textContent = soProblemas ? 'Nenhum aviso ou erro até agora.' : 'Nada registrado ainda.';
+            lista.append(vazio);
+        }
+        lista.scrollTop = lista.scrollHeight;
+    };
+
     function adicionarLogAoTerminal(msg, tipo = 'info') {
         const terminal = document.getElementById('terminal');
         if (!terminal) return;
 
-        let color = '#a3a3a3'; // info
-        if (tipo === 'error') color = '#ef4444';
-        else if (tipo === 'warn') color = '#f59e0b';
-        else if (tipo === 'success') color = '#22c55e';
-
-        const linha = document.createElement('div');
-        linha.style.color = color;
-        linha.style.marginBottom = '4px';
-        linha.style.fontFamily = 'monospace';
-        linha.style.whiteSpace = 'pre-wrap';
-        linha.style.wordBreak = 'break-word';
-
-        const tempo = new Date().toLocaleTimeString('pt-BR');
-        linha.innerHTML = `<span style="color: #666; font-size: 0.85em;">[${tempo}]</span> ${formatarMensagem(msg)}`;
-
-        terminal.appendChild(linha);
-        terminal.scrollTop = terminal.scrollHeight;
+        const evento = criarEventoHistorico(msg, tipo);
+        historicoEventos.push(evento);
+        atualizarContagemProblemas();
+        if (historicoMostra(evento, historicoSoProblemas())) {
+            terminal.querySelector('.historico-vazio')?.remove();
+            terminal.appendChild(criarItemHistorico(evento, document.getElementById('historicoTecnico').checked));
+            terminal.scrollTop = terminal.scrollHeight;
+        }
 
         const painel = document.getElementById('terminalPanel');
         if (painel && !painel.classList.contains('open')) {
@@ -1994,18 +2064,26 @@
     };
 
     window.limparTerminal = function() {
-        const terminal = document.getElementById('terminal');
-        if (terminal) terminal.innerHTML = '';
+        historicoEventos.length = 0;
+        atualizarContagemProblemas();
+        window.renderizarHistorico();
         console.log("Terminal limpo.");
     };
 
+    // Copia tudo (com detalhes técnicos), independentemente do filtro em tela
     window.copiarTerminal = async function() {
-        const terminal = document.getElementById('terminal');
-        if (terminal) {
-            await navigator.clipboard.writeText(terminal.innerText);
-            alert("Terminal copiado!");
+        const texto = historicoEventos.map(e =>
+            `[${e.hora}] ${HISTORICO_ROTULOS[e.tipo].toUpperCase()}: ${e.titulo}${e.detalhe ? '\n' + e.detalhe : ''}`).join('\n');
+        const botao = document.getElementById('btnCopiarHistorico');
+        try {
+            await navigator.clipboard.writeText(texto);
+            botao.textContent = 'Copiado';
+        } catch (e) {
+            botao.textContent = 'Não foi possível copiar';
         }
+        setTimeout(() => { botao.textContent = 'Copiar histórico'; }, 2000);
     };
+    window.renderizarHistorico();
 </script>
 
 <!-- Dependências Externas (vendorizadas) -->

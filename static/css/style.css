@@ -377,6 +377,7 @@ body {
    WIZARD COMPONENT
 ========================================= */
 .wizard-container {
+    container-type: inline-size; /* o stepper se adapta à largura do assistente (ver @container abaixo) */
     max-width: 1380px;
     margin: 20px auto;
     background: var(--bg-card);
@@ -463,7 +464,12 @@ body {
     font-weight: 600;
     color: var(--text-strong);
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
+.step-indicator { min-width: 0; }
+.step-indicator-texto { min-width: 0; overflow: hidden; }
+
 
 .step-indicator-estado {
     font-size: 12px;
@@ -492,6 +498,18 @@ body {
     background: var(--border-color);
 }
 .step-linha.feita { background: var(--primary); }
+
+/* Assistente estreito (celular, ou histórico aberto ao lado): só a etapa atual mostra o nome */
+@container (max-width: 1000px) {
+    .wizard-stepper { padding: 8px 12px; min-height: 64px; }
+    .step-indicator-estado { display: none; }
+    .step-indicator:not(.active) .step-indicator-texto { display: none; }
+    .stepper-lista { gap: 4px; }
+    .step-item { flex: 0 1 auto; gap: 4px; }
+    .step-item:has(.step-indicator.active) { flex: 1 1 auto; }
+    .step-indicator { padding: 4px 2px; }
+    .step-linha { min-width: 8px; }
+}
 
 .wizard-body {
     padding: 40px;
@@ -1934,19 +1952,19 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
        sobrepor a tela. Ver .app-layout (display:flex) no topo do arquivo. */
     width: 0;
     flex-shrink: 0;
-    background: #0f172a;
-    color: #e2e8f0;
+    background: var(--bg-card);
+    color: var(--text-main);
     display: flex;
     flex-direction: column;
-    border-left: 1px solid #1e293b;
-    box-shadow: -4px 0 15px rgba(0,0,0,0.1);
+    border-left: 1px solid var(--border-color);
+    box-shadow: -12px 0 32px -16px rgb(15 23 42 / 0.25);
     z-index: 20;
     overflow: hidden;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .terminal-panel.open {
-    width: 380px;
+    width: 440px;
 }
 
 .terminal-badge {
@@ -1967,41 +1985,81 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     border: 2px solid var(--bg-main);
 }
 
-.terminal-header {
-    background: #1e293b;
-    padding: 16px 20px;
+/* Histórico de atividades (conteúdo do painel) */
+.historico-topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 12px 12px 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+.historico-topo h2 { margin: 0; font-size: 18px; font-weight: 700; white-space: nowrap; }
+.historico-filtros {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+.historico-segmentado { display: flex; }
+.historico-segmentado label { flex: 1; justify-content: center; white-space: nowrap; }
+.campo-opcao.historico-tecnico { min-height: 36px; font-size: 13px; }
+
+.historico-lista {
+    flex: 1;
+    overflow-y: auto;
+    margin: 0;
+    padding: 8px 12px;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.historico-item {
+    display: flex;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-control);
+}
+.historico-item.erro { background: #fef2f2; border-color: #fecaca; }
+.historico-item.aviso { background: #fffbeb; border-color: #fde68a; }
+.historico-marca {
+    width: 10px;
+    height: 10px;
+    margin-top: 7px;
+    flex-shrink: 0;
+    border-radius: var(--radius-pill);
+    background: var(--text-light);
+}
+.historico-item.erro .historico-marca { background: #dc2626; }
+.historico-item.aviso .historico-marca { background: #d97706; }
+.historico-item.ok .historico-marca { background: var(--success); }
+.historico-item-corpo { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.historico-item-linha { display: flex; justify-content: space-between; gap: 8px; }
+.historico-item-linha strong { font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+.historico-hora { flex-shrink: 0; font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.historico-detalhe {
+    margin: 4px 0 0;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    background: #0f172a;
+    color: #e2e8f0;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 11px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+.historico-vazio { padding: 16px 8px; color: var(--text-muted); font-size: 14px; }
+.historico-rodape {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #334155;
-}
-
-.terminal-header h3 {
-    font-size: 1rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
     gap: 8px;
-    color: #f8fafc;
-}
-.terminal-dot { color: #10b981; }
-
-.terminal-actions span {
-    font-size: 0.85rem;
-    color: #94a3b8;
-    cursor: pointer;
-    margin-left: 12px;
-    transition: var(--transition);
-}
-.terminal-actions span:hover { color: white; }
-
-.terminal {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
-    font-family: 'JetBrains Mono', 'Fira Code', monospace;
-    font-size: 0.85rem;
-    line-height: 1.5;
+    padding: 12px 20px;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-main);
 }
 
 /* =========================================
@@ -2054,30 +2112,19 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
         width: 100%;
         height: 0;
         border-left: none;
-        border-top: 1px solid #1e293b;
+        border-top: 1px solid var(--border-color);
         transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .terminal-panel.open {
         width: 100%;
-        height: 45vh; /* menos da metade da tela */
+        height: 60vh; /* espaço para filtros, lista e rodapé do histórico */
     }
 
     .scroll-content {
         padding: 24px 14px 90px;
     }
 
-    /* Stepper: só a etapa atual mostra o nome; as demais ficam só com o círculo */
-    .wizard-stepper { padding: 8px 12px; min-height: 64px; }
-    .step-indicator-estado { display: none; }
-    .step-indicator:not(.active) .step-indicator-texto { display: none; }
-    .stepper-lista { gap: 4px; }
-    .step-item { flex: 0 1 auto; gap: 4px; }
-    .step-item:has(.step-indicator.active) { flex: 1 1 auto; }
-    .step-indicator { padding: 4px 2px; min-width: 0; }
-    .step-indicator-texto { min-width: 0; overflow: hidden; }
-    .step-indicator-title { overflow: hidden; text-overflow: ellipsis; }
-    .step-linha { min-width: 8px; }
 
     /* Cabeçalho: sem subtítulo e botões só com ícone */
     .app-header { padding: 8px 14px; min-height: 0; }
