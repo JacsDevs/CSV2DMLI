@@ -492,6 +492,20 @@
         .painel-a11y-rodape { display: flex; gap: 10px; }
         .painel-a11y-rodape .btn { flex: 1; }
 
+        /* ===== MÍDIAS OFFLINE (pacotes da Google Play, só no app Android) ===== */
+        .midias-offline-intro { background: var(--cor-primaria-light); border-radius: var(--raio-sm); padding: 12px 14px; font-size: 0.92rem; line-height: 1.5; }
+        .midias-offline-resumo { font-size: 0.88rem; color: var(--cor-texto-secundario); }
+        .midias-offline-lista { display: flex; flex-direction: column; }
+        .pacote-midia { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--cor-borda); }
+        .pacote-midia:last-child { border-bottom: none; }
+        .pacote-midia-texto { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+        .pacote-midia-titulo { font-size: 0.95rem; font-weight: 600; overflow-wrap: anywhere; }
+        .pacote-midia-estado { font-size: 0.8rem; color: var(--cor-texto-secundario); }
+        .pacote-midia-estado.erro { color: var(--cor-perigo); }
+        .pacote-midia-barra { height: 4px; border-radius: var(--raio-pilula); background: var(--cor-borda); overflow: hidden; }
+        .pacote-midia-barra > span { display: block; height: 100%; background: var(--cor-primaria); transition: width 0.3s ease; }
+        .pacote-midia .btn { flex-shrink: 0; padding: 6px 12px; font-size: 0.85rem; }
+
         /* Preferências aplicadas */
         html.a11y-espacamento body { line-height: 1.85; letter-spacing: 0.03em; word-spacing: 0.08em; }
         html.a11y-espacamento p,
@@ -1764,6 +1778,11 @@
             </label>
         </div>
 
+        <div class="sidebar-section" id="secao-midias-offline" style="display: none;">
+            <div class="sidebar-label">Mídias</div>
+            <button type="button" class="btn btn-contorno" style="width: 100%;" onclick="MidiasPacotes.abrirPainel()">Mídias offline</button>
+        </div>
+
         <div class="contador" id="contador-itens">
             <span id="loading-count">0</span> itens
             <div id="progresso-carga" class="progresso"></div>
@@ -1890,6 +1909,15 @@
                 <span>Visualização completa</span>
                 <input type="checkbox" id="visao-completa-mobile" style="width: 22px; height: 22px; accent-color: var(--cor-primaria);">
             </label>
+        </div>
+
+        <!-- Só aparece no app Android com mídias baixadas depois da instalação (MidiasPacotes) -->
+        <div class="sheet-grupo" id="grupo-midias-offline" style="display: none;">
+            <div class="sheet-label">Mídias</div>
+            <button type="button" class="linha-sheet" onclick="fecharBottomSheet(); MidiasPacotes.abrirPainel()">
+                <span>Mídias offline</span>
+                <span id="rotulo-midias-offline" style="color: var(--cor-texto-secundario); font-weight: 600;"></span>
+            </button>
         </div>
 
         <div class="sheet-grupo">
@@ -2021,6 +2049,45 @@
                 <button type="button" class="btn btn-contorno" onclick="restaurarPadroesA11y()">Restaurar padrões</button>
                 <button type="button" class="btn btn-primario" onclick="fecharModalGlobal('modal-acessibilidade')">Concluir</button>
             </div>
+        </div>
+    </div>
+
+    <!-- ===== MÍDIAS OFFLINE (pacotes da Google Play; só no app Android, ver MidiasPacotes) ===== -->
+    <div class="modal-overlay painel-a11y-overlay" id="modal-midias-offline" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-midias">
+        <div class="painel-a11y">
+            <div class="alca" aria-hidden="true"></div>
+            <div class="painel-a11y-cabecalho">
+                <h2 id="titulo-modal-midias">Mídias offline</h2>
+                <button type="button" class="btn btn-icone" onclick="fecharModalGlobal('modal-midias-offline')" aria-label="Fechar mídias offline">
+                    <svg class="icone" aria-hidden="true"><use href="#ic-fechar"></use></svg>
+                </button>
+            </div>
+            <p class="midias-offline-intro" id="midias-offline-intro" style="display: none;"></p>
+            <p class="midias-offline-resumo" id="midias-offline-resumo" aria-live="polite"></p>
+            <div class="midias-offline-lista" id="midias-offline-lista"></div>
+            <div class="painel-a11y-rodape">
+                <button type="button" class="btn btn-contorno" id="midias-offline-secundario"></button>
+                <button type="button" class="btn btn-primario" id="midias-offline-baixar-tudo" onclick="MidiasPacotes.baixarTudo()">Baixar tudo</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pedido de download ao abrir uma mídia de um pacote ainda não baixado -->
+    <div class="modal-overlay painel-a11y-overlay" id="modal-midia-pacote" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-midia-pacote">
+        <div class="painel-a11y">
+            <div class="alca" aria-hidden="true"></div>
+            <div class="painel-a11y-cabecalho">
+                <h2 id="titulo-modal-midia-pacote">Mídia não baixada</h2>
+                <button type="button" class="btn btn-icone" onclick="fecharModalGlobal('modal-midia-pacote')" aria-label="Fechar">
+                    <svg class="icone" aria-hidden="true"><use href="#ic-fechar"></use></svg>
+                </button>
+            </div>
+            <p id="midia-pacote-texto"></p>
+            <div class="painel-a11y-rodape">
+                <button type="button" class="btn btn-contorno" onclick="fecharModalGlobal('modal-midia-pacote')">Agora não</button>
+                <button type="button" class="btn btn-primario" id="midia-pacote-baixar">Baixar</button>
+            </div>
+            <button type="button" class="btn btn-suave" id="midia-pacote-baixar-tudo"></button>
         </div>
     </div>
 
@@ -3072,13 +3139,344 @@
             return `${pasta}/${nomeArquivo}`;
         }
 
-        // Converte um vídeo embutido ("midia:N") em URL tocável; demais valores voltam iguais
+        // Converte em URL tocável: vídeo embutido ("midia:N") ou mídia de um pacote da Google Play
+        // (MidiasPacotes); demais valores voltam iguais. Mídia de pacote ainda não baixado rejeita
+        // com { naoBaixada: true }, depois de oferecer o download.
         function obterUrlTocavel(src) {
             if (typeof window.ehMidiaEmbutida === 'function' && window.ehMidiaEmbutida(src)) {
                 return window.obterUrlMidiaEmbutida(src);
             }
+            if (MidiasPacotes.gerencia(src)) return MidiasPacotes.resolver(src);
             return Promise.resolve(src);
         }
+
+        // Se a mídia precisa passar por obterUrlTocavel antes de tocar
+        function precisaResolverMidia(src) {
+            return (typeof window.ehMidiaEmbutida === 'function' && window.ehMidiaEmbutida(src)) ||
+                MidiasPacotes.gerencia(src);
+        }
+
+        // ==============================================
+        // MÍDIAS OFFLINE (pacotes da Google Play)
+        // ==============================================
+        // No app Android publicado na Google Play, parte das mídias pode vir em pacotes baixados
+        // depois da instalação (Play Asset Delivery). O app expõe window.PonteMidias (PonteMidias.java)
+        // e o gerador grava o índice arquivo → pacote (midias-index.json). Sem a ponte (site,
+        // HTML exportado, APK de instalação direta), nada aqui é ativado.
+        const MidiasPacotes = (function () {
+            const ponte = window.PonteMidias;
+            let indice = null;
+            try { indice = ponte ? JSON.parse(ponte.indice() || 'null') : null; } catch (e) { indice = null; }
+            const ativo = !!(indice && Array.isArray(indice.pacotes) && indice.pacotes.length > 0);
+
+            // AssetPackStatus e AssetPackErrorCode (com.google.android.play.core.assetpacks.model)
+            const ST = { DESCONHECIDO: 0, NA_FILA: 1, BAIXANDO: 2, TRANSFERINDO: 3, CONCLUIDO: 4, FALHOU: 5,
+                CANCELADO: 6, AGUARDANDO_WIFI: 7, NAO_INSTALADO: 8, CONFIRMACAO: 9 };
+            const ERROS = {
+                '-1': 'O app não foi encontrado na Google Play.',
+                '-2': 'Este pacote não está disponível na Google Play.',
+                '-5': 'A versão da Google Play deste aparelho não permite o download.',
+                '-6': 'Sem conexão com a internet.',
+                '-7': 'Download bloqueado. Abra o app e tente de novo.',
+                '-10': 'Espaço insuficiente no aparelho.',
+                '-11': 'A Google Play não está instalada neste aparelho.',
+                '-12': 'Conecte-se a uma rede Wi-Fi ou autorize o uso de dados móveis.',
+                '-13': 'Instale o app pela Google Play para baixar as mídias.',
+                '-15': 'Instale o app pela Google Play para baixar as mídias.',
+            };
+            const CHAVE_AVISO = 'csv2dmli_midias_offline_aviso';
+            const pacotes = ativo ? indice.pacotes : [];
+            const porNome = {};
+            pacotes.forEach(p => { porNome[p.nome] = p; });
+            const estados = {};        // nome → { status, erro, baixado, total, local }
+            const esperando = new Set();  // pacotes pedidos ao tocar uma mídia: avisar ao concluir
+            let modoIntro = false;
+            let confirmarRemocao = null;
+
+            function formatarBytes(b) {
+                if (b >= 1e9) return (b / 1e9).toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + ' GB';
+                if (b >= 1e6) return (b / 1e6).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' MB';
+                return b > 0 ? Math.max(1, Math.round(b / 1e3)) + ' KB' : '0 MB';
+            }
+            function mensagemErro(codigo) {
+                return ERROS[String(codigo)] || `Não foi possível baixar (código ${codigo}).`;
+            }
+            function caminhoNoIndice(src) {
+                if (!ativo || typeof src !== 'string' || !src) return null;
+                let caminho = src.replace(/^\.\//, '').split(/[?#]/)[0];
+                if (indice.arquivos[caminho]) return caminho;
+                try { caminho = decodeURIComponent(caminho); } catch (e) { return null; }
+                return indice.arquivos[caminho] ? caminho : null;
+            }
+            function baixado(nome) {
+                const e = estados[nome];
+                return !!(e && e.status === ST.CONCLUIDO && e.local);
+            }
+            function urlLocal(nome, caminho) {
+                let base = estados[nome] && estados[nome].local;
+                if (!base) base = ponte.local(nome);   // estado ainda não recebido
+                if (!base) return null;
+                return base + caminho.split('/').map(encodeURIComponent).join('/');
+            }
+
+            // ─── Downloads ───
+            function baixar(nomes) {
+                nomes = nomes.filter(n => !baixado(n));
+                if (nomes.length === 0) return;
+                nomes.forEach(n => { estados[n] = Object.assign({}, estados[n], { status: ST.NA_FILA, erro: 0 }); });
+                renderizar();
+                ponte.baixar(JSON.stringify(nomes));
+            }
+            function baixarTudo() {
+                if (modoIntro) fecharIntro();
+                baixar(pacotes.map(p => p.nome));
+            }
+            function remover(nome) {
+                ponte.remover(nome);
+            }
+            function removerTudo() {
+                // Dois toques: o primeiro só pede confirmação (confirm() não funciona no WebView)
+                const btn = document.getElementById('midias-offline-secundario');
+                if (!confirmarRemocao) {
+                    btn.textContent = 'Confirmar remoção';
+                    confirmarRemocao = setTimeout(() => { confirmarRemocao = null; renderizar(); }, 4000);
+                    return;
+                }
+                clearTimeout(confirmarRemocao);
+                confirmarRemocao = null;
+                pacotes.filter(p => baixado(p.nome)).forEach(p => remover(p.nome));
+                renderizar();
+            }
+            function cancelar(nome) {
+                ponte.cancelar(JSON.stringify([nome]));
+            }
+
+            // Mídia de pacote ainda não baixado: oferece baixar o pacote (ou todos)
+            function pedirDownload(nome) {
+                const p = porNome[nome];
+                const e = estados[nome];
+                if (e && [ST.NA_FILA, ST.BAIXANDO, ST.TRANSFERINDO, ST.AGUARDANDO_WIFI, ST.CONFIRMACAO].includes(e.status)) {
+                    mostrarToast(`"${p.rotulo}" está sendo baixado. Tente de novo quando terminar.`);
+                    esperando.add(nome);
+                    return;
+                }
+                const faltam = pacotes.filter(x => !baixado(x.nome));
+                const totalFaltam = faltam.reduce((s, x) => s + x.tamanho, 0);
+                document.getElementById('midia-pacote-texto').textContent =
+                    `Esta mídia faz parte do pacote "${p.rotulo}" (${formatarBytes(p.tamanho)}), que ainda não foi baixado. Baixar agora?`;
+                const btnTudo = document.getElementById('midia-pacote-baixar-tudo');
+                btnTudo.style.display = faltam.length > 1 ? '' : 'none';
+                btnTudo.textContent = `Baixar todas as mídias (${formatarBytes(totalFaltam)})`;
+                btnTudo.onclick = () => { fecharModalGlobal('modal-midia-pacote'); esperando.add(nome); baixarTudo(); };
+                document.getElementById('midia-pacote-baixar').onclick = () => {
+                    fecharModalGlobal('modal-midia-pacote');
+                    esperando.add(nome);
+                    baixar([nome]);
+                };
+                abrirModalGlobal('modal-midia-pacote');
+            }
+
+            function resolver(src) {
+                const caminho = caminhoNoIndice(src);
+                const nome = indice.arquivos[caminho][0];
+                const url = urlLocal(nome, caminho);
+                if (url) return Promise.resolve(url);
+                pedirDownload(nome);
+                return Promise.reject({ naoBaixada: true });
+            }
+
+            // ─── Eventos da ponte (PonteMidias.enviar) ───
+            window.__midiasPacotesEvento = function (ev) {
+                if (ev.tipo === 'estado') {
+                    const anterior = estados[ev.nome];
+                    estados[ev.nome] = ev;
+                    if (ev.status === ST.CONCLUIDO && esperando.has(ev.nome)) {
+                        esperando.delete(ev.nome);
+                        mostrarToast(`Mídias baixadas: ${porNome[ev.nome] ? porNome[ev.nome].rotulo : ev.nome}`);
+                    }
+                    if (ev.status === ST.FALHOU && (!anterior || anterior.status !== ST.FALHOU)) {
+                        mostrarToast(mensagemErro(ev.erro));
+                    }
+                } else if (ev.tipo === 'erro') {
+                    if (ev.mensagem) console.warn('PonteMidias:', ev.acao, ev.mensagem);
+                    // Falha só ao consultar o estado: mantém o que se sabia (o painel tenta de novo ao abrir)
+                    if (ev.acao === 'atualizar') { renderizar(); return; }
+                    (ev.nomes || []).forEach(n => {
+                        estados[n] = Object.assign({}, estados[n], { status: ST.FALHOU, erro: ev.erro });
+                        esperando.delete(n);
+                    });
+                    mostrarToast(mensagemErro(ev.erro));
+                }
+                renderizar();
+            };
+
+            // ─── Painel ───
+            function textoEstado(p) {
+                const e = estados[p.nome];
+                if (!e) return { texto: 'Verificando…' };
+                const pct = e.total > 0 ? Math.floor(100 * e.baixado / e.total) : 0;
+                switch (e.status) {
+                    case ST.CONCLUIDO: return { texto: 'Baixado', pct: 100 };
+                    case ST.NA_FILA: return { texto: 'Na fila…', pct: 0 };
+                    case ST.BAIXANDO: return { texto: `Baixando… ${pct}% de ${formatarBytes(e.total || p.tamanho)}`, pct };
+                    case ST.TRANSFERINDO: return { texto: 'Instalando…', pct: 100 };
+                    case ST.AGUARDANDO_WIFI: return { texto: 'Aguardando Wi-Fi', pct };
+                    case ST.CONFIRMACAO: return { texto: 'Aguardando sua confirmação', pct };
+                    case ST.FALHOU: return { texto: mensagemErro(e.erro), erro: true };
+                    case ST.CANCELADO: return { texto: 'Cancelado' };
+                    default: return { texto: 'Não baixado' };
+                }
+            }
+            function emAndamento(p) {
+                const e = estados[p.nome];
+                return !!e && [ST.NA_FILA, ST.BAIXANDO, ST.TRANSFERINDO, ST.AGUARDANDO_WIFI, ST.CONFIRMACAO].includes(e.status);
+            }
+            function renderizar() {
+                if (!ativo) return;
+                const totalGeral = pacotes.reduce((s, p) => s + p.tamanho, 0);
+                const prontos = pacotes.filter(p => baixado(p.nome));
+                const totalProntos = prontos.reduce((s, p) => s + p.tamanho, 0);
+                const rotulo = document.getElementById('rotulo-midias-offline');
+                if (rotulo) rotulo.textContent = `${prontos.length}/${pacotes.length}`;
+
+                const lista = document.getElementById('midias-offline-lista');
+                if (!lista || !document.getElementById('modal-midias-offline').classList.contains('ativo')) return;
+                document.getElementById('midias-offline-resumo').textContent =
+                    `${formatarBytes(totalProntos)} de ${formatarBytes(totalGeral)} baixados (${prontos.length} de ${pacotes.length} pacotes).`;
+                lista.innerHTML = '';
+                pacotes.forEach(p => {
+                    const est = textoEstado(p);
+                    const linha = document.createElement('div');
+                    linha.className = 'pacote-midia';
+                    const texto = document.createElement('div');
+                    texto.className = 'pacote-midia-texto';
+                    const titulo = document.createElement('span');
+                    titulo.className = 'pacote-midia-titulo';
+                    titulo.textContent = `${p.rotulo} · ${formatarBytes(p.tamanho)}`;
+                    const estado = document.createElement('span');
+                    estado.className = 'pacote-midia-estado' + (est.erro ? ' erro' : '');
+                    estado.textContent = est.texto;
+                    texto.append(titulo, estado);
+                    if (emAndamento(p)) {
+                        const barra = document.createElement('div');
+                        barra.className = 'pacote-midia-barra';
+                        barra.innerHTML = `<span style="width: ${est.pct || 0}%"></span>`;
+                        texto.append(barra);
+                    }
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    if (baixado(p.nome)) {
+                        btn.className = 'btn btn-contorno';
+                        btn.textContent = 'Remover';
+                        btn.setAttribute('aria-label', `Remover ${p.rotulo}`);
+                        btn.onclick = () => remover(p.nome);
+                    } else if (emAndamento(p)) {
+                        btn.className = 'btn btn-contorno';
+                        btn.textContent = 'Cancelar';
+                        btn.setAttribute('aria-label', `Cancelar download de ${p.rotulo}`);
+                        btn.onclick = () => cancelar(p.nome);
+                    } else {
+                        btn.className = 'btn btn-suave';
+                        btn.textContent = 'Baixar';
+                        btn.setAttribute('aria-label', `Baixar ${p.rotulo}`);
+                        btn.onclick = () => baixar([p.nome]);
+                    }
+                    linha.append(texto, btn);
+                    lista.append(linha);
+                });
+
+                const faltam = pacotes.filter(p => !baixado(p.nome) && !emAndamento(p));
+                const btnTudo = document.getElementById('midias-offline-baixar-tudo');
+                btnTudo.disabled = faltam.length === 0;
+                btnTudo.textContent = faltam.length > 0
+                    ? `Baixar tudo (${formatarBytes(faltam.reduce((s, p) => s + p.tamanho, 0))})`
+                    : 'Baixar tudo';
+                const btnSec = document.getElementById('midias-offline-secundario');
+                if (modoIntro) {
+                    btnSec.textContent = 'Depois';
+                    btnSec.disabled = false;
+                    btnSec.onclick = fecharIntro;
+                } else {
+                    if (!confirmarRemocao) btnSec.textContent = 'Remover tudo';
+                    btnSec.disabled = prontos.length === 0;
+                    btnSec.onclick = removerTudo;
+                }
+            }
+
+            function abrirPainel(intro) {
+                modoIntro = !!intro;
+                const elIntro = document.getElementById('midias-offline-intro');
+                if (modoIntro) {
+                    const total = pacotes.reduce((s, p) => s + p.tamanho, 0);
+                    elIntro.textContent = `Este dicionário tem ${formatarBytes(total)} de mídias que não vêm com a instalação. ` +
+                        'Baixe agora para usar sem internet, ou depois, em Ajustes › Mídias offline.';
+                }
+                elIntro.style.display = modoIntro ? '' : 'none';
+                abrirModalGlobal('modal-midias-offline');
+                renderizar();
+                ponte.atualizar();
+            }
+            function fecharIntro() {
+                modoIntro = false;
+                fecharModalGlobal('modal-midias-offline');
+            }
+
+            // Aviso de primeiro uso: depois que a janela de informações iniciais for fechada
+            function avisarPrimeiroUso() {
+                try {
+                    if (localStorage.getItem(CHAVE_AVISO)) return;
+                    localStorage.setItem(CHAVE_AVISO, '1');
+                } catch (e) { return; }
+                const info = document.getElementById('modal-info');
+                const mostrar = () => {
+                    if (pacotes.every(p => baixado(p.nome))) return;
+                    abrirPainel(true);
+                };
+                setTimeout(() => {
+                    if (!info || !info.classList.contains('ativo')) { mostrar(); return; }
+                    const obs = new MutationObserver(() => {
+                        if (info.classList.contains('ativo')) return;
+                        obs.disconnect();
+                        setTimeout(mostrar, 300);
+                    });
+                    obs.observe(info, { attributes: true, attributeFilter: ['class'] });
+                }, 800);
+            }
+
+            // Players <video>/<audio> da página (galerias de vídeo, textos) com mídia de pacote
+            function interceptarPlayers() {
+                document.addEventListener('play', function (e) {
+                    const midia = e.target;
+                    if (!(midia instanceof HTMLMediaElement)) return;
+                    let alvo = caminhoNoIndice(midia.getAttribute('src')) ? midia : null;
+                    if (!alvo) alvo = Array.from(midia.querySelectorAll('source')).find(s => caminhoNoIndice(s.getAttribute('src'))) || null;
+                    if (!alvo) return;
+                    midia.pause();
+                    resolver(alvo.getAttribute('src')).then(url => {
+                        alvo.setAttribute('src', url);
+                        midia.load();
+                        return midia.play();
+                    }).catch(() => {});
+                }, true);
+            }
+
+            function inicializar() {
+                if (!ativo) return;
+                const grupo = document.getElementById('grupo-midias-offline');
+                const secao = document.getElementById('secao-midias-offline');
+                if (grupo) grupo.style.display = '';
+                if (secao) secao.style.display = '';
+                interceptarPlayers();
+                ponte.atualizar();
+                avisarPrimeiroUso();
+            }
+
+            return {
+                gerencia: (src) => caminhoNoIndice(src) !== null,
+                resolver, abrirPainel, baixarTudo, inicializar,
+            };
+        })();
+        window.MidiasPacotes = MidiasPacotes;
 
         function criarCard(item) {
             const card = document.createElement('div');
@@ -3669,6 +4067,11 @@
                 resetarBotaoAudio(btn);
                 return;
             }
+            // Áudio de pacote da Google Play: toca o arquivo baixado ou oferece o download
+            if (MidiasPacotes.gerencia(src)) {
+                MidiasPacotes.resolver(src).then(url => window.tocarAudio(url, btn)).catch(() => {});
+                return;
+            }
             // Só um áudio por vez: para o anterior antes de iniciar o novo
             if (audioAtual) {
                 audioAtual.pause();
@@ -3785,13 +4188,15 @@
                 fecharModalVideoEntrada();
                 return;
             }
-            // Vídeo embutido: decodifica antes de tocar (o primeiro play pode levar alguns segundos)
+            // Vídeo embutido: decodifica antes de tocar (o primeiro play pode levar alguns segundos).
+            // Vídeo de pacote da Google Play: usa o arquivo baixado ou oferece o download.
             const solicitacao = ++videoOverlaySolicitacao;
-            if (typeof window.ehMidiaEmbutida === 'function' && window.ehMidiaEmbutida(src)) {
+            if (precisaResolverMidia(src)) {
                 if (botao) botao.style.cursor = 'progress';
                 try {
                     src = await obterUrlTocavel(src);
                 } catch (e) {
+                    if (e && e.naoBaixada) return;
                     console.error(e);
                     mostrarToast('Não foi possível carregar o vídeo.');
                     return;
@@ -4233,6 +4638,7 @@
             }
 
             inicializarPreferencias();
+            MidiasPacotes.inicializar();
             configurarTopoAutoOcultavel();
             configurarTitulosFixos();
             sincronizarControlesMobile();

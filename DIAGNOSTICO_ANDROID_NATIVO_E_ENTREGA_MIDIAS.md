@@ -302,6 +302,23 @@ Decisões:
 - **Limite de pacotes:** 50 (a confirmar no Play Console). Acima disso, categorias seguidas passam a dividir pacotes e o tamanho-alvo dobra até 1,5 GB.
 - **Imagens acima do orçamento:** só aviso; a otimização é feita por um script Python externo (5.3 (b) não será implementado no sistema).
 
+**Plano 2 — implementado:**
+
+| Peça | Onde |
+|---|---|
+| Ponte `window.PonteMidias` (`indice`, `local`, `atualizar`, `baixar`, `cancelar`, `remover`), confirmação de dados móveis pela Play, verificação de espaço, eventos para o HTML | `android-template/.../PonteMidias.java`, `MainActivity.java` |
+| Dependência `com.google.android.play:asset-delivery:2.2.2` (+ `androidx.activity:activity:1.2.4` para compilar `showConfirmationDialog`); `android.useAndroidX=true` | `android-template/app/build.gradle`, `gradle.properties` |
+| `obterUrlTocavel` com o caso "mídia de pacote"; vídeo de pronúncia, `tocarAudio` e qualquer `<video>/<audio>` da página passam por ela | `config/templates/html-cards/template.html` (`MidiasPacotes`) |
+| Aviso de primeiro uso (uma vez, depois da janela de informações) e painel "Mídias offline" em Ajustes (celular) e na barra lateral (telas largas): estado, progresso, Baixar/Cancelar/Remover, Baixar tudo, Remover tudo (dois toques) | idem |
+| Pedido de download ao abrir mídia não baixada: "Baixar" (o pacote) ou "Baixar todas as mídias" | idem |
+
+Decisões:
+- **Serviço em primeiro plano.** A biblioteca declara `FOREGROUND_SERVICE_DATA_SYNC` e o `ExtractionForegroundService`, o que exige uma declaração no Play Console. O gerador **remove** os dois do manifesto do AAB quando não há pacotes fast-follow/on-demand (`removerServicoPrimeiroPlano` em `patcherManifestAab.js`); com etapas, eles ficam e o LEIA-ME explica a declaração.
+- **Mídias abertas pelo caminho real** (`file:///data/.../assetpacks/<pacote>/<versão>/<n>/assets/...`), sem interceptar requisições: o avanço/retrocesso do vídeo funciona.
+- **Sem a ponte** (site, HTML exportado, APK direto, AAB sem etapas), `MidiasPacotes` fica inativo e nada muda.
+
+Teste em aparelho (Galaxy S25, Android API 37, `bundletool --local-testing`, projeto Makurap com 13 pacotes on-demand / 1,67 GB): aviso de primeiro uso, pedido de download, download de um pacote e de todos, vídeo tocando do arquivo baixado com avanço, `<video>` da página e áudio passando pela ponte, remoção, e estado preservado ao reabrir o app.
+
 ---
 
 ## 6. Fontes

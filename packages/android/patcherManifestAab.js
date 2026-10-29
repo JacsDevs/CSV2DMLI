@@ -20,14 +20,25 @@ const WT_F32    = 5;
 // Elemento filho de <dist:delivery> no manifesto de um pacote de recursos
 const MODOS_ENTREGA = ['install-time', 'fast-follow', 'on-demand'];
 
+// Serviço em primeiro plano da biblioteca do Play Asset Delivery, usado só para extrair
+// pacotes fast-follow/on-demand. Apps sem esses pacotes não precisam dele, e a permissão
+// FOREGROUND_SERVICE_DATA_SYNC exige uma declaração extra no Play Console.
+const SERVICO_PRIMEIRO_PLANO = [
+    ['uses-permission', 'android.permission.FOREGROUND_SERVICE'],
+    ['uses-permission', 'android.permission.FOREGROUND_SERVICE_DATA_SYNC'],
+    ['service', 'com.google.android.play.core.assetpacks.ExtractionForegroundService'],
+];
+
 // ─── Public API ──────────────────────────────────────────────────────────────
 
 /**
  * @param {Uint8Array} bytes
  * @param {{ packageName?: string, appName?: string, versionCode?: number, versionName?: string,
- *           split?: string, entrega?: 'install-time'|'fast-follow'|'on-demand' }} patches
+ *           split?: string, entrega?: 'install-time'|'fast-follow'|'on-demand',
+ *           removerServicoPrimeiroPlano?: boolean }} patches
  *   split/entrega: nome e modo de entrega de um pacote de recursos (Play Asset Delivery),
  *   ao clonar o manifesto do pacote-modelo do template
+ *   removerServicoPrimeiroPlano: remove o serviço de extração e suas permissões (SERVICO_PRIMEIRO_PLANO)
  * @returns {Uint8Array}
  */
 export function patchManifestAab(bytes, patches) {
@@ -58,6 +69,8 @@ function patchXmlElement(bytes, patches) {
         } else if (f.fieldNum === 5 && f.wt === WT_LEN) {
             // XmlElement.child (repeated) = XmlNode — recurse into it
             const xmlNodeFields = parseFields(f.raw);
+            const elemento = xmlNodeFields.find(nf => nf.fieldNum === 1 && nf.wt === WT_LEN);
+            if (elemento && patches.removerServicoPrimeiroPlano && ehServicoPrimeiroPlano(elemento.raw)) continue;
             for (const nf of xmlNodeFields) {
                 if (nf.fieldNum === 1 && nf.wt === WT_LEN) {
                     nf.raw = patchXmlElement(nf.raw, patches);
@@ -70,6 +83,18 @@ function patchXmlElement(bytes, patches) {
         }
     }
     return serializeFields(out);
+}
+
+function ehServicoPrimeiroPlano(elementBytes) {
+    const fields = parseFields(elementBytes);
+    const nameField = fields.find(f => f.fieldNum === 3 && f.wt === WT_LEN);
+    if (!nameField) return false;
+    const tag = td.decode(nameField.raw);
+    const nome = fields
+        .filter(f => f.fieldNum === 4 && f.wt === WT_LEN && isAttrNamed(f.raw, 'name'))
+        .map(f => parseFields(f.raw).find(a => a.fieldNum === 3 && a.wt === WT_LEN))
+        .map(a => (a ? td.decode(a.raw) : ''))[0];
+    return SERVICO_PRIMEIRO_PLANO.some(([t, n]) => t === tag && n === nome);
 }
 
 function isAttrNamed(attrBytes, name) {

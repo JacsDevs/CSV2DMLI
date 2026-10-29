@@ -395,10 +395,11 @@ export function analisarTamanhoProjeto({ tamanhoHtml = 0, midias, entrega = {} }
             ' (Play Asset Delivery, na instalação). Nenhuma ação necessária.' });
     }
     if (planoTemEtapas(plano)) {
-        elevar('atencao');
-        avisos.push({ nivel: 'atencao', texto:
-            'Entrega em etapas (experimental): parte das mídias fica em pacotes baixados depois da instalação. ' +
-            'O app ainda não baixa esses pacotes, então essas mídias não abrem no AAB publicado. Use só para testes.' });
+        elevar('info');
+        avisos.push({ nivel: 'info', texto:
+            'Entrega em etapas: parte das mídias fica em pacotes baixados depois da instalação, pelo próprio app ' +
+            '(Ajustes › Mídias offline). Só na versão da Google Play; o APK de instalação direta continua com tudo. ' +
+            'Ao publicar, o Play Console pede a declaração de "serviço em primeiro plano" (veja o LEIA-ME).' });
     }
     const downloadInstalacao = plano.totais[ENTREGA.INSTALACAO];
     if (downloadInstalacao > LIMITES.avisoDadosMoveis && zip <= LIMITES.zip) {

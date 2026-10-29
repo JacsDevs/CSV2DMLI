@@ -267,12 +267,24 @@ export class ExportadorAndroid {
         ];
         if (planoTemEtapas(plano)) {
             linhas.push(
-                'ATENÇÃO (experimental): os pacotes fast-follow/on-demand ficam fora da instalação e o app',
-                'ainda não sabe baixá-los. As mídias deles não abrem no app publicado pela Google Play.',
+                '',
+                'Os pacotes fast-follow são baixados automaticamente logo após a instalação; os',
+                'on-demand, quando o usuário pede (Ajustes > Mídias offline, ou ao abrir uma mídia).',
                 'O arquivo midias-index.json (no módulo base) lista o pacote de cada uma dessas mídias.',
+                '',
+                'Declaração no Play Console (obrigatória para este AAB):',
+                'A biblioteca de download de pacotes da Google Play usa um serviço em primeiro plano',
+                'para instalar as mídias baixadas. Em Política > Conteúdo do app > "Permissões de',
+                'serviço em primeiro plano", declare o tipo "Sincronização de dados" (dataSync),',
+                'descrevendo o uso como "download e instalação de pacotes de mídia do dicionário",',
+                'e informe o link de um vídeo curto mostrando o download em Mídias offline.',
+                '',
+                'O APK (pasta instalar-direto/) contém todas as mídias em um único arquivo.',
+                '',
             );
+        } else {
+            linhas.push('Nenhuma ação é necessária no Play Console. O APK contém tudo em um único arquivo.', '');
         }
-        linhas.push('Nenhuma ação é necessária no Play Console. O APK contém tudo em um único arquivo.', '');
         return linhas;
     }
 

@@ -139,6 +139,8 @@ export class InjetorAab {
                     versionCode:      meta.versionCode,
                     versionName:      meta.versionName,
                     targetSdkVersion: meta.targetSdkVersion ?? 36,
+                    // Sem pacotes baixados depois da instalação, o serviço de extração não é usado
+                    removerServicoPrimeiroPlano: !(plano && planoTemEtapas(plano)),
                 });
             explicitos.add(manifestKey);
         }
