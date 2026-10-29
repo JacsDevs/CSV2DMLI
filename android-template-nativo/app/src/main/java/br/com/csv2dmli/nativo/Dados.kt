@@ -17,6 +17,9 @@ data class Imagem(val arquivo: String, val legenda: String)
 data class Frase(val original: String, val traducao: String)
 data class Texto(val titulo: String, val naoLiteral: String, val frases: List<Frase>)
 
+/** No dicionário invertido ("Ordenar por tradução"), a palavra da língua que a acepção traz. */
+data class Reversa(val classe: String, val fonemica: String, val fonetica: String, val pronuncia: Pronuncia?)
+
 data class Acepcao(
     val numero: String,
     val traducao: String,
@@ -26,6 +29,7 @@ data class Acepcao(
     val videos: List<String>,
     val extras: List<String>,
     val textos: List<Texto>,
+    val reversa: Reversa? = null,
 )
 
 data class Entrada(
@@ -42,11 +46,26 @@ data class Entrada(
     val relacionados: String,
     val acepcoes: List<Acepcao>,
 ) {
-    val traducoes: String = acepcoes.map { it.traducao }.filter { it.isNotBlank() }.joinToString("; ")
     val primeiraImagem: String? = acepcoes.firstNotNullOfOrNull { a -> a.imagens.firstOrNull()?.arquivo }
-    val chaveTermo: String = normalizar(termo)
-    val chaveTraducao: String = normalizar(traducoes)
+    /** Campos em que a busca procura, como aplicarFiltrosEBusca() do HTML: termo, classe, campo e
+     *  subcampos, traduções e descrições (separados para um trecho não juntar dois campos). */
+    val chaveBusca: String = normalizar(
+        (listOf(termo, classe, categoria) + subcategorias + acepcoes.flatMap { listOf(it.traducao, it.descricao) })
+            .filter { it.isNotBlank() }.joinToString("\u0001"),
+    )
+    /** Entrada do dicionário invertido (não pode ser salva: não existe nos dados). */
+    val invertida: Boolean get() = id.startsWith(PREFIXO_INVERTIDA)
+
+    /** Campo e primeiro subcampo, para a etiqueta da entrada ("Animais › Aves"). */
+    val rotuloCategoria: String
+        get() = listOf(categoria, subcategorias.firstOrNull { it.isNotBlank() && it != "Geral" }.orEmpty())
+            .filter { it.isNotBlank() }.joinToString(" › ")
+
+    /** O filtro de categoria vale para o campo ou qualquer nível de subcampo (como no HTML). */
+    fun pertenceA(nome: String) = categoria == nome || subcategorias.any { it.trim() == nome }
 }
+
+const val PREFIXO_INVERTIDA = "inv:"
 
 /** Cores do tema do projeto (nomes do config.json → ARGB); as ausentes usam o padrão do HTML (Tema.kt). */
 data class Cores(val valores: Map<String, Long> = emptyMap()) {
@@ -66,27 +85,39 @@ data class Config(
 )
 
 data class Dicionario(val config: Config, val entradas: List<Entrada>) {
-    /** Categorias na ordem em que aparecem nos dados. */
-    val categorias: List<String> = entradas.map { it.categoria }.filter { it.isNotBlank() }.distinct()
+    /** Opções dos filtros de Ajustes (inicializarFiltros do HTML). */
+    val campos: List<String> = entradas.map { it.categoria }.filter { it.isNotBlank() }.distinct().sortedWith(colador)
+    val classes: List<String> = entradas.map { it.classe }.filter { it.isNotBlank() }.distinct().sortedWith(colador)
 }
 
 /** Minúsculas e sem acentos, para a busca. */
 fun normalizar(texto: String): String =
     Normalizer.normalize(texto.lowercase(), Normalizer.Form.NFD).replace(Regex("\\p{Mn}+"), "")
 
-/** Entradas cujo termo ou tradução contém a busca; termos que começam com ela vêm primeiro. */
-fun buscar(entradas: List<Entrada>, busca: String): List<Entrada> {
-    val chave = normalizar(busca.trim())
-    if (chave.isEmpty()) return entradas
-    return entradas
-        .filter { it.chaveTermo.contains(chave) || it.chaveTraducao.contains(chave) }
-        .sortedBy {
-            when {
-                it.chaveTermo.startsWith(chave) -> 0
-                it.chaveTermo.contains(chave) -> 1
-                else -> 2
-            }
+/**
+ * Dicionário invertido de "Ordenar por tradução", como o do HTML: cada tradução vira o termo e as
+ * palavras da língua que a têm viram as acepções (com classe, transcrição e a primeira pronúncia),
+ * mantendo exemplos e mídias. Campo e subcampos vêm da primeira palavra.
+ */
+fun inverter(entradas: List<Entrada>): List<Entrada> {
+    class Grupo(val termo: String, val base: Entrada) { val acepcoes = ArrayList<Acepcao>() }
+    val grupos = LinkedHashMap<String, Grupo>()
+    val vazia = Acepcao("", "", "", emptyList(), emptyList(), emptyList(), emptyList(), emptyList())
+    for (e in entradas) {
+        val reversa = Reversa(e.classe, e.fonemica, e.fonetica, e.pronuncias.firstOrNull())
+        for (a in e.acepcoes.ifEmpty { listOf(vazia) }) {
+            val traducao = a.traducao.trim().ifEmpty { "Sem significado" }
+            grupos.getOrPut(traducao.lowercase()) { Grupo(traducao, e) }.acepcoes += a.copy(traducao = e.termo, reversa = reversa)
         }
+    }
+    return grupos.map { (chave, g) ->
+        Entrada(
+            id = PREFIXO_INVERTIDA + chave, termo = g.termo, classe = "",
+            categoria = g.base.categoria, subcategoria = g.base.subcategoria, subcategorias = g.base.subcategorias,
+            fonemica = "", fonetica = "", pronuncias = emptyList(), relacionados = "",
+            acepcoes = g.acepcoes.sortedWith { x, y -> colador.compare(x.traducao, y.traducao) },
+        )
+    }
 }
 
 object LeitorDados {

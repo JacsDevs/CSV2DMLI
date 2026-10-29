@@ -349,9 +349,22 @@ Testado: lista (998 entradas), busca sem acento por termo e tradução, entrada 
 | Agrupamento com as regras do HTML: ordem por campo e subcampos, "Geral" sem título, níveis sem termos próprios viram trilha ("Animais › Animais aquáticos"), campo fixo no topo, atalhos de subcampo, recolher | `Grupos.kt`; subcampos por posição no contrato (`subcategorias`) |
 | Cards do `card.tmpl` (1 coluna com imagem à direita; 2 colunas com imagem acima) e verbetes por extenso do `lista.tmpl` com marcador de salvar | `Principal.kt` |
 
-Fases seguintes: (2) Ajustes como painel com filtros e "Ordenar por tradução", tela de Categorias completa (subcampos), entrada com anterior/próxima e player de vídeo flutuante; (3) painel de acessibilidade e janela de informações ao abrir.
+**Fase 2 (comportamento do HTML), implementada.**
 
-Fora desta versão (decisão de escopo): VLibras, templates HTML/CSS personalizados, "HTML pronto", áudio sincronizado dos textos estruturados, categorias em vários níveis (só o campo semântico principal) e capturas automáticas para a Play.
+| Peça | Onde |
+|---|---|
+| Ajustes como painel que sobe de baixo (`#bottom-sheet-filtros`, até 86% da altura): filtros de campo semântico e classe com "Aplicar filtros"; Acessibilidade e tema (por ora só o tema), colunas, "Ordenar por tradução", "Visualização completa" (= "Detalhes"); Mídias offline; Informações, Como citar e Referências; "Feito com CSV2DMLI" | `Ajustes.kt`; janelas de Sobre em `Telas.kt` (`TelaInfo`) |
+| Filtros na mesma sequência de `aplicarFiltrosEBusca()`: salvos, campo/subcampo de qualquer nível, classe, busca (termo, classe, campos e subcampos, traduções e descrições); filtro em uso aparece como pílula com "x" no topo da lista | `Principal.kt`, `Dados.kt` (`chaveBusca`, `pertenceA`) |
+| "Ordenar por tradução": dicionário invertido como o do HTML (cada tradução vira o termo; as palavras da língua viram as acepções, com pronúncia, classe e transcrição); essas entradas não podem ser salvas, pois não existem nos dados | `Dados.kt` (`inverter`) |
+| Categorias em tela inteira (`.tela-categorias`): árvore com todos os níveis, "Todas as categorias", a escolhida em destaque; tocar filtra e fecha (`selecionarCategoria`) | `Principal.kt` (`TelaCategorias`) |
+| Entrada com o cabeçalho do modal do HTML (fechar, etiqueta campo › subcampo, salvar, anterior/próxima pela lista como está na tela) e o corpo de `entrada.tmpl`; numeração das acepções só quando há mais de uma (`NUMERO_PONTO`); notas no estilo `.dict-extra` | `Entrada.kt` |
+| Player de vídeo flutuante preso ao botão (`abrirModalVideoEntrada`): abaixo do botão ou acima se não couber, acompanha a rolagem, o botão vira "fechar", fecha ao terminar, ao trocar de entrada ou com o voltar, pausa com o app em segundo plano, não toca junto com o áudio; vale para pronúncias e vídeos das acepções | `PlayerFlutuante.kt`, `AcoesMidia` em `Telas.kt` |
+
+Testado no celular (dados Makurap, tema escuro): painel de Ajustes, filtro por classe e por categoria (com a pílula de remover), dicionário invertido em Cards, Lista e entrada, anterior/próxima, player flutuante na entrada e na lista, escolha de tema e "Como citar".
+
+Fase seguinte: (3) painel de acessibilidade completo, janela de informações ao abrir e nome do subcampo ao lado do campo fixo no topo.
+
+Fora desta versão (decisão de escopo): VLibras, templates HTML/CSS personalizados, "HTML pronto", áudio sincronizado dos textos estruturados e capturas automáticas para a Play.
 
 ---
 

@@ -8,59 +8,39 @@ import android.widget.TextView
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -68,71 +48,84 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.graphics.luminance
 import androidx.core.view.WindowCompat
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.text.HtmlCompat
-import androidx.media3.common.MediaItem
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.ui.PlayerView
 import com.google.android.play.core.assetpacks.model.AssetPackStatus
 
 /** Telas do app; a pilha de navegação é uma lista (o botão voltar desempilha). */
 sealed interface Tela {
     data object Lista : Tela
     data class Detalhe(val id: String) : Tela
-    data class Video(val caminho: String) : Tela
     data class Foto(val caminho: String, val legenda: String) : Tela
-    data object Info : Tela
-    data object Ajustes : Tela
+    data class Info(val secao: SecaoInfo) : Tela
     data object Midias : Tela
 }
 
-/** Ações de mídia compartilhadas pelas telas. */
+/** Janelas de "Sobre" do HTML: modal-info, modal-citar e modal-referencias. */
+enum class SecaoInfo(val titulo: String) { INTRODUCAO("Informações e introdução"), CITAR("Como citar"), REFERENCIAS("Referências") }
+
+/** Ações de mídia compartilhadas pelas telas: um áudio ou um vídeo por vez. */
 class AcoesMidia(
     val midias: MidiasOffline,
     val audio: ReprodutorAudio,
-    private val navegar: (Tela) -> Unit,
 ) {
+    /** Vídeo no player flutuante (PlayerFlutuante.kt) e a posição do botão que o abriu. */
+    val video = mutableStateOf<VideoAberto?>(null)
+    val ancora = mutableStateOf<Rect?>(null)
+    /** Última posição de cada botão de vídeo na tela (Modifier.donoDoVideo). */
+    val posicoes = HashMap<Any, Rect>()
+
     fun tocarAudio(caminho: String) {
         val uri = midias.uri(caminho) ?: return
+        fecharVideo()
         audio.alternar(caminho, uri)
     }
 
-    fun abrirVideo(caminho: String) {
-        midias.uri(caminho) ?: return
+    /** Abre o vídeo junto ao botão [dono]; tocar no mesmo botão de novo fecha. */
+    fun alternarVideo(caminho: String, dono: Any) {
+        if (video.value?.dono === dono) {
+            fecharVideo()
+            return
+        }
+        val uri = midias.uri(caminho) ?: return
         audio.parar()
-        navegar(Tela.Video(caminho))
+        ancora.value = posicoes[dono]
+        video.value = VideoAberto(caminho, uri, dono)
+    }
+
+    fun fecharVideo() {
+        video.value = null
+        ancora.value = null
     }
 }
 
@@ -173,7 +166,7 @@ private fun Navegacao(
     val pilha = remember { mutableStateListOf<Tela>(Tela.Lista) }
     val navegar: (Tela) -> Unit = { pilha.add(it) }
     val voltar: () -> Unit = { if (pilha.size > 1) pilha.removeAt(pilha.lastIndex) }
-    val acoes = remember { AcoesMidia(midias, audio, navegar) }
+    val acoes = remember { AcoesMidia(midias, audio) }
     val salvos = remember { mutableStateListOf<String>().apply { addAll(prefs.salvos) } }
     val alternarSalvo: (String) -> Unit = { id ->
         if (id in salvos) salvos.remove(id) else salvos.add(id)
@@ -194,7 +187,7 @@ private fun Navegacao(
         val janela = (view.context as? Activity)?.window ?: return@SideEffect
         val claros = when (telaAtual) {
             Tela.Lista -> paleta.primaria.luminance() > 0.5f
-            is Tela.Video, is Tela.Foto -> false
+            is Tela.Foto -> false
             else -> !paleta.escuro
         }
         WindowCompat.getInsetsController(janela, view).apply {
@@ -209,19 +202,26 @@ private fun Navegacao(
     }
 
     BackHandler(enabled = pilha.size > 1) { voltar() }
+    // Registrado depois: o voltar fecha primeiro o player de vídeo
+    BackHandler(enabled = acoes.video.value != null) { acoes.fecharVideo() }
     val porId = remember(dic) { dic.entradas.associateBy { it.id } }
 
     Box(Modifier.fillMaxSize()) {
         when (val tela = pilha.last()) {
-            Tela.Lista -> TelaPrincipal(dic, estadoPrincipal, acoes, salvos, alternarSalvo, apagarSalvos, navegar)
-            is Tela.Detalhe -> porId[tela.id]?.let { TelaDetalhe(it, acoes, it.id in salvos, { alternarSalvo(it.id) }, navegar, voltar) }
-            is Tela.Video -> TelaVideo(tela.caminho, midias) { erro ->
-                if (erro) midias.aviso.value = "Não foi possível reproduzir o vídeo."
-                voltar()
+            Tela.Lista -> TelaPrincipal(dic, estadoPrincipal, acoes, salvos, alternarSalvo, apagarSalvos, navegar, modoTema, mudarTema)
+            is Tela.Detalhe -> {
+                // Anterior/próxima percorrem a lista como está na tela (filtros, busca, ordem)
+                val sequencia = estadoPrincipal.sequencia
+                val e = sequencia.firstOrNull { it.id == tela.id } ?: porId[tela.id]
+                if (e != null) {
+                    TelaEntrada(
+                        e, sequencia, estadoPrincipal.detalhes, e.id in salvos, { alternarSalvo(e.id) }, acoes, navegar,
+                        trocar = { id -> pilha[pilha.lastIndex] = Tela.Detalhe(id) }, fechar = voltar,
+                    )
+                }
             }
             is Tela.Foto -> TelaFoto(tela.caminho, tela.legenda, midias, voltar)
-            Tela.Info -> TelaInfo(dic.config, voltar)
-            Tela.Ajustes -> TelaAjustes(midias, modoTema, mudarTema, navegar, voltar)
+            is Tela.Info -> TelaInfo(dic.config, tela.secao, voltar)
             Tela.Midias -> TelaMidias(midias, voltar)
         }
         SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).systemBarsPadding())
@@ -266,151 +266,7 @@ private fun Navegacao(
     }
 }
 
-// ─── Entrada ───────────────────────────────────────────────────────────────────
-
-@Composable
-private fun TelaDetalhe(
-    e: Entrada,
-    acoes: AcoesMidia,
-    salvo: Boolean,
-    alternarSalvo: () -> Unit,
-    navegar: (Tela) -> Unit,
-    voltar: () -> Unit,
-) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(e.termo, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                navigationIcon = { IconButton(onClick = voltar) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Voltar") } },
-                actions = {
-                    IconButton(onClick = alternarSalvo) {
-                        Icon(if (salvo) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder, if (salvo) "Remover dos salvos" else "Salvar")
-                    }
-                },
-            )
-        },
-    ) { margem ->
-        LazyColumn(contentPadding = margem, modifier = Modifier.fillMaxSize()) {
-            item {
-                Column(Modifier.padding(horizontal = 20.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(e.termo, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-                    val transcricoes = listOf(e.fonemica, e.fonetica).filter { it.isNotBlank() }.joinToString("  ")
-                    if (transcricoes.isNotBlank()) Text(transcricoes, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    val pronuncias = e.pronuncias.filter { acoes.midias.existe(it.arquivo) }
-                    if (pronuncias.isNotEmpty()) {
-                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            // Numeração por tipo: "Pronúncia", "Vídeo" ou "Pronúncia 1", "Pronúncia 2"...
-                            val totais = pronuncias.groupingBy { it.video }.eachCount()
-                            val vistos = mutableMapOf<Boolean, Int>()
-                            pronuncias.forEach { p ->
-                                val n = vistos.merge(p.video, 1, Int::plus)!!
-                                val rotulo = (if (p.video) "Vídeo" else "Pronúncia") + if ((totais[p.video] ?: 0) > 1) " $n" else ""
-                                val tocando = acoes.audio.tocando.value == p.arquivo
-                                FilledTonalButton(onClick = { if (p.video) acoes.abrirVideo(p.arquivo) else acoes.tocarAudio(p.arquivo) }) {
-                                    Icon(if (tocando) Icons.Filled.Close else Icons.Filled.PlayArrow, null, Modifier.size(18.dp))
-                                    Spacer(Modifier.width(6.dp))
-                                    Text(rotulo)
-                                }
-                            }
-                        }
-                    }
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        if (e.classe.isNotBlank()) AssistChip(onClick = {}, label = { Text(e.classe) })
-                        val cat = listOf(e.categoria, e.subcategoria).filter { it.isNotBlank() }.joinToString(" › ")
-                        if (cat.isNotBlank()) AssistChip(onClick = {}, label = { Text(cat) })
-                    }
-                }
-            }
-            items(e.acepcoes) { a -> BlocoAcepcao(a, acoes, navegar) }
-            if (e.relacionados.isNotBlank()) {
-                item {
-                    Column(Modifier.padding(20.dp)) {
-                        Text("Itens relacionados", style = MaterialTheme.typography.titleSmall)
-                        Text(e.relacionados)
-                    }
-                }
-            }
-            item { Spacer(Modifier.height(32.dp)) }
-        }
-    }
-}
-
-@Composable
-private fun BlocoAcepcao(a: Acepcao, acoes: AcoesMidia, navegar: (Tela) -> Unit) {
-    Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        HorizontalDivider()
-        val titulo = listOf(a.numero.takeIf { it.isNotBlank() }?.let { "$it." }, a.traducao).filterNotNull().filter { it.isNotBlank() }.joinToString(" ")
-        if (titulo.isNotBlank()) Text(titulo, style = MaterialTheme.typography.titleLarge)
-        if (a.descricao.isNotBlank()) Text(a.descricao)
-        val imagens = a.imagens.filter { acoes.midias.existe(it.arquivo) }
-        val videos = a.videos.filter { acoes.midias.existe(it) }
-        if (imagens.isNotEmpty()) {
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(imagens) { img ->
-                    Column(Modifier.width(140.dp).clickable { navegar(Tela.Foto(img.arquivo, img.legenda)) }) {
-                        Miniatura(img.arquivo, acoes.midias, 140.dp)
-                        if (img.legenda.isNotBlank()) Text(img.legenda, style = MaterialTheme.typography.bodySmall, maxLines = 2)
-                    }
-                }
-            }
-        }
-        if (videos.isNotEmpty()) {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                videos.forEachIndexed { i, v ->
-                    OutlinedButton(onClick = { acoes.abrirVideo(v) }) {
-                        Icon(Icons.Filled.PlayArrow, null, Modifier.size(18.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text(if (videos.size > 1) "Vídeo ${i + 1}" else "Vídeo")
-                    }
-                }
-            }
-        }
-        a.exemplos.forEach { ex ->
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    if (ex.texto.isNotBlank()) Text(ex.texto, fontStyle = FontStyle.Italic)
-                    if (ex.traducao.isNotBlank()) Text(ex.traducao, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                if (acoes.midias.existe(ex.audio)) {
-                    val tocando = acoes.audio.tocando.value == ex.audio
-                    IconButton(onClick = { acoes.tocarAudio(ex.audio) }) {
-                        Icon(if (tocando) Icons.Filled.Close else Icons.Filled.PlayArrow, if (tocando) "Parar exemplo" else "Ouvir exemplo")
-                    }
-                }
-            }
-        }
-        a.extras.forEach { Text(it, style = MaterialTheme.typography.bodySmall) }
-        a.textos.forEach { t ->
-            Surface(shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    if (t.titulo.isNotBlank()) Text(t.titulo, style = MaterialTheme.typography.titleSmall)
-                    t.frases.forEach { f ->
-                        if (f.original.isNotBlank()) Text(f.original, fontStyle = FontStyle.Italic)
-                        if (f.traducao.isNotBlank()) Text(f.traducao, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    if (t.naoLiteral.isNotBlank()) Text(t.naoLiteral, style = MaterialTheme.typography.bodySmall)
-                }
-            }
-        }
-    }
-}
-
 // ─── Mídias ────────────────────────────────────────────────────────────────────
-
-@Composable
-fun Miniatura(caminho: String, midias: MidiasOffline, tamanho: Dp) {
-    val context = LocalContext.current
-    val px = with(LocalDensity.current) { tamanho.roundToPx() }
-    val bitmap by produceState<Bitmap?>(null, caminho) {
-        value = midias.uri(caminho, pedirSeFaltar = false)?.let { CarregadorImagens.carregar(context, it, px) }
-    }
-    Box(
-        Modifier.size(tamanho).clip(RoundedCornerShape(10.dp)).background(MaterialTheme.colorScheme.surfaceVariant),
-        contentAlignment = Alignment.Center,
-    ) {
-        bitmap?.let { Image(it.asImageBitmap(), null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop) }
-    }
-}
 
 @Composable
 private fun TelaFoto(caminho: String, legenda: String, midias: MidiasOffline, voltar: () -> Unit) {
@@ -426,33 +282,6 @@ private fun TelaFoto(caminho: String, legenda: String, midias: MidiasOffline, vo
         if (legenda.isNotBlank()) {
             Text(legenda, color = Color.White, modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp))
         }
-    }
-}
-
-@Composable
-private fun TelaVideo(caminho: String, midias: MidiasOffline, fechar: (erro: Boolean) -> Unit) {
-    val context = LocalContext.current
-    val player = remember {
-        ExoPlayer.Builder(context).build().apply {
-            midias.uri(caminho, pedirSeFaltar = false)?.let { setMediaItem(MediaItem.fromUri(it)) }
-            prepare()
-            playWhenReady = true
-        }
-    }
-    DisposableEffect(Unit) {
-        val ouvinte = object : androidx.media3.common.Player.Listener {
-            override fun onPlayerError(error: androidx.media3.common.PlaybackException) = fechar(true)
-        }
-        player.addListener(ouvinte)
-        onDispose { player.removeListener(ouvinte); player.release() }
-    }
-    val voltar = { fechar(false) }
-    Box(Modifier.fillMaxSize().background(Color.Black).systemBarsPadding()) {
-        AndroidView(
-            factory = { PlayerView(it).apply { this.player = player; setShowNextButton(false); setShowPreviousButton(false) } },
-            modifier = Modifier.fillMaxSize(),
-        )
-        IconButton(onClick = voltar, Modifier.align(Alignment.TopStart)) { Icon(Icons.Filled.Close, "Fechar vídeo", tint = Color.White) }
     }
 }
 
@@ -472,23 +301,43 @@ private fun TelaComVoltar(titulo: String, voltar: () -> Unit, conteudo: @Composa
 }
 
 @Composable
-private fun TelaInfo(c: Config, voltar: () -> Unit) {
-    TelaComVoltar("Informações", voltar) { margem ->
-        Column(Modifier.padding(margem).verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(c.nome, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            if (c.autor.isNotBlank()) Text("Autoria e colaboração: ${c.autor}")
-            val versao = listOf(c.versaoApp.takeIf { it.isNotBlank() }?.let { "Versão $it" }, c.ano.takeIf { it.isNotBlank() }).filterNotNull().joinToString(" · ")
-            if (versao.isNotBlank()) Text(versao, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            if (c.introducao.isNotBlank()) TextoHtml(c.introducao)
-            if (c.citacao.isNotBlank()) {
-                Text("Como citar", style = MaterialTheme.typography.titleMedium)
-                Surface(shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.primaryContainer) {
-                    Text(c.citacao, Modifier.padding(12.dp))
+private fun TelaInfo(c: Config, secao: SecaoInfo, fechar: () -> Unit) {
+    val p = LocalPaleta.current
+    Column(Modifier.fillMaxSize().background(p.fundo)) {
+        CabecalhoJanela(fechar) {
+            Text(secao.titulo, color = p.texto, fontSize = 18.4.sp, fontWeight = FontWeight.Bold, letterSpacing = (-0.2).sp)
+        }
+        Column(
+            Modifier.weight(1f).verticalScroll(rememberScrollState()).navigationBarsPadding().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            when (secao) {
+                SecaoInfo.INTRODUCAO -> {
+                    Text(c.nome, color = p.texto, fontSize = 16.3.sp, fontWeight = FontWeight.Bold)
+                    Text(buildAnnotatedString {
+                        if (c.autor.isNotBlank()) {
+                            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append("Autoria e colaboração: ") }
+                            append(c.autor + "\n")
+                        }
+                        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append("Versão: ") }
+                        append(c.versaoApp + " • ")
+                        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append("Ano: ") }
+                        append(c.ano)
+                    }, color = p.texto, fontSize = 16.3.sp, lineHeight = 27.sp)
+                    if (c.introducao.isNotBlank()) TextoHtml(c.introducao)
                 }
-            }
-            if (c.referencias.isNotEmpty()) {
-                Text("Referências", style = MaterialTheme.typography.titleMedium)
-                c.referencias.forEach { Text("• $it") }
+                SecaoInfo.CITAR -> {
+                    Text("Para referenciar este dicionário em trabalhos acadêmicos, utilize o seguinte formato:", color = p.texto, fontSize = 16.3.sp, lineHeight = 27.sp)
+                    Text(
+                        c.citacao, color = p.texto, fontSize = 14.7.sp, fontFamily = FontFamily.Monospace,
+                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(Raios.pequeno)).background(p.superficie2)
+                            .border(1.dp, p.borda, RoundedCornerShape(Raios.pequeno)).padding(16.dp),
+                    )
+                }
+                SecaoInfo.REFERENCIAS -> {
+                    if (c.referencias.isEmpty()) Text("Nenhuma referência informada.", color = p.textoSecundario, fontSize = 16.3.sp)
+                    c.referencias.forEach { Text(it, color = p.texto, fontSize = 16.3.sp, lineHeight = 27.sp) }
+                }
             }
         }
     }
@@ -497,8 +346,8 @@ private fun TelaInfo(c: Config, voltar: () -> Unit) {
 /** HTML simples da introdução (negrito, itálico, parágrafos, listas, links). */
 @Composable
 private fun TextoHtml(html: String) {
-    val cor = MaterialTheme.colorScheme.onSurface.toArgb()
-    val link = MaterialTheme.colorScheme.primary.toArgb()
+    val cor = LocalPaleta.current.texto.toArgb()
+    val link = LocalPaleta.current.primaria.toArgb()
     AndroidView(
         factory = { TextView(it).apply { textSize = 16f; setLineSpacing(0f, 1.3f) } },
         update = {
@@ -508,36 +357,6 @@ private fun TextoHtml(html: String) {
         },
         modifier = Modifier.fillMaxWidth(),
     )
-}
-
-@Composable
-private fun TelaAjustes(midias: MidiasOffline, modo: ModoTema, mudarTema: (ModoTema) -> Unit, navegar: (Tela) -> Unit, voltar: () -> Unit) {
-    TelaComVoltar("Ajustes", voltar) { margem ->
-        Column(Modifier.padding(margem).verticalScroll(rememberScrollState())) {
-            Text("Tema", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(start = 20.dp, top = 16.dp))
-            listOf(ModoTema.SISTEMA to "Igual ao sistema", ModoTema.CLARO to "Claro", ModoTema.ESCURO to "Escuro").forEach { (m, rotulo) ->
-                ListItem(
-                    modifier = Modifier.clickable { mudarTema(m) },
-                    headlineContent = { Text(rotulo) },
-                    leadingContent = { RadioButton(selected = modo == m, onClick = { mudarTema(m) }) },
-                )
-            }
-            if (midias.ativo) {
-                HorizontalDivider()
-                val prontos = midias.pacotes.count { midias.baixado(it.nome) }
-                ListItem(
-                    modifier = Modifier.clickable { navegar(Tela.Midias) },
-                    headlineContent = { Text("Mídias offline") },
-                    supportingContent = { Text("$prontos de ${midias.pacotes.size} pacotes baixados") },
-                )
-            }
-            HorizontalDivider()
-            ListItem(
-                modifier = Modifier.clickable { navegar(Tela.Info) },
-                headlineContent = { Text("Informações e como citar") },
-            )
-        }
-    }
 }
 
 @Composable

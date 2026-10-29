@@ -9,6 +9,9 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -36,6 +39,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
@@ -49,6 +53,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -100,9 +105,10 @@ import kotlinx.coroutines.launch
 // Tela principal com a mesma estrutura do app HTML no celular (template.html, ≤ 768 px):
 // topo na cor primária (marca, busca, colunas/Detalhes/acessibilidade/informações) que some ao
 // rolar, conteúdo agrupado por campo semântico (Grupos.kt) em cards ou verbetes por extenso, e
-// a barra de abas Cards · Lista · Salvos · Categorias · Ajustes.
+// a barra de abas Cards · Lista · Salvos · Categorias · Ajustes (Categorias e Ajustes abrem
+// janelas por cima, como a .tela-categorias e o #bottom-sheet-filtros do HTML).
 
-enum class Aba { CARDS, LISTA, SALVOS, CATEGORIAS }
+enum class Aba { CARDS, LISTA, SALVOS }
 
 /** Estado da tela principal; fica fora dela para sobreviver à ida a uma entrada e à volta. */
 class EstadoPrincipal(private val prefs: Preferencias) {
@@ -114,8 +120,17 @@ class EstadoPrincipal(private val prefs: Preferencias) {
         private set
     var colapsados by mutableStateOf(emptySet<String>())
     val lista = LazyListState()
-    /** Campo/subcampo a mostrar depois de trocar de aba (atalhos de Categorias). */
-    var irPara by mutableStateOf<String?>(null)
+    // Filtros: campo/subcampo de qualquer nível (Categorias e Ajustes) e classe gramatical (Ajustes)
+    var filtroCampo by mutableStateOf("")
+    var filtroClasse by mutableStateOf("")
+    var ordenarTraducao by mutableStateOf(prefs.ordenarTraducao)
+        private set
+    // Janelas por cima da tela principal
+    var categoriasAberta by mutableStateOf(false)
+    var ajustesAberto by mutableStateOf(false)
+    var temaAberto by mutableStateOf(false)
+    /** A lista como está na tela, para anterior/próxima na entrada (navegarModal do HTML). */
+    var sequencia: List<Entrada> = emptyList()
     // Topo: oculto (rolando para baixo) e compacto (sem a linha da marca, longe do início)
     var oculto by mutableStateOf(false)
     var compacto by mutableStateOf(false)
@@ -123,6 +138,7 @@ class EstadoPrincipal(private val prefs: Preferencias) {
 
     fun mudarColunas(n: Int) { colunas = n; prefs.colunas = n }
     fun alternarDetalhes() { detalhes = !detalhes; prefs.detalhes = detalhes }
+    fun alternarOrdenarTraducao() { ordenarTraducao = !ordenarTraducao; prefs.ordenarTraducao = ordenarTraducao }
     fun alternarColapso(caminho: String) {
         colapsados = if (caminho in colapsados) colapsados - caminho else colapsados + caminho
     }
@@ -137,6 +153,8 @@ fun TelaPrincipal(
     alternarSalvo: (String) -> Unit,
     apagarSalvos: () -> Unit,
     navegar: (Tela) -> Unit,
+    modoTema: ModoTema,
+    mudarTema: (ModoTema) -> Unit,
 ) {
     val p = LocalPaleta.current
     val context = LocalContext.current
@@ -145,14 +163,20 @@ fun TelaPrincipal(
         runCatching { context.assets.open("icone.png").use { BitmapFactory.decodeStream(it)?.asImageBitmap() } }.getOrNull()
     }
 
+    // Mesma sequência de aplicarFiltrosEBusca() do HTML: salvos, campo, classe e busca sobre as
+    // entradas originais; depois, se "Ordenar por tradução", o dicionário invertido
     val ordenadas = remember(dic) { ordenarPorCategoria(dic.entradas) }
-    val totaisCampos = remember(ordenadas) { montarGrupos(ordenadas, 1, emptySet()).totalCampos }
-    val filtradas = remember(ordenadas, estado.aba, estado.busca, salvos.toList()) {
-        var base = if (estado.aba == Aba.SALVOS) ordenadas.filter { it.id in salvos } else ordenadas
+    val filtradas = remember(ordenadas, estado.aba, estado.busca, salvos.toList(), estado.filtroCampo, estado.filtroClasse, estado.ordenarTraducao) {
         val chave = normalizar(estado.busca.trim())
-        if (chave.isNotEmpty()) base = base.filter { it.chaveTermo.contains(chave) || it.chaveTraducao.contains(chave) }
-        base
+        val base = ordenadas.filter { e ->
+            (estado.aba != Aba.SALVOS || e.id in salvos) &&
+                (estado.filtroCampo.isEmpty() || e.pertenceA(estado.filtroCampo)) &&
+                (estado.filtroClasse.isEmpty() || e.classe == estado.filtroClasse) &&
+                (chave.isEmpty() || e.chaveBusca.contains(chave))
+        }
+        if (estado.ordenarTraducao) ordenarPorCategoria(inverter(base)) else base
     }
+    SideEffect { estado.sequencia = filtradas }
     val colunas = if (estado.aba == Aba.LISTA) 1 else estado.colunas
     val grupos = remember(filtradas, colunas, estado.colapsados) { montarGrupos(filtradas, colunas, estado.colapsados) }
 
@@ -182,10 +206,14 @@ fun TelaPrincipal(
         snapshotFlow { estado.lista.firstVisibleItemIndex == 0 && estado.lista.firstVisibleItemScrollOffset <= 4 }
             .collect { noTopo -> if (noTopo) { estado.oculto = false; estado.compacto = false } }
     }
-    // Nova busca: volta ao início (a primeira emissão é só o valor atual, ao voltar de outra tela)
+    // Nova busca ou filtro: volta ao início (a primeira emissão é só o valor atual, ao voltar de outra tela)
     LaunchedEffect(estado) {
-        snapshotFlow { estado.busca }.drop(1).collect { estado.lista.scrollToItem(0) }
+        snapshotFlow { listOf(estado.busca, estado.filtroCampo, estado.filtroClasse, estado.ordenarTraducao) }
+            // requestScrollToItem: vale no próximo layout e ignora a posição guardada pela chave
+            // do primeiro item (senão a pílula do filtro, nova no topo, ficaria acima da tela)
+            .drop(1).collect { estado.lista.requestScrollToItem(0) }
     }
+    BackHandler(enabled = estado.categoriasAberta) { estado.categoriasAberta = false }
 
     fun irParaAba(aba: Aba) {
         estado.aba = aba
@@ -193,25 +221,39 @@ fun TelaPrincipal(
         escopo.launch { estado.lista.scrollToItem(0) }
     }
 
-    Column(Modifier.fillMaxSize().background(p.fundo)) {
-        Cabecalho(dic.config, logo, estado, abrirAcessibilidade = { navegar(Tela.Ajustes) }, abrirInfo = { navegar(Tela.Info) })
-        Box(Modifier.weight(1f).nestedScroll(conexao)) {
-            if (estado.aba == Aba.CATEGORIAS) {
-                ListaCategorias(totaisCampos, estado.lista) { nome ->
-                    if (nome == null) {
-                        irParaAba(Aba.CARDS)
-                    } else {
-                        estado.colapsados = estado.colapsados - nome
-                        estado.aba = Aba.CARDS
-                        estado.irPara = nome
-                    }
-                }
-            } else {
+    Box(Modifier.fillMaxSize()) {
+        Column(Modifier.fillMaxSize().background(p.fundo)) {
+            Cabecalho(
+                dic.config, logo, estado,
+                abrirAcessibilidade = { estado.temaAberto = true },
+                abrirInfo = { navegar(Tela.Info(SecaoInfo.INTRODUCAO)) },
+            )
+            Box(Modifier.weight(1f).nestedScroll(conexao)) {
                 Conteudo(grupos, estado, acoes, salvos, alternarSalvo, apagarSalvos, navegar)
+                PlayerFlutuante(acoes, Modifier.matchParentSize())
+            }
+            BarraAbas(
+                estado.aba, estado.categoriasAberta, salvos.size, ::irParaAba,
+                abrirCategorias = { acoes.fecharVideo(); estado.categoriasAberta = true },
+                abrirAjustes = { estado.ajustesAberto = true },
+            )
+        }
+        AnimatedVisibility(
+            visible = estado.categoriasAberta,
+            enter = slideInVertically { it },
+            exit = slideOutVertically { it },
+        ) {
+            TelaCategorias(dic, estado.filtroCampo, fechar = { estado.categoriasAberta = false }) { nome ->
+                // selecionarCategoria() do HTML: filtra e fecha
+                estado.filtroCampo = nome
+                estado.categoriasAberta = false
             }
         }
-        BarraAbas(estado.aba, salvos.size, ::irParaAba) { navegar(Tela.Ajustes) }
     }
+    if (estado.ajustesAberto) {
+        PainelAjustes(dic, estado, acoes.midias, navegar, abrirTema = { estado.temaAberto = true }) { estado.ajustesAberto = false }
+    }
+    if (estado.temaAberto) DialogoTema(modoTema, mudarTema) { estado.temaAberto = false }
 }
 
 // ─── Topo ──────────────────────────────────────────────────────────────────────
@@ -354,17 +396,20 @@ private fun BotaoTopo(icone: ImageVector, descricao: String, onClick: () -> Unit
 // ─── Barra de abas ─────────────────────────────────────────────────────────────
 
 @Composable
-private fun BarraAbas(aba: Aba, totalSalvos: Int, escolher: (Aba) -> Unit, abrirAjustes: () -> Unit) {
+private fun BarraAbas(
+    aba: Aba, categoriasAberta: Boolean, totalSalvos: Int, escolher: (Aba) -> Unit,
+    abrirCategorias: () -> Unit, abrirAjustes: () -> Unit,
+) {
     val p = LocalPaleta.current
     Row(
         Modifier.fillMaxWidth().background(p.superficie)
             .drawBehind { drawLine(p.borda, Offset(0f, 0f), Offset(size.width, 0f), 1.dp.toPx()) }
             .navigationBarsPadding().padding(horizontal = 4.dp, vertical = 6.dp),
     ) {
-        BotaoAba(Icones.Cards, "Cards", aba == Aba.CARDS) { escolher(Aba.CARDS) }
-        BotaoAba(Icones.Lista, "Lista", aba == Aba.LISTA) { escolher(Aba.LISTA) }
-        BotaoAba(Icones.Salvo, "Salvos", aba == Aba.SALVOS, selo = totalSalvos) { escolher(Aba.SALVOS) }
-        BotaoAba(Icones.Categorias, "Categorias", aba == Aba.CATEGORIAS) { escolher(Aba.CATEGORIAS) }
+        BotaoAba(Icones.Cards, "Cards", !categoriasAberta && aba == Aba.CARDS) { escolher(Aba.CARDS) }
+        BotaoAba(Icones.Lista, "Lista", !categoriasAberta && aba == Aba.LISTA) { escolher(Aba.LISTA) }
+        BotaoAba(Icones.Salvo, "Salvos", !categoriasAberta && aba == Aba.SALVOS, selo = totalSalvos) { escolher(Aba.SALVOS) }
+        BotaoAba(Icones.Categorias, "Categorias", categoriasAberta, onClick = abrirCategorias)
         BotaoAba(Icones.Ajustes, "Ajustes", false, onClick = abrirAjustes)
     }
 }
@@ -410,22 +455,30 @@ private fun Conteudo(
     val p = LocalPaleta.current
     val escopo = rememberCoroutineScope()
     val mostrarApagar = estado.aba == Aba.SALVOS && salvos.isNotEmpty()
-    // Índice de cada linha dentro da LazyColumn (há um item inicial e espaçadores antes dos campos)
-    val indices = remember(grupos, mostrarApagar) {
-        var i = if (mostrarApagar) 1 else 0
+    val temFiltro = estado.filtroCampo.isNotEmpty() || estado.filtroClasse.isNotEmpty()
+    // Índice de cada linha dentro da LazyColumn (há itens iniciais e espaçadores antes dos campos)
+    val indices = remember(grupos, mostrarApagar, temFiltro) {
+        var i = (if (mostrarApagar) 1 else 0) + (if (temFiltro) 1 else 0)
         grupos.linhas.mapIndexed { n, l -> if (l is Linha.TituloCampo && n > 0) i++; i++ }
     }
     fun rolarPara(nome: String) {
         val linha = grupos.ancoras[nome] ?: return
         escopo.launch { estado.lista.animateScrollToItem(indices[linha]) }
     }
-    LaunchedEffect(estado.irPara, grupos) {
-        val nome = estado.irPara ?: return@LaunchedEffect
-        grupos.ancoras[nome]?.let { estado.lista.scrollToItem(indices[it]) }
-        estado.irPara = null
-    }
 
     LazyColumn(state = estado.lista, contentPadding = PaddingValues(top = 4.dp, bottom = 28.dp), modifier = Modifier.fillMaxSize()) {
+        // Filtros em uso, com o "x" para tirar (no HTML aparecem no cabeçalho "Categorias · …")
+        if (temFiltro) {
+            item(key = "filtros") {
+                FlowRow(
+                    Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    if (estado.filtroCampo.isNotEmpty()) FiltroAtivo(estado.filtroCampo) { estado.filtroCampo = "" }
+                    if (estado.filtroClasse.isNotEmpty()) FiltroAtivo(estado.filtroClasse) { estado.filtroClasse = "" }
+                }
+            }
+        }
         if (mostrarApagar) {
             item(key = "apagar") {
                 Box(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 8.dp), contentAlignment = Alignment.CenterEnd) {
@@ -441,8 +494,8 @@ private fun Conteudo(
             item(key = "vazio") {
                 Text(
                     when {
-                        estado.aba == Aba.SALVOS && estado.busca.isBlank() -> "Nenhum item salvo. Toque no marcador de um termo para salvá-lo."
-                        else -> "Nenhum resultado encontrado."
+                        estado.aba == Aba.SALVOS && estado.busca.isBlank() && !temFiltro -> "Nenhum item salvo. Toque no marcador de um termo para salvá-lo."
+                        else -> "Nenhum resultado encontrado.\nTente ajustar os filtros ou o termo de busca."
                     },
                     color = p.textoSecundario, fontSize = 16.sp, modifier = Modifier.padding(24.dp),
                 )
@@ -466,6 +519,22 @@ private fun Conteudo(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun FiltroAtivo(nome: String, tirar: () -> Unit) {
+    val p = LocalPaleta.current
+    Row(
+        Modifier.clip(RoundedCornerShape(50)).background(p.primariaClara)
+            .clickable(role = Role.Button, onClick = tirar)
+            .semantics { contentDescription = "Filtro: $nome. Tocar para remover" }
+            .padding(start = 14.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Text(nome, color = p.primaria, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+        Icon(Icones.Fechar, null, tint = p.primaria, modifier = Modifier.size(16.dp))
     }
 }
 
@@ -615,16 +684,27 @@ private fun Etiqueta(texto: String, modifier: Modifier = Modifier) {
 @Composable
 fun BotaoMidia(caminho: String, video: Boolean, tamanho: Dp, acoes: AcoesMidia, descricao: String) {
     val p = LocalPaleta.current
-    val tocando = !video && acoes.audio.tocando.value == caminho
+    val dono = remember { Any() }
+    // Com o vídeo aberto, o próprio botão vira "fechar" (resetarBotaoVideo do HTML)
+    val videoAberto = video && acoes.video.value?.dono === dono
+    val tocando = videoAberto || (!video && acoes.audio.tocando.value == caminho)
     Box(
-        Modifier.size(tamanho).clip(CircleShape).background(if (tocando) p.acento else p.primariaClara)
+        Modifier.size(tamanho).then(if (video) Modifier.donoDoVideo(acoes, dono) else Modifier)
+            .clip(CircleShape).background(if (tocando) p.acento else p.primariaClara)
             .border(1.dp, if (tocando) Color.Transparent else p.borda, CircleShape)
-            .clickable(role = Role.Button) { if (video) acoes.abrirVideo(caminho) else acoes.tocarAudio(caminho) }
-            .semantics { contentDescription = (if (video) "Assistir " else if (tocando) "Parar " else "Ouvir ") + descricao },
+            .clickable(role = Role.Button) { if (video) acoes.alternarVideo(caminho, dono) else acoes.tocarAudio(caminho) }
+            .semantics {
+                contentDescription = when {
+                    videoAberto -> "Fechar vídeo de "
+                    video -> "Assistir "
+                    tocando -> "Parar "
+                    else -> "Ouvir "
+                } + descricao
+            },
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            when { video -> Icones.Play; tocando -> Icones.Pausa; else -> Icones.Som },
+            when { videoAberto -> Icones.Fechar; video -> Icones.Play; tocando -> Icones.Pausa; else -> Icones.Som },
             null, tint = if (tocando) Color.White else p.primaria, modifier = Modifier.size(if (tamanho < 30.dp) 15.dp else 18.dp),
         )
     }
@@ -657,7 +737,7 @@ private fun VerbeteLista(
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             CabecalhoVerbete(e, detalhes, acoes)
-            e.acepcoes.forEach { a -> Acepcao(a, acoes, navegar) }
+            e.acepcoes.forEachIndexed { i, a -> Acepcao(a, if (e.acepcoes.size > 1) "${i + 1}" else "", detalhes, acoes, navegar) }
             if (e.relacionados.isNotBlank()) {
                 Text(buildAnnotatedString {
                     withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = p.texto)) { append("Veja também: ") }
@@ -665,8 +745,8 @@ private fun VerbeteLista(
                 }, fontSize = 15.sp)
             }
         }
-        // Marcador de salvar (.item-bookmark-btn)
-        Box(
+        // Marcador de salvar (.item-bookmark-btn); entradas do dicionário invertido não existem nos dados
+        if (!e.invertida) Box(
             Modifier.align(Alignment.TopEnd).padding(top = 14.dp).size(44.dp).clip(CircleShape)
                 .background(if (salvo) p.acento else p.superficie2).border(1.dp, if (salvo) Color.Transparent else p.borda, CircleShape)
                 .clickable(role = Role.Button, onClick = alternarSalvo)
@@ -679,7 +759,7 @@ private fun VerbeteLista(
 }
 
 @Composable
-private fun CabecalhoVerbete(e: Entrada, detalhes: Boolean, acoes: AcoesMidia) {
+fun CabecalhoVerbete(e: Entrada, detalhes: Boolean, acoes: AcoesMidia) {
     val p = LocalPaleta.current
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -691,34 +771,50 @@ private fun CabecalhoVerbete(e: Entrada, detalhes: Boolean, acoes: AcoesMidia) {
                 Box(Modifier.align(Alignment.CenterVertically)) { BotaoMidia(it.arquivo, it.video, 34.dp, acoes, "pronúncia de ${e.termo}") }
             }
         }
-        val chips = buildList {
-            if (detalhes && e.classe.isNotBlank()) add("classe")
-            if (detalhes && e.fonemica.isNotBlank()) add("fonemica")
-            if (detalhes && e.fonetica.isNotBlank()) add("fonetica")
-        }
-        if (chips.isNotEmpty()) {
+        val transcricoes = listOf(e.fonemica, e.fonetica).filter { it.isNotBlank() }
+        if (detalhes && (e.classe.isNotBlank() || transcricoes.isNotEmpty())) {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                if ("classe" in chips) Etiqueta(e.classe, Modifier.align(Alignment.CenterVertically))
-                listOf(e.fonemica, e.fonetica).filter { it.isNotBlank() && detalhes }.forEach { ipa ->
-                    Text(
-                        ipa, color = p.textoSecundario, fontSize = 16.sp, fontFamily = FontFamily.Monospace,
-                        modifier = Modifier.clip(RoundedCornerShape(50)).background(p.superficie2).border(1.dp, p.borda, RoundedCornerShape(50))
-                            .padding(horizontal = 12.dp, vertical = 5.dp),
-                    )
-                }
+                if (e.classe.isNotBlank()) Etiqueta(e.classe, Modifier.align(Alignment.CenterVertically))
+                transcricoes.forEach { ChipIpa(it) }
             }
         }
     }
 }
 
+/** Transcrição fonêmica/fonética (.dict-audio-chip com .dict-chip-ipa). */
 @Composable
-private fun Acepcao(a: Acepcao, acoes: AcoesMidia, navegar: (Tela) -> Unit) {
+private fun ChipIpa(ipa: String) {
+    val p = LocalPaleta.current
+    Text(
+        ipa, color = p.textoSecundario, fontSize = 16.sp, fontFamily = FontFamily.Monospace,
+        modifier = Modifier.clip(RoundedCornerShape(50)).background(p.superficie2).border(1.dp, p.borda, RoundedCornerShape(50))
+            .padding(horizontal = 12.dp, vertical = 5.dp),
+    )
+}
+
+/**
+ * Acepção (.dict-sense-card de entrada.tmpl e lista.tmpl). [numero] só quando há mais de uma,
+ * como NUMERO_PONTO do HTML. No dicionário invertido, a tradução é a palavra da língua, com a
+ * pronúncia e, em "Detalhes", a classe e a transcrição dela.
+ */
+@Composable
+fun Acepcao(a: Acepcao, numero: String, detalhes: Boolean, acoes: AcoesMidia, navegar: (Tela) -> Unit) {
     val p = LocalPaleta.current
     Column {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            if (a.numero.isNotBlank()) Text("${a.numero}.", color = p.acentoForte, fontSize = 16.8.sp, fontWeight = FontWeight.ExtraBold)
-            if (a.traducao.isNotBlank()) Text(a.traducao, color = p.texto, fontSize = 18.6.sp, fontWeight = FontWeight.Bold)
-            if (a.descricao.isNotBlank()) Text(a.descricao, color = p.textoSecundario, fontSize = 16.sp)
+            val centro = Modifier.align(Alignment.CenterVertically)
+            if (numero.isNotBlank()) Text("$numero.", color = p.acentoForte, fontSize = 16.8.sp, fontWeight = FontWeight.ExtraBold, modifier = centro)
+            if (a.traducao.isNotBlank()) Text(a.traducao, color = p.texto, fontSize = 18.6.sp, fontWeight = FontWeight.Bold, modifier = centro)
+            a.reversa?.let { r ->
+                r.pronuncia?.takeIf { acoes.midias.existe(it.arquivo) }?.let {
+                    Box(centro) { BotaoMidia(it.arquivo, it.video, 28.dp, acoes, "pronúncia de ${a.traducao}") }
+                }
+                if (detalhes && r.classe.isNotBlank()) {
+                    Text(r.classe, color = p.textoSecundario, fontSize = 15.sp, fontStyle = FontStyle.Italic, modifier = centro)
+                }
+                if (detalhes) listOf(r.fonemica, r.fonetica).filter { it.isNotBlank() }.forEach { Box(centro) { ChipIpa(it) } }
+            }
+            if (a.descricao.isNotBlank()) Text(a.descricao, color = p.textoSecundario, fontSize = 16.sp, modifier = centro)
         }
         if (a.exemplos.isNotEmpty()) {
             Column(Modifier.padding(top = 12.dp).fillMaxWidth().drawBehind { drawLine(p.borda, Offset.Zero, Offset(size.width, 0f), 1.dp.toPx()) }) {
@@ -750,15 +846,30 @@ private fun Acepcao(a: Acepcao, acoes: AcoesMidia, navegar: (Tela) -> Unit) {
             }
         }
         videos.forEach { v ->
-            CartaoMidia(Modifier.padding(top = 14.dp).clickable { acoes.abrirVideo(v) }.semantics { contentDescription = "Assistir vídeo" }) {
+            val dono = remember { Any() }
+            val aberto = acoes.video.value?.dono === dono
+            CartaoMidia(
+                Modifier.padding(top = 14.dp).donoDoVideo(acoes, dono).clickable { acoes.alternarVideo(v, dono) }
+                    .semantics { contentDescription = if (aberto) "Fechar vídeo" else "Assistir vídeo" },
+            ) {
                 Box(Modifier.fillMaxWidth().aspectRatio(16f / 9f).background(Color.Black), contentAlignment = Alignment.Center) {
-                    Box(Modifier.size(56.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.9f)), contentAlignment = Alignment.Center) {
-                        Icon(Icones.Play, null, tint = Color.Black, modifier = Modifier.size(28.dp))
+                    Box(
+                        Modifier.size(56.dp).clip(CircleShape).background(if (aberto) p.acento else Color.White.copy(alpha = 0.9f)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(if (aberto) Icones.Fechar else Icones.Play, null, tint = if (aberto) Color.White else Color.Black, modifier = Modifier.size(28.dp))
                     }
                 }
             }
         }
-        a.extras.forEach { Text(it, color = p.texto, fontSize = 15.sp, modifier = Modifier.padding(top = 14.dp)) }
+        // Notas (.dict-extra)
+        a.extras.forEach {
+            Text(
+                it, color = p.acentoForte, fontSize = 15.2.sp,
+                modifier = Modifier.padding(top = 14.dp).fillMaxWidth().clip(RoundedCornerShape(Raios.pequeno)).background(p.acentoClaro)
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
+            )
+        }
         a.textos.forEach { t ->
             Column(
                 Modifier.padding(top = 14.dp).fillMaxWidth().clip(RoundedCornerShape(Raios.normal)).background(p.superficie)
@@ -786,37 +897,72 @@ private fun CartaoMidia(modifier: Modifier, conteudo: @Composable () -> Unit) {
     ) { conteudo() }
 }
 
-// ─── Categorias (fase 1: campos com a contagem) ────────────────────────────────
+// ─── Categorias (.tela-categorias do HTML) ─────────────────────────────────────
 
-@Composable
-private fun ListaCategorias(totais: Map<String, Int>, lista: LazyListState, escolher: (String?) -> Unit) {
-    val p = LocalPaleta.current
-    LazyColumn(state = lista, contentPadding = PaddingValues(bottom = 28.dp), modifier = Modifier.fillMaxSize()) {
-        item(key = "titulo") {
-            Text(
-                "Categorias", color = p.texto, fontSize = 20.sp, fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(start = 20.dp, top = 16.dp, bottom = 8.dp).semantics { heading() },
-            )
+/** Árvore de campos e subcampos ("Geral" e vazios não entram), em ordem alfabética por nível. */
+private fun arvoreCategorias(entradas: List<Entrada>): List<Pair<String, Int>> {
+    class No { val filhos = HashMap<String, No>() }
+    val raiz = No()
+    entradas.forEach { e ->
+        var no = raiz
+        (listOf(e.categoria) + e.subcategorias).map { it.trim() }.filter { it.isNotEmpty() && it != "Geral" }.forEach { v ->
+            no = no.filhos.getOrPut(v) { No() }
         }
-        item(key = "todas") { LinhaCategoria("Todas as categorias", totais.values.sum(), destaque = true) { escolher(null) } }
-        items(totais.entries.toList(), key = { "c:" + it.key }) { (nome, total) -> LinhaCategoria(nome, total, false) { escolher(nome) } }
     }
+    val linhas = ArrayList<Pair<String, Int>>()
+    fun percorrer(no: No, nivel: Int) {
+        no.filhos.keys.sortedWith(colador).forEach { nome ->
+            linhas.add(nome to nivel)
+            percorrer(no.filhos.getValue(nome), nivel + 1)
+        }
+    }
+    percorrer(raiz, 0)
+    return linhas
 }
 
 @Composable
-private fun LinhaCategoria(nome: String, total: Int, destaque: Boolean, onClick: () -> Unit) {
+private fun TelaCategorias(dic: Dicionario, atual: String, fechar: () -> Unit, escolher: (String) -> Unit) {
     val p = LocalPaleta.current
-    Row(
-        Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = onClick)
-            .drawBehind { drawLine(p.borda, Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx()) }
-            .padding(horizontal = 20.dp, vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(nome, color = if (destaque) p.primaria else p.texto, fontSize = 16.sp, fontWeight = if (destaque) FontWeight.Bold else FontWeight.SemiBold, modifier = Modifier.weight(1f))
-        Spacer(Modifier.width(12.dp))
-        Text(
-            total.toString(), color = p.primaria, fontSize = 13.sp, fontWeight = FontWeight.Bold,
-            modifier = Modifier.clip(RoundedCornerShape(50)).background(p.primariaClara).padding(horizontal = 10.dp, vertical = 3.dp),
-        )
+    val linhas = remember(dic) { arvoreCategorias(dic.entradas) }
+    Column(Modifier.fillMaxSize().background(p.fundo)) {
+        Row(
+            Modifier.fillMaxWidth().background(p.superficie)
+                .drawBehind { drawLine(p.borda, Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx()) }
+                .statusBarsPadding().heightIn(min = 60.dp).padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("Categorias", color = p.texto, fontSize = 17.6.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f).semantics { heading() })
+            Box(
+                Modifier.size(44.dp).clip(CircleShape).clickable(role = Role.Button, onClick = fechar)
+                    .semantics { contentDescription = "Fechar categorias" },
+                contentAlignment = Alignment.Center,
+            ) { Icon(Icones.Fechar, null, tint = p.texto, modifier = Modifier.size(22.dp)) }
+        }
+        LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(top = 8.dp, bottom = 40.dp)) {
+            item(key = "todas") { LinhaCategoria("Todas as categorias", 0, atual.isEmpty()) { escolher("") } }
+            items(linhas.size, key = { "c:$it" }) { i ->
+                val (nome, nivel) = linhas[i]
+                LinhaCategoria(nome, nivel, nome == atual) { escolher(nome) }
+            }
+        }
+        Spacer(Modifier.navigationBarsPadding())
     }
+}
+
+/** .categoria-linha: nível 0 em destaque, subníveis recuados; a escolhida com fundo claro. */
+@Composable
+private fun LinhaCategoria(nome: String, nivel: Int, ativa: Boolean, onClick: () -> Unit) {
+    val p = LocalPaleta.current
+    Text(
+        nome,
+        color = if (ativa || nivel == 0) p.primaria else p.texto,
+        fontSize = 15.2.sp,
+        fontWeight = if (ativa || nivel == 0) FontWeight.Bold else FontWeight.Normal,
+        modifier = Modifier.fillMaxWidth().background(if (ativa) p.primariaClara else Color.Transparent)
+            .drawBehind { drawLine(p.borda, Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx()) }
+            .clickable(role = Role.Button, onClick = onClick)
+            .semantics { selected = ativa }
+            .heightIn(min = 52.dp).wrapContentHeight(Alignment.CenterVertically)
+            .padding(start = (20 + nivel * 18).dp, end = 20.dp, top = 15.dp, bottom = 15.dp),
+    )
 }

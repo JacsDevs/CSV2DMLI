@@ -4,7 +4,7 @@ import fs from 'node:fs';
 const tpl = fs.readFileSync('config/templates/html-cards/template.html', 'utf8');
 const lista = fs.readFileSync('config/templates/html-cards/lista.tmpl', 'utf8');
 const nomes = { busca: 'Busca', cards: 'Cards', lista: 'Lista', salvo: 'Salvo', categorias: 'Categorias', ajustes: 'Ajustes',
-  som: 'Som', pausa: 'Pausa', play: 'Play', fechar: 'Fechar', info: 'Info', chevron: 'Chevron', 'seta-esquerda': 'Voltar',
+  som: 'Som', pausa: 'Pausa', play: 'Play', fechar: 'Fechar', info: 'Info', chevron: 'Chevron', 'seta-esquerda': 'Voltar', 'seta-direita': 'Avancar',
   acessibilidade: 'Acessibilidade', olho: 'Olho', 'coluna-1': 'Coluna1', 'coluna-2': 'Coluna2' };
 const num = (v) => Number(v);
 const attr = (tag, a) => { const m = tag.match(new RegExp('\\s' + a + '="([^"]*)"')); return m ? m[1] : null; };

@@ -55,7 +55,7 @@ private fun valores(e: Entrada): List<String> {
 
 private fun caminho(vals: List<String>, ate: Int) = vals.take(ate + 1).filter { it.isNotEmpty() }.joinToString("|")
 
-private val colador: Collator = Collator.getInstance(Locale.forLanguageTag("pt-BR"))
+val colador: Collator = Collator.getInstance(Locale.forLanguageTag("pt-BR"))
 
 /** Mesma ordem do HTML: campo, subcampos (posição a posição) e termo. */
 fun ordenarPorCategoria(entradas: List<Entrada>): List<Entrada> {

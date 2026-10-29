@@ -61,6 +61,11 @@ class Preferencias(context: Context) {
         get() = sp.getBoolean("detalhes", false)
         set(v) = sp.edit().putBoolean("detalhes", v).apply()
 
+    /** "Ordenar por tradução": dicionário invertido. */
+    var ordenarTraducao: Boolean
+        get() = sp.getBoolean("ordenar_traducao", false)
+        set(v) = sp.edit().putBoolean("ordenar_traducao", v).apply()
+
     var avisoMidiasMostrado: Boolean
         get() = sp.getBoolean("aviso_midias", false)
         set(v) = sp.edit().putBoolean("aviso_midias", v).apply()
