@@ -867,8 +867,21 @@ body {
     align-items: start;
 }
 
-.info-grupo {
+.info-coluna-principal {
     grid-column: span 2;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-width: 0;
+}
+.info-coluna-lateral {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-width: 0;
+}
+
+.info-grupo {
     margin: 0;
     padding: 20px;
     border: 1px solid var(--border-color);
@@ -878,6 +891,19 @@ body {
     gap: 16px 20px;
 }
 .info-grupo legend { padding: 0 6px; font-size: 16px; font-weight: 700; color: var(--text-main); }
+.info-grupo-selo {
+    margin-left: 6px;
+    padding: 1px 8px;
+    border-radius: var(--radius-pill);
+    background: var(--primary-light);
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 700;
+    vertical-align: middle;
+}
+.campo-opcional { font-weight: 400; color: var(--text-muted); font-size: 13px; }
+.campo .campo-entrada.mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+.info-cartao-status { font-size: 14px; font-weight: 600; color: var(--text-strong); }
 
 .campo {
     display: flex;
@@ -960,7 +986,7 @@ body {
 
 @media (max-width: 1024px) {
     .info-grade { grid-template-columns: 1fr; }
-    .info-grupo { grid-column: auto; }
+    .info-coluna-principal { grid-column: auto; }
 }
 @media (max-width: 600px) {
     .info-grupo { grid-template-columns: 1fr; }

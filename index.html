@@ -915,6 +915,7 @@
                         </div>
 
                         <div class="info-grade">
+                            <div class="info-coluna-principal">
                             <fieldset class="info-grupo">
                                 <legend>Identificação</legend>
                                 <label class="campo campo-largo">
@@ -940,6 +941,36 @@
                                 </label>
                             </fieldset>
 
+                            <!-- Só para projetos CLDF; campos espelhados no diálogo de exportação CLDF (ver sincronizarCamposCldf) -->
+                            <fieldset class="info-grupo" id="metaCldfGrupo" hidden>
+                                <legend>Língua documentada <span class="info-grupo-selo">CLDF</span></legend>
+                                <label class="campo">
+                                    <span class="campo-rotulo">Nome da língua</span>
+                                    <input type="text" id="metaCldfLingua" class="campo-entrada" data-espelho="cldfLangName" placeholder="Ex.: Karitiana">
+                                </label>
+                                <label class="campo">
+                                    <span class="campo-rotulo">Idioma das traduções</span>
+                                    <select id="metaCldfIdioma" class="campo-entrada" data-espelho="cldfGlossLang">
+                                        <option value="pt">Português</option>
+                                        <option value="en">Inglês</option>
+                                        <option value="es">Espanhol</option>
+                                    </select>
+                                    <span class="campo-ajuda">Usado para ligar os significados ao Concepticon.</span>
+                                </label>
+                                <label class="campo">
+                                    <span class="campo-rotulo">Código ISO 639-3 <span class="campo-opcional">(opcional)</span></span>
+                                    <input type="text" id="metaCldfIso" class="campo-entrada mono" data-espelho="cldfIsoCode" maxlength="3" placeholder="Ex.: ktn">
+                                    <span class="campo-ajuda">Três letras. Usado na exportação CLDF.</span>
+                                </label>
+                                <label class="campo">
+                                    <span class="campo-rotulo">Glottocode <span class="campo-opcional">(opcional)</span></span>
+                                    <input type="text" id="metaCldfGlottocode" class="campo-entrada mono" data-espelho="cldfGlottocode" placeholder="Ex.: kari1311">
+                                    <span class="campo-ajuda">Código do catálogo Glottolog. Usado na exportação CLDF.</span>
+                                </label>
+                            </fieldset>
+                            </div>
+
+                            <div class="info-coluna-lateral">
                             <div class="info-cartao" id="metaIconGroup">
                                 <h3>Logo</h3>
                                 <button type="button" class="logo-previa" id="metaIconPicker" onclick="metaLogoEscolher()" aria-label="Escolher imagem do logo">
@@ -956,6 +987,21 @@
                                 </div>
                                 <span class="campo-ajuda">Aparece no cabeçalho, antes do título, em qualquer proporção. Detectado automaticamente se houver <code>logo.png</code> na raiz da pasta; sem ele, usa o <code>icone.png</code>.</span>
                                 <input type="file" id="inputMetaIcone" accept="image/png,image/jpeg,image/webp" hidden onchange="metaLogoSelecionar(this.files[0])">
+                            </div>
+
+                            <div class="info-cartao">
+                                <h3>Referências bibliográficas <span class="campo-opcional">(opcional)</span></h3>
+                                <span class="campo-ajuda">Lista exibida ao final do dicionário, uma referência por linha. Detectada automaticamente se houver <code>referencia.txt</code> na raiz da pasta.</span>
+                                <span class="info-cartao-status" id="metaReferenciaStatus">Nenhuma referência importada</span>
+                                <div class="info-cartao-acoes">
+                                    <button type="button" class="btn-secundario" onclick="document.getElementById('inputMetaReferencia').click()">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"></path><path d="M4 20h16"></path></svg>
+                                        Importar arquivo
+                                    </button>
+                                    <button type="button" class="btn-secundario" id="btnMetaReferenciaRemover" hidden onclick="metaReferenciaRemover()">Remover</button>
+                                </div>
+                                <input type="file" id="inputMetaReferencia" accept=".txt,.md,text/plain" hidden onchange="metaReferenciaSelecionar(this.files[0])">
+                            </div>
                             </div>
                         </div>
 
@@ -2155,6 +2201,49 @@
     });
     window.definirEstadoTituloPdf();
 
+    // Campos de língua (CLDF) da etapa 3: espelham os do diálogo de exportação CLDF,
+    // que continua sendo o lugar deles em projetos CSV. Só aparecem em projetos CLDF.
+    document.querySelectorAll('[data-espelho]').forEach(campo => {
+        const espelho = document.getElementById(campo.dataset.espelho);
+        if (!espelho) return;
+        campo.value = espelho.value;
+        const evento = campo.tagName === 'SELECT' ? 'change' : 'input';
+        campo.addEventListener(evento, () => { espelho.value = campo.value; });
+        espelho.addEventListener(evento, () => { campo.value = espelho.value; });
+    });
+    window.atualizarGrupoCldf = function() {
+        const ehCldf = !!(window.carregadorPasta && window.carregadorPasta.formatoDetectado === 'cldf');
+        document.getElementById('metaCldfGrupo').hidden = !ehCldf;
+    };
+
+    // Referências bibliográficas: texto livre, uma referência por linha (ver exportadorHtmlCards)
+    window.atualizarUIReferencia = function() {
+        const texto = String((window.sistema && window.sistema.referencia) || '');
+        const linhas = texto.split(/\r?\n/).filter(l => l.trim()).length;
+        const status = document.getElementById('metaReferenciaStatus');
+        const origem = window._referenciaArquivo
+            || (window.carregadorPasta && window.carregadorPasta.arquivosEncontrados?.textosExtra?.referencia?.name);
+        if (linhas === 0) {
+            status.textContent = 'Nenhuma referência importada';
+        } else {
+            status.textContent = `${linhas.toLocaleString('pt-BR')} ${linhas === 1 ? 'referência' : 'referências'}${origem ? ` · ${origem}` : ''}`;
+        }
+        document.getElementById('btnMetaReferenciaRemover').hidden = linhas === 0;
+    };
+    window.metaReferenciaSelecionar = async function(arquivo) {
+        if (!arquivo || !window.sistema) return;
+        window.sistema.setReferencia(await arquivo.text());
+        window._referenciaArquivo = arquivo.name;
+        document.getElementById('inputMetaReferencia').value = '';
+        window.atualizarUIReferencia();
+    };
+    window.metaReferenciaRemover = function() {
+        if (!window.sistema) return;
+        window.sistema.setReferencia('');
+        window._referenciaArquivo = null;
+        window.atualizarUIReferencia();
+    };
+
     window.preencherUIComMetadados = function() {
         const sis = window.sistema;
         if (!sis) return;
@@ -2167,6 +2256,9 @@
         if (meta.autor) document.getElementById('metaAutor').value = meta.autor;
         if (meta.ano) document.getElementById('metaAno').value = meta.ano;
         window.definirEstadoTituloPdf();
+        window._referenciaArquivo = null;
+        window.atualizarUIReferencia();
+        window.atualizarGrupoCldf();
 
         if (sis.introHtml) {
             window.definirIntroMarkdown(sis.introHtml);
