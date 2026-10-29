@@ -323,7 +323,8 @@
         .app-bar-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
         .app-bar-titles { display: flex; align-items: center; gap: 14px; min-width: 0; }
         .dicionario-logo { font-size: 2rem; line-height: 1; flex-shrink: 0; }
-        .dicionario-icone-img { width: auto; height: 2.6rem; object-fit: cover; border-radius: 22%; vertical-align: middle; }
+        /* Logo em proporção livre: altura fixa, largura proporcional (limitada para não espremer o título) */
+        .dicionario-icone-img { width: auto; height: 2.6rem; max-width: 10rem; object-fit: contain; vertical-align: middle; display: block; }
         .app-bar h1 {
             font-size: 1.12rem;
             font-weight: 700;

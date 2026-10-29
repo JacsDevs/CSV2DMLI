@@ -12,14 +12,17 @@ import { InjetorAab, gerarIconesDensidades } from './injetorAab.js';
 import { montarPacoteAssinado, CacheHashes } from './montadorPacote.js';
 import { montarZipStored, verificarCancelamento, somarTamanhos } from './zipUtil.js';
 import { planejarEntrega, planoTemEtapas, formatarTamanho, ENTREGA } from './limitesTamanho.js';
-import { redimensionarParaPng } from '../core/iconeUtil.js';
+import { redimensionarParaPng, redimensionarLogo } from '../core/iconeUtil.js';
 
 // Ícone da ficha da Play Store: PNG 512×512, até 1 MB (o Google aplica a máscara)
 const ICONE_LOJA_ARQUIVO = 'icone-512.png';
 const ICONE_LOJA_TAMANHO = 512;
 const ICONE_LOJA_MAX_BYTES = 1024 * 1024;
-// Logo do cabeçalho do app nativo (exibido com ~40 dp; 192 px cobre telas xxxhdpi)
-const ICONE_APP_NATIVO = 192;
+// Logo do cabeçalho do app nativo (exibido com ~40 dp de altura; 192 px cobre telas
+// xxxhdpi). O nome do asset continua icone.png por compatibilidade com o template já compilado.
+const LOGO_APP_NATIVO_ARQUIVO = 'icone.png';
+const LOGO_APP_NATIVO_ALTURA = 192;
+const LOGO_APP_NATIVO_LARGURA = 768;
 
 // Organização do zip entregue ao usuário:
 //   LEIA-ME.txt
@@ -34,6 +37,10 @@ const PASTA_INSTALAR = 'instalar-direto';
 function dataAAAAMMDD(data) {
     const p2 = (n) => String(n).padStart(2, '0');
     return `${data.getFullYear()}${p2(data.getMonth() + 1)}${p2(data.getDate())}`;
+}
+
+function nomeArquivoP12(alias) {
+    return `chave_${(alias || 'upload').replace(/\s+/g, '_')}.p12`;
 }
 
 export class ExportadorAndroid {
@@ -61,6 +68,17 @@ export class ExportadorAndroid {
         return this.gerenteChave.deletarChave();
     }
 
+    async verificarSenha(senha) {
+        return this.gerenteChave.verificarSenha(senha);
+    }
+
+    /** Backup .p12 da chave salva, com o mesmo nome usado no zip gerado. */
+    async exportarBackupP12(senha) {
+        const info = await this.gerenteChave.obterInfoChave();
+        const bytes = await this.gerenteChave.exportarP12(senha);
+        return { nome: nomeArquivoP12(info && info.alias), bytes };
+    }
+
     /**
      * Gera o AAB e o APK assinados e baixa os dois, junto com um txt de
      * informações do aplicativo e as capturas de tela para a Play Store
@@ -73,7 +91,8 @@ export class ExportadorAndroid {
      *   htmlBytes?: Uint8Array,           // modelo 'html': index.html
      *   arquivosBase?: Map<string, Uint8Array>,  // modelo 'nativo': dados.json e config.json
      *   midias: Map<string, Uint8Array|Blob>,  // File/Blob recomendado: não é copiado para a memória
-     *   iconeBytes: Uint8Array,
+     *   iconeBytes: Uint8Array,  // ícone do launcher e da ficha da loja (quadrado)
+     *   logoBytes?: Uint8Array,  // modelo 'nativo': logo do cabeçalho (sem ele, usa o ícone)
      *   packageName: string,
      *   appName: string,
      *   versionName: string,
@@ -85,6 +104,7 @@ export class ExportadorAndroid {
      *   pais?: string,
      *   capturas?: Map<string, Uint8Array>,
      *   entrega?: { etapas?: boolean, orcamento?: number, classificacao?: Map },  // opções de planejarEntrega
+     *   somenteApk?: boolean,  // teste no celular: só o APK, devolvido sem zip (sem AAB, .p12 nem itens da loja)
      *   onProgress?: (pct: number, msg: string) => void,
      *   sinal?: AbortSignal,  // cancela a geração (antes do salvamento)
      * }} opcoes
@@ -97,6 +117,7 @@ export class ExportadorAndroid {
             htmlBytes,
             midias,
             iconeBytes,
+            logoBytes,
             packageName,
             appName,
             versionName,
@@ -108,29 +129,30 @@ export class ExportadorAndroid {
             pais = '',
             capturas = new Map(),
             entrega = {},
+            somenteApk = false,
             onProgress = () => {},
             sinal,
         } = opcoes;
 
-        onProgress(5, 'Carregando templates (AAB e APK)…');
+        onProgress(5, somenteApk ? 'Carregando template (APK)…' : 'Carregando templates (AAB e APK)…');
         const nomeTemplate = modelo === 'nativo' ? 'template-nativo' : 'template';
         const templateUrlAab = new URL(`../../vendor/android/${nomeTemplate}.aab`, import.meta.url).href;
         const templateUrlApk = new URL(`../../vendor/android/${nomeTemplate}.apk`, import.meta.url).href;
-        
+
         const [templateRespAab, templateRespApk] = await Promise.all([
-            fetch(templateUrlAab),
+            somenteApk ? null : fetch(templateUrlAab),
             fetch(templateUrlApk)
         ]);
 
-        if (!templateRespAab.ok || !templateRespApk.ok) {
+        if ((templateRespAab && !templateRespAab.ok) || !templateRespApk.ok) {
             throw new Error(
                 `Template AAB ou APK não encontrado (${nomeTemplate}). Execute "npm run build:android-${nomeTemplate}" para gerar os templates.`
             );
         }
-        
+
         const { unzipSync } = await import(new URL('../../vendor/fflate.min.js', import.meta.url).href);
         // Templates pequenos (~1 MB): descompactados uma vez, as entradas são só referências
-        const entradasTemplateAab = unzipSync(new Uint8Array(await templateRespAab.arrayBuffer()));
+        const entradasTemplateAab = templateRespAab ? unzipSync(new Uint8Array(await templateRespAab.arrayBuffer())) : null;
         const entradasTemplateApk = unzipSync(new Uint8Array(await templateRespApk.arrayBuffer()));
         verificarCancelamento(sinal);
 
@@ -142,11 +164,14 @@ export class ExportadorAndroid {
 
         const injector = new InjetorAab();
         const iconesProntos = await gerarIconesDensidades(iconeBytes);  // uma vez, para AAB e APK
-        // App nativo: logo do cabeçalho em assets/icone.png (o ícone do launcher vai em res/, como no app HTML)
+        // App nativo: logo do cabeçalho em assets/ (o ícone do launcher vai em res/, como no app HTML).
+        // Sem logo próprio, o cabeçalho usa o ícone, como antes da separação logo × ícone.
         let arquivosBase = opcoes.arquivosBase;
-        if (modelo === 'nativo' && arquivosBase && iconeBytes && iconeBytes.length > 0) {
+        const bytesCabecalho = logoBytes && logoBytes.length > 0 ? logoBytes : iconeBytes;
+        if (modelo === 'nativo' && arquivosBase && bytesCabecalho && bytesCabecalho.length > 0) {
             arquivosBase = new Map(arquivosBase);
-            arquivosBase.set('icone.png', await redimensionarParaPng(iconeBytes, ICONE_APP_NATIVO));
+            const { bytes } = await redimensionarLogo(bytesCabecalho, LOGO_APP_NATIVO_ALTURA, LOGO_APP_NATIVO_LARGURA);
+            arquivosBase.set(LOGO_APP_NATIVO_ARQUIVO, bytes);
         }
         const appInfo = { htmlBytes, arquivosBase, midias, iconeBytes };
         // Peso do conteúdo do módulo base além das mídias (HTML ou dados do app nativo)
@@ -154,9 +179,10 @@ export class ExportadorAndroid {
         const metaInfo = { packageName, appName, versionName, versionCode };
 
         // Play Asset Delivery: o plano divide as mídias entre o módulo base e os pacotes de recursos
+        // (só no AAB; o APK leva tudo num arquivo)
         const tamanhoMidias = somarTamanhos(midias.values());
-        const plano = planejarEntrega({ ...entrega, midias, tamanhoHtml: tamanhoBase });
-        const usarPacoteMidia = plano.pacotes.length > 0;
+        const plano = somenteApk ? null : planejarEntrega({ ...entrega, midias, tamanhoHtml: tamanhoBase });
+        const usarPacoteMidia = !!plano && plano.pacotes.length > 0;
 
         // Progresso por bytes: hash das mídias (uma vez) + leitura da assinatura v2 de cada artefato
         const conteudoTotal = tamanhoBase + tamanhoMidias;
@@ -175,22 +201,36 @@ export class ExportadorAndroid {
         const cache = new CacheHashes();
         const assinatura = { privateKeyPkcs8, certPem, certDer, cache, sinal };
 
+        const baseName = appName
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-zA-Z0-9_\-]/g, '_');
+        const nomeComData = `${baseName}_${dataAAAAMMDD(new Date())}`;
+        const nomeAab = `${nomeComData}.aab`;
+        const nomeApk = `${nomeComData}.apk`;
+        const nomeZip = `${nomeComData}.zip`;
+
         // ---- Processar AAB ----
-        onProgress(20, usarPacoteMidia
-            ? 'Montando AAB (mídias no pacote de recursos da Play)…'
-            : 'Montando AAB…');
-        const progAab = progressoFaixa(20, 50, 'Gerando e assinando AAB', 2 * conteudoTotal);
-        const aab = await montarPacoteAssinado({
-            ...assinatura,
-            entradas: await injector.prepararEntradas(entradasTemplateAab, appInfo, metaInfo, false, { plano, iconesProntos }),
-            alinhar: false,
-            onBytesHash: progAab,
-            onBytesAssinatura: progAab,
-        });
+        let aab = null;
+        if (!somenteApk) {
+            onProgress(20, usarPacoteMidia
+                ? 'Montando AAB (mídias no pacote de recursos da Play)…'
+                : 'Montando AAB…');
+            const progAab = progressoFaixa(20, 50, 'Gerando e assinando AAB', 2 * conteudoTotal);
+            aab = await montarPacoteAssinado({
+                ...assinatura,
+                entradas: await injector.prepararEntradas(entradasTemplateAab, appInfo, metaInfo, false, { plano, iconesProntos }),
+                alinhar: false,
+                onBytesHash: progAab,
+                onBytesAssinatura: progAab,
+            });
+        }
 
         // ---- Processar APK ---- (hashes das mídias já estão no cache)
-        onProgress(50, 'Montando APK…');
-        const progApk = progressoFaixa(50, 80, 'Gerando e assinando APK', conteudoTotal);
+        // Só APK: hash e assinatura são feitos aqui, por isso a faixa é maior
+        onProgress(somenteApk ? 20 : 50, 'Montando APK…');
+        const progApk = somenteApk
+            ? progressoFaixa(20, 95, 'Gerando e assinando APK', 2 * conteudoTotal)
+            : progressoFaixa(50, 80, 'Gerando e assinando APK', conteudoTotal);
         const apk = await montarPacoteAssinado({
             ...assinatura,
             entradas: await injector.prepararEntradas(entradasTemplateApk, appInfo, metaInfo, true, { iconesProntos }),
@@ -201,17 +241,15 @@ export class ExportadorAndroid {
         });
         verificarCancelamento(sinal);
 
+        if (somenteApk) {
+            onProgress(100, 'Concluído!');
+            return { somenteApk: true, apk: nomeApk, blob: apk.blob, tamanhos: { apk: apk.tamanho } };
+        }
+
         onProgress(85, 'Empacotando arquivos…');
-        const baseName = appName
-            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-            .replace(/[^a-zA-Z0-9_\-]/g, '_');
-        const nomeComData = `${baseName}_${dataAAAAMMDD(new Date())}`;
-        const nomeAab = `${nomeComData}.aab`;
-        const nomeApk = `${nomeComData}.apk`;
-        const nomeZip = `${nomeComData}.zip`;
 
         // Backup .p12 da chave própria (a chave temporária é descartável e não é incluída)
-        const nomeP12 = chaveTemporaria ? null : `chave_${(alias || 'upload').replace(/\s+/g, '_')}.p12`;
+        const nomeP12 = chaveTemporaria ? null : nomeArquivoP12(alias);
 
         const nomesCapturas = Array.from(capturas.keys());
 

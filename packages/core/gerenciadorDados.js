@@ -29,8 +29,11 @@ export default class GerenciadorDados {
         this.referencia = '';
         this.alfabetoCustomizado = '';
         this.configuracaoTextoLocal = {};
+        // Ícone do app (launcher Android e ficha da Play Store): quadrado, 512×512
         this.icone = { dataUrl: null, bytes: null, nome: null };
-        
+        // Logo do projeto (cabeçalho do HTML e dos apps): proporção livre
+        this.logo = { dataUrl: null, bytes: null, nome: null, original: null, recorte: null };
+
         // Opções
         this.silenciarAvisosMidia = false;
 
@@ -299,7 +302,7 @@ export default class GerenciadorDados {
     }
 
     /**
-     * Define o ícone do aplicativo/site a partir de um arquivo de imagem.
+     * Define o ícone do aplicativo (launcher/Play Store) a partir de um arquivo de imagem.
      * Usado apenas pelo auto-detect de icone.png na importação de pasta —
      * fluxos manuais (pickers da UI) passam pelo editor de recorte e chamam
      * definirIconeProcessado() em vez deste método.
@@ -322,6 +325,29 @@ export default class GerenciadorDados {
 
     removerIcone() {
         this.icone = { dataUrl: null, bytes: null, nome: null };
+    }
+
+    /**
+     * Define o logo do projeto (cabeçalho), já processado por processarLogo()
+     * (packages/core/iconeUtil.js) — mantém a proporção original da imagem.
+     * `original` (Blob) e `recorte` permitem reabrir o editor de logo sem perda.
+     * @param {{ bytes: Uint8Array, dataUrl: string, nome: string, original?: Blob, recorte?: object|null }} logo
+     */
+    definirLogo({ bytes, dataUrl, nome, original = null, recorte = null }) {
+        this.logo = { dataUrl, bytes: Array.from(bytes), nome, original, recorte };
+    }
+
+    removerLogo() {
+        this.logo = { dataUrl: null, bytes: null, nome: null, original: null, recorte: null };
+    }
+
+    /**
+     * Imagem do cabeçalho: o logo, ou o ícone do app quando não houver logo
+     * (projetos anteriores à separação só tinham o icone.png).
+     * @returns {string|null} data: URL
+     */
+    getImagemCabecalho() {
+        return this.logo.dataUrl || this.icone.dataUrl || null;
     }
 
     _lerArquivoComoDataURL(arquivo) {
@@ -394,6 +420,7 @@ export default class GerenciadorDados {
         this.colunasPlanilha = [];
         this._bancoConstruido = null;
         this.icone = { dataUrl: null, bytes: null, nome: null };
+        this.logo = { dataUrl: null, bytes: null, nome: null, original: null, recorte: null };
         this.vfs.limpar();
         console.log('🧹 Dados limpos com sucesso.');
     }

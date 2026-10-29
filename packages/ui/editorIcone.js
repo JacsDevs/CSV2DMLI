@@ -1,30 +1,36 @@
-// Controller do diálogo de recorte de ícone do aplicativo.
+// Controller do diálogo de enquadramento do ícone do aplicativo.
 // Isolado do index.html (script inline já é grande demais) — expõe uma única
 // função pública: abrirEditorIcone(origem) -> Promise<{bytes, dataUrl, nome}|null>.
+//
+// A imagem é um retângulo com zoom e posição livres dentro do quadrado do ícone
+// (ver "Enquadramento" em packages/core/iconeUtil.js): abre inteira (encaixada),
+// e o usuário decide se amplia, arrasta ou preenche; as sobras ficam com a cor de fundo.
 //
 // Requer que o markup do <dialog id="modalRecorteIcone"> já exista na página
 // (ver index.html) com os IDs referenciados em els().
 
 import {
     carregarBitmap,
-    cortarQuadrado,
     analisarImagem,
     bytesParaDataUrl,
+    zoomEncaixe,
+    limitarEnquadramento,
+    desenharEnquadrado,
+    gerarIconeEnquadrado,
     DENSIDADES_ANDROID,
     ICONE_TAMANHO_CANONICO,
 } from '../core/iconeUtil.js';
 
 const VIEWPORT = 360;   // px de exibição do canvas de recorte (== resolução interna)
-const ZOOM_MIN = 0;
-const ZOOM_REF = 100;   // 100% = tamanho "de encaixe" (fit) da imagem, sem corte nem margem
+const ZOOM_REF = 100;   // 100% = a imagem preenche o quadrado pelo menor lado, sem sobras
 const ZOOM_MAX = 400;
+const ZOOM_PASSO_RODA = 5;
 const DENSIDADE_ROUND_PREVIEW = 96; // tamanho de referência p/ prévia do ícone redondo
 const COR_FUNDO_PADRAO = '#FFFFFF';
 
 let _bitmap = null;
-let _regiao = null;      // {x, y, tamanho} em px da imagem-fonte — janela de corte atual (zoom >= 100%)
-let _regiaoBase = null;  // {x, y, tamanho} — janela de "fit" (imagem inteira, centralizada), fixa
-let _baseTamanho = null; // tamanho (px-fonte) correspondente a zoom = 100%
+let _enq = null;         // {zoom, cx, cy} — ver retanguloEnquadrado() em iconeUtil.js
+let _zoomMin = 10;
 let _corFundo = COR_FUNDO_PADRAO;
 let _nomeAtual = 'icone.png';
 let _resolver = null;
@@ -46,11 +52,13 @@ function els() {
         btnFechar: document.getElementById('btnFecharEditorIcone'),
         btnTrocar: document.getElementById('btnIconeTrocarImagem'),
         inputTroca: document.getElementById('inputIconeTrocarImagem'),
+        btnEncaixar: document.getElementById('btnIconeEncaixar'),
+        btnPreencher: document.getElementById('btnIconePreencher'),
     };
 }
 
 /**
- * Abre o editor de recorte para a imagem informada e aguarda a decisão do usuário.
+ * Abre o editor para a imagem informada e aguarda a decisão do usuário.
  * @param {File | { dataUrl: string, bytes?: Uint8Array, nome?: string }} origem
  * @returns {Promise<{ bytes: Uint8Array, dataUrl: string, nome: string } | null>}
  */
@@ -80,34 +88,31 @@ function garantirListeners() {
     if (_wired) return;
     _wired = true;
 
-    const { canvas, zoom, zoomValor, bgColor, btnAplicar, btnCancelar, btnFechar, btnTrocar, inputTroca, dialog } = els();
+    const { canvas, zoom, bgColor, btnAplicar, btnCancelar, btnFechar, btnTrocar, inputTroca, dialog, btnEncaixar, btnPreencher } = els();
 
     let inicioPointer = null;
-    let inicioRegiao = null;
+    let inicioEnq = null;
 
     canvas.addEventListener('pointerdown', (e) => {
-        // Abaixo de 100% a região de corte é a "base" fixa (imagem inteira) —
-        // arrastar não faz sentido enquanto não houver corte de fato.
-        if (!_regiao || Number(zoom.value) < ZOOM_REF) return;
+        if (!_enq) return;
         _arrastando = true;
         canvas.classList.add('arrastando');
         canvas.setPointerCapture(e.pointerId);
         inicioPointer = { x: e.clientX, y: e.clientY };
-        inicioRegiao = { ..._regiao };
+        inicioEnq = { ..._enq };
     });
 
     canvas.addEventListener('pointermove', (e) => {
-        if (!_arrastando || !inicioRegiao) return;
+        if (!_arrastando || !inicioEnq) return;
         // Usa o tamanho renderizado (CSS) real do canvas, não a constante VIEWPORT,
         // para que o arraste continue calibrado 1:1 mesmo quando o CSS responsivo
         // (telas estreitas) redimensiona o canvas para menos de 360px.
-        const larguraRenderizada = canvas.getBoundingClientRect().width || VIEWPORT;
-        const escala = inicioRegiao.tamanho / larguraRenderizada;
-        const dx = (e.clientX - inicioPointer.x) * escala;
-        const dy = (e.clientY - inicioPointer.y) * escala;
-        _regiao = { ...inicioRegiao, x: inicioRegiao.x - dx, y: inicioRegiao.y - dy };
-        clampRegiao();
-        redesenhar();
+        const lado = canvas.getBoundingClientRect().width || VIEWPORT;
+        definirEnquadramento({
+            ...inicioEnq,
+            cx: inicioEnq.cx + (e.clientX - inicioPointer.x) / lado,
+            cy: inicioEnq.cy + (e.clientY - inicioPointer.y) / lado,
+        });
     });
 
     const soltar = (e) => {
@@ -120,16 +125,18 @@ function garantirListeners() {
     canvas.addEventListener('pointercancel', soltar);
 
     canvas.addEventListener('wheel', (e) => {
-        if (!_regiao) return;
+        if (!_enq) return;
         e.preventDefault();
-        const passo = e.deltaY < 0 ? 10 : -10;
-        zoom.value = String(clamp(Number(zoom.value) + passo, ZOOM_MIN, ZOOM_MAX));
-        aplicarZoom();
+        aplicarZoom(_enq.zoom + (e.deltaY < 0 ? ZOOM_PASSO_RODA : -ZOOM_PASSO_RODA));
     }, { passive: false });
 
-    zoom.addEventListener('input', () => {
-        if (zoomValor) zoomValor.textContent = `${zoom.value}%`;
-        aplicarZoom();
+    zoom.addEventListener('input', () => aplicarZoom(Number(zoom.value)));
+
+    btnEncaixar.addEventListener('click', () => {
+        if (_bitmap) definirEnquadramento({ zoom: zoomEncaixe(_bitmap), cx: 0.5, cy: 0.5 });
+    });
+    btnPreencher.addEventListener('click', () => {
+        if (_bitmap) definirEnquadramento({ zoom: ZOOM_REF, cx: 0.5, cy: 0.5 });
     });
 
     bgColor.addEventListener('input', () => {
@@ -138,15 +145,10 @@ function garantirListeners() {
     });
 
     btnAplicar.addEventListener('click', async () => {
-        if (!_bitmap || !_regiao) return;
+        if (!_bitmap || !_enq) return;
         btnAplicar.disabled = true;
         try {
-            const zoomPct = Number(zoom.value);
-            const escala = zoomPct < ZOOM_REF ? zoomPct / ZOOM_REF : 1;
-            const bytes = await cortarQuadrado(_bitmap, _regiao, ICONE_TAMANHO_CANONICO, {
-                corFundo: _corFundo,
-                escala,
-            });
+            const bytes = await gerarIconeEnquadrado(_bitmap, _enq, ICONE_TAMANHO_CANONICO, _corFundo);
             const dataUrl = bytesParaDataUrl(bytes);
             finalizar({ bytes, dataUrl, nome: _nomeAtual });
         } finally {
@@ -170,80 +172,42 @@ async function carregarOrigem(file) {
     _bitmap?.close?.();
     _bitmap = await carregarBitmap(file);
 
-    const lado = Math.min(_bitmap.width, _bitmap.height);
-    _baseTamanho = lado;
-    _regiaoBase = {
-        x: (_bitmap.width - lado) / 2,
-        y: (_bitmap.height - lado) / 2,
-        tamanho: lado,
-    };
-    _regiao = { ..._regiaoBase };
-
-    const { zoom, zoomValor } = els();
-    zoom.value = String(ZOOM_REF);
-    if (zoomValor) zoomValor.textContent = `${ZOOM_REF}%`;
-    redesenhar();
+    // Abre com a imagem inteira visível (encaixada): nada é cortado até o usuário decidir.
+    // O zoom mínimo vai até a metade do encaixe, para quem quiser margem extra.
+    const encaixe = zoomEncaixe(_bitmap);
+    _zoomMin = Math.max(5, Math.floor(encaixe / 2));
+    const { zoom } = els();
+    zoom.min = String(_zoomMin);
+    zoom.max = String(ZOOM_MAX);
+    definirEnquadramento({ zoom: encaixe, cx: 0.5, cy: 0.5 });
     await atualizarInfo(file);
 }
 
-function aplicarZoom() {
-    if (!_regiaoBase || !_baseTamanho) return;
-    const zoomPct = Number(els().zoom.value);
+// Zoom em torno do centro do quadrado: o ponto da imagem que está no centro continua no centro
+function aplicarZoom(novoZoom) {
+    if (!_enq) return;
+    const zoom = Math.min(Math.max(novoZoom, _zoomMin), ZOOM_MAX);
+    const fator = zoom / _enq.zoom;
+    definirEnquadramento({
+        zoom,
+        cx: 0.5 + (_enq.cx - 0.5) * fator,
+        cy: 0.5 + (_enq.cy - 0.5) * fator,
+    });
+}
 
-    if (zoomPct >= ZOOM_REF) {
-        // 100–400%: encolhe a janela de origem (crop), sempre preenchendo o canvas.
-        const atual = _regiao || _regiaoBase;
-        const centroX = atual.x + atual.tamanho / 2;
-        const centroY = atual.y + atual.tamanho / 2;
-        const novoTamanho = _baseTamanho * (ZOOM_REF / zoomPct);
-        _regiao = {
-            tamanho: novoTamanho,
-            x: centroX - novoTamanho / 2,
-            y: centroY - novoTamanho / 2,
-        };
-        clampRegiao();
-    } else {
-        // 0–100%: a região de corte volta a ser a base fixa (imagem inteira,
-        // centralizada) — o zoom reduzido só encolhe o desenho dentro do
-        // canvas, sem distorcer, sobrando a cor de fundo nas margens.
-        _regiao = { ..._regiaoBase };
-    }
-
+function definirEnquadramento(enq) {
+    _enq = limitarEnquadramento(_bitmap, enq);
+    const { zoom, zoomValor } = els();
+    zoom.value = String(Math.round(_enq.zoom));
+    if (zoomValor) zoomValor.textContent = `${Math.round(_enq.zoom)}%`;
     redesenhar();
 }
 
-function clampRegiao() {
-    if (!_bitmap || !_regiao) return;
-    _regiao.tamanho = Math.min(_regiao.tamanho, _bitmap.width, _bitmap.height);
-    _regiao.x = clamp(_regiao.x, 0, _bitmap.width - _regiao.tamanho);
-    _regiao.y = clamp(_regiao.y, 0, _bitmap.height - _regiao.tamanho);
-}
-
-function clamp(v, min, max) {
-    return Math.min(Math.max(v, min), max);
-}
-
 function redesenhar() {
+    if (!_bitmap || !_enq) return;
     const { canvas } = els();
     const ctx = canvas.getContext('2d');
-    const zoomPct = Number(els().zoom.value);
-
-    ctx.clearRect(0, 0, VIEWPORT, VIEWPORT);
-    ctx.fillStyle = _corFundo;
-    ctx.fillRect(0, 0, VIEWPORT, VIEWPORT);
-
-    if (_bitmap && _regiao) {
-        if (zoomPct >= ZOOM_REF) {
-            ctx.drawImage(_bitmap, _regiao.x, _regiao.y, _regiao.tamanho, _regiao.tamanho, 0, 0, VIEWPORT, VIEWPORT);
-        } else {
-            // Zoom < 100%: desenha a imagem inteira reduzida e centralizada
-            // (sem distorcer) — o espaço restante mostra a cor de fundo.
-            const lado = VIEWPORT * (zoomPct / ZOOM_REF);
-            const offset = (VIEWPORT - lado) / 2;
-            ctx.drawImage(_bitmap, _regiao.x, _regiao.y, _regiao.tamanho, _regiao.tamanho, offset, offset, lado, lado);
-        }
-    }
-
+    desenharEnquadrado(ctx, VIEWPORT, _bitmap, _enq, _corFundo);
     desenharSafeZone(ctx);
 
     clearTimeout(_debounceGrid);
@@ -278,57 +242,42 @@ function desenharSafeZone(ctx) {
 }
 
 function atualizarGradeDensidades() {
-    if (!_bitmap || !_regiao) return;
+    if (!_bitmap || !_enq) return;
     const { grid } = els();
-    const zoomPct = Number(els().zoom.value);
     grid.innerHTML = '';
 
     Object.entries(DENSIDADES_ANDROID).forEach(([sizeStr, { label }]) => {
         const tamanho = Number(sizeStr);
-        grid.appendChild(criarItemGrade(label, tamanho, tamanho, false, zoomPct));
+        grid.appendChild(criarItemGrade(label, tamanho, false));
     });
 
-    grid.appendChild(criarItemGrade('round', DENSIDADE_ROUND_PREVIEW, DENSIDADE_ROUND_PREVIEW, true, zoomPct));
+    grid.appendChild(criarItemGrade('round', DENSIDADE_ROUND_PREVIEW, true));
 }
 
-function criarItemGrade(rotulo, tamanhoPx, tamanhoCanvas, redondo, zoomPct) {
+function criarItemGrade(rotulo, tamanho, redondo) {
     const item = document.createElement('div');
     item.className = 'icone-density-item';
 
     const canvasEl = document.createElement('canvas');
-    canvasEl.width = tamanhoCanvas;
-    canvasEl.height = tamanhoCanvas;
+    canvasEl.width = tamanho;
+    canvasEl.height = tamanho;
     canvasEl.className = redondo
         ? 'icone-density-thumb icone-density-thumb-round'
         : 'icone-density-thumb';
 
     const ctx = canvasEl.getContext('2d');
-
-    // Fundo primeiro — inclusive sob o clip redondo, senão o recorte
-    // circular mostraria transparência em vez da cor escolhida.
-    ctx.fillStyle = _corFundo;
-    ctx.fillRect(0, 0, tamanhoCanvas, tamanhoCanvas);
-
     if (redondo) {
         ctx.save();
         ctx.beginPath();
-        ctx.arc(tamanhoCanvas / 2, tamanhoCanvas / 2, tamanhoCanvas / 2, 0, Math.PI * 2);
+        ctx.arc(tamanho / 2, tamanho / 2, tamanho / 2, 0, Math.PI * 2);
         ctx.closePath();
         ctx.clip();
     }
-
-    if (zoomPct >= ZOOM_REF) {
-        ctx.drawImage(_bitmap, _regiao.x, _regiao.y, _regiao.tamanho, _regiao.tamanho, 0, 0, tamanhoCanvas, tamanhoCanvas);
-    } else {
-        const lado = tamanhoCanvas * (zoomPct / ZOOM_REF);
-        const offset = (tamanhoCanvas - lado) / 2;
-        ctx.drawImage(_bitmap, _regiao.x, _regiao.y, _regiao.tamanho, _regiao.tamanho, offset, offset, lado, lado);
-    }
-
+    desenharEnquadrado(ctx, tamanho, _bitmap, _enq, _corFundo);
     if (redondo) ctx.restore();
 
     const label = document.createElement('span');
-    label.textContent = `${rotulo} · ${tamanhoPx}px`;
+    label.textContent = `${rotulo} · ${tamanho}px`;
 
     item.appendChild(canvasEl);
     item.appendChild(label);
@@ -366,8 +315,7 @@ function finalizar(resultado) {
 
     _bitmap?.close?.();
     _bitmap = null;
-    _regiao = null;
-    _regiaoBase = null;
+    _enq = null;
 
     const resolve = _resolver;
     _resolver = null;
