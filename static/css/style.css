@@ -1465,6 +1465,49 @@ body {
 .btn-link { text-decoration: none; }
 .btn-link:hover { text-decoration: underline; }
 
+.dialogo-topo.dialogo-topo-separado { border-bottom: 1px solid var(--border-color); }
+
+/* Relatório de validação */
+.dialogo.dialogo-relatorio { width: min(800px, calc(100vw - 32px)); height: min(820px, calc(100vh - 32px)); }
+.relatorio-cabecalho { display: flex; flex-direction: column; gap: 8px; }
+.relatorio-resumo { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.relatorio-corpo { display: flex; flex-direction: column; gap: 24px; }
+.relatorio-secao { display: flex; flex-direction: column; gap: 10px; }
+.relatorio-secao h3 { margin: 0; padding: 0; border: 0; font-size: 15px; font-weight: 700; color: var(--text-main); }
+.relatorio-secao h3.relatorio-titulo-erro { color: var(--error-text); }
+.relatorio-secao h3.relatorio-titulo-aviso { color: var(--warning-text); }
+.relatorio-caixa {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 14px 16px;
+    border-radius: 10px;
+}
+.relatorio-caixa.erro { border: 1px solid #fecaca; background: #fef2f2; }
+.relatorio-caixa.aviso { border: 1px solid #fde68a; background: #fffbeb; }
+.relatorio-explicacao { font-size: 14px; color: var(--text-strong); }
+.relatorio-itens { margin: 4px 0 0; padding-left: 18px; font-size: 14px; color: var(--text-strong); }
+.relatorio-arquivos {
+    margin: 6px 0 0;
+    padding-left: 18px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 13px;
+    color: var(--text-strong);
+    overflow-wrap: anywhere;
+}
+.relatorio-arquivos .relatorio-mais { font-family: 'Outfit', sans-serif; color: var(--text-muted); list-style: none; margin-left: -18px; }
+.relatorio-tudo-ok { margin: 0; padding: 14px 16px; border-radius: 10px; background: var(--success-bg); color: #065f46; font-weight: 600; }
+
+.relatorio-tabela-rolagem { overflow-x: auto; }
+.relatorio-tabela { width: 100%; border-collapse: collapse; font-size: 14px; }
+.relatorio-tabela th,
+.relatorio-tabela td { padding: 8px 10px; border-bottom: 1px solid var(--bg-secondary); text-align: left; }
+.relatorio-tabela thead th { border-bottom-color: var(--border-color); color: var(--text-muted); font-weight: 600; }
+.relatorio-tabela tbody th { font-weight: 600; color: var(--text-main); }
+.relatorio-tabela tbody tr:last-child > * { border-bottom: 0; }
+.relatorio-tabela .num { text-align: right; font-variant-numeric: tabular-nums; }
+.relatorio-tabela td.falta { color: var(--warning-text); font-weight: 600; }
+
 /* Avançado: modelos */
 .modelos-nota {
     margin: 0 0 12px;

@@ -1301,6 +1301,25 @@
     </div>
 </div>
 
+<!-- Relatório de validação: conteúdo montado por window.validarTudo() a partir de validador.diagnosticar() -->
+<dialog id="dialogoRelatorio" class="dialogo dialogo-relatorio" aria-labelledby="relatorioTitulo">
+    <div class="dialogo-topo dialogo-topo-separado">
+        <div class="relatorio-cabecalho">
+            <h2 id="relatorioTitulo">Relatório de validação</h2>
+            <div class="relatorio-resumo" id="relatorioResumo"></div>
+        </div>
+        <button type="button" class="btn-icone" aria-label="Fechar" onclick="document.getElementById('dialogoRelatorio').close()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+    </div>
+    <div class="dialogo-corpo relatorio-corpo" id="relatorioCorpo"></div>
+    <div class="dialogo-rodape">
+        <button type="button" class="btn-secundario" id="btnBaixarRelatorio">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"></path><path d="M4 20h16"></path></svg>
+            Baixar relatório (TXT)
+        </button>
+        <button type="button" class="btn-principal btn-rodape" onclick="document.getElementById('dialogoRelatorio').close()">Fechar</button>
+    </div>
+</dialog>
+
 <!-- Avançado: modelos (templates) de cada formato. Lista montada por renderizarModelos() a partir de MODELOS_EXPORTACAO -->
 <dialog id="modalCustomizacao" class="dialogo dialogo-largo" aria-labelledby="modelosTitulo">
     <div class="dialogo-topo">
@@ -2004,29 +2023,136 @@
         }
     };
     
+    // Relatório completo da validação (diálogo #dialogoRelatorio). As listas longas são cortadas
+    // na tela; o TXT (validador.gerarRelatorioTexto) traz tudo.
+    const RELATORIO_MAX_LINHAS = 100;
+    const RELATORIO_MAX_ARQUIVOS = 50;
+    const criarEl = (tag, classe, texto) => {
+        const e = document.createElement(tag);
+        if (classe) e.className = classe;
+        if (texto !== undefined) e.textContent = texto;
+        return e;
+    };
+    const listaMono = (arquivos) => {
+        const ul = criarEl('ul', 'relatorio-arquivos');
+        arquivos.slice(0, RELATORIO_MAX_ARQUIVOS).forEach(a => ul.append(criarEl('li', '', a)));
+        if (arquivos.length > RELATORIO_MAX_ARQUIVOS) ul.append(criarEl('li', 'relatorio-mais', `e mais ${(arquivos.length - RELATORIO_MAX_ARQUIVOS).toLocaleString('pt-BR')} (lista completa no TXT)`));
+        return ul;
+    };
+
     window.validarTudo = function() {
         const diagnostico = window.validador.diagnosticar();
-        const html = window.validador.gerarRelatorioHtml(diagnostico);
-        
-        let relatorioTxt = "Relatório não gerado.";
-        if (typeof window.validador.gerarRelatorioTexto === 'function') {
-            relatorioTxt = window.validador.gerarRelatorioTexto(diagnostico);
+        window._ultimoRelatorioTxt = window.validador.gerarRelatorioTexto(diagnostico);
+
+        const resumo = document.getElementById('relatorioResumo');
+        const corpo = document.getElementById('relatorioCorpo');
+        resumo.replaceChildren();
+        corpo.replaceChildren();
+        document.getElementById('btnBaixarRelatorio').hidden = !diagnostico.sucesso;
+
+        if (!diagnostico.sucesso) {
+            corpo.append(criarEl('p', 'validacao-vazia', 'Importe um projeto na etapa 1 para gerar o relatório.'));
+            document.getElementById('dialogoRelatorio').showModal();
+            return;
         }
-        
-        window._ultimoRelatorioTxt = relatorioTxt;
-        
-        const btnDownload = `
-            <div style="margin-top: 20px; text-align: center;">
-                <button class="btn btn-primary" onclick="window.exportador.salvarArquivo(window._ultimoRelatorioTxt, 'relatorio_validacao.txt', 'text/plain')">
-                    💾 Baixar Relatório (TXT)
-                </button>
-            </div>
-        `;
-        
-        document.getElementById('modalTitle').textContent = 'Relatório de Validação e Cruzamento';
-        document.getElementById('modalContent').innerHTML = html + btnDownload;
-        document.getElementById('modalOverlay').style.display = 'flex';
+
+        const { estatisticas, errosValidacao, midiasFaltando, midiasNaoUsadas } = diagnostico;
+        const linhasComErro = Object.keys(errosValidacao);
+        const tipos = Object.keys(NOMES_TIPO_MIDIA);
+        const avisos = tipos.filter(t => midiasFaltando[t].length).length + tipos.filter(t => midiasNaoUsadas[t].length).length;
+
+        if (linhasComErro.length) resumo.append(criarEl('span', 'selo selo-erro', plural(linhasComErro.length, 'erro', 'erros')));
+        if (avisos) resumo.append(criarEl('span', 'selo selo-aviso', plural(avisos, 'aviso', 'avisos')));
+        if (!linhasComErro.length && !avisos) resumo.append(criarEl('span', 'selo selo-ok', 'Nenhum problema'));
+        const pasta = document.getElementById('nomePastaProjeto').textContent.replace(/\/$/, '');
+        const hora = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        resumo.append(criarEl('span', 'validacao-hora', `${pasta} · verificado às ${hora}`));
+
+        // Erros: linhas do CSV
+        if (linhasComErro.length) {
+            const secao = criarEl('section', 'relatorio-secao');
+            secao.append(criarEl('h3', 'relatorio-titulo-erro', 'Erros: precisam de correção'));
+            linhasComErro.slice(0, RELATORIO_MAX_LINHAS).forEach(linha => {
+                const caixa = criarEl('div', 'relatorio-caixa erro');
+                caixa.append(criarEl('strong', '', `Linha ${linha} do dicionário`));
+                const ul = criarEl('ul', 'relatorio-itens');
+                errosValidacao[linha].forEach(erro => ul.append(criarEl('li', '', erro)));
+                caixa.append(ul);
+                secao.append(caixa);
+            });
+            if (linhasComErro.length > RELATORIO_MAX_LINHAS) {
+                secao.append(criarEl('p', 'campo-ajuda', `E mais ${plural(linhasComErro.length - RELATORIO_MAX_LINHAS, 'linha', 'linhas')} com erro. A lista completa está no relatório em TXT.`));
+            }
+            secao.append(criarEl('p', 'campo-ajuda', 'Corrija essas linhas no arquivo do dicionário e importe a pasta de novo.'));
+            corpo.append(secao);
+        }
+
+        // Avisos: mídias citadas e não encontradas, e mídias sem uso
+        if (avisos) {
+            const secao = criarEl('section', 'relatorio-secao');
+            secao.append(criarEl('h3', 'relatorio-titulo-aviso', 'Avisos: revise se necessário'));
+            tipos.forEach(tipo => {
+                const faltando = midiasFaltando[tipo];
+                if (!faltando.length) return;
+                const caixa = criarEl('div', 'relatorio-caixa aviso');
+                caixa.append(criarEl('strong', '', `${NOMES_TIPO_MIDIA[tipo].faltando}: ${faltando.length.toLocaleString('pt-BR')}`));
+                caixa.append(criarEl('span', 'relatorio-explicacao', 'As entradas que citam esses arquivos vão aparecer sem essa mídia.'));
+                caixa.append(listaMono(faltando));
+                secao.append(caixa);
+            });
+            tipos.forEach(tipo => {
+                const sobrando = midiasNaoUsadas[tipo];
+                if (!sobrando.length) return;
+                const caixa = criarEl('div', 'relatorio-caixa aviso');
+                caixa.append(criarEl('strong', '', `${NOMES_TIPO_MIDIA[tipo].sobrando}: ${sobrando.length.toLocaleString('pt-BR')}`));
+                caixa.append(criarEl('span', 'relatorio-explicacao', 'Nenhuma entrada cita esses arquivos, então eles ficam de fora do dicionário.'));
+                caixa.append(listaMono(sobrando));
+                secao.append(caixa);
+            });
+            corpo.append(secao);
+        }
+
+        if (!linhasComErro.length && !avisos) {
+            corpo.append(criarEl('p', 'relatorio-tudo-ok', 'Tudo certo: as linhas do dicionário estão completas e todas as mídias citadas estão na pasta.'));
+        }
+
+        // Tabela de mídias por tipo
+        const secao = criarEl('section', 'relatorio-secao');
+        secao.append(criarEl('h3', '', 'Mídias por tipo'));
+        const tabela = criarEl('table', 'relatorio-tabela');
+        const cabecalho = criarEl('tr');
+        ['Tipo', 'Citadas no CSV', 'Encontradas', 'Entradas sem este tipo'].forEach((t, i) => {
+            const th = criarEl('th', i ? 'num' : '', t);
+            th.scope = 'col';
+            cabecalho.append(th);
+        });
+        const thead = criarEl('thead');
+        thead.append(cabecalho);
+        const tbody = criarEl('tbody');
+        [['Áudio', estatisticas.audiosRef, midiasFaltando.audio.length, estatisticas.entradasSemAudio],
+         ['Imagem', estatisticas.imagensRef, midiasFaltando.imagem.length, estatisticas.entradasSemImagem],
+         ['Vídeo', estatisticas.videosRef, midiasFaltando.video.length, estatisticas.entradasSemVideo]].forEach(([nome, citadas, faltando, sem]) => {
+            const tr = criarEl('tr');
+            const th = criarEl('th', '', nome);
+            th.scope = 'row';
+            tr.append(th,
+                criarEl('td', 'num', citadas.toLocaleString('pt-BR')),
+                criarEl('td', faltando ? 'num falta' : 'num', (citadas - faltando).toLocaleString('pt-BR')),
+                criarEl('td', 'num', sem.toLocaleString('pt-BR')));
+            tbody.append(tr);
+        });
+        tabela.append(thead, tbody);
+        const rolagem = criarEl('div', 'relatorio-tabela-rolagem');
+        rolagem.append(tabela);
+        secao.append(rolagem, criarEl('span', 'campo-ajuda', `Total: ${plural(estatisticas.totalEntradas, 'entrada', 'entradas')}.`));
+        corpo.append(secao);
+
+        corpo.scrollTop = 0;
+        document.getElementById('dialogoRelatorio').showModal();
     };
+    document.getElementById('btnBaixarRelatorio').addEventListener('click', () => {
+        window.exportador.salvarArquivo(window._ultimoRelatorioTxt, 'relatorio_validacao.txt', 'text/plain');
+    });
 
     // ==========================================
     // VALIDAÇÃO AUTOMÁTICA (etapa 2 e aviso da etapa 1)
