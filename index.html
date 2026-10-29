@@ -743,9 +743,9 @@
                         <span class="btn-cabecalho-texto">Histórico</span>
                         <span class="terminal-badge" id="terminalBadge" style="display:none;">0</span>
                     </button>
-                    <button type="button" class="btn-cabecalho" title="Configurações" onclick="document.getElementById('modalCustomizacao').showModal()">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                        <span class="btn-cabecalho-texto">Configurações</span>
+                    <button type="button" class="btn-cabecalho" title="Avançado: modelos de exportação" aria-haspopup="dialog" onclick="document.getElementById('modalCustomizacao').showModal()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 6-6 6 6 6M16 6l6 6-6 6"></path></svg>
+                        <span class="btn-cabecalho-texto">Avançado</span>
                     </button>
                 </nav>
             </div>
@@ -1301,66 +1301,27 @@
     </div>
 </div>
 
-<dialog id="modalCustomizacao" class="modal-custom">
-    <!-- ... Todo o seu modal de customização antigo permanece inalterado para não quebrar IDs ... -->
-    <div class="modal-custom-header">
-        <h2>⚙️ Customização Avançada e Templates</h2>
-        <button class="btn-close" onclick="document.getElementById('modalCustomizacao').close()">✕</button>
+<!-- Avançado: modelos (templates) de cada formato. Lista montada por renderizarModelos() a partir de MODELOS_EXPORTACAO -->
+<dialog id="modalCustomizacao" class="dialogo dialogo-largo" aria-labelledby="modelosTitulo">
+    <div class="dialogo-topo">
+        <div>
+            <h2 id="modelosTitulo">Avançado: modelos</h2>
+            <p>Para quem quer alterar o código dos modelos. Se você não enviar nada aqui, o sistema usa os modelos padrão.</p>
+        </div>
+        <button type="button" class="btn-icone" aria-label="Fechar" onclick="document.getElementById('modalCustomizacao').close()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
     </div>
-    <div class="modal-custom-body">
-        <div class="custom-tabs">
-            <button class="custom-tab active" onclick="switchCustomTab(event, 'tab-html')">🌐 HTML</button>
-            <button class="custom-tab" onclick="switchCustomTab(event, 'tab-typst')">📘 Typst</button>
-            <button class="custom-tab" onclick="switchCustomTab(event, 'tab-geral')">⚙️ Geral</button>
-            <button class="custom-tab" onclick="switchCustomTab(event, 'tab-download')">📥 Download</button>
-        </div>
-        <div id="tab-html" class="custom-tab-content active">
-            <!-- Templates DropZones -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <div class="drop-zone" id="templateHtmlZone"><p><strong>HTML Base</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste o template.html</span></p><input type="file" id="fileTemplateHtml" accept=".html" style="display:none"><div id="templateHtmlStatus"></div></div>
-                <div class="drop-zone" id="templateEntradaHtmlZone"><p><strong>Entrada</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste o entrada.tmpl</span></p><input type="file" id="fileTemplateEntradaHtml" accept=".tmpl,.html" style="display:none"><div id="templateEntradaHtmlStatus"></div></div>
-                <div class="drop-zone" id="templateListaHtmlZone"><p><strong>Item de Lista</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste o lista.tmpl</span></p><input type="file" id="fileTemplateListaHtml" accept=".tmpl,.html" style="display:none"><div id="templateListaHtmlStatus"></div></div>
-                <div class="drop-zone" id="templateCardHtmlZone"><p><strong>Mini Card</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste o card.tmpl</span></p><input type="file" id="fileTemplateCardHtml" accept=".tmpl,.html" style="display:none"><div id="templateCardHtmlStatus"></div></div>
-            </div>
-            <div class="drop-zone" id="templateCssCardZone" style="margin-top: 15px;"><p><strong>Estilos Globais (CSS)</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste estilos-globais.css</span></p><input type="file" id="fileTemplateCssCard" accept=".css" style="display:none"><div id="templateCssCardStatus"></div></div>
-        </div>
-        <div id="tab-typst" class="custom-tab-content">
-            <h3 style="margin-bottom: 15px; color: var(--text-main);">📘 Templates Typst (Para PDFs)</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <div class="drop-zone" id="templateTypstZone"><p><strong>Template Principal (Typst)</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste o template.typ</span></p><input type="file" id="fileTemplateTypst" accept=".typ" style="display:none"><div id="templateTypstStatus"></div></div>
-                <div class="drop-zone" id="templateEntradaTypstZone"><p><strong>Entrada (Typst)</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Arraste o entrada.typ</span></p><input type="file" id="fileTemplateEntradaTypst" accept=".typ" style="display:none"><div id="templateEntradaTypstStatus"></div></div>
-            </div>
-        </div>
-        <div id="tab-geral" class="custom-tab-content">
-            <h3 style="margin-bottom: 15px; color: var(--text-main);">⚙️ Configurações Gerais e Metadados</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <div class="drop-zone" id="configFullDropZone"><p><strong>Configuração Completa</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Importar arquivo config.json</span></p><input type="file" id="fileConfigFull" accept=".json" style="display:none"></div>
-                <div class="drop-zone" id="textosDropZone"><p><strong>Textos de Interface</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Importar arquivo textos.json</span></p><input type="file" id="fileTextos" accept=".json" style="display:none"></div>
-                <div class="drop-zone" id="introHtmlDropZone"><p><strong>Introdução do Dicionário (HTML)</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Documento .md ou .html</span></p><input type="file" id="fileIntroHtml" accept=".html,.md" style="display:none"></div>
-                <div class="drop-zone" id="introPdfDropZone"><p><strong>Introdução do Dicionário (PDF)</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Documento Typst para o inicio do PDF</span></p><input type="file" id="fileIntroPdf" accept=".typ" style="display:none"></div>
-                <div class="drop-zone" id="referenciaDropZone"><p><strong>Referências Bibliográficas</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Importar referências</span></p><input type="file" id="fileReferencia" style="display:none"></div>
-                <div class="drop-zone" id="alfabetoDropZone"><p><strong>Ordem Alfabética Customizada</strong><br><span style="font-size: 0.8em; color: var(--text-muted);">Defina o próprio alfabeto para ordenação</span></p><input type="file" id="fileAlfabeto" style="display:none"><div id="alfabetoPreview" style="display:none;"></div><div id="alfabetoActions" style="display:none;"></div></div>
-            </div>
-        </div>
-        <!-- A antiga aba "Tema" virou a etapa 5 (Aparência) do assistente -->
-        <div id="tab-download" class="custom-tab-content">
-            <h3 style="margin-bottom: 15px; color: var(--text-main);">📥 Baixar Templates Originais</h3>
-            <p style="font-size: 0.9em; color: var(--text-muted); margin-bottom: 20px;">Você pode baixar os templates padrão do sistema, editá-los em seu computador e depois fazer o upload nas abas "HTML" e "Typst".</p>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/estilos-globais.css', 'estilos-globais.css')">🎨 Estilos Globais (CSS)</button>
-                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/html-cards/template.html', 'cards-template.html')">🃏 template.html</button>
-                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/html-cards/entrada.tmpl', 'cards-entrada.tmpl')">🃏 entrada.tmpl</button>
-                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/html-cards/lista.tmpl', 'cards-lista.tmpl')">🃏 lista.tmpl</button>
-                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/html-cards/card.tmpl', 'cards-card.tmpl')">🃏 card.tmpl</button>
-                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/typst/template.typ', 'typst-template.typ')">📘 Typst: template.typ</button>
-                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/typst/entrada.typ', 'typst-entrada.typ')">📘 Typst: entrada.typ</button>
-                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/latex/template.tex', 'latex-template.tex')">📄 LaTeX: template.tex</button>
-                <button class="btn btn-outline" style="justify-content: flex-start;" onclick="baixarArquivoPadrao('config/templates/latex/entrada.tex', 'latex-entrada.tex')">📄 LaTeX: entrada.tex</button>
-            </div>
-        </div>
+    <div class="dialogo-abas" role="tablist" aria-label="Formato" id="modelosAbas"></div>
+    <div class="dialogo-corpo" role="tabpanel" id="modelosPainel" aria-labelledby="modelosTitulo">
+        <p class="campo-ajuda modelos-nota" id="modelosNota" hidden></p>
+        <ul class="modelos-lista" id="modelosLista"></ul>
+    </div>
+    <div class="dialogo-rodape">
+        <span class="campo-ajuda" id="modelosRodapeDica">Arraste um arquivo sobre um item para enviá-lo.</span>
+        <button type="button" class="btn-principal btn-rodape" onclick="document.getElementById('modalCustomizacao').close()">Concluir</button>
     </div>
 </dialog>
+
+
 
 <!-- ========================================================
      EDITOR DE ÍCONE (recorte + prévia de densidades)
@@ -3380,39 +3341,142 @@
             });
         }
 
-        // --- SISTEMA DE TEMPLATES CUSTOMIZADOS ---
-        const templatesCustomizados = [
-            { id: 'fileTemplateHtml', key: 'csv2dmli_template_html' },
-            { id: 'fileTemplateEntradaHtml', key: 'csv2dmli_templateEntradaHtml' },
-            { id: 'fileTemplateListaHtml', key: 'csv2dmli_templateListaHtml' },
-            { id: 'fileTemplateCardHtml', key: 'csv2dmli_templateCardHtml' },
-            { id: 'fileTemplateCssCard', key: 'csv2dmli_templateCssCard' },
-            { id: 'fileTemplateTypst', key: 'csv2dmli_template_typst' },
-            { id: 'fileTemplateEntradaTypst', key: 'csv2dmli_templateEntradaTypst' }
+        // --- MODELOS (TEMPLATES) PERSONALIZADOS: diálogo "Avançado" ---
+        // `chave` é a chave do localStorage lida pelo exportador (exportadorHtmlCards.carregarTemplates).
+        // Sem `chave`, o formato não aceita envio: só baixar o padrão (Typst está desligado
+        // em exportadorTypst.carregarTemplates; LaTeX não tem envio).
+        const MODELOS_EXPORTACAO = [
+            { nome: 'Site e aplicativo', itens: [
+                { nome: 'Página base', desc: 'Estrutura geral do site: cabeçalho, busca e navegação.', arquivo: 'template.html', chave: 'csv2dmli_template_html', aceita: '.html', padrao: 'config/templates/html-cards/template.html', baixarComo: 'cards-template.html' },
+                { nome: 'Verbete', desc: 'Como cada entrada é exibida na página de detalhe.', arquivo: 'entrada.tmpl', chave: 'csv2dmli_templateEntradaHtml', aceita: '.tmpl,.html', padrao: 'config/templates/html-cards/entrada.tmpl', baixarComo: 'cards-entrada.tmpl' },
+                { nome: 'Item de lista', desc: 'Cada linha na lista de palavras.', arquivo: 'lista.tmpl', chave: 'csv2dmli_templateListaHtml', aceita: '.tmpl,.html', padrao: 'config/templates/html-cards/lista.tmpl', baixarComo: 'cards-lista.tmpl' },
+                { nome: 'Mini card', desc: 'Cartão resumido usado nas buscas.', arquivo: 'card.tmpl', chave: 'csv2dmli_templateCardHtml', aceita: '.tmpl,.html', padrao: 'config/templates/html-cards/card.tmpl', baixarComo: 'cards-card.tmpl' },
+                { nome: 'Estilos globais', desc: 'Folha de estilos CSS aplicada a todas as páginas.', arquivo: 'estilos-globais.css', chave: 'csv2dmli_templateCssCard', aceita: '.css', padrao: 'config/templates/estilos-globais.css', baixarComo: 'estilos-globais.css' },
+            ] },
+            { nome: 'PDF (Typst)', nota: 'O envio de modelos Typst está desativado no exportador: o PDF sempre usa os modelos padrão. Você pode baixá-los para consulta.', itens: [
+                { nome: 'Modelo principal', desc: 'Capa, sumário e diagramação das páginas.', arquivo: 'template.typ', padrao: 'config/templates/typst/template.typ', baixarComo: 'typst-template.typ' },
+                { nome: 'Verbete', desc: 'Como cada entrada aparece no PDF.', arquivo: 'entrada.typ', padrao: 'config/templates/typst/entrada.typ', baixarComo: 'typst-entrada.typ' },
+            ] },
+            { nome: 'LaTeX', nota: 'Os modelos LaTeX não aceitam envio: baixe o padrão e edite o projeto LaTeX gerado.', itens: [
+                { nome: 'Modelo principal', desc: 'Preâmbulo e estrutura do documento.', arquivo: 'template.tex', padrao: 'config/templates/latex/template.tex', baixarComo: 'latex-template.tex' },
+                { nome: 'Verbete', desc: 'Como cada entrada aparece no documento.', arquivo: 'entrada.tex', padrao: 'config/templates/latex/entrada.tex', baixarComo: 'latex-entrada.tex' },
+            ] },
         ];
+        const CHAVE_INFO_MODELOS = 'csv2dmli_modelos_info'; // { [chave]: { nome, data } } do arquivo enviado
+        let abaModelos = 0;
 
-        templatesCustomizados.forEach(t => {
-            const el = document.getElementById(t.id);
-            if (el) {
-                // Ao clicar no DropZone, aciona o input oculto
-                const dropZone = document.getElementById(t.id.replace('file', '').charAt(0).toLowerCase() + t.id.replace('file', '').slice(1) + 'Zone');
-                if (dropZone) {
-                    dropZone.addEventListener('click', () => { el.value = null; el.click(); });
-                    el.addEventListener('click', e => e.stopPropagation());
+        const lerInfoModelos = () => { try { return JSON.parse(localStorage.getItem(CHAVE_INFO_MODELOS)) || {}; } catch (e) { return {}; } };
+        const modeloPersonalizado = item => { try { return !!(item.chave && localStorage.getItem(item.chave)); } catch (e) { return false; } };
+
+        async function enviarModelo(item, arquivo) {
+            if (!arquivo) return;
+            localStorage.setItem(item.chave, await arquivo.text());
+            const info = lerInfoModelos();
+            info[item.chave] = { nome: arquivo.name, data: new Date().toLocaleDateString('pt-BR') };
+            try { localStorage.setItem(CHAVE_INFO_MODELOS, JSON.stringify(info)); } catch (e) {}
+            console.log(`✅ Template customizado salvo: ${arquivo.name}`);
+            if (window.exportador) await window.exportador.inicializar();
+            renderizarModelos();
+        }
+
+        async function restaurarModelo(item) {
+            localStorage.removeItem(item.chave);
+            const info = lerInfoModelos();
+            delete info[item.chave];
+            try { localStorage.setItem(CHAVE_INFO_MODELOS, JSON.stringify(info)); } catch (e) {}
+            if (window.exportador) await window.exportador.inicializar();
+            renderizarModelos();
+        }
+
+        function criarBotao(classe, rotulo, aoClicar) {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = classe;
+            b.textContent = rotulo;
+            b.addEventListener('click', aoClicar);
+            return b;
+        }
+
+        function renderizarModelos() {
+            const abas = document.getElementById('modelosAbas');
+            const lista = document.getElementById('modelosLista');
+            if (!abas || !lista) return;
+
+            abas.replaceChildren(...MODELOS_EXPORTACAO.map((grupo, i) => {
+                const aba = document.createElement('button');
+                aba.type = 'button';
+                aba.className = 'dialogo-aba';
+                aba.setAttribute('role', 'tab');
+                aba.setAttribute('aria-selected', String(i === abaModelos));
+                aba.tabIndex = i === abaModelos ? 0 : -1;
+                aba.textContent = grupo.nome;
+                const alterados = grupo.itens.filter(modeloPersonalizado).length;
+                if (alterados) {
+                    const selo = document.createElement('span');
+                    selo.className = 'dialogo-aba-selo';
+                    selo.textContent = `${alterados} ${alterados === 1 ? 'alterado' : 'alterados'}`;
+                    aba.append(selo);
                 }
-
-                el.addEventListener('change', async e => {
-                    if (e.target.files.length > 0) {
-                        const file = e.target.files[0];
-                        const text = await file.text();
-                        localStorage.setItem(t.key, text);
-                        console.log(`✅ Template customizado salvo: ${file.name}`);
-                        if (window.exportador) await window.exportador.inicializar();
-                        alert(`Template ${file.name} carregado com sucesso!`);
-                    }
+                aba.addEventListener('click', () => { abaModelos = i; renderizarModelos(); });
+                aba.addEventListener('keydown', e => {
+                    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+                    abaModelos = (i + (e.key === 'ArrowRight' ? 1 : -1) + MODELOS_EXPORTACAO.length) % MODELOS_EXPORTACAO.length;
+                    renderizarModelos();
+                    abas.children[abaModelos].focus();
                 });
-            }
-        });
+                return aba;
+            }));
+
+            const grupo = MODELOS_EXPORTACAO[abaModelos];
+            const nota = document.getElementById('modelosNota');
+            nota.hidden = !grupo.nota;
+            nota.textContent = grupo.nota || '';
+            document.getElementById('modelosRodapeDica').hidden = !grupo.itens.some(item => item.chave);
+
+            const info = lerInfoModelos();
+            lista.replaceChildren(...grupo.itens.map(item => {
+                const personalizado = modeloPersonalizado(item);
+                const li = document.createElement('li');
+                li.className = 'modelo-item' + (personalizado ? ' personalizado' : '');
+
+                const texto = document.createElement('div');
+                texto.className = 'modelo-texto';
+                const linha = document.createElement('div');
+                linha.className = 'modelo-titulo';
+                const nome = document.createElement('strong');
+                nome.textContent = item.nome;
+                const selo = document.createElement('span');
+                selo.className = 'modelo-selo';
+                selo.textContent = personalizado ? 'Personalizado' : 'Padrão';
+                linha.append(nome, selo);
+                const desc = document.createElement('span');
+                desc.className = 'campo-ajuda';
+                desc.textContent = item.desc;
+                const arquivo = document.createElement('span');
+                arquivo.className = 'modelo-arquivo';
+                const enviado = info[item.chave];
+                arquivo.textContent = personalizado && enviado ? `${enviado.nome} · enviado em ${enviado.data}` : item.arquivo;
+                texto.append(linha, desc, arquivo);
+
+                const acoes = document.createElement('div');
+                acoes.className = 'modelo-acoes';
+                if (item.chave) {
+                    const entrada = document.createElement('input');
+                    entrada.type = 'file';
+                    entrada.accept = item.aceita;
+                    entrada.hidden = true;
+                    entrada.addEventListener('change', () => enviarModelo(item, entrada.files[0]));
+                    acoes.append(entrada, criarBotao('btn-secundario btn-compacto', personalizado ? 'Substituir' : 'Enviar arquivo', () => { entrada.value = ''; entrada.click(); }));
+                    setupDropZone(li, arquivos => enviarModelo(item, arquivos[0]));
+                }
+                acoes.append(criarBotao('btn-link', 'Baixar padrão', () => window.baixarArquivoPadrao(item.padrao, item.baixarComo)));
+                if (personalizado) acoes.append(criarBotao('btn-link btn-link-perigo', 'Restaurar padrão', () => restaurarModelo(item)));
+
+                li.append(texto, acoes);
+                return li;
+            }));
+        }
+        renderizarModelos();
         // -----------------------------------------
 
         // Engatilha os inputs escondidos nas DropZones
@@ -5215,14 +5279,6 @@
         if(window.passoAtual > 1) window.irParaPasso(window.passoAtual - 1);
     }
     
-    // Intercepta alterações nas tabs do modal antigo
-    function switchCustomTab(evt, tabId) {
-        document.querySelectorAll('#modalCustomizacao .custom-tab-content').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('#modalCustomizacao .custom-tab').forEach(t => t.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-        evt.currentTarget.classList.add('active');
-    }
-
     // Lógica de Zoom mantida
     let zoomAtual = 1;
     function ajustarZoom(delta) {
