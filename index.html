@@ -833,37 +833,81 @@
                                 Trocar pasta
                             </button>
                         </div>
+
+                        <!-- Aviso da validação automática (preenchido por atualizarValidacaoEtapa2) -->
+                        <div class="importar-alerta" id="importarAlerta" role="status" hidden>
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path><path d="M12 9v4M12 17h.01"></path></svg>
+                            <div class="importar-alerta-texto">
+                                <strong id="importarAlertaTitulo"></strong>
+                                <span>Você pode revisar tudo na próxima etapa.</span>
+                            </div>
+                            <button type="button" class="btn-secundario importar-alerta-botao" onclick="window.irParaPasso(2)">Ver detalhes</button>
+                        </div>
                     </div>
 
                     <!-- PASSO 2 -->
                     <div class="wizard-step" id="step2">
-                        <span id="badgeMidias" class="step-badge">Pendente</span>
-                        <h2 class="step-title-large"><span class="step-title-top">📁</span> Mídias e Validação</h2>
-                        <p class="step-desc" style="margin-bottom: 20px;">Adicione recursos multimídia ou valide sua base de dados atual.</p>
-                        
-                        <div class="media-grid-simple">
-                            <div class="media-panel" id="panelEntradas" style="cursor: default;" title="Total de entradas carregadas do dicionário">
-                                <span class="media-icon">📊</span><span class="media-title">Entradas</span><span class="media-count" id="countEntradas">0</span><span class="media-label">entradas</span>
-                            </div>
-                            <div class="media-panel" id="panelAudio" onclick="abrirExploradorMidias('audio')">
-                                <span class="media-icon">🎵</span><span class="media-title">Áudio</span><span class="media-count" id="countAudio">0</span><span class="media-label">arquivos</span>
-                            </div>
-                            <div class="media-panel" id="panelImagem" onclick="abrirExploradorMidias('imagem')">
-                                <span class="media-icon">🖼️</span><span class="media-title">Imagens</span><span class="media-count" id="countImagem">0</span><span class="media-label">arquivos</span>
-                            </div>
-                            <div class="media-panel" id="panelVideo" onclick="abrirExploradorMidias('video')">
-                                <span class="media-icon">🎬</span><span class="media-title">Vídeos</span><span class="media-count" id="countVideo">0</span><span class="media-label">arquivos</span>
-                            </div>
+                        <span id="badgeMidias" class="step-badge" hidden>Pendente</span>
+                        <div class="etapa-cabecalho">
+                            <span class="etapa-contador">Etapa 2 de 5</span>
+                            <h2 class="etapa-titulo">Mídias e Validação</h2>
+                            <p class="etapa-descricao">Verificamos o dicionário e as mídias logo após a importação. Corrija os erros e revise os avisos antes de exportar.</p>
                         </div>
-                        
 
+                        <div class="conferir-conteudo">
+                            <!-- Resultado da validação: preenchido por atualizarValidacaoEtapa2() -->
+                            <section class="validacao-painel" aria-labelledby="validacaoTitulo">
+                                <div class="validacao-topo">
+                                    <div class="validacao-resumo">
+                                        <h3 id="validacaoTitulo">Resultado da validação</h3>
+                                        <span class="selo selo-erro" id="validacaoSeloErros" hidden></span>
+                                        <span class="selo selo-aviso" id="validacaoSeloAvisos" hidden></span>
+                                        <span class="selo selo-ok" id="validacaoSeloOk" hidden>Nenhum problema</span>
+                                        <span class="validacao-hora" id="validacaoHora"></span>
+                                    </div>
+                                    <div class="validacao-acoes">
+                                        <button type="button" class="btn-secundario" onclick="window.atualizarValidacaoEtapa2()">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"></path><path d="M21 3v5h-5"></path></svg>
+                                            Validar novamente
+                                        </button>
+                                        <button type="button" class="btn-secundario" onclick="validarTudo()">Relatório completo</button>
+                                    </div>
+                                </div>
+                                <ul class="validacao-lista" id="validacaoLista" aria-live="polite">
+                                    <li class="validacao-vazia">Importe um projeto na etapa 1 para ver a validação.</li>
+                                </ul>
+                            </section>
 
-                        <div class="gerar-relatorio-row" style="display: flex; gap: 10px; margin-top: 15px; background: #f8fafc; padding: 15px; border-radius: 8px;">
-                            <div style="flex: 1;">
-                                <strong>Checagem do Dicionário (Validador de Dados)</strong>
-                                <p style="font-size: 12px; color: var(--text-muted); margin: 5px 0;">Identifique referências quebradas e erros estruturais.</p>
-                            </div>
-                            <button class="btn btn-outline" onclick="validarTudo()" style="border-color: #3b82f6; color: #3b82f6;">🔍 Gerar Relatório</button>
+                            <!-- Contagem de entradas e mídias; os cartões de mídia aceitam arquivos arrastados -->
+                            <section class="midias-secao" aria-labelledby="midiasTitulo">
+                                <h3 id="midiasTitulo">Conteúdo do projeto</h3>
+                                <div class="midias-grade">
+                                    <div class="midia-cartao midia-cartao-entradas" id="panelEntradas">
+                                        <span class="midia-cartao-rotulo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"></path><path d="M4 19.5V21h16"></path></svg>Entradas</span>
+                                        <span class="midia-cartao-numero" id="countEntradas">0</span>
+                                        <span class="midia-cartao-detalhe" id="detalheEntradas">nenhum dicionário carregado</span>
+                                    </div>
+                                    <div class="midia-cartao" id="panelAudio">
+                                        <span class="midia-cartao-rotulo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>Áudios</span>
+                                        <span class="midia-cartao-numero" id="countAudio">0</span>
+                                        <span class="midia-cartao-detalhe" id="detalheAudio">arquivos na pasta</span>
+                                        <button type="button" class="btn-secundario midia-cartao-botao" onclick="abrirExploradorMidias('audio')">Ver e adicionar</button>
+                                    </div>
+                                    <div class="midia-cartao" id="panelImagem">
+                                        <span class="midia-cartao-rotulo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-5-5L5 21"></path></svg>Imagens</span>
+                                        <span class="midia-cartao-numero" id="countImagem">0</span>
+                                        <span class="midia-cartao-detalhe" id="detalheImagem">arquivos na pasta</span>
+                                        <button type="button" class="btn-secundario midia-cartao-botao" onclick="abrirExploradorMidias('imagem')">Ver e adicionar</button>
+                                    </div>
+                                    <div class="midia-cartao" id="panelVideo">
+                                        <span class="midia-cartao-rotulo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="15" height="14" rx="2"></rect><path d="m17 10 5-3v10l-5-3"></path></svg>Vídeos</span>
+                                        <span class="midia-cartao-numero" id="countVideo">0</span>
+                                        <span class="midia-cartao-detalhe" id="detalheVideo">arquivos na pasta</span>
+                                        <button type="button" class="btn-secundario midia-cartao-botao" onclick="abrirExploradorMidias('video')">Ver e adicionar</button>
+                                    </div>
+                                </div>
+                                <p class="midias-nota">O número grande é quantos arquivos estão na pasta. Abaixo dele, quantos o CSV cita e quantos desses não foram encontrados. Também dá para arrastar arquivos para um cartão.</p>
+                            </section>
                         </div>
                     </div>
 
@@ -1889,6 +1933,167 @@
         document.getElementById('modalContent').innerHTML = html + btnDownload;
         document.getElementById('modalOverlay').style.display = 'flex';
     };
+
+    // ==========================================
+    // VALIDAÇÃO AUTOMÁTICA (etapa 2 e aviso da etapa 1)
+    // Erros = linhas do CSV com problema; avisos = mídias citadas e não encontradas
+    // ou carregadas e não usadas. Roda ao entrar na etapa 2 e em "Validar novamente".
+    // ==========================================
+    const VALIDACAO_MAX_LINHAS = 5;
+    const VALIDACAO_MAX_ARQUIVOS = 4;
+    const NOMES_TIPO_MIDIA = {
+        audio: { faltando: 'Áudios citados no CSV que não estão na pasta', sobrando: 'Áudios da pasta que nenhuma entrada usa', acaoFaltando: 'Adicionar áudios', acaoSobrando: 'Ver áudios' },
+        imagem: { faltando: 'Imagens citadas no CSV que não estão na pasta', sobrando: 'Imagens da pasta que nenhuma entrada usa', acaoFaltando: 'Adicionar imagens', acaoSobrando: 'Ver imagens' },
+        video: { faltando: 'Vídeos citados no CSV que não estão na pasta', sobrando: 'Vídeos da pasta que nenhuma entrada usa', acaoFaltando: 'Adicionar vídeos', acaoSobrando: 'Ver vídeos' }
+    };
+    const plural = (n, um, varios) => `${n.toLocaleString('pt-BR')} ${n === 1 ? um : varios}`;
+    const listaArquivos = arquivos => arquivos.slice(0, VALIDACAO_MAX_ARQUIVOS).join(' · ') +
+        (arquivos.length > VALIDACAO_MAX_ARQUIVOS ? ` · e mais ${arquivos.length - VALIDACAO_MAX_ARQUIVOS}` : '');
+
+    function criarItemValidacao(tipo, titulo, detalhe, detalheMono, acao) {
+        const li = document.createElement('li');
+        li.className = 'validacao-item';
+        const selo = document.createElement('span');
+        selo.className = `selo-tipo selo-tipo-${tipo}`;
+        selo.textContent = tipo === 'erro' ? 'Erro' : 'Aviso';
+        const texto = document.createElement('div');
+        texto.className = 'validacao-item-texto';
+        const forte = document.createElement('strong');
+        forte.textContent = titulo;
+        const sub = document.createElement('span');
+        sub.className = detalheMono ? 'validacao-item-detalhe mono' : 'validacao-item-detalhe';
+        sub.textContent = detalhe;
+        texto.append(forte, sub);
+        li.append(selo, texto);
+        if (acao) {
+            const botao = document.createElement('button');
+            botao.type = 'button';
+            botao.className = 'btn-secundario';
+            botao.textContent = acao.rotulo;
+            botao.addEventListener('click', acao.executar);
+            li.append(botao);
+        }
+        return li;
+    }
+
+    window.atualizarValidacaoEtapa2 = function() {
+        const lista = document.getElementById('validacaoLista');
+        const seloErros = document.getElementById('validacaoSeloErros');
+        const seloAvisos = document.getElementById('validacaoSeloAvisos');
+        const seloOk = document.getElementById('validacaoSeloOk');
+        const hora = document.getElementById('validacaoHora');
+        const alerta = document.getElementById('importarAlerta');
+        if (!lista || !window.validador) return;
+
+        const diag = window.validador.diagnosticar();
+        lista.replaceChildren();
+        window._pendenciasValidacao = 0;
+
+        if (!diag.sucesso) {
+            const vazio = document.createElement('li');
+            vazio.className = 'validacao-vazia';
+            vazio.textContent = 'Importe um projeto na etapa 1 para ver a validação.';
+            lista.append(vazio);
+            seloErros.hidden = seloAvisos.hidden = seloOk.hidden = true;
+            hora.textContent = '';
+            if (alerta) alerta.hidden = true;
+            atualizarDetalhesMidias(null);
+            if (typeof atualizarStepper === 'function') atualizarStepper(window.passoAtual);
+            return;
+        }
+
+        const itens = [];
+        const linhasComErro = Object.keys(diag.errosValidacao);
+        linhasComErro.slice(0, VALIDACAO_MAX_LINHAS).forEach(linha => {
+            itens.push(criarItemValidacao('erro', `Linha ${linha} do dicionário`,
+                diag.errosValidacao[linha].join(' · '), false));
+        });
+        if (linhasComErro.length > VALIDACAO_MAX_LINHAS) {
+            const resto = linhasComErro.length - VALIDACAO_MAX_LINHAS;
+            itens.push(criarItemValidacao('erro', `E mais ${plural(resto, 'linha', 'linhas')} com erro`,
+                'Veja todas no relatório completo.', false, { rotulo: 'Relatório completo', executar: () => window.validarTudo() }));
+        }
+
+        let avisos = 0, tiposFaltando = 0;
+        Object.keys(NOMES_TIPO_MIDIA).forEach(tipo => {
+            const nomes = NOMES_TIPO_MIDIA[tipo];
+            const faltando = diag.midiasFaltando[tipo];
+            if (faltando.length) {
+                avisos++; tiposFaltando++;
+                itens.push(criarItemValidacao('aviso', `${nomes.faltando}: ${faltando.length.toLocaleString('pt-BR')}`,
+                    listaArquivos(faltando), true, { rotulo: nomes.acaoFaltando, executar: () => window.abrirExploradorMidias(tipo) }));
+            }
+        });
+        Object.keys(NOMES_TIPO_MIDIA).forEach(tipo => {
+            const nomes = NOMES_TIPO_MIDIA[tipo];
+            const sobrando = diag.midiasNaoUsadas[tipo];
+            if (sobrando.length) {
+                avisos++;
+                itens.push(criarItemValidacao('aviso', `${nomes.sobrando}: ${sobrando.length.toLocaleString('pt-BR')}`,
+                    listaArquivos(sobrando), true, { rotulo: nomes.acaoSobrando, executar: () => window.abrirExploradorMidias(tipo) }));
+            }
+        });
+
+        if (itens.length === 0) {
+            const ok = document.createElement('li');
+            ok.className = 'validacao-vazia validacao-tudo-ok';
+            ok.textContent = 'Nenhum problema encontrado. Todas as mídias citadas estão na pasta e as linhas do dicionário estão completas.';
+            lista.append(ok);
+        } else {
+            lista.append(...itens);
+        }
+
+        const erros = linhasComErro.length;
+        seloErros.hidden = erros === 0;
+        seloErros.textContent = plural(erros, 'erro', 'erros');
+        seloAvisos.hidden = avisos === 0;
+        seloAvisos.textContent = plural(avisos, 'aviso', 'avisos');
+        seloOk.hidden = erros + avisos > 0;
+        hora.textContent = `Verificado às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+
+        if (alerta) {
+            alerta.hidden = erros + avisos === 0;
+            const partes = [];
+            if (erros) partes.push(plural(erros, 'erro', 'erros'));
+            if (avisos) partes.push(plural(avisos, 'aviso', 'avisos'));
+            document.getElementById('importarAlertaTitulo').textContent = `A validação automática encontrou ${partes.join(' e ')}`;
+        }
+
+        atualizarDetalhesMidias(diag);
+        window._pendenciasValidacao = erros + tiposFaltando;
+        if (typeof atualizarStepper === 'function') atualizarStepper(window.passoAtual);
+    };
+
+    // Linha de detalhe dos cartões: quantos arquivos o CSV cita e quantos faltam
+    function atualizarDetalhesMidias(diag) {
+        const detalheEntradas = document.getElementById('detalheEntradas');
+        if (!diag) {
+            detalheEntradas.textContent = 'nenhum dicionário carregado';
+            ['Audio', 'Imagem', 'Video'].forEach(t => {
+                const el = document.getElementById(`detalhe${t}`);
+                el.textContent = 'arquivos na pasta';
+                el.classList.remove('falta', 'completo');
+                document.getElementById(`panel${t}`).classList.remove('com-falta');
+            });
+            return;
+        }
+        const stats = window.sistema ? window.sistema.obterEstatisticas() : null;
+        const categorias = stats ? stats.categorias || 0 : 0;
+        detalheEntradas.textContent = `em ${plural(categorias, 'categoria', 'categorias')}`;
+        const referencias = { audio: diag.estatisticas.audiosRef, imagem: diag.estatisticas.imagensRef, video: diag.estatisticas.videosRef };
+        [['audio', 'Audio'], ['imagem', 'Imagem'], ['video', 'Video']].forEach(([tipo, sufixo]) => {
+            const el = document.getElementById(`detalhe${sufixo}`);
+            const citados = referencias[tipo];
+            const faltando = diag.midiasFaltando[tipo].length;
+            el.classList.toggle('falta', faltando > 0);
+            el.classList.toggle('completo', citados > 0 && faltando === 0);
+            document.getElementById(`panel${sufixo}`).classList.toggle('com-falta', faltando > 0);
+            const o = tipo === 'imagem' ? 'a' : 'o';
+            if (citados === 0) el.textContent = `nenhum${tipo === 'imagem' ? 'a' : ''} citad${o} no CSV`;
+            else if (faltando > 0) el.textContent = `${citados.toLocaleString('pt-BR')} citad${o}${citados === 1 ? '' : 's'} · ${faltando.toLocaleString('pt-BR')} não encontrad${o}${faltando === 1 ? '' : 's'}`;
+            else el.textContent = citados === 1 ? `1 citad${o} · encontrad${o}` : `${citados.toLocaleString('pt-BR')} citad${o}s · tod${o}s encontrad${o}s`;
+        });
+    }
     
 
 
@@ -3039,11 +3244,11 @@
             
             document.getElementById('step1').classList.toggle('projeto-carregado', !!stats.disponivel);
             if (stats.disponivel) {
-                const num = n => (n || 0).toLocaleString('pt-BR');
-                document.getElementById('countEntradas').textContent = stats.entradas || 0;
-                document.getElementById('csvLinhas').textContent = `${num(stats.entradas)} entradas`;
-                document.getElementById('csvColunas').textContent = `${num(stats.colunas)} colunas`;
-                document.getElementById('csvCategorias').textContent = `${num(stats.categorias)} categorias`;
+                const qtd = (n, um, varios) => `${(n || 0).toLocaleString('pt-BR')} ${n === 1 ? um : varios}`;
+                document.getElementById('countEntradas').textContent = (stats.entradas || 0).toLocaleString('pt-BR');
+                document.getElementById('csvLinhas').textContent = qtd(stats.entradas, 'entrada', 'entradas');
+                document.getElementById('csvColunas').textContent = qtd(stats.colunas, 'coluna', 'colunas');
+                document.getElementById('csvCategorias').textContent = qtd(stats.categorias, 'categoria', 'categorias');
                 document.getElementById('badgeCsv').textContent = '✅ Carregado';
                 document.getElementById('badgeCsv').className = 'step-badge active badge-ok';
                 if (typeof popularEstrutura === 'function') popularEstrutura();
@@ -3060,9 +3265,9 @@
             const m = stats.midias || {};
             const au = m.audio || 0, ig = m.imagem || 0, vi = m.video || 0;
 
-            document.getElementById('countAudio').textContent = au;
-            document.getElementById('countImagem').textContent = ig;
-            document.getElementById('countVideo').textContent = vi;
+            document.getElementById('countAudio').textContent = au.toLocaleString('pt-BR');
+            document.getElementById('countImagem').textContent = ig.toLocaleString('pt-BR');
+            document.getElementById('countVideo').textContent = vi.toLocaleString('pt-BR');
             
             const totMidia = au + ig + vi;
             document.getElementById('csvMidias').textContent = `${totMidia.toLocaleString('pt-BR')} ${totMidia === 1 ? 'mídia' : 'mídias'}`;
@@ -4682,6 +4887,7 @@
     const totalPassos = 5;
     const passosVisitados = new Set();
     const ICONE_CONCLUIDA = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"></path></svg>';
+    const ICONE_PENDENCIA = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7v6M12 17h.01"></path></svg>';
 
     // Estado de cada etapa no stepper: atual, concluída (visitada e anterior à atual) ou pendente
     function atualizarStepper(passo) {
@@ -4690,13 +4896,17 @@
             const indicador = document.getElementById(`indicator${n}`);
             if (!indicador) continue;
             const atual = n === passo;
-            const concluida = !atual && n < passo && passosVisitados.has(n);
+            // Etapa 2 com erros ou mídias faltando (ver atualizarValidacaoEtapa2)
+            const comPendencias = !atual && n === 2 && (window._pendenciasValidacao || 0) > 0;
+            const concluida = !atual && !comPendencias && n < passo && passosVisitados.has(n);
             indicador.classList.toggle('active', atual);
             indicador.classList.toggle('concluida', concluida);
+            indicador.classList.toggle('com-pendencias', comPendencias);
             if (atual) indicador.setAttribute('aria-current', 'step');
             else indicador.removeAttribute('aria-current');
-            indicador.querySelector('.step-indicator-num').innerHTML = concluida ? ICONE_CONCLUIDA : String(n);
-            indicador.querySelector('.step-indicator-estado').textContent = atual ? 'Etapa atual' : (concluida ? 'Concluída' : 'Pendente');
+            indicador.querySelector('.step-indicator-num').innerHTML = concluida ? ICONE_CONCLUIDA : (comPendencias ? ICONE_PENDENCIA : String(n));
+            indicador.querySelector('.step-indicator-estado').textContent =
+                atual ? 'Etapa atual' : (comPendencias ? 'Com pendências' : (concluida ? 'Concluída' : 'Pendente'));
             const linha = indicador.parentElement.querySelector('.step-linha');
             if (linha) linha.classList.toggle('feita', n < passo);
         }
@@ -4735,8 +4945,9 @@
             btnNext.style.display = '';
             btnNext.textContent = `Próximo: ${nomeEtapa(passo + 1)} →`;
         }
-        
+
         window.passoAtual = passo;
+        if (passo === 2 && window.atualizarValidacaoEtapa2) window.atualizarValidacaoEtapa2();
     }
 
     window.proximoPasso = function() {
