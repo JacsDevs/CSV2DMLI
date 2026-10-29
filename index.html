@@ -1019,42 +1019,64 @@
 
                     <!-- PASSO 4 -->
                     <div class="wizard-step" id="step4">
-                        <span id="badgeEstrutura" class="step-badge">Automático</span>
-                        <h2 class="step-title-large"><span class="step-title-top">🗂️</span> Estrutura & Ordenação</h2>
-                        <p class="step-desc" style="margin-bottom: 20px;">Configure a organização das entradas no layout de saída.</p>
-                        
-                        <div class="estrutura-grid">
-                            <div class="estrutura-card">
-                                <h4>Ordem Alfabética</h4>
-                                <label class="toggle-label" style="margin-bottom: 10px;">
-                                    <div class="toggle-switch">
-                                        <input type="checkbox" id="swAlpha" checked>
-                                        <div class="toggle-slider"></div>
+                        <span id="badgeEstrutura" class="step-badge" hidden>Automático</span>
+                        <div class="etapa-cabecalho">
+                            <span class="etapa-contador">Etapa 4 de 5</span>
+                            <h2 class="etapa-titulo">Estrutura</h2>
+                            <p class="etapa-descricao">Defina em que ordem as categorias e as entradas aparecem no dicionário. Se não mudar nada, tudo fica em ordem alfabética.</p>
+                        </div>
+
+                        <!-- Estado lido por GerenciadorDados.obterArvoreOrdenada: swAlpha/swSemantic marcados = ordem automática;
+                             #gridAlpha .cat-checkbox:checked = categorias com entradas em ordem alfabética;
+                             #gridSemantic .sortable-item[data-category] = ordem personalizada das categorias -->
+                        <input type="checkbox" id="swAlpha" checked hidden>
+                        <input type="checkbox" id="swSemantic" checked hidden>
+
+                        <div class="estrutura-grade">
+                            <div class="estrutura-coluna">
+                                <section class="estrutura-painel" aria-labelledby="ordemEntradasTitulo">
+                                    <div class="estrutura-painel-topo">
+                                        <div>
+                                            <h3 id="ordemEntradasTitulo">Ordem das entradas</h3>
+                                            <span class="campo-ajuda">Como as palavras ficam ordenadas dentro de cada categoria.</span>
+                                        </div>
+                                        <div class="estrutura-painel-acoes">
+                                            <button type="button" class="btn-secundario btn-compacto" onclick="window.definirOrdemEntradasTodas(true)">Todas alfabéticas</button>
+                                            <button type="button" class="btn-secundario btn-compacto" onclick="window.definirOrdemEntradasTodas(false)">Todas na ordem do arquivo</button>
+                                        </div>
                                     </div>
-                                    Automático em todos os campos
-                                </label>
-                                <div id="containerAlpha" style="display: none;">
-                                    <p style="font-size: 0.9em; color: #666; margin: 5px 0 10px 0;">Desmarque os campos que devem manter a <b>ordem original do CSV</b>:</p>
-                                    <label class="checkbox-tag select-all-tag" style="margin-bottom: 10px; font-weight: bold; background: #f1f5f9;">
-                                        <input type="checkbox" id="chkSelectAllAlpha" checked> Selecionar / Deselecionar Todos
+                                    <ul class="estrutura-lista" id="gridAlpha"><li class="estrutura-vazia">Importe um projeto para ver as categorias.</li></ul>
+                                </section>
+
+                                <fieldset class="info-grupo estrutura-alfabeto">
+                                    <legend>Alfabeto usado na ordenação</legend>
+                                    <label class="opcao-radio">
+                                        <input type="radio" name="tipoAlfabeto" value="padrao" id="alfabetoPadrao" checked onchange="window.aplicarAlfabeto()">
+                                        <span><strong>Padrão (A a Z)</strong><span class="campo-ajuda">Ordem alfabética do português.</span></span>
                                     </label>
-                                    <div class="checkbox-grid" id="gridAlpha"><span class="placeholder-text">Carregue o CSV primeiro</span></div>
-                                </div>
-                            </div>
-                            <div class="estrutura-card">
-                                <h4>Ordem dos Capítulos</h4>
-                                <label class="toggle-label" style="margin-bottom: 10px;">
-                                    <div class="toggle-switch">
-                                        <input type="checkbox" id="swSemantic" checked>
-                                        <div class="toggle-slider"></div>
+                                    <label class="opcao-radio">
+                                        <input type="radio" name="tipoAlfabeto" value="lingua" id="alfabetoLingua" onchange="window.aplicarAlfabeto()">
+                                        <span><strong>Alfabeto da língua</strong><span class="campo-ajuda">Defina a sequência de letras, incluindo dígrafos. Acentos são ignorados na comparação.</span></span>
+                                    </label>
+                                    <div class="campo estrutura-alfabeto-letras" id="alfabetoLetrasCampo" hidden>
+                                        <label class="campo-rotulo" for="alfabetoLetras">Letras, em ordem, separadas por vírgula</label>
+                                        <textarea id="alfabetoLetras" class="campo-entrada mono" rows="3" placeholder="Ex.: a, b, ch, d, e, …" oninput="window.aplicarAlfabeto()"></textarea>
+                                        <button type="button" class="btn-secundario btn-compacto" onclick="document.getElementById('inputAlfabeto').click()">Importar de arquivo</button>
+                                        <input type="file" id="inputAlfabeto" accept=".txt,text/plain" hidden onchange="window.importarAlfabeto(this.files[0])">
                                     </div>
-                                    Ordem padrão do projeto
-                                </label>
-                                <div id="containerSemantic" style="display: none;">
-                                    <p style="font-size: 0.9em; color: #666; margin: 5px 0 10px 0;">Segure e arraste o ícone (☰) para personalizar a ordem dos campos semânticos:</p>                            
-                                    <div class="sortable-list" id="gridSemantic"><span class="placeholder-text">Carregue o CSV primeiro</span></div>
-                                </div>
+                                </fieldset>
                             </div>
+
+                            <section class="estrutura-painel" aria-labelledby="ordemCategoriasTitulo">
+                                <div class="estrutura-painel-topo">
+                                    <div>
+                                        <h3 id="ordemCategoriasTitulo">Ordem das categorias</h3>
+                                        <span class="campo-ajuda" id="ordemCategoriasAjuda">Ordem alfabética. Arraste pela alça ou use as setas para mudar.</span>
+                                    </div>
+                                    <button type="button" class="btn-secundario btn-compacto" id="btnRestaurarCategorias" onclick="window.restaurarOrdemCategorias()" disabled>Restaurar ordem alfabética</button>
+                                </div>
+                                <ol class="estrutura-categorias" id="gridSemantic"><li class="estrutura-vazia">Importe um projeto para ver as categorias.</li></ol>
+                            </section>
                         </div>
                     </div>
 
@@ -2259,6 +2281,7 @@
         window._referenciaArquivo = null;
         window.atualizarUIReferencia();
         window.atualizarGrupoCldf();
+        if (window.atualizarUIAlfabeto) window.atualizarUIAlfabeto();
 
         if (sis.introHtml) {
             window.definirIntroMarkdown(sis.introHtml);
@@ -5114,113 +5137,200 @@
         }
         // Inicia no passo 1
         window.irParaPasso(1);
-
-        // Listeners para os toggles de estrutura
-        const swAlpha = document.getElementById('swAlpha');
-        const containerAlpha = document.getElementById('containerAlpha');
-        const swSemantic = document.getElementById('swSemantic');
-        const containerSemantic = document.getElementById('containerSemantic');
-        const chkSelectAllAlpha = document.getElementById('chkSelectAllAlpha');
-        
-        function atualizarVisibilidadeAlpha() {
-            if (swAlpha && swAlpha.checked) {
-                if (containerAlpha) containerAlpha.style.display = 'none';
-            } else {
-                if (containerAlpha) containerAlpha.style.display = 'block';
-            }
-        }
-
-        function atualizarVisibilidadeSemantic() {
-            if (swSemantic && swSemantic.checked) {
-                if (containerSemantic) containerSemantic.style.display = 'none';
-            } else {
-                if (containerSemantic) containerSemantic.style.display = 'block';
-            }
-        }
-
-        if (chkSelectAllAlpha) {
-            chkSelectAllAlpha.addEventListener('change', function() {
-                document.querySelectorAll('.cat-checkbox').forEach(chk => {
-                    chk.checked = chkSelectAllAlpha.checked;
-                });
-            });
-        }
-
-        if (swAlpha) swAlpha.addEventListener('change', atualizarVisibilidadeAlpha);
-        if (swSemantic) swSemantic.addEventListener('change', atualizarVisibilidadeSemantic);
-        
-        atualizarVisibilidadeAlpha();
-        atualizarVisibilidadeSemantic();
     })();
+
+    // ===================================================================
+    // ETAPA 4 — ESTRUTURA
+    // As escolhas ficam no DOM, lido por GerenciadorDados.obterArvoreOrdenada (ver comentário no HTML).
+    // ===================================================================
+    const ICONE_SETA_CIMA = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 15-6-6-6 6"></path></svg>';
+    const ICONE_SETA_BAIXO = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>';
+    const ICONE_ALCA = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.5"></circle><circle cx="15" cy="6" r="1.5"></circle><circle cx="9" cy="12" r="1.5"></circle><circle cx="15" cy="12" r="1.5"></circle><circle cx="9" cy="18" r="1.5"></circle><circle cx="15" cy="18" r="1.5"></circle></svg>';
 
     let categoriasEstrutura = [];
     function popularEstrutura() {
         if (!window.sistema) return;
         const arv = window.sistema.obterArvoreOrdenada();
         if (!arv || !arv.categoriasRaizes || arv.categoriasRaizes.length === 0) return;
-        
+
+        // Compara o conjunto de categorias, não a ordem: reordenar não deve recriar as listas
+        // (antes, isso desfazia as escolhas de ordem das entradas).
         const novasCats = arv.categoriasRaizes;
-        if (JSON.stringify(categoriasEstrutura) === JSON.stringify(novasCats)) return;
-        categoriasEstrutura = novasCats;
-        
-        const gridAlpha = document.getElementById('gridAlpha');
-        if (gridAlpha) {
-            gridAlpha.innerHTML = '';
-            categoriasEstrutura.forEach(cat => { 
-                gridAlpha.innerHTML += `<label class="checkbox-tag"><input type="checkbox" class="cat-checkbox" value="${cat}" checked>${cat}</label>`; 
+        if (JSON.stringify([...novasCats].sort()) === JSON.stringify([...categoriasEstrutura].sort())) return;
+        categoriasEstrutura = novasCats.slice();
+
+        renderizarOrdemEntradas(categoriasEstrutura);
+        renderizarOrdemCategorias(categoriasEstrutura);
+    }
+
+    function renderizarOrdemEntradas(categorias) {
+        const lista = document.getElementById('gridAlpha');
+        const emOrdemDoArquivo = new Set([...lista.querySelectorAll('.estrutura-item')]
+            .filter(li => !li.querySelector('.cat-checkbox').checked)
+            .map(li => li.dataset.category));
+        lista.replaceChildren();
+        categorias.forEach((cat, i) => {
+            const li = document.createElement('li');
+            li.className = 'estrutura-item';
+            li.dataset.category = cat;
+            const nome = document.createElement('span');
+            nome.className = 'estrutura-item-nome';
+            nome.textContent = cat;
+            const grupo = document.createElement('div');
+            grupo.className = 'segmentado';
+            grupo.setAttribute('role', 'radiogroup');
+            grupo.setAttribute('aria-label', `Ordem das entradas em ${cat}`);
+            [['Alfabética', true], ['Ordem do arquivo', false]].forEach(([rotulo, alfabetica]) => {
+                const label = document.createElement('label');
+                const radio = document.createElement('input');
+                radio.type = 'radio';
+                radio.name = `ordemEntradas${i}`;
+                if (alfabetica) { radio.className = 'cat-checkbox'; radio.value = cat; }
+                radio.checked = alfabetica !== emOrdemDoArquivo.has(cat);
+                radio.addEventListener('change', atualizarSwAlpha);
+                label.append(radio, rotulo);
+                grupo.append(label);
             });
-        }
+            li.append(nome, grupo);
+            lista.append(li);
+        });
+        atualizarSwAlpha();
+    }
 
-        const gridSemantic = document.getElementById('gridSemantic');
-        if (gridSemantic) {
-            gridSemantic.innerHTML = '';
-            categoriasEstrutura.forEach((cat, i) => {
-                const item = document.createElement('div');
-                item.className = 'sortable-item';
-                item.draggable = true;
-                item.dataset.category = cat;
-                item.innerHTML = `<span class="handle" style="cursor: grab;">☰</span><span>${cat}</span><span style="margin-left:auto;font-size:11px;color:var(--text-muted);">#${i + 1}</span>`;
-                
-                item.addEventListener('dragstart', e => {
-                    item.classList.add('dragging');
-                    e.dataTransfer.effectAllowed = 'move';
-                    e.dataTransfer.setData('text/plain', cat); // Necessário para o drag do WebView2 funcionar
-                });
-                
-                item.addEventListener('dragend', () => {
-                    item.classList.remove('dragging');
-                    atualizarIndices();
-                });
+    // Ordem automática (swAlpha) só quando todas as categorias estão em ordem alfabética
+    function atualizarSwAlpha() {
+        const radios = [...document.querySelectorAll('#gridAlpha .cat-checkbox')];
+        document.getElementById('swAlpha').checked = radios.every(r => r.checked);
+    }
 
-                gridSemantic.appendChild(item);
+    window.definirOrdemEntradasTodas = function(alfabetica) {
+        document.querySelectorAll('#gridAlpha .segmentado').forEach(grupo => {
+            const radios = grupo.querySelectorAll('input');
+            radios[alfabetica ? 0 : 1].checked = true;
+        });
+        atualizarSwAlpha();
+    };
+
+    function renderizarOrdemCategorias(categorias) {
+        const lista = document.getElementById('gridSemantic');
+        lista.replaceChildren();
+        categorias.forEach(cat => {
+            const item = document.createElement('li');
+            item.className = 'sortable-item';
+            item.draggable = true;
+            item.dataset.category = cat;
+            const pos = document.createElement('span');
+            pos.className = 'estrutura-pos';
+            const alca = document.createElement('span');
+            alca.className = 'handle';
+            alca.innerHTML = ICONE_ALCA;
+            const nome = document.createElement('span');
+            nome.className = 'estrutura-item-nome';
+            nome.textContent = cat;
+            const subir = document.createElement('button');
+            subir.type = 'button';
+            subir.className = 'btn-icone';
+            subir.setAttribute('aria-label', `Mover ${cat} para cima`);
+            subir.innerHTML = ICONE_SETA_CIMA;
+            subir.addEventListener('click', () => moverCategoria(item, -1, subir));
+            const descer = document.createElement('button');
+            descer.type = 'button';
+            descer.className = 'btn-icone';
+            descer.setAttribute('aria-label', `Mover ${cat} para baixo`);
+            descer.innerHTML = ICONE_SETA_BAIXO;
+            descer.addEventListener('click', () => moverCategoria(item, 1, descer));
+            item.append(pos, alca, nome, subir, descer);
+
+            item.addEventListener('dragstart', e => {
+                item.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', cat); // Necessário para o drag do WebView2 funcionar
             });
+            item.addEventListener('dragend', () => {
+                item.classList.remove('dragging');
+                marcarOrdemCategoriasPersonalizada();
+            });
+            lista.append(item);
+        });
 
-            if (!gridSemantic.dataset.dragAtivo) {
-                gridSemantic.addEventListener('dragover', e => {
-                    e.preventDefault();
-                    const dragging = gridSemantic.querySelector('.dragging');
-                    if (!dragging) return;
-                    const after = getDragAfterElement(gridSemantic, e.clientY);
-                    if (after) {
-                        gridSemantic.insertBefore(dragging, after);
-                    } else {
-                        gridSemantic.appendChild(dragging);
-                    }
-                });
-                gridSemantic.dataset.dragAtivo = 'true';
-            }
+        if (!lista.dataset.dragAtivo) {
+            lista.addEventListener('dragover', e => {
+                e.preventDefault();
+                const dragging = lista.querySelector('.dragging');
+                if (!dragging) return;
+                const after = getDragAfterElement(lista, e.clientY);
+                if (after) lista.insertBefore(dragging, after);
+                else lista.appendChild(dragging);
+            });
+            lista.dataset.dragAtivo = 'true';
         }
+        atualizarIndices();
+        atualizarEstadoOrdemCategorias();
+    }
+
+    function moverCategoria(item, direcao, botao) {
+        const lista = item.parentElement;
+        if (direcao < 0 && item.previousElementSibling) lista.insertBefore(item, item.previousElementSibling);
+        else if (direcao > 0 && item.nextElementSibling) lista.insertBefore(item.nextElementSibling, item);
+        else return;
+        marcarOrdemCategoriasPersonalizada();
+        if (!botao.disabled) botao.focus();
+    }
+
+    function marcarOrdemCategoriasPersonalizada() {
+        document.getElementById('swSemantic').checked = false;
+        atualizarIndices();
+        atualizarEstadoOrdemCategorias();
+    }
+
+    window.restaurarOrdemCategorias = function() {
+        const lista = document.getElementById('gridSemantic');
+        // Mesma ordenação de obterArvoreOrdenada quando a ordem é automática
+        [...lista.querySelectorAll('.sortable-item')]
+            .sort((a, b) => (a.dataset.category < b.dataset.category ? -1 : a.dataset.category > b.dataset.category ? 1 : 0))
+            .forEach(item => lista.appendChild(item));
+        document.getElementById('swSemantic').checked = true;
+        atualizarIndices();
+        atualizarEstadoOrdemCategorias();
+    };
+
+    function atualizarEstadoOrdemCategorias() {
+        const automatica = document.getElementById('swSemantic').checked;
+        document.getElementById('btnRestaurarCategorias').disabled = automatica;
+        document.getElementById('ordemCategoriasAjuda').textContent = automatica
+            ? 'Ordem alfabética. Arraste pela alça ou use as setas para mudar.'
+            : 'Ordem personalizada. Arraste pela alça ou use as setas.';
     }
 
     function atualizarIndices() {
-        const grid = document.getElementById('gridSemantic');
-        if (!grid) return;
-        const items = grid.querySelectorAll('.sortable-item');
+        const items = [...document.querySelectorAll('#gridSemantic .sortable-item')];
         items.forEach((item, index) => {
-            const num = item.querySelector('span:last-child');
-            if (num) num.textContent = `#${index + 1}`;
+            item.querySelector('.estrutura-pos').textContent = index + 1;
+            const [subir, descer] = item.querySelectorAll('.btn-icone');
+            subir.disabled = index === 0;
+            descer.disabled = index === items.length - 1;
         });
     }
+
+    // Alfabeto da língua: letras separadas por vírgula (ver GerenciadorDados.obterArvoreOrdenada)
+    window.aplicarAlfabeto = function() {
+        const daLingua = document.getElementById('alfabetoLingua').checked;
+        document.getElementById('alfabetoLetrasCampo').hidden = !daLingua;
+        if (window.sistema) window.sistema.setAlfabetoCustomizado(daLingua ? document.getElementById('alfabetoLetras').value : '');
+    };
+    window.importarAlfabeto = async function(arquivo) {
+        if (!arquivo) return;
+        document.getElementById('alfabetoLetras').value = (await arquivo.text()).trim();
+        document.getElementById('inputAlfabeto').value = '';
+        document.getElementById('alfabetoLingua').checked = true;
+        window.aplicarAlfabeto();
+    };
+    window.atualizarUIAlfabeto = function() {
+        const atual = String((window.sistema && window.sistema.alfabetoCustomizado) || '').trim();
+        if (atual) document.getElementById('alfabetoLetras').value = atual;
+        document.getElementById(atual ? 'alfabetoLingua' : 'alfabetoPadrao').checked = true;
+        document.getElementById('alfabetoLetrasCampo').hidden = !atual;
+    };
 
     function getDragAfterElement(container, y) {
         const items = [...container.querySelectorAll('.sortable-item:not(.dragging)')];

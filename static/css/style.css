@@ -992,6 +992,135 @@ body {
     .info-grupo { grid-template-columns: 1fr; }
 }
 
+/* =========================================
+   ETAPA 4 — ESTRUTURA
+========================================= */
+.btn-secundario.btn-compacto { padding: 0 12px; font-size: 13px; }
+.btn-secundario.btn-compacto:disabled { background: var(--bg-secondary); border-color: var(--border-color); }
+
+.btn-icone {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-strong);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+.btn-icone:hover:not(:disabled) { background: var(--bg-secondary); color: var(--primary); }
+.btn-icone:disabled { color: var(--border-strong); cursor: default; }
+
+.estrutura-grade {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    align-items: start;
+}
+.estrutura-coluna { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+
+.estrutura-painel {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+.estrutura-painel-topo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+    padding: 16px 20px;
+    background: var(--bg-main);
+    border-bottom: 1px solid var(--border-color);
+}
+.estrutura-painel-topo h3 { margin: 0; padding: 0; border: 0; font-size: 16px; font-weight: 700; color: var(--text-main); }
+.estrutura-painel-acoes { display: flex; flex-wrap: wrap; gap: 8px; }
+.estrutura-vazia { padding: 20px; color: var(--text-muted); list-style: none; }
+
+.estrutura-lista { margin: 0; padding: 0; list-style: none; }
+.estrutura-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--bg-secondary);
+}
+.estrutura-item:last-child { border-bottom: 0; }
+.estrutura-item-nome { font-size: 15px; font-weight: 500; color: var(--text-main); min-width: 0; overflow-wrap: anywhere; }
+
+/* Controle segmentado feito de rádios nativos (teclado e leitores de tela funcionam) */
+.segmentado {
+    display: inline-flex;
+    padding: 3px;
+    border-radius: var(--radius-control);
+    background: var(--bg-secondary);
+}
+.segmentado label {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    padding: 0 12px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-strong);
+    cursor: pointer;
+}
+.segmentado input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.segmentado label:has(input:checked) {
+    background: var(--bg-card);
+    color: var(--text-main);
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.12);
+}
+.segmentado label:has(input:focus-visible) { outline: 2px solid var(--primary); outline-offset: 1px; }
+
+.estrutura-categorias {
+    margin: 0;
+    padding: 12px;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.estrutura-categorias .sortable-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 6px 4px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-control);
+    background: var(--bg-card);
+}
+.estrutura-categorias .sortable-item.dragging { opacity: 0.5; border-style: dashed; border-color: var(--primary); }
+.estrutura-categorias .sortable-item .estrutura-item-nome { flex: 1; }
+.estrutura-pos { width: 22px; font-size: 13px; font-weight: 700; color: var(--text-muted); text-align: right; }
+.estrutura-categorias .handle { display: inline-flex; color: var(--text-light); cursor: grab; }
+
+.opcao-radio {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    cursor: pointer;
+}
+.opcao-radio input { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--primary); flex-shrink: 0; }
+.opcao-radio strong { display: block; font-size: 15px; color: var(--text-main); }
+.info-grupo.estrutura-alfabeto { display: flex; flex-direction: column; gap: 12px; }
+.estrutura-alfabeto-letras { padding-left: 28px; }
+.campo textarea.campo-entrada { min-height: 0; resize: vertical; font-size: 14px; }
+.estrutura-alfabeto-letras .btn-secundario { align-self: flex-start; }
+
+@media (max-width: 1024px) {
+    .estrutura-grade { grid-template-columns: 1fr; }
+}
+
 /* Estado "Com pendências" no stepper (etapa 2 com erros ou mídias faltando) */
 .step-indicator.com-pendencias .step-indicator-num {
     background: var(--warning-bg);
