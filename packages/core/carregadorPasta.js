@@ -1,4 +1,5 @@
 import { LeitorCLDF } from './leitorCLDF.js';
+import { processarLogo } from './iconeUtil.js';
 // ============================================
 // CARREGADOR DE PASTA
 // LÊ UMA PASTA DE TRABALHO COMPLETA
@@ -16,6 +17,7 @@ class CarregadorPasta {
             configuracao: null,
             metadados: null,
             icone: null,
+            logo: null,
             cldf: {
                 metadata: null,
                 entries: null,
@@ -100,10 +102,18 @@ class CarregadorPasta {
             this.arquivosEncontrados.metadados = organizados.metadados;
         }
 
-        // 4.1 Carregar ícone do projeto (icone.png), se existir na raiz
+        // 4.1 Carregar ícone do app (icone.png) e logo do projeto (logo.png), se existirem na raiz
         if (organizados.icone) {
             await this.gerenciador.setIcone(organizados.icone);
             this.arquivosEncontrados.icone = organizados.icone;
+        }
+        if (organizados.logo) {
+            try {
+                this.gerenciador.definirLogo(await processarLogo(organizados.logo));
+                this.arquivosEncontrados.logo = organizados.logo;
+            } catch (e) {
+                console.warn(`⚠️ Não foi possível ler o logo ${organizados.logo.name}:`, e);
+            }
         }
 
         // 4.5 Carregar arquivos de textos TXT (legados)
@@ -167,6 +177,7 @@ class CarregadorPasta {
             configuracao: null,
             metadados: null,
             icone: null,
+            logo: null,
             cldf: {
                 metadata: null,
                 entries: null,
@@ -227,7 +238,8 @@ class CarregadorPasta {
         const nomesConfig = this.configurador.getNomesArquivo('configuracao');
         const nomesMetadados = this.configurador.getNomesArquivo('metadados');
         const nomesIcone = this.configurador.getNomesArquivo('icone');
-        
+        const nomesLogo = this.configurador.getNomesArquivo('logo');
+
         for (const arquivo of arquivosLista) {
             const caminhoCompleto = arquivo.caminhoPersonalizado || arquivo.webkitRelativePath || arquivo.name;
             const partes = caminhoCompleto.split('/');
@@ -296,6 +308,11 @@ class CarregadorPasta {
             else if (estaNaRaiz && nomesIcone.includes(nomeArquivo.toLowerCase())) {
                 resultado.icone = arquivo;
                 console.log(`🖼️ Ícone do app encontrado: ${nomeArquivo}`);
+            }
+            // Verificar se é o logo do projeto (na raiz)
+            else if (estaNaRaiz && nomesLogo.includes(nomeArquivo.toLowerCase())) {
+                resultado.logo = arquivo;
+                console.log(`🖼️ Logo do projeto encontrado: ${nomeArquivo}`);
             }
             // ARQUIVOS DE TEXTO LEGADOS DA RAIZ (app.js)
             else if (estaNaRaiz && nomeArquivo.toLowerCase() === 'intro.txt') {
@@ -490,6 +507,7 @@ class CarregadorPasta {
         console.log(`   - Config local: ${organizados.configuracao ? '✅' : '❌'}`);
         console.log(`   - Metadados: ${organizados.metadados ? '✅' : '❌'}`);
         console.log(`   - Ícone do app: ${organizados.icone ? '✅' : '❌'}`);
+        console.log(`   - Logo do projeto: ${organizados.logo ? '✅' : '❌'}`);
         console.log(`   - Áudios: ${organizados.audio.length} arquivos`);
         console.log(`   - Imagens: ${organizados.imagem.length} arquivos`);
         console.log(`   - Vídeos: ${organizados.video.length} arquivos`);

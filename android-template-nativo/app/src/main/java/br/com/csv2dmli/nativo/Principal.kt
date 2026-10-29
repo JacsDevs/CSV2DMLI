@@ -293,7 +293,10 @@ private fun LinhaMarca(config: Config, logo: ImageBitmap?, modifier: Modifier) {
     val p = LocalPaleta.current
     Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         if (logo != null) {
-            Image(logo, null, Modifier.size(40.dp).clip(RoundedCornerShape(22)), contentScale = ContentScale.Crop)
+            // Logo em proporção livre (como .dicionario-icone-img do HTML): altura fixa,
+            // largura proporcional limitada para não espremer o título
+            val largura = (40f * logo.width / logo.height).coerceIn(16f, 160f)
+            Image(logo, null, Modifier.height(40.dp).width(largura.dp), contentScale = ContentScale.Fit)
         }
         Column(Modifier.weight(1f)) {
             Text(

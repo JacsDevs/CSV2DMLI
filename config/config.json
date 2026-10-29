@@ -68,6 +68,10 @@
     "icone": {
       "nomes": ["icone.png"],
       "obrigatorio": false
+    },
+    "logo": {
+      "nomes": ["logo.png", "logo.jpg", "logo.jpeg", "logo.webp"],
+      "obrigatorio": false
     }
   }
 }

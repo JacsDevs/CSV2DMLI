@@ -296,7 +296,7 @@ class ExportadorHtmlCards extends ExportadorBase {
         const meta = opcoes.metadados || {};
 
         const iconeHtml = meta.iconeDataUrl
-            ? `<img src="${this.escaparHTML(meta.iconeDataUrl)}" alt="Ícone do dicionário" class="dicionario-icone-img">`
+            ? `<img src="${this.escaparHTML(meta.iconeDataUrl)}" alt="Logo do dicionário" class="dicionario-icone-img">`
             : '';
 
         const versao = meta.versao || '';

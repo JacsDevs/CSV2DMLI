@@ -75,11 +75,43 @@ export class GerenteChave {
     async obterInfoChave() {
         const dados = await this.#carregarIdb();
         if (!dados) return null;
+        let { cn = '', org = '' } = dados;
+        // Chaves salvas antes de cn/org irem para o IndexedDB: lidos do certificado
+        if (!cn && !org && dados.certPem) {
+            try {
+                const { default: forge } = await import(new URL('../../vendor/node-forge.min.js', import.meta.url).href);
+                const cert = forge.pki.certificateFromPem(dados.certPem);
+                cn  = cert.subject.getField('CN')?.value || '';
+                org = cert.subject.getField('O')?.value  || '';
+            } catch (e) {
+                console.warn('Não foi possível ler o certificado da chave:', e);
+            }
+        }
         return {
             alias: dados.alias,
+            cn,
+            org,
             criadoEm: dados.criadoEm,
             expiraEm: dados.expiraEm,
         };
+    }
+
+    /** Confere a senha da chave salva sem montar nada (a interface avisa no campo antes de gerar). */
+    async verificarSenha(senha) {
+        const dados = await this.#carregarIdb();
+        if (!dados || !senha) return false;
+        try {
+            await this.#descriptografarChave(dados, senha);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    /** Backup .p12 da chave salva, protegido pela mesma senha. */
+    async exportarP12(senha) {
+        const chave = await this.carregarChave(senha);
+        return this.montarP12({ ...chave, senha });
     }
 
     async #gerarParChaveECert({ alias = 'upload', cn, org, pais = 'BR', validadeDias = 10000 } = {}) {
@@ -141,6 +173,8 @@ export class GerenteChave {
             certPem:        forge.pki.certificateToPem(cert),
             iv:             Array.from(iv),
             alias,
+            cn:  cn  || '',
+            org: org || '',
             criadoEm: new Date().toISOString(),
             expiraEm: cert.validity.notAfter.toISOString(),
         });
@@ -252,6 +286,8 @@ export class GerenteChave {
             certPem:        forge.pki.certificateToPem(cert),
             iv:             Array.from(iv),
             alias,
+            cn:  cert.subject.getField('CN')?.value || '',
+            org: cert.subject.getField('O')?.value  || '',
             criadoEm: new Date().toISOString(),
             expiraEm: cert.validity.notAfter.toISOString(),
         });
