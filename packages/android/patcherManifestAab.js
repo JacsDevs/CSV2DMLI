@@ -17,21 +17,68 @@ const WT_VARINT = 0;
 const WT_LEN    = 2;
 const WT_F32    = 5;
 
+// Elemento filho de <dist:delivery> no manifesto de um pacote de recursos
+const MODOS_ENTREGA = ['install-time', 'fast-follow', 'on-demand'];
+
+// Serviço em primeiro plano da biblioteca do Play Asset Delivery, usado só para extrair
+// pacotes fast-follow/on-demand. Apps sem esses pacotes não precisam dele, e a permissão
+// FOREGROUND_SERVICE_DATA_SYNC exige uma declaração extra no Play Console.
+const SERVICO_PRIMEIRO_PLANO = [
+    ['uses-permission', 'android.permission.FOREGROUND_SERVICE'],
+    ['uses-permission', 'android.permission.FOREGROUND_SERVICE_DATA_SYNC'],
+    ['service', 'com.google.android.play.core.assetpacks.ExtractionForegroundService'],
+];
+
 // ─── Public API ──────────────────────────────────────────────────────────────
 
 /**
  * @param {Uint8Array} bytes
- * @param {{ packageName?: string, appName?: string, versionCode?: number, versionName?: string }} patches
+ * @param {{ packageName?: string, appName?: string, versionCode?: number, versionName?: string,
+ *           split?: string, entrega?: 'install-time'|'fast-follow'|'on-demand',
+ *           removerServicoPrimeiroPlano?: boolean }} patches
+ *   split/entrega: nome e modo de entrega de um pacote de recursos (Play Asset Delivery),
+ *   ao clonar o manifesto do pacote-modelo do template
+ *   removerServicoPrimeiroPlano: remove o serviço de extração e suas permissões (SERVICO_PRIMEIRO_PLANO)
  * @returns {Uint8Array}
  */
 export function patchManifestAab(bytes, patches) {
     const rootFields = parseFields(bytes);
     for (const f of rootFields) {
         if (f.fieldNum === 1 && f.wt === WT_LEN) {
-            f.raw = patchXmlElement(f.raw, patches);
+            // Package do template, antes de trocá-lo (para renomearValorDoPacote)
+            const pacoteAntigo = valorAtributo(f.raw, 'package');
+            f.raw = patchXmlElement(f.raw, { ...patches, pacoteAntigo });
         }
     }
     return serializeFields(rootFields);
+}
+
+// Valores derivados do package do template que precisam acompanhar o package do app: a
+// autoridade de providers (ex.: "<pacote>.androidx-startup") e permissões próprias (ex.:
+// "<pacote>.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION", declarada pelo AndroidX). Sem isso, dois
+// apps gerados do mesmo template não podem ser instalados juntos (permissão/provider duplicados).
+// Nomes de classe (android:name de activity, service...) não mudam.
+function renomearValorDoPacote(attrName, valor, pacoteAntigo, pacoteNovo) {
+    if (!pacoteAntigo || !pacoteNovo || pacoteAntigo === pacoteNovo) return null;
+    const prefixo = pacoteAntigo + '.';
+    if (attrName === 'authorities') {
+        const partes = valor.split(';');
+        if (!partes.some(p => p.startsWith(prefixo))) return null;
+        return partes.map(p => p.startsWith(prefixo) ? pacoteNovo + p.slice(pacoteAntigo.length) : p).join(';');
+    }
+    if (attrName === 'name' && valor.startsWith(prefixo) && valor.endsWith('_PERMISSION')) {
+        return pacoteNovo + valor.slice(pacoteAntigo.length);
+    }
+    return null;
+}
+
+function valorAtributo(elementBytes, nome) {
+    for (const f of parseFields(elementBytes)) {
+        if (f.fieldNum !== 4 || f.wt !== WT_LEN || !isAttrNamed(f.raw, nome)) continue;
+        const valor = parseFields(f.raw).find(a => a.fieldNum === 3 && a.wt === WT_LEN);
+        return valor ? td.decode(valor.raw) : '';
+    }
+    return '';
 }
 
 // ─── Schema-aware traversal ───────────────────────────────────────────────────
@@ -40,7 +87,11 @@ function patchXmlElement(bytes, patches) {
     const fields = parseFields(bytes);
     const out = [];
     for (const f of fields) {
-        if (f.fieldNum === 4 && f.wt === WT_LEN) {
+        if (f.fieldNum === 3 && f.wt === WT_LEN && patches.entrega && MODOS_ENTREGA.includes(td.decode(f.raw))) {
+            // XmlElement.name — <dist:install-time/> → <dist:fast-follow/> / <dist:on-demand/>
+            f.raw = te.encode(patches.entrega);
+            out.push(f);
+        } else if (f.fieldNum === 4 && f.wt === WT_LEN) {
             // XmlElement.attribute (repeated) — remover debuggable; patch demais
             if (isAttrNamed(f.raw, 'debuggable')) continue;
             f.raw = patchXmlAttribute(f.raw, patches);
@@ -48,6 +99,8 @@ function patchXmlElement(bytes, patches) {
         } else if (f.fieldNum === 5 && f.wt === WT_LEN) {
             // XmlElement.child (repeated) = XmlNode — recurse into it
             const xmlNodeFields = parseFields(f.raw);
+            const elemento = xmlNodeFields.find(nf => nf.fieldNum === 1 && nf.wt === WT_LEN);
+            if (elemento && patches.removerServicoPrimeiroPlano && ehServicoPrimeiroPlano(elemento.raw)) continue;
             for (const nf of xmlNodeFields) {
                 if (nf.fieldNum === 1 && nf.wt === WT_LEN) {
                     nf.raw = patchXmlElement(nf.raw, patches);
@@ -60,6 +113,18 @@ function patchXmlElement(bytes, patches) {
         }
     }
     return serializeFields(out);
+}
+
+function ehServicoPrimeiroPlano(elementBytes) {
+    const fields = parseFields(elementBytes);
+    const nameField = fields.find(f => f.fieldNum === 3 && f.wt === WT_LEN);
+    if (!nameField) return false;
+    const tag = td.decode(nameField.raw);
+    const nome = fields
+        .filter(f => f.fieldNum === 4 && f.wt === WT_LEN && isAttrNamed(f.raw, 'name'))
+        .map(f => parseFields(f.raw).find(a => a.fieldNum === 3 && a.wt === WT_LEN))
+        .map(a => (a ? td.decode(a.raw) : ''))[0];
+    return SERVICO_PRIMEIRO_PLANO.some(([t, n]) => t === tag && n === nome);
 }
 
 function isAttrNamed(attrBytes, name) {
@@ -76,6 +141,12 @@ function patchXmlAttribute(bytes, patches) {
     const attrName = td.decode(nameField.raw);
     let changed = false;
 
+    const renomeado = renomearValorDoPacote(attrName, td.decode(valueField.raw), patches.pacoteAntigo, patches.packageName);
+    if (renomeado !== null) {
+        valueField.raw = te.encode(renomeado);
+        return serializeFields(fields);
+    }
+
     if (attrName === 'package' && patches.packageName) {
         valueField.raw = te.encode(patches.packageName);
         changed = true;
@@ -89,6 +160,9 @@ function patchXmlAttribute(bytes, patches) {
     } else if (attrName === 'targetSdkVersion' && patches.targetSdkVersion !== undefined) {
         valueField.raw = te.encode(String(patches.targetSdkVersion));
         patchVersionCodeInt(fields, patches.targetSdkVersion);
+        changed = true;
+    } else if (attrName === 'split' && patches.split) {
+        valueField.raw = te.encode(patches.split);
         changed = true;
     } else if (attrName === 'label' && patches.appName) {
         valueField.raw = te.encode(patches.appName);

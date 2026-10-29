@@ -6,7 +6,8 @@ android {
     namespace 'br.com.csv2dmli.dicionario'
     compileSdk 36
 
-    // Pacote de recursos install-time para mídias acima do limite do módulo base (só no AAB)
+    // Pacote de recursos usado como modelo pelo gerador, que o clona para cada pacote do plano
+    // de entrega (install-time, fast-follow ou on-demand) — ver packages/android/injetorAab.js
     assetPacks = [":midia_pack"]
 
     defaultConfig {
@@ -30,4 +31,12 @@ android {
             shrinkResources false
         }
     }
+}
+
+dependencies {
+    // Play Asset Delivery: download dos pacotes de mídia fast-follow/on-demand (PonteMidias)
+    implementation 'com.google.android.play:asset-delivery:2.2.2'
+    // showConfirmationDialog tem uma sobrecarga com ActivityResultLauncher (activity 1.2+), que
+    // precisa estar no classpath para compilar. O app usa a versão com Activity (MainActivity não é AndroidX).
+    implementation 'androidx.activity:activity:1.2.4'
 }

@@ -2,25 +2,30 @@
 // Usa fflate para ler o template e Canvas API para redimensionar ícones.
 // O template deve ser um ZIP sem conteúdo real em base/assets/ (ou assets/).
 //
-// Play Asset Delivery (somente AAB): se o template tiver o pacote de recursos
-// `midia_pack` (install-time) e o chamador pedir `usarPacoteMidia`, as mídias vão
-// para midia_pack/assets/ em vez de base/assets/. No aparelho o Android junta os
-// assets de todos os splits instalados, então os caminhos file:///android_asset/...
-// usados pelo HTML continuam os mesmos. Sem `usarPacoteMidia`, o módulo do pacote
-// é removido e o AAB fica idêntico ao formato anterior (tudo no módulo base).
+// Play Asset Delivery (somente AAB): o template traz o pacote de recursos `midia_pack`
+// (install-time), usado como modelo. Para cada pacote do plano de entrega
+// (planejarEntrega em limitesTamanho.js) o módulo-modelo é clonado com o nome e o modo
+// de entrega do pacote (install-time, fast-follow ou on-demand), e as mídias do pacote
+// vão para <pacote>/assets/. No aparelho o Android junta os assets dos pacotes
+// install-time aos do módulo base, então os caminhos file:///android_asset/... usados
+// pelo HTML continuam os mesmos; os pacotes fast-follow/on-demand ficam fora dali e são
+// listados no midias-index.json. Sem pacotes no plano, o módulo-modelo é removido e o
+// AAB fica idêntico ao formato anterior (tudo no módulo base).
 
 import { patchManifestAab } from './patcherManifestAab.js';
 import { patchManifest } from './patcherManifest.js';
 import { lerBytes } from './zipUtil.js';
+import { ARQUIVO_INDICE_MIDIAS, gerarIndiceMidias, planoTemEtapas } from './limitesTamanho.js';
 import { DENSIDADES_ANDROID, redimensionarParaPng, aplicarMascaraCircular } from '../core/iconeUtil.js';
 
 export const PACOTE_MIDIA = 'midia_pack';
 const PREFIXO_PACOTE = `${PACOTE_MIDIA}/`;
 const MANIFESTO_PACOTE = `${PACOTE_MIDIA}/manifest/AndroidManifest.xml`;
+const ASSETS_PB_PACOTE = `${PACOTE_MIDIA}/assets.pb`;
 // O assets.pb gerado pelo AGP declara o diretório "assets" do pacote, e o bundletool
 // exige que ele tenha ao menos um arquivo direto (as mídias ficam em subpastas).
-// Por isso o arquivo de marcação do template é mantido quando o pacote é usado.
-const MARCADOR_PACOTE = `${PACOTE_MIDIA}/assets/midia_pack.txt`;
+// Por isso cada pacote gerado recebe um arquivo de marcação, como o do template.
+const marcadorPacote = (nome) => `${nome}/assets/${nome}.txt`;
 
 // Arquivos do template que devem ficar sem compressão (já comprimidos ou lidos via mmap)
 function templateSemCompressao(path) {
@@ -48,49 +53,73 @@ export class InjetorAab {
      * As mídias são repassadas como vieram (Uint8Array ou Blob), sem cópia.
      *
      * @param {Record<string, Uint8Array>} entradasTemplate - resultado de unzipSync(template)
-     * @param {{ htmlBytes: Uint8Array, midias: Map<string, Uint8Array|Blob>, iconeBytes: Uint8Array|null }} conteudo
+     * @param {{ htmlBytes?: Uint8Array, arquivosBase?: Map<string, Uint8Array>, midias: Map<string, Uint8Array|Blob>, iconeBytes: Uint8Array|null }} conteudo
+     *   htmlBytes: index.html do template WebView; arquivosBase: arquivos de assets/ do módulo base
+     *   no lugar dele (template nativo: dados.json e config.json)
      * @param {{ packageName: string, appName: string, versionName: string, versionCode: number, targetSdkVersion?: number }} meta
      * @param {boolean} isApk - se true, o template é um APK, senão é AAB
-     * @param {{ usarPacoteMidia?: boolean, iconesProntos?: Map<string, Uint8Array> }} [opcoes]
+     * @param {{ plano?: { pacotes: Array<{ nome: string, entrega: string }>, destinos: Map<string, string> },
+     *           iconesProntos?: Map<string, Uint8Array> }} [opcoes]
+     *   plano: resultado de planejarEntrega (só no AAB; sem ele, tudo vai para o módulo base)
      * @returns {Promise<Array<{ caminho: string, dados: Uint8Array|Blob, comprimir: boolean }>>}
      */
     async prepararEntradas(entradasTemplate, conteudo, meta, isApk = false, opcoes = {}) {
-        const { usarPacoteMidia = false } = opcoes;
+        const plano = isApk ? null : opcoes.plano;
+        const pacotes = plano ? plano.pacotes : [];
         const arquivos = { ...entradasTemplate };  // cópia rasa: só referências
 
         const assetsDir = isApk ? 'assets/' : 'base/assets/';
         const resDir = isApk ? 'res/' : 'base/res/';
         const manifestKey = isApk ? 'AndroidManifest.xml' : 'base/manifest/AndroidManifest.xml';
 
-        const temPacote = !isApk && templateTemPacoteMidia(arquivos);
-        if (usarPacoteMidia && !isApk && !temPacote) {
+        if (pacotes.length > 0 && !templateTemPacoteMidia(arquivos)) {
             throw new Error(
-                'As mídias passam do limite do módulo base da Google Play, mas o template AAB não tem o ' +
-                'pacote de recursos (midia_pack). Atualize vendor/android/template.aab com "npm run build:android-template".'
+                'As mídias precisam de pacotes de recursos da Google Play, mas o template AAB não tem o ' +
+                'pacote-modelo (midia_pack). Atualize vendor/android/template.aab com "npm run build:android-template".'
             );
         }
-        const destinoMidias = (usarPacoteMidia && temPacote) ? `${PREFIXO_PACOTE}assets/` : assetsDir;
+        const modeloManifesto = arquivos[MANIFESTO_PACOTE];
+        const modeloAssetsPb = arquivos[ASSETS_PB_PACOTE];
 
         // Explícito = entradas definidas por nós (sempre STORED, como antes)
         const explicitos = new Set();
 
-        // 1. Remover assets antigos (base e pacote) e, se o pacote não for usado, o módulo inteiro
+        // 1. Remover assets antigos do módulo base e o módulo-modelo (os pacotes são recriados a partir dele)
         for (const path of Object.keys(arquivos)) {
-            if (path.startsWith(assetsDir)) delete arquivos[path];
-            else if (!isApk && path.startsWith(PREFIXO_PACOTE)) {
-                const assetDoPacote = path.startsWith(`${PREFIXO_PACOTE}assets/`) && path !== MARCADOR_PACOTE;
-                if (!usarPacoteMidia || assetDoPacote) delete arquivos[path];
-            }
+            if (path.startsWith(assetsDir) || (!isApk && path.startsWith(PREFIXO_PACOTE))) delete arquivos[path];
         }
 
-        // 2. Injetar HTML principal (sempre no módulo base)
-        arquivos[`${assetsDir}index.html`] = conteudo.htmlBytes;
-        explicitos.add(`${assetsDir}index.html`);
+        // 2. Injetar o conteúdo principal (sempre no módulo base): index.html ou os arquivos do app nativo
+        const arquivosBase = conteudo.arquivosBase || new Map([['index.html', conteudo.htmlBytes]]);
+        for (const [nome, bytes] of arquivosBase) {
+            arquivos[`${assetsDir}${nome}`] = bytes;
+            explicitos.add(`${assetsDir}${nome}`);
+        }
 
-        // 3. Injetar mídias mantendo caminhos relativos
+        // 2b. Pacotes de recursos: manifesto do modelo com o nome, o package do app e o modo de entrega
+        const te = new TextEncoder();
+        for (const { nome, entrega } of pacotes) {
+            const manifesto = `${nome}/manifest/AndroidManifest.xml`;
+            arquivos[manifesto] = patchManifestAab(modeloManifesto, { packageName: meta.packageName, split: nome, entrega });
+            arquivos[`${nome}/assets.pb`] = modeloAssetsPb;
+            arquivos[marcadorPacote(nome)] = te.encode(
+                `Marcador do pacote de recursos ${nome} (Play Asset Delivery, ${entrega}). Mantido no AAB pelo gerador.\n`);
+            explicitos.add(manifesto);
+        }
+
+        // 2c. Índice dos pacotes baixados depois da instalação, lido pelo app
+        if (plano && planoTemEtapas(plano)) {
+            const indice = `${assetsDir}${ARQUIVO_INDICE_MIDIAS}`;
+            arquivos[indice] = te.encode(JSON.stringify(gerarIndiceMidias(plano, conteudo.midias)));
+            explicitos.add(indice);
+        }
+
+        // 3. Injetar mídias mantendo caminhos relativos, no módulo base ou no pacote do plano
         for (const [caminho, dados] of conteudo.midias) {
-            arquivos[`${destinoMidias}${caminho}`] = dados;
-            explicitos.add(`${destinoMidias}${caminho}`);
+            const pacote = plano && plano.destinos.get(caminho);
+            const destino = pacote ? `${pacote}/assets/${caminho}` : `${assetsDir}${caminho}`;
+            arquivos[destino] = dados;
+            explicitos.add(destino);
         }
 
         // 4. Injetar ícones redimensionados para cada densidade
@@ -115,14 +144,10 @@ export class InjetorAab {
                     versionCode:      meta.versionCode,
                     versionName:      meta.versionName,
                     targetSdkVersion: meta.targetSdkVersion ?? 36,
+                    // Sem pacotes baixados depois da instalação, o serviço de extração não é usado
+                    removerServicoPrimeiroPlano: !(plano && planoTemEtapas(plano)),
                 });
             explicitos.add(manifestKey);
-        }
-
-        // 5b. Manifesto do pacote de mídia: o atributo package precisa ser igual ao do app
-        if (arquivos[MANIFESTO_PACOTE]) {
-            arquivos[MANIFESTO_PACOTE] = patchManifestAab(arquivos[MANIFESTO_PACOTE], { packageName: meta.packageName });
-            explicitos.add(MANIFESTO_PACOTE);
         }
 
         // 6. DEX e binários sem compressão, o resto do template com DEFLATE

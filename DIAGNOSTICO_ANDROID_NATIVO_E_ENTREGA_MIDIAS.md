@@ -282,6 +282,99 @@ Manter os dois, com escolha no assistente: **"App HTML"** / **"App nativo"** (es
 2. **Ponte Java + HTML:** `obterUrlTocavel`, aviso de primeiro uso, tela de mídias offline. Com isso, projetos grandes já funcionam no template atual.
 3. **Template nativo mínimo:** lista, busca, entrada, áudio, vídeo e mídias offline, usando o mesmo contrato e oferecido como opção experimental.
 
+### 5.10 Situação da implementação
+
+**Plano 1 — implementado** (branch `entrega-midias-etapas`):
+
+| Peça | Onde |
+|---|---|
+| Algoritmo 5.7 (`planejarEntrega`), limites rígidos, `midias-index.json` (`gerarIndiceMidias`) | `packages/android/limitesTamanho.js` |
+| Pacotes no AAB: o `midia_pack` do template é o **modelo**; cada pacote do plano é um clone com `split` e modo de entrega reescritos no manifesto. **O template não precisou ser recompilado.** | `injetorAab.js`, `patcherManifestAab.js` (`split`, `entrega`) |
+| Classificação das mídias (imagem, pronúncia, exemplo, vídeo) e categoria (`CAMPO_SEMANTICO` da primeira entrada que usa o arquivo) | `index.html` (`apkClassificarMidias`) |
+| Opção "Entrega em etapas (experimental)", orçamento em MB, tabela "Na instalação · Baixa em seguida · Sob demanda" | `index.html` (passo do app Android) |
+| Bloco no `LEIA-ME.txt` com os pacotes | `exportadorAndroid.js` |
+
+Decisões:
+- **Etapas desligadas por padrão.** Sem a ponte do Plano 2, mídias em pacotes *fast-follow*/*on-demand* não abrem no app. Desligada, a opção ainda divide as mídias da instalação em vários pacotes *install-time* de até 1,5 GB (antes, mídias acima de 1,5 GB faziam o AAB ser recusado).
+- **Só no modo projeto.** "HTML pronto" não tem banco para classificar as mídias, e o HTML dele não terá a ponte.
+- **Vídeos de pronúncia** (`ARQUIVO_ENTRADA_TIPO = 'video'`) seguem a etapa de vídeos, como em 5.7.
+- **Vídeos cabem no orçamento:** se sobrar orçamento depois de imagens e áudios, os vídeos também vão na instalação (5.2: cada etapa usa o que sobrar).
+- **Limite de pacotes:** 50 (a confirmar no Play Console). Acima disso, categorias seguidas passam a dividir pacotes e o tamanho-alvo dobra até 1,5 GB.
+- **Imagens acima do orçamento:** só aviso; a otimização é feita por um script Python externo (5.3 (b) não será implementado no sistema).
+
+**Plano 2 — implementado:**
+
+| Peça | Onde |
+|---|---|
+| Ponte `window.PonteMidias` (`indice`, `local`, `atualizar`, `baixar`, `cancelar`, `remover`), confirmação de dados móveis pela Play, verificação de espaço, eventos para o HTML | `android-template/.../PonteMidias.java`, `MainActivity.java` |
+| Dependência `com.google.android.play:asset-delivery:2.2.2` (+ `androidx.activity:activity:1.2.4` para compilar `showConfirmationDialog`); `android.useAndroidX=true` | `android-template/app/build.gradle`, `gradle.properties` |
+| `obterUrlTocavel` com o caso "mídia de pacote"; vídeo de pronúncia, `tocarAudio` e qualquer `<video>/<audio>` da página passam por ela | `config/templates/html-cards/template.html` (`MidiasPacotes`) |
+| Aviso de primeiro uso (uma vez, depois da janela de informações) e painel "Mídias offline" em Ajustes (celular) e na barra lateral (telas largas): estado, progresso, Baixar/Cancelar/Remover, Baixar tudo, Remover tudo (dois toques) | idem |
+| Pedido de download ao abrir mídia não baixada: "Baixar" (o pacote) ou "Baixar todas as mídias" | idem |
+
+Decisões:
+- **Serviço em primeiro plano.** A biblioteca declara `FOREGROUND_SERVICE_DATA_SYNC` e o `ExtractionForegroundService`, o que exige uma declaração no Play Console. O gerador **remove** os dois do manifesto do AAB quando não há pacotes fast-follow/on-demand (`removerServicoPrimeiroPlano` em `patcherManifestAab.js`); com etapas, eles ficam e o LEIA-ME explica a declaração.
+- **Mídias abertas pelo caminho real** (`file:///data/.../assetpacks/<pacote>/<versão>/<n>/assets/...`), sem interceptar requisições: o avanço/retrocesso do vídeo funciona.
+- **Sem a ponte** (site, HTML exportado, APK direto, AAB sem etapas), `MidiasPacotes` fica inativo e nada muda.
+
+Teste em aparelho (Galaxy S25, Android API 37, `bundletool --local-testing`, projeto Makurap com 13 pacotes on-demand / 1,67 GB): aviso de primeiro uso, pedido de download, download de um pacote e de todos, vídeo tocando do arquivo baixado com avanço, `<video>` da página e áudio passando pela ponte, remoção, e estado preservado ao reabrir o app.
+
+**Plano 3 — implementado (experimental):**
+
+| Peça | Onde |
+|---|---|
+| Contrato `dados.json` / `config.json` v1 (entradas, créditos, introdução, citação, cores do tema) | `packages/exporters/dadosApp.js`; `exportarArquivosApp` em `exportadorHtmlCards.js` / `moduloExportacao.js` |
+| App nativo: Kotlin + Jetpack Compose + Material 3, `minSdk 23`, R8 completo (APK ~3 MB). Telas: lista (filtro por categoria, salvos), busca sem acento em termo e tradução, entrada (transcrições, acepções, exemplos com áudio, imagens ampliáveis, vídeos, textos estruturados como texto), informações/como citar, ajustes (tema sistema/claro/escuro), mídias offline | `android-template-nativo/` → `vendor/android/template-nativo.{aab,apk}` |
+| Áudio e vídeo com Media3/ExoPlayer (`asset:///` e arquivos dos pacotes baixados); mídias offline com a biblioteca da Play direto em Kotlin (`MidiasOffline.kt`), mesmo comportamento do Plano 2 | idem |
+| Seletor "App HTML / App nativo (experimental)" no assistente; no nativo, "HTML pronto" e capturas automáticas ficam desligados e a prévia é marcada como aproximada | `index.html` |
+| Injetor aceita `arquivosBase` (dados.json + config.json) no lugar do `index.html`; exportador escolhe o template pelo `modelo` | `injetorAab.js`, `exportadorAndroid.js` |
+| Permissão `…DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` e autoridade `…androidx-startup` (do AndroidX) renomeadas para o package do app, no AAB e no APK — sem isso, dois apps gerados do template nativo não instalariam juntos | `patcherManifest.js`, `patcherManifestAab.js` (`renomearValorDoPacote`) |
+| CI compila os dois templates | `.github/workflows/android-template.yml` |
+
+Ajustes feitos no teste em aparelho (mesmo celular, projeto Makurap, 12 pacotes on-demand):
+- **Mídias ausentes ficam ocultas.** No Makurap, ~40% das pronúncias citam arquivos que não estão no projeto; o app nativo só mostra botão, miniatura ou galeria quando o arquivo existe (assets ou pacote). Falha de reprodução mostra aviso em vez de tela preta.
+- **Pronúncias com `|`** (`"x.mp3|x.mp4"`): `dadosApp.js` separa em uma pronúncia por arquivo, com pasta e tipo pela extensão. O sistema só separa o `|` quando o termo tem variações, então o **app HTML continua recebendo o caminho inteiro** e não toca essas mídias — correção a fazer em `gerenciadorDados.js`, fora deste plano.
+- **R8 completo:** a variante debug do template nativo usa `debuggable false` (o gerador já removia o atributo); o `classes.dex` caiu de ~10 MB para ~3 MB.
+
+Testado: lista (998 entradas), busca sem acento por termo e tradução, entrada com imagem e áudio de exemplo, vídeo de pacote baixado, aviso de primeiro uso, pedido de download, baixar um/todos, remover, tema escuro e informações (HTML da introdução).
+
+**Design semelhante ao do app HTML — fase 1 (estrutura visual), implementada.** Decisão: mesma identidade (cores, formas, telas, nomes e organização do HTML) com comportamento de Android.
+
+| Peça | Onde |
+|---|---|
+| Cores com os nomes e valores das variáveis CSS do HTML (`Paleta`), inclusive as do tema do projeto; raios de 16/10 dp | `Tema.kt`, `dadosApp.js` (cores extras, aceita `rgba`) |
+| Os mesmos ícones SVG do HTML, convertidos para o Compose | `Icones.kt`, gerado por `scripts/gerar-icones-app-nativo.mjs` |
+| Topo na cor primária: logo (`assets/icone.png`, gravado pelo gerador), título e versão, busca em pílula, 1/2 colunas, "Detalhes", acessibilidade e informações; some ao rolar para baixo e volta compacto ao subir, como no HTML | `Principal.kt`, `exportadorAndroid.js` |
+| Barra de abas Cards · Lista · Salvos (com contador) · Categorias · Ajustes | `Principal.kt` |
+| Agrupamento com as regras do HTML: ordem por campo e subcampos, "Geral" sem título, níveis sem termos próprios viram trilha ("Animais › Animais aquáticos"), campo fixo no topo, atalhos de subcampo, recolher | `Grupos.kt`; subcampos por posição no contrato (`subcategorias`) |
+| Cards do `card.tmpl` (1 coluna com imagem à direita; 2 colunas com imagem acima) e verbetes por extenso do `lista.tmpl` com marcador de salvar | `Principal.kt` |
+
+**Fase 2 (comportamento do HTML), implementada.**
+
+| Peça | Onde |
+|---|---|
+| Ajustes como painel que sobe de baixo (`#bottom-sheet-filtros`, até 86% da altura): filtros de campo semântico e classe com "Aplicar filtros"; Acessibilidade e tema (por ora só o tema), colunas, "Ordenar por tradução", "Visualização completa" (= "Detalhes"); Mídias offline; Informações, Como citar e Referências; "Feito com CSV2DMLI" | `Ajustes.kt`; janelas de Sobre em `Telas.kt` (`TelaInfo`) |
+| Filtros na mesma sequência de `aplicarFiltrosEBusca()`: salvos, campo/subcampo de qualquer nível, classe, busca (termo, classe, campos e subcampos, traduções e descrições); filtro em uso aparece como pílula com "x" no topo da lista | `Principal.kt`, `Dados.kt` (`chaveBusca`, `pertenceA`) |
+| "Ordenar por tradução": dicionário invertido como o do HTML (cada tradução vira o termo; as palavras da língua viram as acepções, com pronúncia, classe e transcrição); essas entradas não podem ser salvas, pois não existem nos dados | `Dados.kt` (`inverter`) |
+| Categorias em tela inteira (`.tela-categorias`): árvore com todos os níveis, "Todas as categorias", a escolhida em destaque; tocar filtra e fecha (`selecionarCategoria`) | `Principal.kt` (`TelaCategorias`) |
+| Entrada com o cabeçalho do modal do HTML (fechar, etiqueta campo › subcampo, salvar, anterior/próxima pela lista como está na tela) e o corpo de `entrada.tmpl`; numeração das acepções só quando há mais de uma (`NUMERO_PONTO`); notas no estilo `.dict-extra` | `Entrada.kt` |
+| Player de vídeo flutuante preso ao botão (`abrirModalVideoEntrada`): abaixo do botão ou acima se não couber, acompanha a rolagem, o botão vira "fechar", fecha ao terminar, ao trocar de entrada ou com o voltar, pausa com o app em segundo plano, não toca junto com o áudio; vale para pronúncias e vídeos das acepções | `PlayerFlutuante.kt`, `AcoesMidia` em `Telas.kt` |
+
+Testado no celular (dados Makurap, tema escuro): painel de Ajustes, filtro por classe e por categoria (com a pílula de remover), dicionário invertido em Cards, Lista e entrada, anterior/próxima, player flutuante na entrada e na lista, escolha de tema e "Como citar".
+
+**Fase 3 (acessibilidade e acabamento), implementada.**
+
+| Peça | Onde |
+|---|---|
+| Painel de acessibilidade (`#modal-acessibilidade`), aberto pelo botão do topo e por Ajustes: tamanho do texto 90/100/115/130% com pré-visualização (escala sobre a fonte do sistema, inclusive na introdução em HTML), tema Claro/Escuro/**Alto contraste** (paleta fixa do HTML, acima das cores do projeto; até escolher, segue o sistema), "Espaçamento de leitura" (1.85 / 0.03em), "Reduzir animações" (segue o sistema por padrão), "Manter barra superior fixa" (o topo só fica compacto), "Restaurar padrões" e "Concluir"; tudo salvo nas preferências | `Acessibilidade.kt`, `Tema.kt`, `MainActivity.kt` |
+| Janela "Informações e introdução" ao abrir o app, como no HTML; o aviso de mídias offline só aparece depois de fechá-la (`avisarPrimeiroUso`) | `Telas.kt` |
+| "Referências" some de Ajustes quando o projeto não tem referências | `Ajustes.kt` |
+| Campo fixo no topo com sombra e o subcampo em que a pessoa está ("Animais › Aves", `.cat-sub-fixa`); recolher o campo grudado volta à posição real dele (`reposicionarTituloFixado`) | `Principal.kt` |
+
+Testado no celular: janela ao abrir e aviso depois dela, painel (alto contraste, 130%, espaçamento, barra fixa), preferências mantidas ao reabrir o app, introdução seguindo tamanho e espaçamento, subcampo ao lado do campo fixo, recolher o campo grudado e "Restaurar padrões". "Reduzir animações" não foi conferido visualmente (troca as transições por nenhuma).
+
+Fora desta versão (decisão de escopo): VLibras, templates HTML/CSS personalizados, "HTML pronto", áudio sincronizado dos textos estruturados e capturas automáticas para a Play.
+
 ---
 
 ## 6. Fontes

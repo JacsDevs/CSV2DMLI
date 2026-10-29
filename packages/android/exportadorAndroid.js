@@ -11,13 +11,15 @@ import { GerenteChave } from './gerenteChave.js';
 import { InjetorAab, gerarIconesDensidades } from './injetorAab.js';
 import { montarPacoteAssinado, CacheHashes } from './montadorPacote.js';
 import { montarZipStored, verificarCancelamento, somarTamanhos } from './zipUtil.js';
-import { deveUsarPacoteMidia, formatarTamanho } from './limitesTamanho.js';
+import { planejarEntrega, planoTemEtapas, formatarTamanho, ENTREGA } from './limitesTamanho.js';
 import { redimensionarParaPng } from '../core/iconeUtil.js';
 
 // Ícone da ficha da Play Store: PNG 512×512, até 1 MB (o Google aplica a máscara)
 const ICONE_LOJA_ARQUIVO = 'icone-512.png';
 const ICONE_LOJA_TAMANHO = 512;
 const ICONE_LOJA_MAX_BYTES = 1024 * 1024;
+// Logo do cabeçalho do app nativo (exibido com ~40 dp; 192 px cobre telas xxxhdpi)
+const ICONE_APP_NATIVO = 192;
 
 // Organização do zip entregue ao usuário:
 //   LEIA-ME.txt
@@ -67,7 +69,9 @@ export class ExportadorAndroid {
      * @param {{
      *   senha?: string,
      *   chaveTemporaria?: boolean,
-     *   htmlBytes: Uint8Array,
+     *   modelo?: 'html'|'nativo',  // template WebView (padrão) ou nativo (experimental)
+     *   htmlBytes?: Uint8Array,           // modelo 'html': index.html
+     *   arquivosBase?: Map<string, Uint8Array>,  // modelo 'nativo': dados.json e config.json
      *   midias: Map<string, Uint8Array|Blob>,  // File/Blob recomendado: não é copiado para a memória
      *   iconeBytes: Uint8Array,
      *   packageName: string,
@@ -80,6 +84,7 @@ export class ExportadorAndroid {
      *   estado?: string,
      *   pais?: string,
      *   capturas?: Map<string, Uint8Array>,
+     *   entrega?: { etapas?: boolean, orcamento?: number, classificacao?: Map },  // opções de planejarEntrega
      *   onProgress?: (pct: number, msg: string) => void,
      *   sinal?: AbortSignal,  // cancela a geração (antes do salvamento)
      * }} opcoes
@@ -88,6 +93,7 @@ export class ExportadorAndroid {
         const {
             senha,
             chaveTemporaria = false,
+            modelo = 'html',
             htmlBytes,
             midias,
             iconeBytes,
@@ -101,13 +107,15 @@ export class ExportadorAndroid {
             estado = '',
             pais = '',
             capturas = new Map(),
+            entrega = {},
             onProgress = () => {},
             sinal,
         } = opcoes;
 
         onProgress(5, 'Carregando templates (AAB e APK)…');
-        const templateUrlAab = new URL('../../vendor/android/template.aab', import.meta.url).href;
-        const templateUrlApk = new URL('../../vendor/android/template.apk', import.meta.url).href;
+        const nomeTemplate = modelo === 'nativo' ? 'template-nativo' : 'template';
+        const templateUrlAab = new URL(`../../vendor/android/${nomeTemplate}.aab`, import.meta.url).href;
+        const templateUrlApk = new URL(`../../vendor/android/${nomeTemplate}.apk`, import.meta.url).href;
         
         const [templateRespAab, templateRespApk] = await Promise.all([
             fetch(templateUrlAab),
@@ -116,7 +124,7 @@ export class ExportadorAndroid {
 
         if (!templateRespAab.ok || !templateRespApk.ok) {
             throw new Error(
-                'Template AAB ou APK não encontrado. Execute "npm run build:android-template" para gerar os templates.'
+                `Template AAB ou APK não encontrado (${nomeTemplate}). Execute "npm run build:android-${nomeTemplate}" para gerar os templates.`
             );
         }
         
@@ -134,15 +142,24 @@ export class ExportadorAndroid {
 
         const injector = new InjetorAab();
         const iconesProntos = await gerarIconesDensidades(iconeBytes);  // uma vez, para AAB e APK
-        const appInfo = { htmlBytes, midias, iconeBytes };
+        // App nativo: logo do cabeçalho em assets/icone.png (o ícone do launcher vai em res/, como no app HTML)
+        let arquivosBase = opcoes.arquivosBase;
+        if (modelo === 'nativo' && arquivosBase && iconeBytes && iconeBytes.length > 0) {
+            arquivosBase = new Map(arquivosBase);
+            arquivosBase.set('icone.png', await redimensionarParaPng(iconeBytes, ICONE_APP_NATIVO));
+        }
+        const appInfo = { htmlBytes, arquivosBase, midias, iconeBytes };
+        // Peso do conteúdo do módulo base além das mídias (HTML ou dados do app nativo)
+        const tamanhoBase = arquivosBase ? [...arquivosBase.values()].reduce((s, b) => s + b.length, 0) : htmlBytes.length;
         const metaInfo = { packageName, appName, versionName, versionCode };
 
-        // Play Asset Delivery: mídias acima do limite do módulo base vão para o pacote install-time
+        // Play Asset Delivery: o plano divide as mídias entre o módulo base e os pacotes de recursos
         const tamanhoMidias = somarTamanhos(midias.values());
-        const usarPacoteMidia = deveUsarPacoteMidia(htmlBytes.length, tamanhoMidias);
+        const plano = planejarEntrega({ ...entrega, midias, tamanhoHtml: tamanhoBase });
+        const usarPacoteMidia = plano.pacotes.length > 0;
 
         // Progresso por bytes: hash das mídias (uma vez) + leitura da assinatura v2 de cada artefato
-        const conteudoTotal = htmlBytes.length + tamanhoMidias;
+        const conteudoTotal = tamanhoBase + tamanhoMidias;
         const progressoFaixa = (inicio, fim, rotulo, total) => {
             let feito = 0;
             let ultimoPct = -1;
@@ -165,7 +182,7 @@ export class ExportadorAndroid {
         const progAab = progressoFaixa(20, 50, 'Gerando e assinando AAB', 2 * conteudoTotal);
         const aab = await montarPacoteAssinado({
             ...assinatura,
-            entradas: await injector.prepararEntradas(entradasTemplateAab, appInfo, metaInfo, false, { usarPacoteMidia, iconesProntos }),
+            entradas: await injector.prepararEntradas(entradasTemplateAab, appInfo, metaInfo, false, { plano, iconesProntos }),
             alinhar: false,
             onBytesHash: progAab,
             onBytesAssinatura: progAab,
@@ -212,7 +229,7 @@ export class ExportadorAndroid {
         const infoTexto = this.#montarLeiaMe({
             nomeResponsavel, organizacao, cidade, estado, pais,
             appName, packageName, versionName, senha, chaveTemporaria, alias, nomeAab, nomeApk, nomeP12, nomesCapturas, iconeLoja,
-            usarPacoteMidia, tamanhoAab: aab.tamanho, tamanhoApk: apk.tamanho,
+            plano, modelo, tamanhoAab: aab.tamanho, tamanhoApk: apk.tamanho,
         });
 
         // Zip final sem compressão (STORED), montado em partes: AAB e APK entram como
@@ -244,11 +261,48 @@ export class ExportadorAndroid {
             // O zip não é salvo aqui: a tela de conclusão oferece o botão "Salvar"
             blob: blobZip,
             usarPacoteMidia,
+            plano,
             tamanhos: { aab: aab.tamanho, apk: apk.tamanho, zip: blobZip.size },
         };
     }
 
-    #montarLeiaMe({ nomeResponsavel, organizacao, cidade, estado, pais, appName, packageName, versionName, senha, chaveTemporaria = false, alias, nomeAab, nomeApk, nomeP12, nomesCapturas = [], iconeLoja = null, usarPacoteMidia = false, tamanhoAab = 0, tamanhoApk = 0 }) {
+    // Bloco do LEIA-ME com a divisão das mídias entre a instalação e os pacotes de recursos
+    #montarBlocoEntrega(plano) {
+        const MODOS = {
+            [ENTREGA.INSTALACAO]: 'na instalação',
+            [ENTREGA.SEGUIDA]: 'baixa logo após a instalação (fast-follow)',
+            [ENTREGA.DEMANDA]: 'sob demanda (on-demand)',
+        };
+        const linhas = [
+            'Pacotes de mídias (Play Asset Delivery)',
+            '---------------------------------------',
+            `Na instalação (módulo base, HTML e app incluídos): ${formatarTamanho(plano.totais[ENTREGA.INSTALACAO])}`,
+            ...plano.pacotes.map(p => `- ${p.nome}: ${p.rotulo}, ${formatarTamanho(p.tamanho)}, ${MODOS[p.entrega]}`),
+        ];
+        if (planoTemEtapas(plano)) {
+            linhas.push(
+                '',
+                'Os pacotes fast-follow são baixados automaticamente logo após a instalação; os',
+                'on-demand, quando o usuário pede (Ajustes > Mídias offline, ou ao abrir uma mídia).',
+                'O arquivo midias-index.json (no módulo base) lista o pacote de cada uma dessas mídias.',
+                '',
+                'Declaração no Play Console (obrigatória para este AAB):',
+                'A biblioteca de download de pacotes da Google Play usa um serviço em primeiro plano',
+                'para instalar as mídias baixadas. Em Política > Conteúdo do app > "Permissões de',
+                'serviço em primeiro plano", declare o tipo "Sincronização de dados" (dataSync),',
+                'descrevendo o uso como "download e instalação de pacotes de mídia do dicionário",',
+                'e informe o link de um vídeo curto mostrando o download em Mídias offline.',
+                '',
+                'O APK (pasta instalar-direto/) contém todas as mídias em um único arquivo.',
+                '',
+            );
+        } else {
+            linhas.push('Nenhuma ação é necessária no Play Console. O APK contém tudo em um único arquivo.', '');
+        }
+        return linhas;
+    }
+
+    #montarLeiaMe({ nomeResponsavel, organizacao, cidade, estado, pais, appName, packageName, versionName, senha, chaveTemporaria = false, alias, nomeAab, nomeApk, nomeP12, nomesCapturas = [], iconeLoja = null, plano = null, modelo = 'html', tamanhoAab = 0, tamanhoApk = 0 }) {
         const local = [cidade, estado, pais].filter(Boolean).join(' - ') || '(não informado)';
 
         // Mapa do conteúdo do zip, na mesma ordem das pastas
@@ -328,14 +382,7 @@ export class ExportadorAndroid {
                 : []),
             '',
         ];
-        const blocoPacoteMidia = !usarPacoteMidia ? [] : [
-            'Pacote de mídias (Play Asset Delivery)',
-            '--------------------------------------',
-            'As mídias passam do limite de 500 MB do módulo base e foram colocadas no',
-            'pacote de recursos "midia_pack" do AAB, entregue junto com a instalação.',
-            'Nenhuma ação é necessária no Play Console. O APK contém tudo em um único arquivo.',
-            '',
-        ];
+        const blocoPacoteMidia = (!plano || plano.pacotes.length === 0) ? [] : this.#montarBlocoEntrega(plano);
         return [
             `LEIA-ME — ${appName}`,
             '='.repeat(`LEIA-ME — ${appName}`.length),
@@ -351,6 +398,7 @@ export class ExportadorAndroid {
             `Nome do App: ${appName}`,
             `Pacote: ${packageName}`,
             `Versão: ${versionName}`,
+            ...(modelo === 'nativo' ? ['Modelo: App nativo (experimental, Android 6 ou mais novo)'] : []),
             '',
             ...blocoPacoteMidia,
             ...blocoAssinatura,

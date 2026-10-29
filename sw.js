@@ -27,8 +27,9 @@ const CLDF_ASSETS = [
 ];
 
 // v2: template.aab passou a incluir o pacote de recursos midia_pack (Play Asset Delivery).
+// v3: template.aab com a ponte de mídias offline (PonteMidias / biblioteca asset-delivery).
 // O template.aab é servido cache-first: trocar a versão força baixar o novo.
-const ANDROID_CACHE = 'csv2dmli-android-v2';
+const ANDROID_CACHE = 'csv2dmli-android-v3';
 const ANDROID_ASSETS = [
   BASE + '/vendor/fflate.min.js',
   BASE + '/vendor/node-forge.min.js',

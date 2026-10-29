@@ -349,6 +349,8 @@ class ExportadorBase {
             entradasConvertidas.push({ ...entrada, ...dados });
         }
         this.midiasGeradas = midias;
+        // App nativo (dadosApp.js): só as entradas, com as mídias por caminho relativo
+        if (opcoesMidia.comoDados) return entradasConvertidas;
 
         // 3. Empacotar em Scripts por Lotes
         // Escapa </ para evitar que dados do dicionário que contenham </script>

@@ -1,0 +1,68 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.compose'
+}
+
+// Template nativo (experimental): telas em Jetpack Compose alimentadas por assets/dados.json e
+// assets/config.json, gerados pelo CSV2DMLI (packages/exporters/dadosApp.js). O pipeline de
+// injeção, assinatura e Play Asset Delivery é o mesmo do template WebView (android-template/).
+android {
+    namespace 'br.com.csv2dmli.nativo'
+    compileSdk 36
+
+    // Pacote de recursos usado como modelo pelo gerador, que o clona para cada pacote do plano
+    // de entrega (install-time, fast-follow ou on-demand) — ver packages/android/injetorAab.js
+    assetPacks = [":midia_pack"]
+
+    defaultConfig {
+        applicationId "br.com.csv2dmli.nativo"
+        // AndroidX, Compose e Media3 atuais exigem API 23
+        minSdk 23
+        targetSdk 36
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        // O CI gera a variante debug (o gerador assina e remove o "debuggable"). Sem
+        // "debuggable", o R8 otimiza por completo (o classes.dex cai de ~10 MB para poucos MB);
+        // os recursos não são encolhidos para manter os caminhos dos ícones (res/mipmap-*)
+        // que o gerador substitui.
+        debug {
+            debuggable false
+            minifyEnabled true
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
+        }
+        release {
+            signingConfig null
+            minifyEnabled true
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+    buildFeatures {
+        compose true
+    }
+}
+
+dependencies {
+    implementation platform('androidx.compose:compose-bom:2025.04.01')
+    implementation 'androidx.compose.material3:material3'
+    implementation 'androidx.compose.material:material-icons-core'
+    implementation 'androidx.compose.ui:ui'
+    implementation 'androidx.activity:activity-compose:1.10.1'
+    implementation 'androidx.media3:media3-exoplayer:1.6.1'
+    implementation 'androidx.media3:media3-ui:1.6.1'
+    // Play Asset Delivery: pacotes de mídia fast-follow/on-demand (MidiasOffline.kt)
+    implementation 'com.google.android.play:asset-delivery:2.2.2'
+}
