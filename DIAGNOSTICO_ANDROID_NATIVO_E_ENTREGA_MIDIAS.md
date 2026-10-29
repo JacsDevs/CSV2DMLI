@@ -338,6 +338,19 @@ Ajustes feitos no teste em aparelho (mesmo celular, projeto Makurap, 12 pacotes 
 
 Testado: lista (998 entradas), busca sem acento por termo e tradução, entrada com imagem e áudio de exemplo, vídeo de pacote baixado, aviso de primeiro uso, pedido de download, baixar um/todos, remover, tema escuro e informações (HTML da introdução).
 
+**Design semelhante ao do app HTML — fase 1 (estrutura visual), implementada.** Decisão: mesma identidade (cores, formas, telas, nomes e organização do HTML) com comportamento de Android.
+
+| Peça | Onde |
+|---|---|
+| Cores com os nomes e valores das variáveis CSS do HTML (`Paleta`), inclusive as do tema do projeto; raios de 16/10 dp | `Tema.kt`, `dadosApp.js` (cores extras, aceita `rgba`) |
+| Os mesmos ícones SVG do HTML, convertidos para o Compose | `Icones.kt`, gerado por `scripts/gerar-icones-app-nativo.mjs` |
+| Topo na cor primária: logo (`assets/icone.png`, gravado pelo gerador), título e versão, busca em pílula, 1/2 colunas, "Detalhes", acessibilidade e informações; some ao rolar para baixo e volta compacto ao subir, como no HTML | `Principal.kt`, `exportadorAndroid.js` |
+| Barra de abas Cards · Lista · Salvos (com contador) · Categorias · Ajustes | `Principal.kt` |
+| Agrupamento com as regras do HTML: ordem por campo e subcampos, "Geral" sem título, níveis sem termos próprios viram trilha ("Animais › Animais aquáticos"), campo fixo no topo, atalhos de subcampo, recolher | `Grupos.kt`; subcampos por posição no contrato (`subcategorias`) |
+| Cards do `card.tmpl` (1 coluna com imagem à direita; 2 colunas com imagem acima) e verbetes por extenso do `lista.tmpl` com marcador de salvar | `Principal.kt` |
+
+Fases seguintes: (2) Ajustes como painel com filtros e "Ordenar por tradução", tela de Categorias completa (subcampos), entrada com anterior/próxima e player de vídeo flutuante; (3) painel de acessibilidade e janela de informações ao abrir.
+
 Fora desta versão (decisão de escopo): VLibras, templates HTML/CSS personalizados, "HTML pronto", áudio sincronizado dos textos estruturados, categorias em vários níveis (só o campo semântico principal) e capturas automáticas para a Play.
 
 ---

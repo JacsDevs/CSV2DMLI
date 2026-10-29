@@ -2,6 +2,7 @@
 
 package br.com.csv2dmli.nativo
 
+import android.app.Activity
 import android.graphics.Bitmap
 import android.widget.TextView
 import androidx.activity.compose.BackHandler
@@ -69,6 +70,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -87,6 +89,9 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.graphics.luminance
+import androidx.core.view.WindowCompat
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
@@ -140,7 +145,7 @@ fun App(prefs: Preferencias, midias: MidiasOffline, audio: ReprodutorAudio) {
         }
     }
     var modoTema by remember { mutableStateOf(prefs.tema) }
-    val configPadrao = remember { Config("", "", "", "", "", emptyList(), "", Cores(null, null, null, null, null, null, null), Cores(null, null, null, null, null, null, null)) }
+    val configPadrao = remember { Config("", "", "", "", "", emptyList(), "", Cores(), Cores()) }
 
     TemaDicionario(dicionario?.getOrNull()?.config ?: configPadrao, modoTema) {
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -174,6 +179,29 @@ private fun Navegacao(
         if (id in salvos) salvos.remove(id) else salvos.add(id)
         prefs.salvos = salvos.toSet()
     }
+    val apagarSalvos: () -> Unit = {
+        salvos.clear()
+        prefs.salvos = emptySet()
+    }
+    val estadoPrincipal = remember { EstadoPrincipal(prefs) }
+
+    // Ícones da barra de status: sobre o topo na cor primária (tela principal), sobre preto
+    // (vídeo e imagem) ou sobre a superfície (demais telas)
+    val paleta = LocalPaleta.current
+    val view = LocalView.current
+    val telaAtual = pilha.last()
+    SideEffect {
+        val janela = (view.context as? Activity)?.window ?: return@SideEffect
+        val claros = when (telaAtual) {
+            Tela.Lista -> paleta.primaria.luminance() > 0.5f
+            is Tela.Video, is Tela.Foto -> false
+            else -> !paleta.escuro
+        }
+        WindowCompat.getInsetsController(janela, view).apply {
+            isAppearanceLightStatusBars = claros
+            isAppearanceLightNavigationBars = !paleta.escuro
+        }
+    }
     val snackbar = remember { SnackbarHostState() }
     val aviso by midias.aviso
     LaunchedEffect(aviso) {
@@ -185,7 +213,7 @@ private fun Navegacao(
 
     Box(Modifier.fillMaxSize()) {
         when (val tela = pilha.last()) {
-            Tela.Lista -> TelaLista(dic, acoes, salvos, alternarSalvo, navegar)
+            Tela.Lista -> TelaPrincipal(dic, estadoPrincipal, acoes, salvos, alternarSalvo, apagarSalvos, navegar)
             is Tela.Detalhe -> porId[tela.id]?.let { TelaDetalhe(it, acoes, it.id in salvos, { alternarSalvo(it.id) }, navegar, voltar) }
             is Tela.Video -> TelaVideo(tela.caminho, midias) { erro ->
                 if (erro) midias.aviso.value = "Não foi possível reproduzir o vídeo."
@@ -234,145 +262,6 @@ private fun Navegacao(
             },
             confirmButton = { Button(onClick = { midias.pedido.value = null; midias.baixar(listOf(p.nome)) }) { Text("Baixar") } },
             dismissButton = { TextButton(onClick = { midias.pedido.value = null }) { Text("Agora não") } },
-        )
-    }
-}
-
-// ─── Lista e busca ─────────────────────────────────────────────────────────────
-
-@Composable
-private fun TelaLista(
-    dic: Dicionario,
-    acoes: AcoesMidia,
-    salvos: List<String>,
-    alternarSalvo: (String) -> Unit,
-    navegar: (Tela) -> Unit,
-) {
-    var busca by rememberSaveable { mutableStateOf("") }
-    // null = todas; "" = salvos; outro = categoria
-    var filtro by rememberSaveable { mutableStateOf<String?>(null) }
-    val estadoLista = rememberLazyListState()
-    val visiveis = remember(busca, filtro, salvos.size, dic) {
-        val base = when (filtro) {
-            null -> dic.entradas
-            "" -> dic.entradas.filter { it.id in salvos }
-            else -> dic.entradas.filter { it.categoria == filtro }
-        }
-        buscar(base, busca)
-    }
-    LaunchedEffect(busca, filtro) { estadoLista.scrollToItem(0) }
-
-    Scaffold(
-        topBar = {
-            Column(Modifier.background(MaterialTheme.colorScheme.primaryContainer)) {
-                TopAppBar(
-                    title = { Text(dic.config.nome, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                    actions = {
-                        IconButton(onClick = { navegar(Tela.Info) }) { Icon(Icons.Filled.Info, "Informações") }
-                        IconButton(onClick = { navegar(Tela.Ajustes) }) { Icon(Icons.Filled.Settings, "Ajustes") }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
-                )
-                OutlinedTextField(
-                    value = busca,
-                    onValueChange = { busca = it },
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                    placeholder = { Text("Buscar termo ou tradução…") },
-                    leadingIcon = { Icon(Icons.Filled.Search, null) },
-                    trailingIcon = {
-                        if (busca.isNotEmpty()) IconButton(onClick = { busca = "" }) { Icon(Icons.Filled.Clear, "Limpar busca") }
-                    },
-                    singleLine = true,
-                    shape = RoundedCornerShape(28.dp),
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                )
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    item { Filtro(filtro == null, "Todas") { filtro = null } }
-                    item { Filtro(filtro == "", "Salvos (${salvos.size})") { filtro = "" } }
-                    items(dic.categorias) { cat -> Filtro(filtro == cat, cat) { filtro = if (filtro == cat) null else cat } }
-                }
-            }
-        },
-    ) { margem ->
-        LazyColumn(state = estadoLista, contentPadding = margem, modifier = Modifier.fillMaxSize()) {
-            item {
-                Text(
-                    "${visiveis.size} ${if (visiveis.size == 1) "entrada" else "entradas"}",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                )
-            }
-            if (visiveis.isEmpty()) {
-                item {
-                    Text(
-                        if (filtro == "") "Nenhuma entrada salva." else "Nenhuma entrada encontrada.",
-                        modifier = Modifier.padding(24.dp),
-                    )
-                }
-            }
-            items(visiveis, key = { it.id }) { e ->
-                LinhaEntrada(e, acoes, e.id in salvos, { alternarSalvo(e.id) }) { navegar(Tela.Detalhe(e.id)) }
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-            }
-        }
-    }
-}
-
-// Chip de filtro com a cor primária quando selecionado (o padrão some sobre a barra superior)
-@Composable
-private fun Filtro(selecionado: Boolean, rotulo: String, onClick: () -> Unit) {
-    FilterChip(
-        selected = selecionado,
-        onClick = onClick,
-        label = { Text(rotulo) },
-        colors = FilterChipDefaults.filterChipColors(
-            selectedContainerColor = MaterialTheme.colorScheme.primary,
-            selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-        ),
-    )
-}
-
-@Composable
-private fun LinhaEntrada(e: Entrada, acoes: AcoesMidia, salvo: Boolean, alternarSalvo: () -> Unit, abrir: () -> Unit) {
-    ListItem(
-        modifier = Modifier.clickable(onClick = abrir),
-        headlineContent = { Text(e.termo, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary) },
-        supportingContent = {
-            val linha = listOf(e.traducoes, e.classe).filter { it.isNotBlank() }.joinToString(" · ")
-            if (linha.isNotBlank()) Text(linha, maxLines = 2, overflow = TextOverflow.Ellipsis)
-        },
-        leadingContent = e.primeiraImagem?.takeIf { acoes.midias.existe(it) }?.let { { Miniatura(it, acoes.midias, 56.dp) } },
-        trailingContent = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                e.pronuncias.firstOrNull { acoes.midias.existe(it.arquivo) }?.let { BotaoPronuncia(it, e.termo, acoes) }
-                IconButton(onClick = alternarSalvo) {
-                    Icon(
-                        if (salvo) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                        if (salvo) "Remover ${e.termo} dos salvos" else "Salvar ${e.termo}",
-                        tint = if (salvo) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-        },
-        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-    )
-}
-
-@Composable
-private fun BotaoPronuncia(p: Pronuncia, termo: String, acoes: AcoesMidia) {
-    val tocando = acoes.audio.tocando.value == p.arquivo
-    FilledTonalIconButton(onClick = { if (p.video) acoes.abrirVideo(p.arquivo) else acoes.tocarAudio(p.arquivo) }) {
-        Icon(
-            if (tocando) Icons.Filled.Close else Icons.Filled.PlayArrow,
-            when {
-                tocando -> "Parar pronúncia de $termo"
-                p.video -> "Ver vídeo de $termo"
-                else -> "Ouvir pronúncia de $termo"
-            },
         )
     }
 }

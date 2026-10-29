@@ -46,14 +46,17 @@ function converterTexto(t) {
 function converterEntrada(e, indice) {
     const audios = separar(e.AUDIO);
     const tipos = separar(e.AUDIO_TIPOS);
-    const subcategoria = [1, 2, 3, 4, 5, 6].map(n => texto(e[`SUB_CAMPO_SEMANTICO_${n}`])).find(Boolean)
-        || texto(e.SUB_CAMPO_SEMANTICO);
+    // Subcampos por posição (SUB_CAMPO_SEMANTICO, _1 … _6), como o HTML compara nível a nível
+    // ao montar os títulos dos grupos; só as posições vazias no fim são cortadas.
+    const subcategorias = ['SUB_CAMPO_SEMANTICO', ...[1, 2, 3, 4, 5, 6].map(n => `SUB_CAMPO_SEMANTICO_${n}`)].map(k => texto(e[k]));
+    while (subcategorias.length && !subcategorias[subcategorias.length - 1]) subcategorias.pop();
     return {
         id: texto(e.ID) || String(indice + 1),
         termo: texto(e.TERMO),
         classe: texto(e.CLASSE),
         categoria: texto(e.CAMPO_SEMANTICO),
-        subcategoria,
+        subcategoria: subcategorias.find(Boolean) || '',
+        subcategorias,
         fonemica: texto(e.FONEMICA),
         fonetica: texto(e.FONETICA),
         pronuncias: audios.flatMap((arquivo, i) => pronuncias(arquivo, tipos[i] === 'video' ? 'video' : 'audio')).filter(p => p.arquivo),
@@ -94,12 +97,21 @@ export function montarDadosApp(entradas) {
 // Variáveis CSS do tema do projeto (coletarTemaExportacao em index.html) → nomes do config.json
 const CORES = {
     primaria: '--cor-primaria',
+    primariaHover: '--cor-primaria-hover',
+    primariaClara: '--cor-primaria-light',
     contraste: '--cor-primaria-contraste',
     fundo: '--cor-fundo',
+    fundo2: '--cor-fundo-2',
     superficie: '--cor-superficie',
+    superficie2: '--cor-superficie-2',
     texto: '--cor-texto',
     textoSecundario: '--cor-texto-secundario',
+    borda: '--cor-borda',
+    bordaForte: '--cor-borda-forte',
     acento: '--cor-acento',
+    acentoForte: '--cor-acento-forte',
+    acentoClaro: '--cor-acento-light',
+    perigo: '--cor-perigo',
 };
 
 function converterCores(vars) {
@@ -107,7 +119,7 @@ function converterCores(vars) {
     if (!vars) return cores;
     for (const [nome, variavel] of Object.entries(CORES)) {
         const valor = texto(vars[variavel]);
-        if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(valor)) cores[nome] = valor;
+        if (/^(#([0-9a-f]{3}|[0-9a-f]{6})|rgba?\([\d.,\s%]+\))$/i.test(valor)) cores[nome] = valor;
     }
     return cores;
 }

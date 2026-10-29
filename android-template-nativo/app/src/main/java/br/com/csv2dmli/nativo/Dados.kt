@@ -34,6 +34,8 @@ data class Entrada(
     val classe: String,
     val categoria: String,
     val subcategoria: String,
+    /** Subcampos por posição (SUB_CAMPO_SEMANTICO, _1 … _6); posições vazias no meio são "". */
+    val subcategorias: List<String>,
     val fonemica: String,
     val fonetica: String,
     val pronuncias: List<Pronuncia>,
@@ -46,10 +48,10 @@ data class Entrada(
     val chaveTraducao: String = normalizar(traducoes)
 }
 
-data class Cores(
-    val primaria: Long?, val contraste: Long?, val fundo: Long?, val superficie: Long?,
-    val texto: Long?, val textoSecundario: Long?, val acento: Long?,
-)
+/** Cores do tema do projeto (nomes do config.json → ARGB); as ausentes usam o padrão do HTML (Tema.kt). */
+data class Cores(val valores: Map<String, Long> = emptyMap()) {
+    operator fun get(nome: String): Long? = valores[nome]
+}
 
 data class Config(
     val nome: String,
@@ -104,6 +106,7 @@ object LeitorDados {
         classe = o.optString("classe"),
         categoria = o.optString("categoria"),
         subcategoria = o.optString("subcategoria"),
+        subcategorias = o.optJSONArray("subcategorias").textos(),
         fonemica = o.optString("fonemica"),
         fonetica = o.optString("fonetica"),
         pronuncias = o.optJSONArray("pronuncias").objetos().map {
@@ -150,20 +153,30 @@ object LeitorDados {
     }
 
     private fun lerCores(o: JSONObject?): Cores {
-        fun cor(chave: String): Long? = o?.optString(chave)?.let(::corHex)
-        return Cores(cor("primaria"), cor("contraste"), cor("fundo"), cor("superficie"),
-            cor("texto"), cor("textoSecundario"), cor("acento"))
+        if (o == null) return Cores()
+        val valores = mutableMapOf<String, Long>()
+        o.keys().forEach { chave -> corCss(o.optString(chave))?.let { valores[chave] = it } }
+        return Cores(valores)
     }
 
-    /** "#rgb" ou "#rrggbb" → 0xFFrrggbb; outros formatos são ignorados (cor padrão do tema). */
-    private fun corHex(valor: String): Long? {
-        val hex = valor.trim().removePrefix("#")
-        val completo = when (hex.length) {
-            3 -> hex.map { "$it$it" }.joinToString("")
-            6 -> hex
-            else -> return null
+    /** "#rgb", "#rrggbb" ou "rgb(a)(r, g, b[, a])" → ARGB; outros formatos ficam com a cor padrão. */
+    fun corCss(valor: String): Long? {
+        val v = valor.trim()
+        if (v.startsWith("#")) {
+            val hex = v.removePrefix("#")
+            val completo = when (hex.length) {
+                3 -> hex.map { "$it$it" }.joinToString("")
+                6 -> hex
+                else -> return null
+            }
+            return completo.toLongOrNull(16)?.let { 0xFF000000L or it }
         }
-        return completo.toLongOrNull(16)?.let { 0xFF000000L or it }
+        val partes = Regex("rgba?\\(([^)]*)\\)").matchEntire(v)?.groupValues?.get(1)
+            ?.split(',')?.map { it.trim() } ?: return null
+        if (partes.size < 3) return null
+        val (r, g, b) = partes.take(3).map { it.toFloatOrNull()?.toInt()?.coerceIn(0, 255) ?: return null }
+        val a = partes.getOrNull(3)?.toFloatOrNull()?.coerceIn(0f, 1f) ?: 1f
+        return ((a * 255).toLong() shl 24) or (r.toLong() shl 16) or (g.toLong() shl 8) or b.toLong()
     }
 
     private fun JSONArray?.objetos(): List<JSONObject> =

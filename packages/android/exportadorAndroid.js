@@ -18,6 +18,8 @@ import { redimensionarParaPng } from '../core/iconeUtil.js';
 const ICONE_LOJA_ARQUIVO = 'icone-512.png';
 const ICONE_LOJA_TAMANHO = 512;
 const ICONE_LOJA_MAX_BYTES = 1024 * 1024;
+// Logo do cabeçalho do app nativo (exibido com ~40 dp; 192 px cobre telas xxxhdpi)
+const ICONE_APP_NATIVO = 192;
 
 // Organização do zip entregue ao usuário:
 //   LEIA-ME.txt
@@ -93,7 +95,6 @@ export class ExportadorAndroid {
             chaveTemporaria = false,
             modelo = 'html',
             htmlBytes,
-            arquivosBase,
             midias,
             iconeBytes,
             packageName,
@@ -141,6 +142,12 @@ export class ExportadorAndroid {
 
         const injector = new InjetorAab();
         const iconesProntos = await gerarIconesDensidades(iconeBytes);  // uma vez, para AAB e APK
+        // App nativo: logo do cabeçalho em assets/icone.png (o ícone do launcher vai em res/, como no app HTML)
+        let arquivosBase = opcoes.arquivosBase;
+        if (modelo === 'nativo' && arquivosBase && iconeBytes && iconeBytes.length > 0) {
+            arquivosBase = new Map(arquivosBase);
+            arquivosBase.set('icone.png', await redimensionarParaPng(iconeBytes, ICONE_APP_NATIVO));
+        }
         const appInfo = { htmlBytes, arquivosBase, midias, iconeBytes };
         // Peso do conteúdo do módulo base além das mídias (HTML ou dados do app nativo)
         const tamanhoBase = arquivosBase ? [...arquivosBase.values()].reduce((s, b) => s + b.length, 0) : htmlBytes.length;

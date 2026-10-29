@@ -51,6 +51,16 @@ class Preferencias(context: Context) {
         get() = sp.getStringSet("salvos", emptySet())?.toSet() ?: emptySet()
         set(v) = sp.edit().putStringSet("salvos", v).apply()
 
+    /** Colunas dos cards (1 ou 2), como o seletor do topo do app HTML. */
+    var colunas: Int
+        get() = sp.getInt("colunas", 1).coerceIn(1, 2)
+        set(v) = sp.edit().putInt("colunas", v).apply()
+
+    /** "Detalhes": classe gramatical e transcrição nos verbetes. */
+    var detalhes: Boolean
+        get() = sp.getBoolean("detalhes", false)
+        set(v) = sp.edit().putBoolean("detalhes", v).apply()
+
     var avisoMidiasMostrado: Boolean
         get() = sp.getBoolean("aviso_midias", false)
         set(v) = sp.edit().putBoolean("aviso_midias", v).apply()
