@@ -469,6 +469,10 @@
         .apk-resumo-tamanho summary { cursor: pointer; color: var(--text-muted); }
         .apk-resumo-tamanho ol { margin: 6px 0 0 0; padding-left: 20px; }
         .apk-resumo-tamanho li { word-break: break-all; }
+        .apk-resumo-plano { width: 100%; margin-top: 10px; border-collapse: collapse; table-layout: fixed; }
+        .apk-resumo-plano th, .apk-resumo-plano td { padding: 6px 8px; border: 1px solid var(--border-color); text-align: center; vertical-align: top; }
+        .apk-resumo-plano th { font-weight: 600; color: var(--text-muted); }
+        .apk-resumo-plano small { color: var(--text-muted); }
 
         .apk-result-row {
             display: flex; align-items: flex-start; gap: 12px;
@@ -1270,6 +1274,24 @@
                     <div class="toggle-slider"></div>
                 </div>
             </label>
+
+            <!-- Entrega das mídias em etapas (Play Asset Delivery fast-follow/on-demand); só no modo projeto -->
+            <div id="apkEntregaEtapasCampos" style="margin-top:14px; padding:12px 14px; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:10px;">
+                <label class="toggle-label" style="display:flex; align-items:center; gap:10px;">
+                    <div>
+                        <div style="font-weight:700; font-size:0.92em; color:var(--text-main);">🧪 Entrega das mídias em etapas (experimental)</div>
+                        <div style="font-size:0.78em; color:var(--text-muted); margin-top:2px;">Só no AAB da Google Play: imagens e áudios na instalação até o orçamento; o resto em pacotes baixados depois. O app ainda não baixa esses pacotes: use só para testes.</div>
+                    </div>
+                    <div class="toggle-switch" style="margin-top:2px;">
+                        <input type="checkbox" id="apkSwEntregaEtapas" onchange="apkAtualizarResumoTamanho()">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </label>
+                <label style="display:flex; align-items:center; gap:8px; margin-top:8px; font-size:0.82em; color:var(--text-muted);">
+                    Orçamento de instalação:
+                    <input type="number" id="apkOrcamentoInstalacao" value="200" min="10" max="4000" step="10" style="width:80px;" onchange="apkAtualizarResumoTamanho()"> MB
+                </label>
+            </div>
 
             <!-- Resumo de tamanho das mídias e avisos (preenchido por apkAtualizarResumoTamanho) -->
             <div id="apkResumoTamanho" class="apk-resumo-tamanho" style="display:none;"></div>
@@ -2838,6 +2860,7 @@
     window.apkAtualizarFonteHtml = function() {
         const usarProjeto = document.getElementById('apkSwUsarProjeto').checked;
         document.getElementById('apkHtmlProntoFields').style.display = usarProjeto ? 'none' : 'block';
+        document.getElementById('apkEntregaEtapasCampos').style.display = usarProjeto ? 'block' : 'none';
         apkAtualizarResumoTamanho();
         if (usarProjeto) {
             apkGerarPreviewCompleto();
@@ -2892,15 +2915,106 @@
         return _apkLimitesTamanho;
     }
 
+    // Papel de cada mídia do projeto no plano de entrega (imagem, pronúncia, exemplo, vídeo) e a
+    // categoria (campo semântico) da primeira entrada que a usa. Um arquivo usado em mais de um
+    // papel fica com o mais prioritário para a instalação.
+    const APK_PRIORIDADE_PAPEL = ['imagem', 'pronuncia', 'exemplo', 'video'];
+    function apkClassificarMidias(midias) {
+        const classificacao = new Map();
+        const banco = window.sistema && window.sistema.bancoDados;
+        const vfs = window.sistema && window.sistema.vfs;
+        if (!banco || !vfs) return classificacao;
+
+        const marcar = (tipoVfs, nome, papel, categoria) => {
+            if (!nome) return;
+            let chave = vfs.obterChave(tipoVfs, nome);
+            if (chave === null && tipoVfs === 'imagem') {
+                let limpo;
+                try { limpo = decodeURIComponent(nome); } catch (e) { limpo = nome; }
+                chave = vfs.obterChave(tipoVfs, limpo.replace(/[{}]/g, '').trim().toLowerCase());
+            }
+            if (chave === null) return;
+            const caminho = caminhoMidiaExportada(tipoVfs === 'imagem' ? 'foto' : tipoVfs, chave);
+            const atual = classificacao.get(caminho);
+            if (atual && APK_PRIORIDADE_PAPEL.indexOf(atual.papel) <= APK_PRIORIDADE_PAPEL.indexOf(papel)) return;
+            classificacao.set(caminho, { papel, categoria: atual ? atual.categoria : categoria });
+        };
+
+        for (const entrada of Object.values(banco.entradas || {})) {
+            const categoria = entrada.CAMPO_SEMANTICO || '';
+            (entrada.VARIACOES_IDS || []).forEach(id => {
+                const v = banco.variacoes[id];
+                if (!v || !v.ARQUIVO_ENTRADA) return;
+                if (v.ARQUIVO_ENTRADA_TIPO === 'video') marcar('video', v.ARQUIVO_ENTRADA, 'video', categoria);
+                else marcar('audio', v.ARQUIVO_ENTRADA, 'pronuncia', categoria);
+            });
+            (entrada.ACEPCOES || []).forEach(ac => {
+                (ac.EXEMPLOS_IDS || []).forEach(id => {
+                    const ex = banco.exemplos[id];
+                    if (ex) marcar('audio', ex.ARQUIVO_SONORO_EXEMPLO, 'exemplo', categoria);
+                });
+                (ac.IMAGENS_IDS || []).forEach(id => {
+                    const img = banco.imagens[id];
+                    if (img) marcar('imagem', img.IMAGEM, 'imagem', categoria);
+                });
+                (ac.VIDEOS_IDS || []).forEach(id => {
+                    const vid = banco.videos && banco.videos[id];
+                    if (vid) marcar('video', vid.ARQUIVO_VIDEO, 'video', categoria);
+                });
+            });
+        }
+        // Áudios que nenhuma entrada usa como pronúncia ficam com os exemplos (secundários)
+        for (const caminho of midias.keys()) {
+            if (!classificacao.has(caminho) && caminho.startsWith('audio/')) classificacao.set(caminho, { papel: 'exemplo', categoria: '' });
+        }
+        return classificacao;
+    }
+
+    // Opções do plano de entrega (planejarEntrega): etapas só no modo projeto
+    function apkOpcoesEntrega(usarProjeto, midias) {
+        const etapas = usarProjeto && document.getElementById('apkSwEntregaEtapas').checked;
+        const mb = Number(document.getElementById('apkOrcamentoInstalacao').value);
+        const orcamento = (Number.isFinite(mb) && mb > 0 ? mb : 200) * 1000 * 1000;
+        return { etapas, orcamento, classificacao: etapas ? apkClassificarMidias(midias) : new Map() };
+    }
+
     async function apkAnalisarTamanho(usarProjeto) {
         const { analisarTamanhoProjeto } = await apkCarregarLimitesTamanho();
         // No modo projeto o HTML só existe depois de gerado; o peso dele é pequeno perto das mídias
         const tamanhoHtml = (!usarProjeto && _apkHtmlProntoArquivo) ? _apkHtmlProntoArquivo.size : 0;
-        return analisarTamanhoProjeto({ tamanhoHtml, midias: apkColetarMidias(usarProjeto) });
+        const midias = apkColetarMidias(usarProjeto);
+        return analisarTamanhoProjeto({ tamanhoHtml, midias, entrega: apkOpcoesEntrega(usarProjeto, midias) });
     }
 
     function apkEscaparHtml(texto) {
         return String(texto).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    // Tabela do plano de entrega do AAB: o que o usuário final baixa na instalação, logo depois e sob demanda
+    function apkMontarTabelaPlano(plano, formatarTamanho) {
+        if (!plano || (!plano.etapas && plano.pacotes.length === 0)) return '';
+        const colunas = [
+            ['install-time', 'Na instalação'],
+            ['fast-follow', 'Baixa em seguida'],
+            ['on-demand', 'Sob demanda'],
+        ];
+        const celulas = colunas.map(([entrega]) => {
+            const n = plano.pacotes.filter(p => p.entrega === entrega).length;
+            const detalhe = entrega === 'install-time'
+                ? (n > 0 ? `módulo base + ${n} pacote(s)` : 'módulo base')
+                : `${n} pacote(s)`;
+            return `<td><b>${formatarTamanho(plano.totais[entrega])}</b><br><small>${detalhe}</small></td>`;
+        }).join('');
+        const nomesEntrega = Object.fromEntries(colunas);
+        const pacotes = plano.pacotes.length === 0 ? '' :
+            `<details><summary>Pacotes de recursos (${plano.pacotes.length})</summary><ol>${
+                plano.pacotes.map(p => `<li><code>${p.nome}</code> — ${apkEscaparHtml(p.rotulo)} — <b>${formatarTamanho(p.tamanho)}</b> · ${nomesEntrega[p.entrega]}</li>`).join('')
+            }</ol></details>`;
+        return `
+            <table class="apk-resumo-plano">
+                <thead><tr>${colunas.map(([, rotulo]) => `<th>${rotulo}</th>`).join('')}</tr></thead>
+                <tbody><tr>${celulas}</tr></tbody>
+            </table>${pacotes}`;
     }
 
     // Resumo de tamanho exibido antes de gerar: total por tipo, estimativas, avisos e maiores arquivos
@@ -2921,6 +3035,7 @@
             const avisos = a.avisos
                 .map(av => `<div class="apk-resumo-aviso ${av.nivel}">${apkEscaparHtml(av.texto)}</div>`)
                 .join('');
+            const plano = apkMontarTabelaPlano(a.plano, formatarTamanho);
             const maiores = a.maiores.length > 1
                 ? `<details><summary>Maiores arquivos (comprimi-los reduz o app com menos esforço)</summary><ol>${
                     a.maiores.map(m => `<li>${apkEscaparHtml(m.caminho)} — <b>${formatarTamanho(m.tamanho)}</b></li>`).join('')
@@ -2937,7 +3052,7 @@
                     <span>APK ≈ <b>${formatarTamanho(a.estimativas.apk)}</b></span>
                     <span>Zip final ≈ <b>${formatarTamanho(a.estimativas.zip)}</b></span>
                 </div>
-                ${avisos}${maiores}`;
+                ${plano}${avisos}${maiores}`;
             el.style.display = 'block';
         } catch (e) {
             console.warn('Não foi possível calcular o resumo de tamanho:', e);
@@ -3579,6 +3694,7 @@
 
         document.getElementById('apkSwUsarProjeto').checked = true;
         document.getElementById('apkHtmlProntoFields').style.display = 'none';
+        document.getElementById('apkEntregaEtapasCampos').style.display = 'block';
         apkLimparSelecaoHtmlPronto();
 
         // Atualizar estado da chave de assinatura (IndexedDB)
@@ -3795,10 +3911,9 @@
             alert(bloqueios.map(a => a.texto).join('\n\n'));
             throw new Error(bloqueios[0].texto);
         }
-        const { LIMITES } = await apkCarregarLimitesTamanho();
-        if (analise.totalMidias > LIMITES.pacoteRecursos && !confirm(
-            'As mídias passam de 1,5 GB: o APK funciona, mas o AAB será recusado pelo Google Play Console.\n\n' +
-            'Deseja gerar mesmo assim?')) {
+        const recusasPlay = analise.avisos.filter(a => a.recusaPlay);
+        if (recusasPlay.length > 0 && !confirm(
+            recusasPlay.map(a => a.texto).join('\n\n') + '\n\nDeseja gerar mesmo assim?')) {
             throw apkErroCancelamento();
         }
 
@@ -3903,6 +4018,7 @@
             estado: document.getElementById('apkEstado').value.trim(),
             pais: (document.getElementById('apkPais').value.trim() || 'BR').toUpperCase(),
             capturas,
+            entrega: apkOpcoesEntrega(usarProjeto, midias),
             onProgress,
             sinal: _apkControleGeracao ? _apkControleGeracao.signal : undefined,
         });
@@ -3927,9 +4043,11 @@
         const linhaTamanhos = t.zip
             ? `<br>Tamanhos: AAB ${formatarTamanho(t.aab)} · APK ${formatarTamanho(t.apk)} · zip ${formatarTamanho(t.zip)}.`
             : '';
-        const linhaPacoteMidia = arquivosGerados.usarPacoteMidia
-            ? '<br>As mídias passam de 500 MB e foram colocadas no <b>pacote de recursos da Play</b> (Play Asset Delivery, entregue na instalação). Nenhuma ação necessária.'
-            : '';
+        const planoGerado = arquivosGerados.plano;
+        const pacotesEtapas = planoGerado ? planoGerado.pacotes.filter(p => p.entrega !== 'install-time').length : 0;
+        const linhaPacoteMidia = !arquivosGerados.usarPacoteMidia ? '' : pacotesEtapas > 0
+            ? `<br>As mídias do AAB foram divididas em <b>${planoGerado.pacotes.length} pacote(s) de recursos da Play</b>, ${pacotesEtapas} deles baixado(s) depois da instalação (experimental: o app ainda não baixa esses pacotes). Detalhes no ${arquivosGerados.leiaMe}.`
+            : `<br>As mídias passam de 500 MB e foram colocadas em <b>${planoGerado.pacotes.length > 1 ? `${planoGerado.pacotes.length} pacotes` : 'um pacote'} de recursos da Play</b> (Play Asset Delivery, entregue na instalação). Nenhuma ação necessária.`;
 
         document.getElementById('apkSucessoDesc').textContent = arquivosGerados.p12
             ? `Salve o zip, descompacte-o e abra o ${leiaMe}: a pasta ${pastas.publicar}/ tem o AAB e o backup da chave (.p12); a pasta ${pastas.instalar}/ tem o APK.`

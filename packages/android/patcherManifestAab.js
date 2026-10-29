@@ -17,11 +17,17 @@ const WT_VARINT = 0;
 const WT_LEN    = 2;
 const WT_F32    = 5;
 
+// Elemento filho de <dist:delivery> no manifesto de um pacote de recursos
+const MODOS_ENTREGA = ['install-time', 'fast-follow', 'on-demand'];
+
 // ─── Public API ──────────────────────────────────────────────────────────────
 
 /**
  * @param {Uint8Array} bytes
- * @param {{ packageName?: string, appName?: string, versionCode?: number, versionName?: string }} patches
+ * @param {{ packageName?: string, appName?: string, versionCode?: number, versionName?: string,
+ *           split?: string, entrega?: 'install-time'|'fast-follow'|'on-demand' }} patches
+ *   split/entrega: nome e modo de entrega de um pacote de recursos (Play Asset Delivery),
+ *   ao clonar o manifesto do pacote-modelo do template
  * @returns {Uint8Array}
  */
 export function patchManifestAab(bytes, patches) {
@@ -40,7 +46,11 @@ function patchXmlElement(bytes, patches) {
     const fields = parseFields(bytes);
     const out = [];
     for (const f of fields) {
-        if (f.fieldNum === 4 && f.wt === WT_LEN) {
+        if (f.fieldNum === 3 && f.wt === WT_LEN && patches.entrega && MODOS_ENTREGA.includes(td.decode(f.raw))) {
+            // XmlElement.name — <dist:install-time/> → <dist:fast-follow/> / <dist:on-demand/>
+            f.raw = te.encode(patches.entrega);
+            out.push(f);
+        } else if (f.fieldNum === 4 && f.wt === WT_LEN) {
             // XmlElement.attribute (repeated) — remover debuggable; patch demais
             if (isAttrNamed(f.raw, 'debuggable')) continue;
             f.raw = patchXmlAttribute(f.raw, patches);
@@ -89,6 +99,9 @@ function patchXmlAttribute(bytes, patches) {
     } else if (attrName === 'targetSdkVersion' && patches.targetSdkVersion !== undefined) {
         valueField.raw = te.encode(String(patches.targetSdkVersion));
         patchVersionCodeInt(fields, patches.targetSdkVersion);
+        changed = true;
+    } else if (attrName === 'split' && patches.split) {
+        valueField.raw = te.encode(patches.split);
         changed = true;
     } else if (attrName === 'label' && patches.appName) {
         valueField.raw = te.encode(patches.appName);

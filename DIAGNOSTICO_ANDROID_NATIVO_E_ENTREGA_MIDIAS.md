@@ -282,6 +282,26 @@ Manter os dois, com escolha no assistente: **"App HTML"** / **"App nativo"** (es
 2. **Ponte Java + HTML:** `obterUrlTocavel`, aviso de primeiro uso, tela de mídias offline. Com isso, projetos grandes já funcionam no template atual.
 3. **Template nativo mínimo:** lista, busca, entrada, áudio, vídeo e mídias offline, usando o mesmo contrato e oferecido como opção experimental.
 
+### 5.10 Situação da implementação
+
+**Plano 1 — implementado** (branch `entrega-midias-etapas`):
+
+| Peça | Onde |
+|---|---|
+| Algoritmo 5.7 (`planejarEntrega`), limites rígidos, `midias-index.json` (`gerarIndiceMidias`) | `packages/android/limitesTamanho.js` |
+| Pacotes no AAB: o `midia_pack` do template é o **modelo**; cada pacote do plano é um clone com `split` e modo de entrega reescritos no manifesto. **O template não precisou ser recompilado.** | `injetorAab.js`, `patcherManifestAab.js` (`split`, `entrega`) |
+| Classificação das mídias (imagem, pronúncia, exemplo, vídeo) e categoria (`CAMPO_SEMANTICO` da primeira entrada que usa o arquivo) | `index.html` (`apkClassificarMidias`) |
+| Opção "Entrega em etapas (experimental)", orçamento em MB, tabela "Na instalação · Baixa em seguida · Sob demanda" | `index.html` (passo do app Android) |
+| Bloco no `LEIA-ME.txt` com os pacotes | `exportadorAndroid.js` |
+
+Decisões:
+- **Etapas desligadas por padrão.** Sem a ponte do Plano 2, mídias em pacotes *fast-follow*/*on-demand* não abrem no app. Desligada, a opção ainda divide as mídias da instalação em vários pacotes *install-time* de até 1,5 GB (antes, mídias acima de 1,5 GB faziam o AAB ser recusado).
+- **Só no modo projeto.** "HTML pronto" não tem banco para classificar as mídias, e o HTML dele não terá a ponte.
+- **Vídeos de pronúncia** (`ARQUIVO_ENTRADA_TIPO = 'video'`) seguem a etapa de vídeos, como em 5.7.
+- **Vídeos cabem no orçamento:** se sobrar orçamento depois de imagens e áudios, os vídeos também vão na instalação (5.2: cada etapa usa o que sobrar).
+- **Limite de pacotes:** 50 (a confirmar no Play Console). Acima disso, categorias seguidas passam a dividir pacotes e o tamanho-alvo dobra até 1,5 GB.
+- **Imagens acima do orçamento:** só aviso; a otimização é feita por um script Python externo (5.3 (b) não será implementado no sistema).
+
 ---
 
 ## 6. Fontes

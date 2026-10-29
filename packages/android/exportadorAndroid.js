@@ -11,7 +11,7 @@ import { GerenteChave } from './gerenteChave.js';
 import { InjetorAab, gerarIconesDensidades } from './injetorAab.js';
 import { montarPacoteAssinado, CacheHashes } from './montadorPacote.js';
 import { montarZipStored, verificarCancelamento, somarTamanhos } from './zipUtil.js';
-import { deveUsarPacoteMidia, formatarTamanho } from './limitesTamanho.js';
+import { planejarEntrega, planoTemEtapas, formatarTamanho, ENTREGA } from './limitesTamanho.js';
 import { redimensionarParaPng } from '../core/iconeUtil.js';
 
 // Ícone da ficha da Play Store: PNG 512×512, até 1 MB (o Google aplica a máscara)
@@ -80,6 +80,7 @@ export class ExportadorAndroid {
      *   estado?: string,
      *   pais?: string,
      *   capturas?: Map<string, Uint8Array>,
+     *   entrega?: { etapas?: boolean, orcamento?: number, classificacao?: Map },  // opções de planejarEntrega
      *   onProgress?: (pct: number, msg: string) => void,
      *   sinal?: AbortSignal,  // cancela a geração (antes do salvamento)
      * }} opcoes
@@ -101,6 +102,7 @@ export class ExportadorAndroid {
             estado = '',
             pais = '',
             capturas = new Map(),
+            entrega = {},
             onProgress = () => {},
             sinal,
         } = opcoes;
@@ -137,9 +139,10 @@ export class ExportadorAndroid {
         const appInfo = { htmlBytes, midias, iconeBytes };
         const metaInfo = { packageName, appName, versionName, versionCode };
 
-        // Play Asset Delivery: mídias acima do limite do módulo base vão para o pacote install-time
+        // Play Asset Delivery: o plano divide as mídias entre o módulo base e os pacotes de recursos
         const tamanhoMidias = somarTamanhos(midias.values());
-        const usarPacoteMidia = deveUsarPacoteMidia(htmlBytes.length, tamanhoMidias);
+        const plano = planejarEntrega({ ...entrega, midias, tamanhoHtml: htmlBytes.length });
+        const usarPacoteMidia = plano.pacotes.length > 0;
 
         // Progresso por bytes: hash das mídias (uma vez) + leitura da assinatura v2 de cada artefato
         const conteudoTotal = htmlBytes.length + tamanhoMidias;
@@ -165,7 +168,7 @@ export class ExportadorAndroid {
         const progAab = progressoFaixa(20, 50, 'Gerando e assinando AAB', 2 * conteudoTotal);
         const aab = await montarPacoteAssinado({
             ...assinatura,
-            entradas: await injector.prepararEntradas(entradasTemplateAab, appInfo, metaInfo, false, { usarPacoteMidia, iconesProntos }),
+            entradas: await injector.prepararEntradas(entradasTemplateAab, appInfo, metaInfo, false, { plano, iconesProntos }),
             alinhar: false,
             onBytesHash: progAab,
             onBytesAssinatura: progAab,
@@ -212,7 +215,7 @@ export class ExportadorAndroid {
         const infoTexto = this.#montarLeiaMe({
             nomeResponsavel, organizacao, cidade, estado, pais,
             appName, packageName, versionName, senha, chaveTemporaria, alias, nomeAab, nomeApk, nomeP12, nomesCapturas, iconeLoja,
-            usarPacoteMidia, tamanhoAab: aab.tamanho, tamanhoApk: apk.tamanho,
+            plano, tamanhoAab: aab.tamanho, tamanhoApk: apk.tamanho,
         });
 
         // Zip final sem compressão (STORED), montado em partes: AAB e APK entram como
@@ -244,11 +247,36 @@ export class ExportadorAndroid {
             // O zip não é salvo aqui: a tela de conclusão oferece o botão "Salvar"
             blob: blobZip,
             usarPacoteMidia,
+            plano,
             tamanhos: { aab: aab.tamanho, apk: apk.tamanho, zip: blobZip.size },
         };
     }
 
-    #montarLeiaMe({ nomeResponsavel, organizacao, cidade, estado, pais, appName, packageName, versionName, senha, chaveTemporaria = false, alias, nomeAab, nomeApk, nomeP12, nomesCapturas = [], iconeLoja = null, usarPacoteMidia = false, tamanhoAab = 0, tamanhoApk = 0 }) {
+    // Bloco do LEIA-ME com a divisão das mídias entre a instalação e os pacotes de recursos
+    #montarBlocoEntrega(plano) {
+        const MODOS = {
+            [ENTREGA.INSTALACAO]: 'na instalação',
+            [ENTREGA.SEGUIDA]: 'baixa logo após a instalação (fast-follow)',
+            [ENTREGA.DEMANDA]: 'sob demanda (on-demand)',
+        };
+        const linhas = [
+            'Pacotes de mídias (Play Asset Delivery)',
+            '---------------------------------------',
+            `Na instalação (módulo base, HTML e app incluídos): ${formatarTamanho(plano.totais[ENTREGA.INSTALACAO])}`,
+            ...plano.pacotes.map(p => `- ${p.nome}: ${p.rotulo}, ${formatarTamanho(p.tamanho)}, ${MODOS[p.entrega]}`),
+        ];
+        if (planoTemEtapas(plano)) {
+            linhas.push(
+                'ATENÇÃO (experimental): os pacotes fast-follow/on-demand ficam fora da instalação e o app',
+                'ainda não sabe baixá-los. As mídias deles não abrem no app publicado pela Google Play.',
+                'O arquivo midias-index.json (no módulo base) lista o pacote de cada uma dessas mídias.',
+            );
+        }
+        linhas.push('Nenhuma ação é necessária no Play Console. O APK contém tudo em um único arquivo.', '');
+        return linhas;
+    }
+
+    #montarLeiaMe({ nomeResponsavel, organizacao, cidade, estado, pais, appName, packageName, versionName, senha, chaveTemporaria = false, alias, nomeAab, nomeApk, nomeP12, nomesCapturas = [], iconeLoja = null, plano = null, tamanhoAab = 0, tamanhoApk = 0 }) {
         const local = [cidade, estado, pais].filter(Boolean).join(' - ') || '(não informado)';
 
         // Mapa do conteúdo do zip, na mesma ordem das pastas
@@ -328,14 +356,7 @@ export class ExportadorAndroid {
                 : []),
             '',
         ];
-        const blocoPacoteMidia = !usarPacoteMidia ? [] : [
-            'Pacote de mídias (Play Asset Delivery)',
-            '--------------------------------------',
-            'As mídias passam do limite de 500 MB do módulo base e foram colocadas no',
-            'pacote de recursos "midia_pack" do AAB, entregue junto com a instalação.',
-            'Nenhuma ação é necessária no Play Console. O APK contém tudo em um único arquivo.',
-            '',
-        ];
+        const blocoPacoteMidia = (!plano || plano.pacotes.length === 0) ? [] : this.#montarBlocoEntrega(plano);
         return [
             `LEIA-ME — ${appName}`,
             '='.repeat(`LEIA-ME — ${appName}`.length),

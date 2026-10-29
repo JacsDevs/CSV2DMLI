@@ -20,7 +20,23 @@ export const LIMITES = {
     geracaoPesada: 1 * GB,
     // Um arquivo precisa estar inteiro na memória para calcular o SHA-256
     arquivoGrande: 300 * MB,
+    // Soma dos pacotes install-time (módulo base incluído)
+    instalacaoTotal: 4 * GB,
+    // Quantidade de asset packs por app (a documentação do .NET MAUI cita 50; confirmar no Play Console)
+    pacotesMax: 50,
 };
+
+// Plano de entrega em etapas (DIAGNOSTICO_ANDROID_NATIVO_E_ENTREGA_MIDIAS.md, 5.7)
+export const ENTREGA = {
+    INSTALACAO: 'install-time',
+    SEGUIDA: 'fast-follow',
+    DEMANDA: 'on-demand',
+};
+export const ORCAMENTO_PADRAO = 200 * MB;   // orçamento de instalação (configurável no assistente)
+const PACOTE_ALVO = 500 * MB;               // pacotes fast-follow/on-demand: downloads curtos
+const AUDIOS_FAST_FOLLOW = 500 * MB;        // acima disso, o resto dos áudios vai on-demand
+const TOTAL_VIDEOS_FAST_FOLLOW = 1 * GB;    // projeto até 1 GB: vídeos num único pacote fast-follow
+export const ARQUIVO_INDICE_MIDIAS = 'midias-index.json';
 
 // Tamanho aproximado do template (código, recursos, ícones) somado a cada pacote
 const TAMANHO_TEMPLATE = 1 * MB;
@@ -45,17 +61,292 @@ export function formatarTamanho(bytes) {
     return `${bytes} B`;
 }
 
-/** Indica se as mídias do AAB devem ir para o pacote de recursos (Play Asset Delivery). */
-export function deveUsarPacoteMidia(tamanhoHtml, tamanhoMidias) {
-    return tamanhoHtml + tamanhoMidias > LIMITES.baseMidiaSeguro;
+// Papel de uma mídia sem classificação (modo "HTML pronto"): só pelo tipo do arquivo
+const PAPEL_POR_TIPO = { foto: 'imagem', audio: 'pronuncia', video: 'video', outros: 'outros' };
+// Ordem dentro de cada pacote e do módulo base
+const ORDEM_PAPEL = ['imagem', 'outros', 'pronuncia', 'exemplo', 'video'];
+
+const somar = (itens) => itens.reduce((s, i) => s + i.tamanho, 0);
+
+function agruparPorCategoria(itens) {
+    const grupos = new Map();
+    for (const item of itens) {
+        if (!grupos.has(item.categoria)) grupos.set(item.categoria, []);
+        grupos.get(item.categoria).push(item);
+    }
+    return grupos;
+}
+
+// Pronúncias por categoria inteira, na ordem em que as categorias aparecem, até o orçamento
+function categoriasAteOrcamento(itens, orcamento) {
+    const cabem = [];
+    const sobram = [];
+    let resta = orcamento;
+    for (const lista of agruparPorCategoria(itens).values()) {
+        const tamanho = somar(lista);
+        if (tamanho <= resta) {
+            cabem.push(...lista);
+            resta -= tamanho;
+        } else {
+            sobram.push(...lista);
+        }
+    }
+    return { cabem, sobram };
+}
+
+// Divide os itens em blocos de até `limite` bytes (um arquivo maior que o limite fica sozinho)
+function dividirEmBlocos(itens, limite) {
+    const blocos = [];
+    let atual = null;
+    for (const item of itens) {
+        if (!atual || (atual.length > 0 && somar(atual) + item.tamanho > limite)) {
+            atual = [];
+            blocos.push(atual);
+        }
+        atual.push(item);
+    }
+    return blocos;
+}
+
+// Pacotes de até `alvo` bytes, um por categoria (dividida em partes se passar do alvo).
+// Com `juntar`, categorias seguidas dividem o mesmo pacote enquanto couberem.
+function pacotesPorCategoria(itens, alvo, juntar) {
+    const pacotes = [];
+    let atual = null;
+    for (const [categoria, lista] of agruparPorCategoria(itens)) {
+        const tamanhoCategoria = somar(lista);
+        const cabeNoAtual = juntar && atual && atual.tamanho + tamanhoCategoria <= alvo;
+        if (!cabeNoAtual) atual = null;
+        for (const item of lista) {
+            if (!atual || (atual.itens.length > 0 && atual.tamanho + item.tamanho > alvo)) {
+                atual = { categorias: [], itens: [], tamanho: 0 };
+                pacotes.push(atual);
+            }
+            if (atual.categorias[atual.categorias.length - 1] !== categoria) atual.categorias.push(categoria);
+            atual.itens.push(item);
+            atual.tamanho += item.tamanho;
+        }
+    }
+    return pacotes;
+}
+
+function rotuloCategorias(base, categorias) {
+    const nomes = categorias.filter(Boolean);
+    if (nomes.length === 0) return base;
+    const exibidos = nomes.length > 3 ? `${nomes.slice(0, 3).join(', ')} e mais ${nomes.length - 3}` : nomes.join(', ');
+    return `${base} — ${exibidos}`;
+}
+
+/**
+ * Divide as mídias entre o módulo base e os pacotes de recursos do AAB (Play Asset Delivery).
+ *
+ * Sem `etapas`, todas as mídias são entregues na instalação: ficam no módulo base enquanto
+ * couberem e, acima disso, em pacotes install-time de até 1,5 GB. Com `etapas`, segue o
+ * algoritmo de DIAGNOSTICO_ANDROID_NATIVO_E_ENTREGA_MIDIAS.md (5.7): imagens na instalação,
+ * depois áudios e vídeos gastando o que sobrar do orçamento, e o resto em pacotes
+ * fast-follow ou on-demand.
+ *
+ * @param {{
+ *   midias: Iterable<[string, { size?: number, length?: number }]>,
+ *   tamanhoHtml?: number,
+ *   etapas?: boolean,
+ *   orcamento?: number,
+ *   classificacao?: Map<string, { papel: 'imagem'|'pronuncia'|'exemplo'|'video', categoria?: string }>,
+ * }} opcoes
+ */
+export function planejarEntrega({ midias, tamanhoHtml = 0, etapas = false, orcamento = ORCAMENTO_PADRAO, classificacao = new Map() }) {
+    const itens = [];
+    for (const [caminho, dados] of midias) {
+        const c = classificacao.get(caminho);
+        itens.push({
+            caminho,
+            tamanho: (dados && (dados.size ?? dados.length)) || 0,
+            papel: (c && c.papel) || PAPEL_POR_TIPO[tipoDaMidia(caminho)],
+            categoria: (c && c.categoria) || '',
+        });
+    }
+    itens.sort((a, b) => ORDEM_PAPEL.indexOf(a.papel) - ORDEM_PAPEL.indexOf(b.papel));
+    const doPapel = (...papeis) => itens.filter(i => papeis.includes(i.papel));
+
+    const avisos = [];
+    const instalacao = [];
+    const seguida = [];   // grupos fast-follow: { rotulo, itens }
+    let demanda = [];     // itens on-demand por tipo: { rotulo, itens }
+
+    if (!etapas) {
+        instalacao.push(...itens);
+    } else {
+        // 1. Imagens (e arquivos de tipo desconhecido) sempre na instalação
+        const imagens = doPapel('imagem', 'outros');
+        instalacao.push(...imagens);
+        let resta = orcamento - tamanhoHtml - somar(imagens);
+        if (resta < 0) {
+            avisos.push({ nivel: 'atencao', texto:
+                `As imagens somam ${formatarTamanho(somar(imagens))}, acima do orçamento de instalação ` +
+                `(${formatarTamanho(orcamento)}). Elas continuam na instalação; reduza-as para diminuir o download inicial.` });
+            resta = 0;
+        }
+
+        // 2. Áudios: pronúncias têm prioridade sobre exemplos
+        const pronuncias = doPapel('pronuncia');
+        const exemplos = doPapel('exemplo');
+        const totalAudios = somar(pronuncias) + somar(exemplos);
+        if (totalAudios <= resta) {
+            instalacao.push(...pronuncias, ...exemplos);
+            resta -= totalAudios;
+        } else if (somar(pronuncias) <= resta) {
+            instalacao.push(...pronuncias);
+            resta -= somar(pronuncias);
+            seguida.push({ rotulo: 'Áudios de exemplos', itens: exemplos });
+        } else {
+            const { cabem, sobram } = categoriasAteOrcamento(pronuncias, resta);
+            instalacao.push(...cabem);
+            resta -= somar(cabem);
+            const resto = [...sobram, ...exemplos];
+            if (totalAudios <= AUDIOS_FAST_FOLLOW) seguida.push({ rotulo: 'Áudios', itens: resto });
+            else demanda.push({ rotulo: 'Áudios', itens: resto });
+        }
+
+        // 3. Vídeos: na instalação se couberem no que sobrou do orçamento
+        const videos = doPapel('video');
+        if (somar(videos) <= resta) {
+            instalacao.push(...videos);
+        } else if (somar(itens) <= TOTAL_VIDEOS_FAST_FOLLOW) {
+            seguida.push({ rotulo: 'Vídeos', itens: videos });
+        } else {
+            demanda.push({ rotulo: 'Vídeos', itens: videos });
+        }
+        demanda = demanda.filter(g => g.itens.length > 0);
+    }
+
+    // Módulo base enquanto couber; senão, pacotes install-time
+    const pacotes = [];
+    const baseCabe = tamanhoHtml + somar(instalacao) <= LIMITES.baseMidiaSeguro;
+    const base = baseCabe ? instalacao : [];
+    if (!baseCabe) {
+        dividirEmBlocos(instalacao, LIMITES.pacoteRecursos).forEach((bloco, i) => pacotes.push({
+            nome: i === 0 ? 'midia_pack' : `midia_pack_${i + 1}`,
+            entrega: ENTREGA.INSTALACAO,
+            rotulo: 'Mídias da instalação',
+            categorias: [],
+            itens: bloco,
+        }));
+    }
+    let numeroSeguida = 0;
+    for (const grupo of seguida) {
+        for (const bloco of dividirEmBlocos(grupo.itens, LIMITES.pacoteRecursos)) {
+            if (bloco.length === 0) continue;
+            pacotes.push({ nome: `midia_ff_${++numeroSeguida}`, entrega: ENTREGA.SEGUIDA, rotulo: grupo.rotulo, categorias: [], itens: bloco });
+        }
+    }
+
+    // On-demand por categoria; se passar do limite de pacotes, aumenta o tamanho e junta categorias
+    const disponiveis = LIMITES.pacotesMax - pacotes.length;
+    let alvo = PACOTE_ALVO;
+    let juntar = false;
+    let pacotesDemanda;
+    for (;;) {
+        pacotesDemanda = demanda.flatMap(g => pacotesPorCategoria(g.itens, alvo, juntar).map(p => ({ ...p, rotulo: g.rotulo })));
+        if (pacotesDemanda.length <= disponiveis || (juntar && alvo >= LIMITES.pacoteRecursos)) break;
+        if (juntar) alvo = Math.min(alvo * 2, LIMITES.pacoteRecursos);
+        juntar = true;
+    }
+    pacotesDemanda.forEach((p, i) => pacotes.push({
+        nome: `midia_od_${i + 1}`,
+        entrega: ENTREGA.DEMANDA,
+        rotulo: rotuloCategorias(p.rotulo, p.categorias),
+        categorias: p.categorias,
+        itens: p.itens,
+    }));
+
+    // Pacotes com o mesmo rótulo (categoria grande dividida em partes) ganham numeração
+    const porRotulo = new Map();
+    for (const p of pacotes) porRotulo.set(p.rotulo, (porRotulo.get(p.rotulo) || 0) + 1);
+    const vistos = new Map();
+    for (const p of pacotes) {
+        const n = porRotulo.get(p.rotulo);
+        if (n > 1) {
+            vistos.set(p.rotulo, (vistos.get(p.rotulo) || 0) + 1);
+            p.rotulo = `${p.rotulo} (parte ${vistos.get(p.rotulo)} de ${n})`;
+        }
+    }
+
+    // Limites rígidos
+    if (pacotes.length > LIMITES.pacotesMax) {
+        avisos.push({ nivel: 'atencao', recusaPlay: true, texto:
+            `O plano precisa de ${pacotes.length} pacotes de recursos, acima do limite de ${LIMITES.pacotesMax} da Google Play. ` +
+            'O AAB será recusado pelo Play Console; reduza as mídias.' });
+    }
+    for (const item of itens) {
+        if (item.tamanho > LIMITES.pacoteRecursos) {
+            avisos.push({ nivel: 'atencao', recusaPlay: true, texto:
+                `O arquivo "${item.caminho}" tem ${formatarTamanho(item.tamanho)} e não cabe em um pacote de recursos (1,5 GB). ` +
+                'O AAB será recusado pelo Play Console; comprima-o antes de gerar.' });
+        }
+    }
+    const totais = {
+        [ENTREGA.INSTALACAO]: tamanhoHtml + TAMANHO_TEMPLATE + somar(instalacao),
+        [ENTREGA.SEGUIDA]: 0,
+        [ENTREGA.DEMANDA]: 0,
+    };
+    for (const p of pacotes) {
+        p.tamanho = somar(p.itens);
+        if (p.entrega !== ENTREGA.INSTALACAO) totais[p.entrega] += p.tamanho;
+    }
+    if (totais[ENTREGA.INSTALACAO] > LIMITES.instalacaoTotal) {
+        avisos.push({ nivel: 'atencao', recusaPlay: true, texto:
+            `As mídias entregues na instalação somam ${formatarTamanho(totais[ENTREGA.INSTALACAO])}, acima de 4 GB ` +
+            '(limite da Google Play). O APK de instalação direta funciona, mas o AAB será recusado pelo Play Console.' });
+    }
+
+    const destinos = new Map();
+    for (const p of pacotes) {
+        for (const item of p.itens) destinos.set(item.caminho, p.nome);
+        p.arquivos = p.itens.map(i => i.caminho);
+        delete p.itens;
+    }
+    return {
+        etapas, orcamento,
+        base: { tamanho: somar(base), quantidade: base.length },
+        pacotes, destinos, totais, avisos,
+    };
+}
+
+/** Indica se o plano tem pacotes que não são entregues na instalação (exigem suporte no app). */
+export function planoTemEtapas(plano) {
+    return plano.pacotes.some(p => p.entrega !== ENTREGA.INSTALACAO);
+}
+
+/**
+ * Conteúdo do midias-index.json gravado no módulo base: pacotes fast-follow/on-demand e,
+ * para cada arquivo deles, o pacote e o tamanho. Arquivos da instalação não entram
+ * (continuam em file:///android_asset/).
+ */
+export function gerarIndiceMidias(plano, midias) {
+    const tamanhoDe = (caminho) => {
+        const dados = midias.get(caminho);
+        return (dados && (dados.size ?? dados.length)) || 0;
+    };
+    const fora = plano.pacotes.filter(p => p.entrega !== ENTREGA.INSTALACAO);
+    const arquivos = {};
+    for (const p of fora) for (const caminho of p.arquivos) arquivos[caminho] = [p.nome, tamanhoDe(caminho)];
+    return {
+        versao: 1,
+        pacotes: fora.map(p => ({
+            nome: p.nome, entrega: p.entrega, rotulo: p.rotulo, categorias: p.categorias,
+            tamanho: p.tamanho, quantidade: p.arquivos.length,
+        })),
+        arquivos,
+    };
 }
 
 /**
  * Analisa o tamanho do projeto sem ler o conteúdo dos arquivos.
- * @param {{ tamanhoHtml?: number, midias: Iterable<[string, { size?: number, length?: number }]> }} projeto
- *   midias: pares [caminho no app, File|Blob|Uint8Array]
+ * @param {{ tamanhoHtml?: number, midias: Iterable<[string, { size?: number, length?: number }]>,
+ *   entrega?: { etapas?: boolean, orcamento?: number, classificacao?: Map } }} projeto
+ *   midias: pares [caminho no app, File|Blob|Uint8Array]; entrega: opções de planejarEntrega
  */
-export function analisarTamanhoProjeto({ tamanhoHtml = 0, midias }) {
+export function analisarTamanhoProjeto({ tamanhoHtml = 0, midias, entrega = {} }) {
     const porTipo = { audio: 0, foto: 0, video: 0, outros: 0 };
     const quantidade = { audio: 0, foto: 0, video: 0, outros: 0 };
     const lista = [];
@@ -75,7 +366,8 @@ export function analisarTamanhoProjeto({ tamanhoHtml = 0, midias }) {
     const aab = conteudo + TAMANHO_TEMPLATE;
     const apk = conteudo + TAMANHO_TEMPLATE;
     const zip = aab + apk;
-    const usarPacoteMidia = deveUsarPacoteMidia(tamanhoHtml, totalMidias);
+    const plano = planejarEntrega({ ...entrega, tamanhoHtml, midias: lista.map(i => [i.caminho, { size: i.tamanho }]) });
+    const usarPacoteMidia = plano.pacotes.length > 0;
 
     const avisos = [];
     let nivel = 'ok';
@@ -90,21 +382,29 @@ export function analisarTamanhoProjeto({ tamanhoHtml = 0, midias }) {
             `O zip final (AAB + APK) ficaria com cerca de ${formatarTamanho(zip)}, acima do limite de 4 GB do formato ZIP. ` +
             'Reduza ou comprima as mídias antes de gerar.' });
     }
-    if (totalMidias > LIMITES.pacoteRecursos) {
+    for (const aviso of plano.avisos) {
+        elevar(aviso.nivel);
+        avisos.push(aviso);
+    }
+    const pacotesInstalacao = plano.pacotes.filter(p => p.entrega === ENTREGA.INSTALACAO).length;
+    if (pacotesInstalacao > 0) {
+        elevar('info');
+        avisos.push({ nivel: 'info', texto:
+            'As mídias da instalação passam do limite do módulo base da Google Play (500 MB) e serão entregues em ' +
+            (pacotesInstalacao > 1 ? `${pacotesInstalacao} pacotes de recursos` : 'um pacote de recursos') +
+            ' (Play Asset Delivery, na instalação). Nenhuma ação necessária.' });
+    }
+    if (planoTemEtapas(plano)) {
         elevar('atencao');
         avisos.push({ nivel: 'atencao', texto:
-            `As mídias somam ${formatarTamanho(totalMidias)}, acima de 1,5 GB (limite de um pacote de recursos da Google Play). ` +
-            'O APK de instalação direta funciona, mas o AAB será recusado pelo Play Console. Otimize as mídias (principalmente vídeos).' });
-    } else if (usarPacoteMidia) {
-        elevar('info');
-        avisos.push({ nivel: 'info', texto:
-            'As mídias passam do limite do módulo base da Google Play (500 MB) e serão entregues como pacote de recursos ' +
-            '(Play Asset Delivery, na instalação). Nenhuma ação necessária.' });
+            'Entrega em etapas (experimental): parte das mídias fica em pacotes baixados depois da instalação. ' +
+            'O app ainda não baixa esses pacotes, então essas mídias não abrem no AAB publicado. Use só para testes.' });
     }
-    if (aab > LIMITES.avisoDadosMoveis && zip <= LIMITES.zip) {
+    const downloadInstalacao = plano.totais[ENTREGA.INSTALACAO];
+    if (downloadInstalacao > LIMITES.avisoDadosMoveis && zip <= LIMITES.zip) {
         elevar('info');
         avisos.push({ nivel: 'info', texto:
-            `Download de ~${formatarTamanho(aab)}: a Google Play avisa quem for instalar por dados móveis (acima de 200 MB).` });
+            `Download de ~${formatarTamanho(downloadInstalacao)} na instalação: a Google Play avisa quem for instalar por dados móveis (acima de 200 MB).` });
     }
     if (conteudo > LIMITES.geracaoPesada) {
         elevar('atencao');
@@ -128,6 +428,6 @@ export function analisarTamanhoProjeto({ tamanhoHtml = 0, midias }) {
         tamanhoHtml, totalMidias, porTipo, quantidade,
         maiores: lista.slice(0, MAIORES_EXIBIDOS),
         estimativas: { aab, apk, zip },
-        usarPacoteMidia, nivel, avisos,
+        usarPacoteMidia, plano, nivel, avisos,
     };
 }
