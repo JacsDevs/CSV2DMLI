@@ -548,6 +548,174 @@ body {
     align-items: center;
 }
 
+/* Botões da proposta revisada: principal (roxo) e secundário (contorno) */
+.btn-principal,
+.btn-secundario {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: var(--control-min-height);
+    padding: 0 16px;
+    border-radius: var(--radius-control);
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.btn-principal {
+    border: 0;
+    background: var(--primary);
+    color: #ffffff;
+    font-weight: 600;
+}
+.btn-principal:hover { background: var(--primary-hover); }
+.btn-secundario {
+    border: 1px solid var(--border-strong);
+    background: var(--bg-card);
+    color: var(--text-main);
+    font-weight: 500;
+}
+.btn-secundario:hover { border-color: var(--primary); color: var(--primary); }
+.btn-principal:disabled,
+.btn-secundario:disabled { background: var(--border-color); border-color: var(--border-color); color: var(--text-muted); cursor: not-allowed; }
+
+.btn-rodape { padding: 0 20px; font-size: 15px; }
+#btnNext { margin-left: auto; }
+
+/* Cabeçalho de cada etapa: "Etapa N de 5", título e descrição */
+.etapa-cabecalho {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 24px;
+}
+.etapa-contador { font-size: 13px; font-weight: 600; color: var(--primary); }
+.etapa-titulo { margin: 0; font-size: 24px; font-weight: 700; color: var(--text-main); }
+.etapa-descricao { margin: 0; max-width: 760px; color: var(--text-muted); }
+
+/* =========================================
+   ETAPA 1 — IMPORTAR PROJETO
+   Alterna entre o estado vazio e o carregado pela classe .projeto-carregado
+========================================= */
+.etapa-importar .importar-carregado { display: none; }
+.etapa-importar.projeto-carregado .importar-vazio { display: none; }
+.etapa-importar.projeto-carregado .importar-carregado { display: flex; }
+.etapa-importar.projeto-carregado p.importar-carregado { display: block; }
+
+.importar-bloco {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.importar-zona {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 56px 24px;
+    border: 2px dashed var(--primary-border);
+    border-radius: var(--radius-md);
+    background: var(--primary-soft);
+    color: var(--primary);
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.importar-zona:hover,
+.importar-zona.dragover { border-color: var(--primary); background: var(--primary-light); }
+.importar-zona:focus-visible { outline: 3px solid var(--border-focus); outline-offset: 2px; }
+
+.importar-zona-botao {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--control-min-height);
+    margin-top: 8px;
+    padding: 0 20px;
+    border-radius: var(--radius-control);
+    background: var(--primary);
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 600;
+}
+.importar-zona-dica { font-size: 14px; color: var(--text-muted); }
+
+.importar-formatos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+.importar-formato {
+    padding: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-card);
+}
+.importar-formato h3 { margin: 0 0 8px; padding: 0; border: 0; font-size: 15px; font-weight: 700; color: var(--text-main); }
+.importar-formato ul {
+    margin: 0;
+    padding-left: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+.importar-formato code,
+.importar-resumo-pasta {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    color: var(--text-main);
+}
+.importar-formato code { font-size: 13px; }
+
+.importar-resumo {
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px 24px;
+    padding: 20px 24px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-card);
+}
+.importar-resumo-icone {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    border-radius: var(--radius-md);
+    background: var(--primary-light);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.importar-resumo-info {
+    flex: 1 1 320px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.importar-resumo-pasta { font-size: 16px; font-weight: 500; overflow-wrap: anywhere; }
+
+.mini-stats.importar-chips { margin: 0; gap: 8px; flex-wrap: wrap; justify-content: flex-start; }
+.mini-stats.importar-chips span {
+    padding: 2px 10px;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: var(--bg-secondary);
+    color: var(--text-strong);
+    font-size: 13px;
+    font-weight: 400;
+}
+.mini-stats.importar-chips .formato-detectado { background: var(--primary-light); color: var(--primary); font-weight: 700; }
+
+@media (max-width: 768px) {
+    .importar-formatos { grid-template-columns: 1fr; }
+    .importar-zona { padding: 36px 16px; }
+    .etapa-titulo { font-size: 20px; }
+}
+
 /* =========================================
    DROP ZONES
 ========================================= */
@@ -917,7 +1085,11 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     .wizard-stepper { padding: 8px 12px; min-height: 64px; }
     .step-indicator-estado { display: none; }
     .step-indicator:not(.active) .step-indicator-texto { display: none; }
-    .step-item:has(.step-indicator.active) { flex: 2 1 auto; }
+    .stepper-lista { gap: 4px; }
+    .step-item { flex: 0 1 auto; gap: 4px; }
+    .step-item:has(.step-indicator.active) { flex: 1 1 auto; }
+    .step-indicator { padding: 4px 2px; }
+    .step-linha { min-width: 8px; }
 
     /* Cabeçalho: sem subtítulo e botões só com ícone */
     .app-header { padding: 8px 14px; min-height: 0; }

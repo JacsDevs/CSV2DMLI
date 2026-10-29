@@ -50,12 +50,14 @@
         }
         
         .wizard-footer {
-            padding: 20px 30px;
-            background: var(--bg-secondary);
+            padding: 20px 32px;
+            background: var(--bg-main);
             border-top: 1px solid var(--border-color);
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
+            gap: 12px 16px;
         }
 
         
@@ -774,23 +776,62 @@
                 <div class="wizard-body">
                     
                     <!-- PASSO 1 -->
-                    <div class="wizard-step active" id="step1">
-                        <span id="badgeCsv" class="step-badge">Pendente</span>
-                        <h2 class="step-title-large"><span class="step-title-top">📊</span> Fonte de Dados</h2>
-                        <p class="step-desc" style="margin-bottom: 20px;">Selecione a pasta do projeto, no formato CSV ou CLDF.</p>
-
-                        <div class="drop-zone drop-zone-highlight drop-zone-projeto" id="pastaProjetoDropZone">
-                            <div class="drop-zone-projeto-icone">📁</div>
-                            <p><b>Selecionar ou arrastar a pasta do projeto</b></p>
-                            <p class="drop-desc">Importe projetos nos formatos CSV (dicionario.csv, mídias e configurações) ou CLDF (metadata.json, tabelas de dados e mídias). <br>O formato é detectado automaticamente.</p>
-                            <input type="file" id="filePastaProjeto" webkitdirectory multiple style="display:none">
+                    <div class="wizard-step active etapa-importar" id="step1">
+                        <span id="badgeCsv" class="step-badge" hidden>Pendente</span>
+                        <div class="etapa-cabecalho">
+                            <span class="etapa-contador">Etapa 1 de 5</span>
+                            <h2 class="etapa-titulo">Fonte de Dados</h2>
+                            <p class="etapa-descricao importar-vazio">Escolha a pasta do seu dicionário. Aceitamos projetos em CSV ou CLDF, e o formato é reconhecido automaticamente.</p>
+                            <p class="etapa-descricao importar-carregado">Projeto carregado. Confira se é a pasta certa antes de continuar.</p>
                         </div>
 
-                        <div class="mini-stats" style="margin-top: 15px;">
-                            <span id="formatoDetectado" class="formato-detectado" style="display:none"></span>
-                            <span id="csvLinhas">0 linhas</span>
-                            <span id="csvColunas">0 colunas</span>
-                            <span id="csvCategorias">0 categorias</span>
+                        <input type="file" id="filePastaProjeto" webkitdirectory multiple hidden>
+
+                        <!-- Estado vazio: área de importação + o que a pasta precisa ter -->
+                        <div class="importar-vazio importar-bloco">
+                            <div class="importar-zona" id="pastaProjetoDropZone" role="button" tabindex="0" aria-label="Selecionar pasta do projeto ou arrastar a pasta para esta área">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><path d="M12 10v6M9 13l3-3 3 3"></path></svg>
+                                <span class="importar-zona-botao">Selecionar pasta do projeto</span>
+                                <span class="importar-zona-dica">ou arraste a pasta para esta área</span>
+                            </div>
+
+                            <div class="importar-formatos">
+                                <div class="importar-formato">
+                                    <h3>Projeto em CSV</h3>
+                                    <ul>
+                                        <li><code>dicionario.csv</code> com as entradas (obrigatório)</li>
+                                        <li>Pastas de áudio, imagem e vídeo (opcional)</li>
+                                        <li>Arquivos de configuração salvos antes (opcional)</li>
+                                    </ul>
+                                </div>
+                                <div class="importar-formato">
+                                    <h3>Projeto em CLDF</h3>
+                                    <ul>
+                                        <li><code>metadata.json</code> e as tabelas de dados (obrigatório)</li>
+                                        <li>Mídias referenciadas nas tabelas (opcional)</li>
+                                        <li>Colunas extras são mapeadas logo após a importação</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Estado carregado: resumo da pasta importada -->
+                        <div class="importar-carregado importar-resumo">
+                            <span class="importar-resumo-icone" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg></span>
+                            <div class="importar-resumo-info">
+                                <span class="importar-resumo-pasta" id="nomePastaProjeto">Projeto carregado</span>
+                                <div class="mini-stats importar-chips">
+                                    <span id="formatoDetectado" class="formato-detectado" style="display:none"></span>
+                                    <span id="csvLinhas">0 entradas</span>
+                                    <span id="csvColunas">0 colunas</span>
+                                    <span id="csvCategorias">0 categorias</span>
+                                    <span id="csvMidias">0 mídias</span>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-secundario" id="btnTrocarPasta">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"></path><path d="M21 3v5h-5"></path></svg>
+                                Trocar pasta
+                            </button>
                         </div>
                     </div>
 
@@ -951,8 +992,8 @@
                 
                 <!-- Footer Actions -->
                 <div class="wizard-footer">
-                    <button id="btnPrev" class="btn btn-secondary" onclick="window.passoAnterior()" disabled>← Anterior</button>
-                    <button id="btnNext" class="btn btn-primary" onclick="window.proximoPasso()">Próximo Passo →</button>
+                    <button type="button" id="btnPrev" class="btn-secundario btn-rodape" onclick="window.passoAnterior()" disabled>← Anterior</button>
+                    <button type="button" id="btnNext" class="btn-principal btn-rodape" onclick="window.proximoPasso()">Próximo Passo →</button>
                 </div>
             </div>
             
@@ -2881,10 +2922,12 @@
         const filePastaProj = document.getElementById('filePastaProjeto');
 
         // Fluxo único do Passo 1 (seleção ou arraste da pasta): o carregador detecta CSV ou CLDF
-        const NOMES_FORMATO = { csv: '📊 Projeto CSV', cldf: '🌍 Projeto CLDF', projeto: '💾 Projeto salvo' };
+        const NOMES_FORMATO = { csv: 'Projeto CSV', cldf: 'Projeto CLDF', projeto: 'Projeto salvo' };
         const processarPastaProjeto = async (arquivos) => {
             if (!arquivos || arquivos.length === 0) return;
             const numArquivos = arquivos.length;
+            const primeiro = arquivos[0];
+            const nomePasta = ((primeiro.webkitRelativePath || primeiro.caminhoPersonalizado || '').split('/')[0]) || '';
             window.mostrarLoader('Processando Projeto', 'Lendo a estrutura da pasta e arquivos...');
             // Permite que o navegador renderize o modal antes de travar a thread
             await new Promise(r => setTimeout(r, 50));
@@ -2897,9 +2940,11 @@
                 const nomeFormato = NOMES_FORMATO[window.carregadorPasta.formatoDetectado];
                 const formatoEl = document.getElementById('formatoDetectado');
                 if (formatoEl) {
-                    formatoEl.textContent = nomeFormato ? `${nomeFormato} detectado` : '';
+                    formatoEl.textContent = nomeFormato || '';
                     formatoEl.style.display = nomeFormato ? '' : 'none';
                 }
+                const nomePastaEl = document.getElementById('nomePastaProjeto');
+                if (nomePastaEl) nomePastaEl.textContent = nomePasta ? `${nomePasta}/` : 'Projeto carregado';
 
                 if (window.adicionarLogAoTerminal) {
                     const stats = window.sistema ? window.sistema.obterEstatisticas() : null;
@@ -2965,9 +3010,15 @@
         // Engatilha os inputs escondidos nas DropZones
         const pastaDrop = document.getElementById('pastaProjetoDropZone');
         if (pastaDrop && filePastaProj) {
-            pastaDrop.addEventListener('click', () => { filePastaProj.value = null; filePastaProj.click(); });
+            const abrirSeletorPasta = () => { filePastaProj.value = null; filePastaProj.click(); };
+            pastaDrop.addEventListener('click', abrirSeletorPasta);
+            pastaDrop.addEventListener('keydown', e => {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrirSeletorPasta(); }
+            });
             filePastaProj.addEventListener('click', e => e.stopPropagation());
             setupDropZone(pastaDrop, processarPastaProjeto);
+            const btnTrocar = document.getElementById('btnTrocarPasta');
+            if (btnTrocar) btnTrocar.addEventListener('click', abrirSeletorPasta);
         }
 
         // Configura áreas de mídia para aceitarem drop
@@ -2986,17 +3037,19 @@
             const stats = window.sistema.obterEstatisticas();
             if (!stats) return;
             
+            document.getElementById('step1').classList.toggle('projeto-carregado', !!stats.disponivel);
             if (stats.disponivel) {
+                const num = n => (n || 0).toLocaleString('pt-BR');
                 document.getElementById('countEntradas').textContent = stats.entradas || 0;
-                document.getElementById('csvLinhas').textContent = `${stats.entradas || 0} linhas`;
-                document.getElementById('csvColunas').textContent = `${stats.colunas || 0} colunas`;
-                document.getElementById('csvCategorias').textContent = `${stats.categorias || 0} categorias`;
+                document.getElementById('csvLinhas').textContent = `${num(stats.entradas)} entradas`;
+                document.getElementById('csvColunas').textContent = `${num(stats.colunas)} colunas`;
+                document.getElementById('csvCategorias').textContent = `${num(stats.categorias)} categorias`;
                 document.getElementById('badgeCsv').textContent = '✅ Carregado';
                 document.getElementById('badgeCsv').className = 'step-badge active badge-ok';
                 if (typeof popularEstrutura === 'function') popularEstrutura();
             } else {
                 document.getElementById('countEntradas').textContent = 0;
-                document.getElementById('csvLinhas').textContent = '0 linhas';
+                document.getElementById('csvLinhas').textContent = '0 entradas';
                 document.getElementById('csvColunas').textContent = '0 colunas';
                 document.getElementById('csvCategorias').textContent = '0 categorias';
                 document.getElementById('formatoDetectado').style.display = 'none';
@@ -3012,6 +3065,7 @@
             document.getElementById('countVideo').textContent = vi;
             
             const totMidia = au + ig + vi;
+            document.getElementById('csvMidias').textContent = `${totMidia.toLocaleString('pt-BR')} ${totMidia === 1 ? 'mídia' : 'mídias'}`;
             const bm = document.getElementById('badgeMidias');
             if (totMidia > 0) {
                 bm.textContent = `✅ ${totMidia} arquivos`;
@@ -4667,15 +4721,19 @@
             }
         }
 
-        // Controla botões
-        document.getElementById('btnPrev').disabled = (passo === 1);
-        
+        // Controla botões: cada um diz para qual etapa leva
+        const nomeEtapa = n => document.querySelector(`#indicator${n} .step-indicator-title`).textContent;
+        const btnPrev = document.getElementById('btnPrev');
+        btnPrev.disabled = (passo === 1);
+        btnPrev.style.display = passo === 1 ? 'none' : '';
+        if (passo > 1) btnPrev.textContent = `← Voltar: ${nomeEtapa(passo - 1)}`;
+
         const btnNext = document.getElementById('btnNext');
         if (passo === totalPassos) {
             btnNext.style.display = 'none';
         } else {
-            btnNext.style.display = 'inline-block';
-            btnNext.textContent = 'Próximo Passo →';
+            btnNext.style.display = '';
+            btnNext.textContent = `Próximo: ${nomeEtapa(passo + 1)} →`;
         }
         
         window.passoAtual = passo;
