@@ -362,7 +362,16 @@ Testado: lista (998 entradas), busca sem acento por termo e tradução, entrada 
 
 Testado no celular (dados Makurap, tema escuro): painel de Ajustes, filtro por classe e por categoria (com a pílula de remover), dicionário invertido em Cards, Lista e entrada, anterior/próxima, player flutuante na entrada e na lista, escolha de tema e "Como citar".
 
-Fase seguinte: (3) painel de acessibilidade completo, janela de informações ao abrir e nome do subcampo ao lado do campo fixo no topo.
+**Fase 3 (acessibilidade e acabamento), implementada.**
+
+| Peça | Onde |
+|---|---|
+| Painel de acessibilidade (`#modal-acessibilidade`), aberto pelo botão do topo e por Ajustes: tamanho do texto 90/100/115/130% com pré-visualização (escala sobre a fonte do sistema, inclusive na introdução em HTML), tema Claro/Escuro/**Alto contraste** (paleta fixa do HTML, acima das cores do projeto; até escolher, segue o sistema), "Espaçamento de leitura" (1.85 / 0.03em), "Reduzir animações" (segue o sistema por padrão), "Manter barra superior fixa" (o topo só fica compacto), "Restaurar padrões" e "Concluir"; tudo salvo nas preferências | `Acessibilidade.kt`, `Tema.kt`, `MainActivity.kt` |
+| Janela "Informações e introdução" ao abrir o app, como no HTML; o aviso de mídias offline só aparece depois de fechá-la (`avisarPrimeiroUso`) | `Telas.kt` |
+| "Referências" some de Ajustes quando o projeto não tem referências | `Ajustes.kt` |
+| Campo fixo no topo com sombra e o subcampo em que a pessoa está ("Animais › Aves", `.cat-sub-fixa`); recolher o campo grudado volta à posição real dele (`reposicionarTituloFixado`) | `Principal.kt` |
+
+Testado no celular: janela ao abrir e aviso depois dela, painel (alto contraste, 130%, espaçamento, barra fixa), preferências mantidas ao reabrir o app, introdução seguindo tamanho e espaçamento, subcampo ao lado do campo fixo, recolher o campo grudado e "Restaurar padrões". "Reduzir animações" não foi conferido visualmente (troca as transições por nenhuma).
 
 Fora desta versão (decisão de escopo): VLibras, templates HTML/CSS personalizados, "HTML pronto", áudio sincronizado dos textos estruturados e capturas automáticas para a Play.
 

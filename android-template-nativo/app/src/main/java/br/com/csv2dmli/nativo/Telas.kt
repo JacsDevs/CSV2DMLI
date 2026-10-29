@@ -66,6 +66,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.graphics.luminance
 import androidx.core.view.WindowCompat
@@ -137,10 +138,10 @@ fun App(prefs: Preferencias, midias: MidiasOffline, audio: ReprodutorAudio) {
             runCatching { LeitorDados.carregar(context) }
         }
     }
-    var modoTema by remember { mutableStateOf(prefs.tema) }
+    val a11y = remember { Acessibilidade(prefs) }
     val configPadrao = remember { Config("", "", "", "", "", emptyList(), "", Cores(), Cores()) }
 
-    TemaDicionario(dicionario?.getOrNull()?.config ?: configPadrao, modoTema) {
+    TemaDicionario(dicionario?.getOrNull()?.config ?: configPadrao, a11y) {
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             val resultado = dicionario
             when {
@@ -148,7 +149,7 @@ fun App(prefs: Preferencias, midias: MidiasOffline, audio: ReprodutorAudio) {
                 resultado.isFailure -> Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
                     Text("Não foi possível abrir os dados do dicionário.\n${resultado.exceptionOrNull()?.message ?: ""}")
                 }
-                else -> Navegacao(resultado.getOrThrow(), prefs, midias, audio, modoTema) { modoTema = it; prefs.tema = it }
+                else -> Navegacao(resultado.getOrThrow(), prefs, midias, audio, a11y)
             }
         }
     }
@@ -160,10 +161,10 @@ private fun Navegacao(
     prefs: Preferencias,
     midias: MidiasOffline,
     audio: ReprodutorAudio,
-    modoTema: ModoTema,
-    mudarTema: (ModoTema) -> Unit,
+    a11y: Acessibilidade,
 ) {
-    val pilha = remember { mutableStateListOf<Tela>(Tela.Lista) }
+    // Ao abrir, a janela de informações e introdução, como no HTML (abrirModalGlobal('modal-info'))
+    val pilha = remember { mutableStateListOf(Tela.Lista, Tela.Info(SecaoInfo.INTRODUCAO)) }
     val navegar: (Tela) -> Unit = { pilha.add(it) }
     val voltar: () -> Unit = { if (pilha.size > 1) pilha.removeAt(pilha.lastIndex) }
     val acoes = remember { AcoesMidia(midias, audio) }
@@ -208,7 +209,7 @@ private fun Navegacao(
 
     Box(Modifier.fillMaxSize()) {
         when (val tela = pilha.last()) {
-            Tela.Lista -> TelaPrincipal(dic, estadoPrincipal, acoes, salvos, alternarSalvo, apagarSalvos, navegar, modoTema, mudarTema)
+            Tela.Lista -> TelaPrincipal(dic, estadoPrincipal, acoes, salvos, alternarSalvo, apagarSalvos, navegar, a11y)
             is Tela.Detalhe -> {
                 // Anterior/próxima percorrem a lista como está na tela (filtros, busca, ordem)
                 val sequencia = estadoPrincipal.sequencia
@@ -227,9 +228,10 @@ private fun Navegacao(
         SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).systemBarsPadding())
     }
 
-    // Aviso de primeiro uso: uma vez, se há mídias para baixar
+    // Aviso de primeiro uso: uma vez, se há mídias para baixar, depois de fechar a janela de
+    // informações iniciais (avisarPrimeiroUso do HTML)
     var mostrarAviso by remember { mutableStateOf(midias.ativo && !prefs.avisoMidiasMostrado) }
-    if (mostrarAviso) {
+    if (mostrarAviso && pilha.last() !is Tela.Info) {
         LaunchedEffect(Unit) { prefs.avisoMidiasMostrado = true }
         val total = midias.pacotes.sumOf { it.tamanho }
         AlertDialog(
@@ -348,9 +350,15 @@ private fun TelaInfo(c: Config, secao: SecaoInfo, fechar: () -> Unit) {
 private fun TextoHtml(html: String) {
     val cor = LocalPaleta.current.texto.toArgb()
     val link = LocalPaleta.current.primaria.toArgb()
+    // TextView fora do Compose: tamanho e espaçamento seguem o painel de acessibilidade
+    val tamanho = with(LocalDensity.current) { 16.sp.toPx() }
+    val espacamento = LocalEspacamento.current
     AndroidView(
-        factory = { TextView(it).apply { textSize = 16f; setLineSpacing(0f, 1.3f) } },
+        factory = { TextView(it) },
         update = {
+            it.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, tamanho)
+            it.setLineSpacing(0f, if (espacamento) 1.85f else 1.3f)
+            it.letterSpacing = if (espacamento) 0.03f else 0f
             it.setTextColor(cor)
             it.setLinkTextColor(link)
             it.text = HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_MODE_COMPACT).trimEnd()

@@ -138,7 +138,8 @@ fun PainelAjustes(
             }
 
             Grupo("Sobre") {
-                SecaoInfo.entries.forEach { secao ->
+                // Referências só aparecem quando o projeto tem alguma (como .btn-referencias no HTML)
+                SecaoInfo.entries.filter { it != SecaoInfo.REFERENCIAS || dic.config.referencias.isNotEmpty() }.forEach { secao ->
                     LinhaPainel(secao.titulo, seta = true) { fecharE { navegar(Tela.Info(secao)) } }
                 }
             }
@@ -239,30 +240,4 @@ private fun Seletor(valor: String, padrao: String, opcoes: List<String>, descric
             }
         }
     }
-}
-
-/** Escolha do tema (até o painel de acessibilidade completo, na fase 3). */
-@Composable
-fun DialogoTema(modo: ModoTema, mudar: (ModoTema) -> Unit, fechar: () -> Unit) {
-    val p = LocalPaleta.current
-    AlertDialog(
-        onDismissRequest = fechar,
-        containerColor = p.superficie,
-        title = { Text("Tema", color = p.texto, fontWeight = FontWeight.Bold) },
-        text = {
-            Column {
-                listOf(ModoTema.SISTEMA to "Igual ao sistema", ModoTema.CLARO to "Claro", ModoTema.ESCURO to "Escuro").forEach { (m, rotulo) ->
-                    Row(
-                        Modifier.fillMaxWidth().heightIn(min = 48.dp).clip(RoundedCornerShape(Raios.pequeno))
-                            .selectable(modo == m, role = Role.RadioButton) { mudar(m) },
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        RadioButton(selected = modo == m, onClick = null, modifier = Modifier.padding(horizontal = 12.dp))
-                        Text(rotulo, color = p.texto, fontSize = 16.sp)
-                    }
-                }
-            }
-        },
-        confirmButton = { TextButton(onClick = fechar) { Text("Fechar", color = p.primaria, fontWeight = FontWeight.SemiBold) } },
-    )
 }

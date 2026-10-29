@@ -66,6 +66,24 @@ class Preferencias(context: Context) {
         get() = sp.getBoolean("ordenar_traducao", false)
         set(v) = sp.edit().putBoolean("ordenar_traducao", v).apply()
 
+    // Acessibilidade (painel do HTML: csv2dmli_acessibilidade)
+    var escalaTexto: Float
+        get() = sp.getFloat("escala_texto", 1f).takeIf { it in ESCALAS_TEXTO } ?: 1f
+        set(v) = sp.edit().putFloat("escala_texto", v).apply()
+
+    var espacamento: Boolean
+        get() = sp.getBoolean("espacamento", false)
+        set(v) = sp.edit().putBoolean("espacamento", v).apply()
+
+    /** null = segue o sistema. */
+    var semAnimacao: Boolean?
+        get() = if (sp.contains("sem_animacao")) sp.getBoolean("sem_animacao", false) else null
+        set(v) = sp.edit().apply { if (v == null) remove("sem_animacao") else putBoolean("sem_animacao", v) }.apply()
+
+    var barraFixa: Boolean
+        get() = sp.getBoolean("barra_fixa", false)
+        set(v) = sp.edit().putBoolean("barra_fixa", v).apply()
+
     var avisoMidiasMostrado: Boolean
         get() = sp.getBoolean("aviso_midias", false)
         set(v) = sp.edit().putBoolean("aviso_midias", v).apply()

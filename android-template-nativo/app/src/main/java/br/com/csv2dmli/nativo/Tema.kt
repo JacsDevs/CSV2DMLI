@@ -7,7 +7,16 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.ProvideTextStyle
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
@@ -56,12 +65,20 @@ private val PADRAO_ESCURO = mapOf(
     "acento" to 0xFFE0904F, "acentoForte" to 0xFFF0A869, "acentoClaro" to 0xFF3D2C1E, "perigo" to 0xFFE58A72,
 )
 
-fun montarPaleta(config: Config, escuro: Boolean): Paleta {
-    val padrao = if (escuro) PADRAO_ESCURO else PADRAO_CLARO
-    val proj = if (escuro) config.escuro else config.claro
+// Alto contraste (html[data-tema="contraste"]): fixo, prevalece sobre as cores do projeto
+private val CONTRASTE = mapOf(
+    "fundo" to 0xFF000000, "fundo2" to 0xFF000000, "superficie" to 0xFF0A0A0A, "superficie2" to 0xFF1F1F1F,
+    "texto" to 0xFFFFFFFF, "textoSecundario" to 0xFFF0F0F0, "borda" to 0x8CFFFFFF, "bordaForte" to 0xFFFFFFFF,
+    "primaria" to 0xFFFFD60A, "primariaHover" to 0xFFFFF27A, "primariaClara" to 0xFF2E2700, "contraste" to 0xFF000000,
+    "acento" to 0xFFFFD60A, "acentoForte" to 0xFFFFF27A, "acentoClaro" to 0xFF2E2700, "perigo" to 0xFFFF8A75,
+)
+
+fun montarPaleta(config: Config, escuro: Boolean, altoContraste: Boolean = false): Paleta {
+    val padrao = if (altoContraste) CONTRASTE else if (escuro) PADRAO_ESCURO else PADRAO_CLARO
+    val proj = if (altoContraste) Cores() else if (escuro) config.escuro else config.claro
     fun c(nome: String) = Color(proj[nome] ?: padrao.getValue(nome))
     return Paleta(
-        escuro = escuro,
+        escuro = escuro || altoContraste,
         fundo = c("fundo"), fundo2 = c("fundo2"), superficie = c("superficie"), superficie2 = c("superficie2"),
         texto = c("texto"), textoSecundario = c("textoSecundario"), borda = c("borda"), bordaForte = c("bordaForte"),
         primaria = c("primaria"), primariaHover = c("primariaHover"), primariaClara = c("primariaClara"),
@@ -72,16 +89,27 @@ fun montarPaleta(config: Config, escuro: Boolean): Paleta {
 
 val LocalPaleta = staticCompositionLocalOf { montarPaleta(Config("", "", "", "", "", emptyList(), "", Cores(), Cores()), false) }
 
-enum class ModoTema { SISTEMA, CLARO, ESCURO }
+/** "Espaçamento de leitura" ligado (para textos fora do Compose, como a introdução em HTML). */
+val LocalEspacamento = compositionLocalOf { false }
 
+enum class ModoTema { SISTEMA, CLARO, ESCURO, CONTRASTE }
+
+/**
+ * Tema e preferências de acessibilidade: paleta (claro, escuro ou alto contraste), tamanho do
+ * texto (escala sobre a fonte do sistema, como --escala-texto), espaçamento de leitura
+ * (html.a11y-espacamento) e animações.
+ */
 @Composable
-fun TemaDicionario(config: Config, modo: ModoTema, conteudo: @Composable () -> Unit) {
-    val escuro = when (modo) {
+fun TemaDicionario(config: Config, a11y: Acessibilidade, conteudo: @Composable () -> Unit) {
+    val escuro = when (a11y.tema) {
         ModoTema.SISTEMA -> isSystemInDarkTheme()
         ModoTema.CLARO -> false
-        ModoTema.ESCURO -> true
+        ModoTema.ESCURO, ModoTema.CONTRASTE -> true
     }
-    val p = montarPaleta(config, escuro)
+    val p = montarPaleta(config, escuro, a11y.tema == ModoTema.CONTRASTE)
+    val context = LocalContext.current
+    val semAnimacao = a11y.semAnimacao ?: remember { Acessibilidade.sistemaReduzMovimento(context) }
+    val densidade = LocalDensity.current
 
     // Telas que ainda usam componentes Material (entrada, ajustes...) seguem a mesma paleta
     val esquema = if (escuro) {
@@ -105,7 +133,17 @@ fun TemaDicionario(config: Config, modo: ModoTema, conteudo: @Composable () -> U
             surfaceContainerLow = p.fundo, surfaceContainerLowest = p.fundo, error = p.perigo,
         )
     }
-    CompositionLocalProvider(LocalPaleta provides p) {
-        MaterialTheme(colorScheme = esquema, content = conteudo)
+    CompositionLocalProvider(
+        LocalPaleta provides p,
+        LocalSemAnimacao provides semAnimacao,
+        LocalEspacamento provides a11y.espacamento,
+        LocalDensity provides Density(densidade.density, densidade.fontScale * a11y.escala),
+    ) {
+        MaterialTheme(colorScheme = esquema) {
+            // Mais espaço entre linhas e letras (line-height 1.85, letter-spacing 0.03em). Sempre o
+            // mesmo ProvideTextStyle: trocar de ramo recriaria o conteúdo e perderia o estado das telas
+            val estilo = LocalTextStyle.current
+            ProvideTextStyle(if (a11y.espacamento) estilo.merge(TextStyle(lineHeight = 1.85.em, letterSpacing = 0.03.em)) else estilo, conteudo)
+        }
     }
 }

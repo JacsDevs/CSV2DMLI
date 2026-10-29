@@ -4,6 +4,14 @@ package br.com.csv2dmli.nativo
 
 import android.graphics.BitmapFactory
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -153,8 +161,7 @@ fun TelaPrincipal(
     alternarSalvo: (String) -> Unit,
     apagarSalvos: () -> Unit,
     navegar: (Tela) -> Unit,
-    modoTema: ModoTema,
-    mudarTema: (ModoTema) -> Unit,
+    a11y: Acessibilidade,
 ) {
     val p = LocalPaleta.current
     val context = LocalContext.current
@@ -194,7 +201,8 @@ fun TelaPrincipal(
                 if (estado.buscaFocada) {
                     estado.oculto = false
                 } else if (acumulado > limiar && longeDoTopo) {
-                    estado.oculto = true; estado.compacto = true; acumulado = 0f
+                    // "Manter barra superior fixa": só fica compacta (html.a11y-barra-fixa)
+                    estado.oculto = !a11y.barraFixa; estado.compacto = true; acumulado = 0f
                 } else if (acumulado < -limiar) {
                     estado.oculto = false; estado.compacto = longeDoTopo; acumulado = 0f
                 }
@@ -214,6 +222,8 @@ fun TelaPrincipal(
             .drop(1).collect { estado.lista.requestScrollToItem(0) }
     }
     BackHandler(enabled = estado.categoriasAberta) { estado.categoriasAberta = false }
+    LaunchedEffect(a11y.barraFixa) { if (a11y.barraFixa) estado.oculto = false }
+    val semAnimacao = LocalSemAnimacao.current
 
     fun irParaAba(aba: Aba) {
         estado.aba = aba
@@ -240,8 +250,8 @@ fun TelaPrincipal(
         }
         AnimatedVisibility(
             visible = estado.categoriasAberta,
-            enter = slideInVertically { it },
-            exit = slideOutVertically { it },
+            enter = if (semAnimacao) EnterTransition.None else slideInVertically { it },
+            exit = if (semAnimacao) ExitTransition.None else slideOutVertically { it },
         ) {
             TelaCategorias(dic, estado.filtroCampo, fechar = { estado.categoriasAberta = false }) { nome ->
                 // selecionarCategoria() do HTML: filtra e fecha
@@ -253,7 +263,7 @@ fun TelaPrincipal(
     if (estado.ajustesAberto) {
         PainelAjustes(dic, estado, acoes.midias, navegar, abrirTema = { estado.temaAberto = true }) { estado.ajustesAberto = false }
     }
-    if (estado.temaAberto) DialogoTema(modoTema, mudarTema) { estado.temaAberto = false }
+    if (estado.temaAberto) PainelAcessibilidade(a11y) { estado.temaAberto = false }
 }
 
 // ─── Topo ──────────────────────────────────────────────────────────────────────
@@ -261,18 +271,13 @@ fun TelaPrincipal(
 @Composable
 private fun Cabecalho(config: Config, logo: ImageBitmap?, estado: EstadoPrincipal, abrirAcessibilidade: () -> Unit, abrirInfo: () -> Unit) {
     val p = LocalPaleta.current
+    val semAnimacao = LocalSemAnimacao.current
+    val entrar = if (semAnimacao) EnterTransition.None else expandVertically(expandFrom = Alignment.Top) + fadeIn()
+    val sair = if (semAnimacao) ExitTransition.None else shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut()
     Column(Modifier.fillMaxWidth().background(p.primaria).statusBarsPadding()) {
-        AnimatedVisibility(
-            visible = !estado.oculto,
-            enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
-            exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(),
-        ) {
+        AnimatedVisibility(visible = !estado.oculto, enter = entrar, exit = sair) {
             Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 12.dp)) {
-                AnimatedVisibility(
-                    visible = !estado.compacto,
-                    enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
-                    exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(),
-                ) {
+                AnimatedVisibility(visible = !estado.compacto, enter = entrar, exit = sair) {
                     LinhaMarca(config, logo, Modifier.padding(bottom = 12.dp))
                 }
                 CampoBusca(estado)
@@ -461,9 +466,38 @@ private fun Conteudo(
         var i = (if (mostrarApagar) 1 else 0) + (if (temFiltro) 1 else 0)
         grupos.linhas.mapIndexed { n, l -> if (l is Linha.TituloCampo && n > 0) i++; i++ }
     }
+    val semAnimacao = LocalSemAnimacao.current
     fun rolarPara(nome: String) {
         val linha = grupos.ancoras[nome] ?: return
-        escopo.launch { estado.lista.animateScrollToItem(indices[linha]) }
+        escopo.launch {
+            if (semAnimacao) estado.lista.scrollToItem(indices[linha]) else estado.lista.animateScrollToItem(indices[linha])
+        }
+    }
+    // Campo grudado no topo e o subcampo que já passou por baixo dele ("Animais › Aves"),
+    // como atualizarTitulosFixados() do HTML
+    var alturaCampo by remember { mutableIntStateOf(0) }
+    val fixo by remember(grupos, indices) {
+        derivedStateOf {
+            val lista = estado.lista
+            val primeiro = lista.firstVisibleItemIndex
+            var campo = -1
+            for (n in grupos.linhas.indices) {
+                if (indices[n] > primeiro) break
+                if (grupos.linhas[n] is Linha.TituloCampo) campo = n
+            }
+            if (campo < 0 || (indices[campo] == primeiro && lista.firstVisibleItemScrollOffset == 0)) return@derivedStateOf null
+            val posicoes = lista.layoutInfo.visibleItemsInfo.associate { it.index to it.offset }
+            var sub: Linha.Titulo? = null
+            for (n in campo + 1 until grupos.linhas.size) {
+                val linha = grupos.linhas[n]
+                if (linha is Linha.TituloCampo) break
+                val i = indices[n]
+                if (i >= primeiro && (posicoes[i] ?: Int.MAX_VALUE) >= alturaCampo) break
+                if (linha is Linha.Titulo) sub = linha
+            }
+            val nomes = sub?.caminho?.split('|')?.drop(1)?.filter { it.isNotEmpty() && it != "Geral" }.orEmpty()
+            CampoFixo(campo, if (nomes.isEmpty()) "" else "› " + nomes.joinToString(" › "))
+        }
     }
 
     LazyColumn(state = estado.lista, contentPadding = PaddingValues(top = 4.dp, bottom = 28.dp), modifier = Modifier.fillMaxSize()) {
@@ -505,7 +539,14 @@ private fun Conteudo(
             when (linha) {
                 is Linha.TituloCampo -> {
                     if (n > 0) item(key = "esp:" + linha.caminho) { Spacer(Modifier.height(20.dp)) }
-                    stickyHeader(key = linha.chave) { TituloCampo(linha) { estado.alternarColapso(linha.caminho) } }
+                    stickyHeader(key = linha.chave) {
+                        val atual = fixo?.takeIf { it.linha == n }
+                        TituloCampo(linha, fixado = atual != null, sub = atual?.sub.orEmpty(), medir = { alturaCampo = it }) {
+                            estado.alternarColapso(linha.caminho)
+                            // Recolher o campo grudado leva à posição real dele (reposicionarTituloFixado)
+                            if (atual != null) escopo.launch { estado.lista.scrollToItem(indices[n]) }
+                        }
+                    }
                 }
                 is Linha.Subcampos -> item(key = linha.chave) { AtalhosSubcampos(linha.nomes, ::rolarPara) }
                 is Linha.Titulo -> item(key = linha.chave) { TituloNivel(linha) { estado.alternarColapso(linha.caminho) } }
@@ -538,13 +579,16 @@ private fun FiltroAtivo(nome: String, tirar: () -> Unit) {
     }
 }
 
-/** Nível 0 · campo semântico, fixo no topo enquanto o grupo rola (.cat-n0). */
+private data class CampoFixo(val linha: Int, val sub: String)
+
+/** Nível 0 · campo semântico, fixo no topo enquanto o grupo rola (.cat-n0; .fixado com sombra e o subcampo). */
 @Composable
-private fun TituloCampo(linha: Linha.TituloCampo, alternar: () -> Unit) {
+private fun TituloCampo(linha: Linha.TituloCampo, fixado: Boolean, sub: String, medir: (Int) -> Unit, alternar: () -> Unit) {
     val p = LocalPaleta.current
-    val giro by animateFloatAsState(if (linha.colapsado) -90f else 0f, label = "seta")
+    val giro by animateFloatAsState(if (linha.colapsado) -90f else 0f, if (LocalSemAnimacao.current) snap() else spring(), label = "seta")
     Row(
-        Modifier.fillMaxWidth().background(p.fundo).padding(horizontal = 14.dp).padding(top = 8.dp)
+        Modifier.fillMaxWidth().onSizeChanged { medir(it.height) }
+            .shadow(if (fixado) 6.dp else 0.dp, RectangleShape, clip = false).background(p.fundo).padding(horizontal = 14.dp).padding(top = 8.dp)
             .drawBehind { drawLine(if (linha.colapsado) p.bordaForte else p.borda, Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx()) }
             .clickable(role = Role.Button, onClick = alternar)
             .semantics { heading(); contentDescription = "${linha.nome}, ${linha.total} termos, ${if (linha.colapsado) "recolhido" else "expandido"}" }
@@ -556,7 +600,17 @@ private fun TituloCampo(linha: Linha.TituloCampo, alternar: () -> Unit) {
             Icon(Icones.Chevron, null, tint = p.primaria, modifier = Modifier.size(16.dp).rotate(giro))
         }
         // Contador colado ao nome, como no HTML (o nome só encolhe se faltar espaço)
-        Text(linha.nome, color = p.texto, fontSize = 20.sp, fontWeight = FontWeight.Bold, letterSpacing = (-0.3).sp, modifier = Modifier.weight(1f, fill = false))
+        Text(
+            linha.nome, color = p.texto, fontSize = 20.sp, fontWeight = FontWeight.Bold, letterSpacing = (-0.3).sp,
+            maxLines = if (fixado) 1 else Int.MAX_VALUE, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false),
+        )
+        // Subcampo em que a pessoa está (.cat-sub-fixa), só com o campo grudado no topo
+        if (fixado && sub.isNotEmpty()) {
+            Text(
+                sub, color = p.textoSecundario, fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
+                maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false),
+            )
+        }
         Text(
             linha.total.toString(), color = p.primaria, fontSize = 13.sp, fontWeight = FontWeight.Bold,
             modifier = Modifier.clip(RoundedCornerShape(50)).background(p.primariaClara).padding(horizontal = 10.dp, vertical = 3.dp),
@@ -586,7 +640,7 @@ private fun AtalhosSubcampos(nomes: List<String>, ir: (String) -> Unit) {
 @Composable
 private fun TituloNivel(linha: Linha.Titulo, alternar: () -> Unit) {
     val p = LocalPaleta.current
-    val giro by animateFloatAsState(if (linha.colapsado) -90f else 0f, label = "seta")
+    val giro by animateFloatAsState(if (linha.colapsado) -90f else 0f, if (LocalSemAnimacao.current) snap() else spring(), label = "seta")
     val n1 = linha.nivelVisual <= 1
     val corSeta = if (n1) p.primariaHover else p.textoSecundario
     Row(
