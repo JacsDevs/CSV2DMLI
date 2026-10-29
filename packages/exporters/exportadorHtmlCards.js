@@ -162,6 +162,27 @@ class ExportadorHtmlCards extends ExportadorBase {
         return await this.gerarScriptsDadosEmLotes('card', embutir, entradasLimitadas, opcoesMidia);
     }
 
+    /**
+     * Arquivos do app Android nativo: assets/dados.json e assets/config.json (dadosApp.js).
+     * As entradas são as mesmas do HTML, com as mídias por caminho relativo ("audio/x.mp3").
+     * @returns {Promise<Map<string, Uint8Array>>} nome do arquivo em assets/ → conteúdo
+     */
+    async exportarArquivosApp(opcoes = {}) {
+        if (!this.db.bancoDados) throw new Error('Banco de dados não gerado');
+        const { montarDadosApp, montarConfigApp } = await import('./dadosApp.js');
+        let entradas;
+        try {
+            entradas = await this.gerarScriptsDados(false, null, { comoDados: true });
+        } finally {
+            this.midiasGeradas = null;
+        }
+        const te = new TextEncoder();
+        return new Map([
+            ['dados.json', te.encode(JSON.stringify(montarDadosApp(entradas)))],
+            ['config.json', te.encode(JSON.stringify(montarConfigApp(opcoes.metadados || {})))],
+        ]);
+    }
+
     // Percorre a árvore na mesma ordem/recursão de processarEntradasHTML, mas só
     // coleta as referências das entradas (sem gerar HTML) até `limite`. Usado para
     // restringir gerarScriptsDados às entradas que de fato aparecerão na prévia,

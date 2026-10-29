@@ -456,6 +456,14 @@
         .apk-progress-bar { width: 100%; max-width: 420px; height: 8px; margin: 14px auto 0; background: var(--primary-light); border-radius: 999px; overflow: hidden; }
         .apk-progress-bar > div { height: 100%; width: 0; background: var(--primary); transition: width 0.3s ease; }
 
+        /* Modelo do app: HTML (WebView) ou nativo (experimental) */
+        .apk-modelo { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+        .apk-modelo-opcao { flex: 1 1 220px; display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; cursor: pointer; }
+        .apk-modelo-opcao:has(input:checked) { border-color: var(--primary); background: var(--primary-light); }
+        .apk-modelo-opcao input { margin-top: 3px; accent-color: var(--primary); }
+        .apk-modelo-opcao b { display: block; font-size: 0.92em; color: var(--text-main); }
+        .apk-modelo-opcao small { display: block; font-size: 0.78em; color: var(--text-muted); margin-top: 2px; }
+
         /* Resumo de tamanho do projeto (antes de gerar o app) */
         .apk-resumo-tamanho { margin-top: 14px; padding: 12px 14px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; font-size: 0.82em; color: var(--text-main); }
         .apk-resumo-tamanho h4 { margin: 0 0 8px 0; font-size: 0.95em; }
@@ -1230,7 +1238,18 @@
         <!-- Seção: Conteúdo do Aplicativo -->
         <div class="apk-form-section">
             <div class="apk-section-title"><h3><span>3</span>Conteúdo do Aplicativo</h3></div>
-            <p class="apk-section-desc">Defina a origem do conteúdo do aplicativo.</p>
+            <p class="apk-section-desc">Defina o modelo e a origem do conteúdo do aplicativo.</p>
+
+            <div class="apk-modelo" role="radiogroup" aria-label="Modelo do aplicativo">
+                <label class="apk-modelo-opcao">
+                    <input type="radio" name="apkModelo" value="html" checked onchange="apkAtualizarModelo()">
+                    <span><b>🌐 App HTML</b><small>O dicionário em HTML, como na exportação. Aceita templates personalizados e HTML pronto.</small></span>
+                </label>
+                <label class="apk-modelo-opcao">
+                    <input type="radio" name="apkModelo" value="nativo" onchange="apkAtualizarModelo()">
+                    <span><b>📱 App nativo (experimental)</b><small>Telas nativas do Android (6 ou mais novo): lista, busca, entrada, áudio, vídeo e mídias offline. Usa só o projeto carregado; sem templates personalizados nem capturas automáticas.</small></span>
+                </label>
+            </div>
 
             <label class="toggle-label" style="display:flex; align-items:center; gap:10px; padding:12px 14px; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:10px;">
                 <div>
@@ -2857,6 +2876,34 @@
     const APK_DEVICE_W = 390;
     const APK_DEVICE_H = 844;
 
+    function apkModeloNativo() {
+        const opcao = document.querySelector('input[name="apkModelo"]:checked');
+        return !!opcao && opcao.value === 'nativo';
+    }
+
+    // App nativo: só o projeto carregado (sem HTML pronto) e sem capturas automáticas,
+    // que são feitas a partir do HTML e não mostrariam as telas nativas
+    let _apkCapturasAntesDoNativo = null;
+    window.apkAtualizarModelo = function() {
+        const nativo = apkModeloNativo();
+        const swProjeto = document.getElementById('apkSwUsarProjeto');
+        const swCapturas = document.getElementById('apkSwCapturas');
+        if (nativo && !swProjeto.checked) {
+            swProjeto.checked = true;
+            apkAtualizarFonteHtml();
+        }
+        swProjeto.disabled = nativo;
+        if (nativo && !swCapturas.disabled) {
+            _apkCapturasAntesDoNativo = swCapturas.checked;
+            swCapturas.checked = false;
+        } else if (!nativo && swCapturas.disabled && _apkCapturasAntesDoNativo !== null) {
+            swCapturas.checked = _apkCapturasAntesDoNativo;
+        }
+        swCapturas.disabled = nativo;
+        const dica = document.querySelector('.apk-preview-hint');
+        if (dica) dica.textContent = nativo ? 'Prévia aproximada (HTML): o app nativo tem telas próprias' : 'Prévia do aplicativo';
+    };
+
     window.apkAtualizarFonteHtml = function() {
         const usarProjeto = document.getElementById('apkSwUsarProjeto').checked;
         document.getElementById('apkHtmlProntoFields').style.display = usarProjeto ? 'none' : 'block';
@@ -3695,6 +3742,7 @@
         document.getElementById('apkSwUsarProjeto').checked = true;
         document.getElementById('apkHtmlProntoFields').style.display = 'none';
         document.getElementById('apkEntregaEtapasCampos').style.display = 'block';
+        apkAtualizarModelo();
         apkLimparSelecaoHtmlPronto();
 
         // Atualizar estado da chave de assinatura (IndexedDB)
@@ -3900,8 +3948,9 @@
         const packageName = document.getElementById('apkPackageName')?.value.trim() || 'br.com.csv2dmli.app';
         const versionCode = parseVersionCode(versaoStr);
 
-        const gerarCapturas = document.getElementById('apkSwCapturas').checked;
-        const usarProjeto = document.getElementById('apkSwUsarProjeto').checked;
+        const nativo = apkModeloNativo();
+        const gerarCapturas = !nativo && document.getElementById('apkSwCapturas').checked;
+        const usarProjeto = nativo || document.getElementById('apkSwUsarProjeto').checked;
         if (!usarProjeto && !_apkHtmlProntoArquivo) { alert('Selecione um arquivo .html ou uma pasta com o conteúdo pronto.'); throw new Error('HTML pronto não selecionado'); }
 
         // Verificação de tamanho antes de começar (só metadados dos arquivos, nada é lido)
@@ -3920,7 +3969,7 @@
         const progEl = document.getElementById('apkProgressSteps');
         progEl.style.cssText = '';
         progEl.innerHTML = `
-            <div class="apk-prog-step pending" id="apkPS1">⬜ Gerando HTML do dicionário…</div>
+            <div class="apk-prog-step pending" id="apkPS1">⬜ ${nativo ? 'Gerando os dados do app…' : 'Gerando HTML do dicionário…'}</div>
             ${gerarCapturas ? '<div class="apk-prog-step pending" id="apkPSCapturas">⬜ Gerando capturas de tela…</div>' : ''}
             <div class="apk-prog-step pending" id="apkPS2">⬜ Carregando templates e chave…</div>
             <div class="apk-prog-step pending" id="apkPS3">⬜ Gerando e assinando o AAB…</div>
@@ -3929,7 +3978,12 @@
         `;
 
         let htmlBytes;
-        if (!usarProjeto) {
+        let arquivosBase;
+        if (nativo) {
+            apkSetProg('apkPS1', 'running', 'Gerando os dados do app nativo…');
+            document.getElementById('apkStatusDesc').textContent = 'Convertendo as entradas para o app nativo…';
+            arquivosBase = await window.exportador.exportarArquivosApp({ metadados: { ...coletarMetadadosExportacao(), tituloHtml: nomeApp } });
+        } else if (!usarProjeto) {
             apkSetProg('apkPS1', 'running', 'Lendo HTML selecionado…');
             document.getElementById('apkStatusDesc').textContent = 'Lendo arquivo/pasta selecionados…';
             htmlBytes = new Uint8Array(await _apkHtmlProntoArquivo.arrayBuffer());
@@ -3948,7 +4002,7 @@
         for (const [caminho, arquivo] of midias) {
             if (!(arquivo instanceof Blob)) midias.set(caminho, new Uint8Array(await arquivo.arrayBuffer()));
         }
-        apkSetProg('apkPS1', 'done', 'HTML gerado ✓');
+        apkSetProg('apkPS1', 'done', nativo ? 'Dados do app gerados ✓' : 'HTML gerado ✓');
         apkVerificarCancelamento();
 
         // Capturas para a Play Store: falhas aqui não impedem a geração do app
@@ -4005,7 +4059,9 @@
         const arquivosGerados = await exp.gerarAmbos({
             senha,
             chaveTemporaria,
+            modelo: nativo ? 'nativo' : 'html',
             htmlBytes,
+            arquivosBase,
             midias,
             iconeBytes: _apkIconeBytes.length > 0 ? new Uint8Array(_apkIconeBytes) : null,
             packageName,

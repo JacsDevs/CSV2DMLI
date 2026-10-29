@@ -45,10 +45,40 @@ export function patchManifestAab(bytes, patches) {
     const rootFields = parseFields(bytes);
     for (const f of rootFields) {
         if (f.fieldNum === 1 && f.wt === WT_LEN) {
-            f.raw = patchXmlElement(f.raw, patches);
+            // Package do template, antes de trocá-lo (para renomearValorDoPacote)
+            const pacoteAntigo = valorAtributo(f.raw, 'package');
+            f.raw = patchXmlElement(f.raw, { ...patches, pacoteAntigo });
         }
     }
     return serializeFields(rootFields);
+}
+
+// Valores derivados do package do template que precisam acompanhar o package do app: a
+// autoridade de providers (ex.: "<pacote>.androidx-startup") e permissões próprias (ex.:
+// "<pacote>.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION", declarada pelo AndroidX). Sem isso, dois
+// apps gerados do mesmo template não podem ser instalados juntos (permissão/provider duplicados).
+// Nomes de classe (android:name de activity, service...) não mudam.
+function renomearValorDoPacote(attrName, valor, pacoteAntigo, pacoteNovo) {
+    if (!pacoteAntigo || !pacoteNovo || pacoteAntigo === pacoteNovo) return null;
+    const prefixo = pacoteAntigo + '.';
+    if (attrName === 'authorities') {
+        const partes = valor.split(';');
+        if (!partes.some(p => p.startsWith(prefixo))) return null;
+        return partes.map(p => p.startsWith(prefixo) ? pacoteNovo + p.slice(pacoteAntigo.length) : p).join(';');
+    }
+    if (attrName === 'name' && valor.startsWith(prefixo) && valor.endsWith('_PERMISSION')) {
+        return pacoteNovo + valor.slice(pacoteAntigo.length);
+    }
+    return null;
+}
+
+function valorAtributo(elementBytes, nome) {
+    for (const f of parseFields(elementBytes)) {
+        if (f.fieldNum !== 4 || f.wt !== WT_LEN || !isAttrNamed(f.raw, nome)) continue;
+        const valor = parseFields(f.raw).find(a => a.fieldNum === 3 && a.wt === WT_LEN);
+        return valor ? td.decode(valor.raw) : '';
+    }
+    return '';
 }
 
 // ─── Schema-aware traversal ───────────────────────────────────────────────────
@@ -110,6 +140,12 @@ function patchXmlAttribute(bytes, patches) {
 
     const attrName = td.decode(nameField.raw);
     let changed = false;
+
+    const renomeado = renomearValorDoPacote(attrName, td.decode(valueField.raw), patches.pacoteAntigo, patches.packageName);
+    if (renomeado !== null) {
+        valueField.raw = te.encode(renomeado);
+        return serializeFields(fields);
+    }
 
     if (attrName === 'package' && patches.packageName) {
         valueField.raw = te.encode(patches.packageName);

@@ -31,6 +31,11 @@ export default class ModuloExportacao {
         return await this.exportadorCards.exportar(opcoes);
     }
 
+    // dados.json e config.json do app Android nativo
+    async exportarArquivosApp(opcoes = {}) {
+        return await this.exportadorCards.exportarArquivosApp(opcoes);
+    }
+
     exportarTypst(opcoes = {}) {
         return this.exportadorTypstModule.exportar(opcoes);
     }

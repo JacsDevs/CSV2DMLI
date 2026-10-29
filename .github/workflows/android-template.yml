@@ -1,7 +1,8 @@
 name: Android Template Build
 
-# Mantém vendor/android/template.{aab,apk} atualizados a partir do projeto
-# android-template/. Esses arquivos são consumidos pelo pipeline front-end
+# Mantém vendor/android/template.{aab,apk} (app HTML, android-template/) e
+# vendor/android/template-nativo.{aab,apk} (app nativo, android-template-nativo/)
+# atualizados. Esses arquivos são consumidos pelo pipeline front-end
 # (packages/android/exportadorAndroid.js), tanto na versão web (GitHub Pages)
 # quanto no app desktop (Tauri empacota vendor/ inteiro em dist-desktop/).
 
@@ -10,6 +11,7 @@ on:
     branches: [main]
     paths:
       - 'android-template/**'
+      - 'android-template-nativo/**'
   workflow_dispatch:
 
 permissions:
@@ -43,19 +45,25 @@ jobs:
         working-directory: android-template
         run: gradle :app:bundleDebug :app:assembleDebug
 
-      - name: Copiar template.aab e template.apk para vendor/android
+      - name: Build template nativo (AAB + APK debug com R8)
+        working-directory: android-template-nativo
+        run: gradle :app:bundleDebug :app:assembleDebug
+
+      - name: Copiar os templates para vendor/android
         run: |
           cp android-template/app/build/outputs/bundle/debug/app-debug.aab vendor/android/template.aab
           cp android-template/app/build/outputs/apk/debug/app-debug.apk    vendor/android/template.apk
+          cp android-template-nativo/app/build/outputs/bundle/debug/app-debug.aab vendor/android/template-nativo.aab
+          cp android-template-nativo/app/build/outputs/apk/debug/app-debug.apk    vendor/android/template-nativo.apk
 
       - name: Commitar templates atualizados
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet -- vendor/android/template.aab vendor/android/template.apk; then
+          git add vendor/android/template.aab vendor/android/template.apk vendor/android/template-nativo.aab vendor/android/template-nativo.apk
+          if git diff --cached --quiet; then
             echo "Templates inalterados, nada para commitar."
             exit 0
           fi
-          git add vendor/android/template.aab vendor/android/template.apk
           git commit -m "chore: atualizar template Android em vendor/"
           git push

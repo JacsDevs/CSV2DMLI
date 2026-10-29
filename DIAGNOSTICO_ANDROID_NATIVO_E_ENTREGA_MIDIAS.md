@@ -319,6 +319,27 @@ Decisões:
 
 Teste em aparelho (Galaxy S25, Android API 37, `bundletool --local-testing`, projeto Makurap com 13 pacotes on-demand / 1,67 GB): aviso de primeiro uso, pedido de download, download de um pacote e de todos, vídeo tocando do arquivo baixado com avanço, `<video>` da página e áudio passando pela ponte, remoção, e estado preservado ao reabrir o app.
 
+**Plano 3 — implementado (experimental):**
+
+| Peça | Onde |
+|---|---|
+| Contrato `dados.json` / `config.json` v1 (entradas, créditos, introdução, citação, cores do tema) | `packages/exporters/dadosApp.js`; `exportarArquivosApp` em `exportadorHtmlCards.js` / `moduloExportacao.js` |
+| App nativo: Kotlin + Jetpack Compose + Material 3, `minSdk 23`, R8 completo (APK ~3 MB). Telas: lista (filtro por categoria, salvos), busca sem acento em termo e tradução, entrada (transcrições, acepções, exemplos com áudio, imagens ampliáveis, vídeos, textos estruturados como texto), informações/como citar, ajustes (tema sistema/claro/escuro), mídias offline | `android-template-nativo/` → `vendor/android/template-nativo.{aab,apk}` |
+| Áudio e vídeo com Media3/ExoPlayer (`asset:///` e arquivos dos pacotes baixados); mídias offline com a biblioteca da Play direto em Kotlin (`MidiasOffline.kt`), mesmo comportamento do Plano 2 | idem |
+| Seletor "App HTML / App nativo (experimental)" no assistente; no nativo, "HTML pronto" e capturas automáticas ficam desligados e a prévia é marcada como aproximada | `index.html` |
+| Injetor aceita `arquivosBase` (dados.json + config.json) no lugar do `index.html`; exportador escolhe o template pelo `modelo` | `injetorAab.js`, `exportadorAndroid.js` |
+| Permissão `…DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` e autoridade `…androidx-startup` (do AndroidX) renomeadas para o package do app, no AAB e no APK — sem isso, dois apps gerados do template nativo não instalariam juntos | `patcherManifest.js`, `patcherManifestAab.js` (`renomearValorDoPacote`) |
+| CI compila os dois templates | `.github/workflows/android-template.yml` |
+
+Ajustes feitos no teste em aparelho (mesmo celular, projeto Makurap, 12 pacotes on-demand):
+- **Mídias ausentes ficam ocultas.** No Makurap, ~40% das pronúncias citam arquivos que não estão no projeto; o app nativo só mostra botão, miniatura ou galeria quando o arquivo existe (assets ou pacote). Falha de reprodução mostra aviso em vez de tela preta.
+- **Pronúncias com `|`** (`"x.mp3|x.mp4"`): `dadosApp.js` separa em uma pronúncia por arquivo, com pasta e tipo pela extensão. O sistema só separa o `|` quando o termo tem variações, então o **app HTML continua recebendo o caminho inteiro** e não toca essas mídias — correção a fazer em `gerenciadorDados.js`, fora deste plano.
+- **R8 completo:** a variante debug do template nativo usa `debuggable false` (o gerador já removia o atributo); o `classes.dex` caiu de ~10 MB para ~3 MB.
+
+Testado: lista (998 entradas), busca sem acento por termo e tradução, entrada com imagem e áudio de exemplo, vídeo de pacote baixado, aviso de primeiro uso, pedido de download, baixar um/todos, remover, tema escuro e informações (HTML da introdução).
+
+Fora desta versão (decisão de escopo): VLibras, templates HTML/CSS personalizados, "HTML pronto", áudio sincronizado dos textos estruturados, categorias em vários níveis (só o campo semântico principal) e capturas automáticas para a Play.
+
 ---
 
 ## 6. Fontes

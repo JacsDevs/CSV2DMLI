@@ -36,3 +36,12 @@ Thumbs.db
 template-old.html
 dicionario-cards-embutido.html
 csv2rmd.py
+# Build Android (android-template-nativo/)
+android-template-nativo/.gradle/
+android-template-nativo/.idea/
+android-template-nativo/.kotlin/
+android-template-nativo/build/
+android-template-nativo/app/build/
+android-template-nativo/midia_pack/build/
+android-template-nativo/local.properties
+android-template-nativo/gradle/wrapper/gradle-wrapper.jar

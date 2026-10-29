@@ -1,0 +1,12 @@
+// Pacote de recursos usado como modelo pelo gerador (packages/android/injetorAab.js), que o
+// clona para cada pacote do plano de entrega; sem pacotes no plano, é removido do AAB.
+plugins {
+    id 'com.android.asset-pack'
+}
+
+assetPack {
+    packName = "midia_pack"
+    dynamicDelivery {
+        deliveryType = "install-time"
+    }
+}

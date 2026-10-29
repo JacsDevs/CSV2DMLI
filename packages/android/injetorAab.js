@@ -53,7 +53,9 @@ export class InjetorAab {
      * As mídias são repassadas como vieram (Uint8Array ou Blob), sem cópia.
      *
      * @param {Record<string, Uint8Array>} entradasTemplate - resultado de unzipSync(template)
-     * @param {{ htmlBytes: Uint8Array, midias: Map<string, Uint8Array|Blob>, iconeBytes: Uint8Array|null }} conteudo
+     * @param {{ htmlBytes?: Uint8Array, arquivosBase?: Map<string, Uint8Array>, midias: Map<string, Uint8Array|Blob>, iconeBytes: Uint8Array|null }} conteudo
+     *   htmlBytes: index.html do template WebView; arquivosBase: arquivos de assets/ do módulo base
+     *   no lugar dele (template nativo: dados.json e config.json)
      * @param {{ packageName: string, appName: string, versionName: string, versionCode: number, targetSdkVersion?: number }} meta
      * @param {boolean} isApk - se true, o template é um APK, senão é AAB
      * @param {{ plano?: { pacotes: Array<{ nome: string, entrega: string }>, destinos: Map<string, string> },
@@ -87,9 +89,12 @@ export class InjetorAab {
             if (path.startsWith(assetsDir) || (!isApk && path.startsWith(PREFIXO_PACOTE))) delete arquivos[path];
         }
 
-        // 2. Injetar HTML principal (sempre no módulo base)
-        arquivos[`${assetsDir}index.html`] = conteudo.htmlBytes;
-        explicitos.add(`${assetsDir}index.html`);
+        // 2. Injetar o conteúdo principal (sempre no módulo base): index.html ou os arquivos do app nativo
+        const arquivosBase = conteudo.arquivosBase || new Map([['index.html', conteudo.htmlBytes]]);
+        for (const [nome, bytes] of arquivosBase) {
+            arquivos[`${assetsDir}${nome}`] = bytes;
+            explicitos.add(`${assetsDir}${nome}`);
+        }
 
         // 2b. Pacotes de recursos: manifesto do modelo com o nome, o package do app e o modo de entrega
         const te = new TextEncoder();

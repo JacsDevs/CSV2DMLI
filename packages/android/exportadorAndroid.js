@@ -67,7 +67,9 @@ export class ExportadorAndroid {
      * @param {{
      *   senha?: string,
      *   chaveTemporaria?: boolean,
-     *   htmlBytes: Uint8Array,
+     *   modelo?: 'html'|'nativo',  // template WebView (padrão) ou nativo (experimental)
+     *   htmlBytes?: Uint8Array,           // modelo 'html': index.html
+     *   arquivosBase?: Map<string, Uint8Array>,  // modelo 'nativo': dados.json e config.json
      *   midias: Map<string, Uint8Array|Blob>,  // File/Blob recomendado: não é copiado para a memória
      *   iconeBytes: Uint8Array,
      *   packageName: string,
@@ -89,7 +91,9 @@ export class ExportadorAndroid {
         const {
             senha,
             chaveTemporaria = false,
+            modelo = 'html',
             htmlBytes,
+            arquivosBase,
             midias,
             iconeBytes,
             packageName,
@@ -108,8 +112,9 @@ export class ExportadorAndroid {
         } = opcoes;
 
         onProgress(5, 'Carregando templates (AAB e APK)…');
-        const templateUrlAab = new URL('../../vendor/android/template.aab', import.meta.url).href;
-        const templateUrlApk = new URL('../../vendor/android/template.apk', import.meta.url).href;
+        const nomeTemplate = modelo === 'nativo' ? 'template-nativo' : 'template';
+        const templateUrlAab = new URL(`../../vendor/android/${nomeTemplate}.aab`, import.meta.url).href;
+        const templateUrlApk = new URL(`../../vendor/android/${nomeTemplate}.apk`, import.meta.url).href;
         
         const [templateRespAab, templateRespApk] = await Promise.all([
             fetch(templateUrlAab),
@@ -118,7 +123,7 @@ export class ExportadorAndroid {
 
         if (!templateRespAab.ok || !templateRespApk.ok) {
             throw new Error(
-                'Template AAB ou APK não encontrado. Execute "npm run build:android-template" para gerar os templates.'
+                `Template AAB ou APK não encontrado (${nomeTemplate}). Execute "npm run build:android-${nomeTemplate}" para gerar os templates.`
             );
         }
         
@@ -136,16 +141,18 @@ export class ExportadorAndroid {
 
         const injector = new InjetorAab();
         const iconesProntos = await gerarIconesDensidades(iconeBytes);  // uma vez, para AAB e APK
-        const appInfo = { htmlBytes, midias, iconeBytes };
+        const appInfo = { htmlBytes, arquivosBase, midias, iconeBytes };
+        // Peso do conteúdo do módulo base além das mídias (HTML ou dados do app nativo)
+        const tamanhoBase = arquivosBase ? [...arquivosBase.values()].reduce((s, b) => s + b.length, 0) : htmlBytes.length;
         const metaInfo = { packageName, appName, versionName, versionCode };
 
         // Play Asset Delivery: o plano divide as mídias entre o módulo base e os pacotes de recursos
         const tamanhoMidias = somarTamanhos(midias.values());
-        const plano = planejarEntrega({ ...entrega, midias, tamanhoHtml: htmlBytes.length });
+        const plano = planejarEntrega({ ...entrega, midias, tamanhoHtml: tamanhoBase });
         const usarPacoteMidia = plano.pacotes.length > 0;
 
         // Progresso por bytes: hash das mídias (uma vez) + leitura da assinatura v2 de cada artefato
-        const conteudoTotal = htmlBytes.length + tamanhoMidias;
+        const conteudoTotal = tamanhoBase + tamanhoMidias;
         const progressoFaixa = (inicio, fim, rotulo, total) => {
             let feito = 0;
             let ultimoPct = -1;
@@ -215,7 +222,7 @@ export class ExportadorAndroid {
         const infoTexto = this.#montarLeiaMe({
             nomeResponsavel, organizacao, cidade, estado, pais,
             appName, packageName, versionName, senha, chaveTemporaria, alias, nomeAab, nomeApk, nomeP12, nomesCapturas, iconeLoja,
-            plano, tamanhoAab: aab.tamanho, tamanhoApk: apk.tamanho,
+            plano, modelo, tamanhoAab: aab.tamanho, tamanhoApk: apk.tamanho,
         });
 
         // Zip final sem compressão (STORED), montado em partes: AAB e APK entram como
@@ -288,7 +295,7 @@ export class ExportadorAndroid {
         return linhas;
     }
 
-    #montarLeiaMe({ nomeResponsavel, organizacao, cidade, estado, pais, appName, packageName, versionName, senha, chaveTemporaria = false, alias, nomeAab, nomeApk, nomeP12, nomesCapturas = [], iconeLoja = null, plano = null, tamanhoAab = 0, tamanhoApk = 0 }) {
+    #montarLeiaMe({ nomeResponsavel, organizacao, cidade, estado, pais, appName, packageName, versionName, senha, chaveTemporaria = false, alias, nomeAab, nomeApk, nomeP12, nomesCapturas = [], iconeLoja = null, plano = null, modelo = 'html', tamanhoAab = 0, tamanhoApk = 0 }) {
         const local = [cidade, estado, pais].filter(Boolean).join(' - ') || '(não informado)';
 
         // Mapa do conteúdo do zip, na mesma ordem das pastas
@@ -384,6 +391,7 @@ export class ExportadorAndroid {
             `Nome do App: ${appName}`,
             `Pacote: ${packageName}`,
             `Versão: ${versionName}`,
+            ...(modelo === 'nativo' ? ['Modelo: App nativo (experimental, Android 6 ou mais novo)'] : []),
             '',
             ...blocoPacoteMidia,
             ...blocoAssinatura,

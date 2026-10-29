@@ -7,6 +7,7 @@
 //   <manifest android:versionCode="N"> → versionCode (inteiro)
 //   <manifest android:versionName="S"> → versionName (string)
 //   <application android:label="S">    → appName (converte TYPE_REFERENCE → TYPE_STRING)
+//   autoridades de providers e permissões do package do template → packageName (renomearValorDoPacote)
 
 // Chunk types
 const RES_STRINGPOOL_TYPE        = 0x0001;
@@ -42,6 +43,25 @@ export function patchManifest(bytes, patches) {
     const doc = parseAxml(bytes);
     applyPatches(doc, patches);
     return serializeAxml(doc);
+}
+
+// Valores derivados do package do template que precisam acompanhar o package do app: a
+// autoridade de providers (ex.: "<pacote>.androidx-startup") e permissões próprias (ex.:
+// "<pacote>.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION", declarada pelo AndroidX). Sem isso, dois
+// apps gerados do mesmo template não podem ser instalados juntos (permissão/provider duplicados).
+// Nomes de classe (android:name de activity, service...) não mudam.
+function renomearValorDoPacote(attrName, valor, pacoteAntigo, pacoteNovo) {
+    if (!pacoteAntigo || !pacoteNovo || pacoteAntigo === pacoteNovo) return null;
+    const prefixo = pacoteAntigo + '.';
+    if (attrName === 'authorities') {
+        const partes = valor.split(';');
+        if (!partes.some(p => p.startsWith(prefixo))) return null;
+        return partes.map(p => p.startsWith(prefixo) ? pacoteNovo + p.slice(pacoteAntigo.length) : p).join(';');
+    }
+    if (attrName === 'name' && valor.startsWith(prefixo) && valor.endsWith('_PERMISSION')) {
+        return pacoteNovo + valor.slice(pacoteAntigo.length);
+    }
+    return null;
 }
 
 // ─── Parser ──────────────────────────────────────────────────────────────────
@@ -264,6 +284,23 @@ function applyPatches(doc, patches) {
 
     // Find resource map for attr name→resId lookup (not strictly needed but helps)
     // const resMap = doc.chunks.find(c => c.kind === 'resourceMap');
+
+    // Package do template, antes de trocá-lo (para renomearValorDoPacote)
+    const raiz = doc.chunks.find(c => c.kind === 'startElement');
+    const attrPackage = raiz && raiz.attrs.find(a => strings[a.name] === 'package' && a.dataType === TYPE_STRING);
+    const pacoteAntigo = attrPackage ? strings[attrPackage.data] : '';
+    for (const chunk of doc.chunks) {
+        if (chunk.kind !== 'startElement') continue;
+        for (const attr of chunk.attrs) {
+            if (attr.dataType !== TYPE_STRING) continue;
+            const novo = renomearValorDoPacote(strings[attr.name] || '', strings[attr.data] || '', pacoteAntigo, patches.packageName);
+            if (novo !== null) {
+                const idx = intern(novo);
+                attr.rawValue = idx;
+                attr.data     = idx;
+            }
+        }
+    }
 
     let depth = 0;
     let inManifest = false;
