@@ -741,7 +741,11 @@
                         <span class="app-subtitulo">Gerador de dicionários multimídia</span>
                     </div>
                 </div>
-                <nav class="header-actions" aria-label="Ferramentas">
+                <!-- No celular as ferramentas ficam num menu (ver alternarMenuCelular) -->
+                <button type="button" class="btn-icone btn-menu-celular" id="btnMenuCelular" aria-label="Mais opções" aria-expanded="false" aria-controls="ferramentasCabecalho" onclick="window.alternarMenuCelular()">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+                <nav class="header-actions" id="ferramentasCabecalho" aria-label="Ferramentas">
                     <div class="tamanho-interface" role="group" aria-label="Tamanho da interface">
                         <button type="button" class="tamanho-btn" aria-label="Diminuir tamanho da interface" title="Diminuir tamanho da interface" onclick="ajustarZoom(-0.1)">A−</button>
                         <button type="button" class="tamanho-btn tamanho-valor" id="zoomLevel" aria-label="Restaurar tamanho padrão" title="Restaurar tamanho padrão" onclick="resetZoom()">100%</button>
@@ -779,7 +783,20 @@
                         <li class="step-item"><button type="button" class="step-indicator" id="indicator6" onclick="window.irParaPasso(6)"><span class="step-indicator-num" aria-hidden="true">6</span><span class="step-indicator-texto"><span class="step-indicator-title">Exportar</span><span class="step-indicator-estado">Pendente</span></span></button></li>
                     </ol>
                 </nav>
-                
+
+                <!-- Progresso no celular (substitui o stepper): preenchido por atualizarStepper; toque abre a lista de etapas -->
+                <details class="progresso-celular" id="progressoCelular">
+                    <summary aria-label="Progresso: abrir a lista de etapas">
+                        <span class="progresso-celular-linha">
+                            <span class="progresso-celular-nome" id="progressoCelularNome">Fonte de Dados</span>
+                            <span class="progresso-celular-contador" id="progressoCelularContador">Etapa 1 de 6</span>
+                        </span>
+                        <span class="progresso-celular-barra" id="progressoCelularBarra" aria-hidden="true"></span>
+                        <span class="progresso-celular-seguinte" id="progressoCelularSeguinte">A seguir: Mídias e Validação</span>
+                    </summary>
+                    <ol class="progresso-celular-lista" id="progressoCelularLista" aria-label="Etapas"></ol>
+                </details>
+
                 <!-- Corpo das Etapas -->
                 <div class="wizard-body">
                     
@@ -821,6 +838,15 @@
                                     </ul>
                                 </div>
                             </div>
+
+                            <!-- Versão recolhida dos cartões acima, só no celular -->
+                            <details class="importar-formatos-celular">
+                                <summary>O que a pasta precisa ter?</summary>
+                                <div>
+                                    <span><strong>CSV:</strong> <code>dicionario.csv</code> e, se houver, as pastas de áudio, imagem e vídeo.</span>
+                                    <span><strong>CLDF:</strong> <code>metadata.json</code>, as tabelas de dados e as mídias.</span>
+                                </div>
+                            </details>
 
                             <div class="importar-sem-projeto">
                                 <span class="importar-sem-projeto-icone" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6M12 12v6M9 15h6"></path></svg></span>
@@ -5860,7 +5886,80 @@
             const linha = indicador.parentElement.querySelector('.step-linha');
             if (linha) linha.classList.toggle('feita', n < passo);
         }
+        atualizarProgressoCelular(passo);
     }
+
+    // Progresso no celular: espelha o estado do stepper (classes dos #indicatorN) numa barra de segmentos
+    function atualizarProgressoCelular(passo) {
+        const nome = n => document.querySelector(`#indicator${n} .step-indicator-title`).textContent;
+        document.getElementById('progressoCelularNome').textContent = nome(passo);
+        document.getElementById('progressoCelularContador').textContent = `Etapa ${passo} de ${totalPassos}`;
+        document.getElementById('progressoCelularSeguinte').textContent =
+            passo < totalPassos ? `A seguir: ${nome(passo + 1)}` : 'Última etapa';
+
+        const estadoDe = n => {
+            const ind = document.getElementById(`indicator${n}`);
+            if (ind.classList.contains('active')) return 'atual';
+            if (ind.classList.contains('com-pendencias')) return 'pendencias';
+            if (ind.classList.contains('concluida') || n < passo) return 'feita';
+            return '';
+        };
+        const barra = document.getElementById('progressoCelularBarra');
+        barra.replaceChildren(...Array.from({ length: totalPassos }, (_, i) => {
+            const seg = document.createElement('span');
+            seg.className = estadoDe(i + 1);
+            return seg;
+        }));
+
+        const lista = document.getElementById('progressoCelularLista');
+        lista.replaceChildren(...Array.from({ length: totalPassos }, (_, i) => {
+            const n = i + 1;
+            const li = document.createElement('li');
+            const botao = document.createElement('button');
+            botao.type = 'button';
+            botao.className = `progresso-celular-item ${estadoDe(n)}`;
+            if (n === passo) botao.setAttribute('aria-current', 'step');
+            const num = document.createElement('span');
+            num.className = 'progresso-celular-num';
+            num.textContent = n;
+            const texto = document.createElement('span');
+            texto.className = 'progresso-celular-item-texto';
+            const titulo = document.createElement('strong');
+            titulo.textContent = nome(n);
+            const estado = document.createElement('span');
+            estado.textContent = document.querySelector(`#indicator${n} .step-indicator-estado`).textContent;
+            texto.append(titulo, estado);
+            botao.append(num, texto);
+            botao.addEventListener('click', () => {
+                document.getElementById('progressoCelular').open = false;
+                window.irParaPasso(n);
+            });
+            li.append(botao);
+            return li;
+        }));
+    }
+
+    // Menu ☰ do cabeçalho no celular: mostra as ferramentas (#ferramentasCabecalho) como lista suspensa
+    window.alternarMenuCelular = function(abrir) {
+        const botao = document.getElementById('btnMenuCelular');
+        const menu = document.getElementById('ferramentasCabecalho');
+        const aberto = typeof abrir === 'boolean' ? abrir : !menu.classList.contains('aberto');
+        menu.classList.toggle('aberto', aberto);
+        botao.setAttribute('aria-expanded', String(aberto));
+    };
+    document.addEventListener('click', e => {
+        const menu = document.getElementById('ferramentasCabecalho');
+        if (!menu.classList.contains('aberto')) return;
+        // Fecha ao tocar fora ou ao escolher uma ferramenta (os botões de tamanho mantêm o menu aberto)
+        if (e.target.closest('#btnMenuCelular') || e.target.closest('.tamanho-interface')) return;
+        window.alternarMenuCelular(false);
+    });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && document.getElementById('ferramentasCabecalho').classList.contains('aberto')) {
+            window.alternarMenuCelular(false);
+            document.getElementById('btnMenuCelular').focus();
+        }
+    });
 
     window.irParaPasso = function(passo) {
         // Esconde todos

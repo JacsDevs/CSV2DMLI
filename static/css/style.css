@@ -2422,17 +2422,158 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
         height: 60vh; /* espaço para filtros, lista e rodapé do histórico */
     }
 
-    .scroll-content {
-        padding: 24px 14px 90px;
+    /* ---- Layout de celular da proposta revisada (RevCelular) ----
+       Seletores com "body" para vencer o <style> do index.html, que vem depois deste arquivo. */
+
+    /* Cabeçalho: logo, título e subtítulo; ferramentas no menu ☰ */
+    .app-header { position: relative; min-height: 60px; padding: 8px 8px 8px 16px; }
+    .logo-header { flex-wrap: nowrap; }
+    .app-header img { width: 52px; }
+    .app-marca { gap: 10px; }
+    .app-marca-divisor { display: none; }
+    .app-header h1 { font-size: 17px; }
+    .app-subtitulo { font-size: 12px; }
+    .app-header .btn-menu-celular { display: inline-flex; flex-shrink: 0; position: relative; color: var(--text-strong); }
+    /* Ponto no ☰ quando o histórico tem mensagens não lidas (o selo fica dentro do menu) */
+    .app-header:has(#terminalBadge[style*="flex"]) .btn-menu-celular::after {
+        content: '';
+        position: absolute;
+        top: 9px;
+        right: 9px;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #d97706;
+        border: 2px solid var(--bg-card);
     }
+    .header-actions {
+        display: none;
+        position: absolute;
+        top: calc(100% + 4px);
+        right: 8px;
+        z-index: 30;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+        width: min(280px, calc(100vw - 16px));
+        padding: 8px;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        background: var(--bg-card);
+        box-shadow: 0 12px 32px -8px rgb(15 23 42 / 0.25);
+    }
+    .header-actions.aberto { display: flex; }
+    .header-actions .tamanho-interface { justify-content: space-between; }
+    .header-actions .tamanho-btn:not(.tamanho-valor) { flex: 1; }
+    .header-actions .btn-cabecalho { justify-content: flex-start; border-color: transparent; }
+    .header-actions .btn-cabecalho .terminal-badge { margin-left: auto; }
 
+    /* Assistente ocupa a tela toda, sem cartão; rodapé fixo embaixo */
+    body .scroll-content { padding: 0; }
+    body .wizard-container {
+        margin: 0;
+        min-height: 100%;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+        overflow: visible; /* permite o rodapé fixo (position: sticky) */
+    }
+    body .wizard-stepper { display: none; }
+    body .wizard-body { padding: 20px 16px; }
+    body .wizard-footer {
+        position: sticky;
+        bottom: 0;
+        z-index: 5;
+        flex-wrap: nowrap;
+        gap: 8px;
+        padding: 12px 16px 16px;
+        background: var(--bg-card);
+    }
+    body .wizard-footer .btn-rodape { flex: 1; min-height: 48px; margin: 0; }
+    /* "Voltar" vira só a seta; o texto completo segue no botão para leitores de tela */
+    body .wizard-footer #btnPrev { flex: 0 0 48px; padding: 0; font-size: 0; }
+    body .wizard-footer #btnPrev::before { content: '←'; font-size: 20px; }
 
-    /* Cabeçalho: sem subtítulo e botões só com ícone */
-    .app-header { padding: 8px 14px; min-height: 0; }
-    .app-header img { width: 56px; }
-    .app-subtitulo, .app-marca-divisor, .btn-cabecalho-texto { display: none; }
-    .btn-cabecalho { padding: 0 12px; }
+    /* Nome e contador da etapa já aparecem no progresso */
+    .etapa-contador, .etapa-titulo { display: none; }
+    .etapa-cabecalho { margin-bottom: 16px; }
+
+    /* Etapa 1: os cartões de formato viram um bloco recolhido */
+    .importar-formatos { display: none; }
+    .importar-zona { padding: 32px 16px; }
 }
+
+/* Progresso de etapas no celular (fora do celular fica oculto) */
+.progresso-celular { display: none; }
+.importar-formatos-celular { display: none; }
+@media (max-width: 768px) {
+    .progresso-celular {
+        display: block;
+        position: sticky;
+        top: 0;
+        z-index: 6;
+        background: var(--bg-card);
+        border-bottom: 1px solid var(--border-color);
+    }
+    .progresso-celular summary { display: block; padding: 14px 16px; list-style: none; cursor: pointer; }
+    .progresso-celular summary::-webkit-details-marker { display: none; }
+    .progresso-celular-linha { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+    .progresso-celular-nome { font-size: 15px; font-weight: 700; color: var(--text-main); }
+    .progresso-celular-contador { flex-shrink: 0; font-size: 13px; font-weight: 600; color: var(--primary); }
+    .progresso-celular-barra { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
+    .progresso-celular-barra span { height: 6px; border-radius: 3px; background: var(--border-color); }
+    .progresso-celular-barra span.feita,
+    .progresso-celular-barra span.atual { background: var(--primary); }
+    .progresso-celular-barra span.pendencias { background: #d97706; }
+    .progresso-celular-seguinte { display: flex; justify-content: space-between; margin-top: 6px; font-size: 12px; color: var(--text-muted); }
+    .progresso-celular-seguinte::after { content: 'Ver etapas ▾'; font-weight: 600; color: var(--primary); }
+    .progresso-celular[open] .progresso-celular-seguinte::after { content: 'Fechar ▴'; }
+
+    .progresso-celular-lista { margin: 0; padding: 0 8px 12px; list-style: none; display: flex; flex-direction: column; gap: 2px; }
+    .progresso-celular-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        min-height: 48px;
+        padding: 4px 8px;
+        border: 0;
+        border-radius: var(--radius-control);
+        background: transparent;
+        color: var(--text-main);
+        font-family: inherit;
+        text-align: left;
+        cursor: pointer;
+    }
+    .progresso-celular-item:hover, .progresso-celular-item[aria-current] { background: var(--primary-soft); }
+    .progresso-celular-num {
+        width: 28px;
+        height: 28px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        border: 2px solid var(--border-strong);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-muted);
+    }
+    .progresso-celular-item.feita .progresso-celular-num { background: var(--primary); border-color: var(--primary); color: #ffffff; }
+    .progresso-celular-item.atual .progresso-celular-num { border-color: var(--primary); color: var(--primary); }
+    .progresso-celular-item.pendencias .progresso-celular-num { background: var(--warning-bg); border-color: #d97706; color: var(--warning-text); }
+    .progresso-celular-item-texto { display: flex; flex-direction: column; line-height: 1.3; }
+    .progresso-celular-item-texto strong { font-size: 14px; }
+    .progresso-celular-item-texto span { font-size: 12px; color: var(--text-muted); }
+
+    .importar-formatos-celular { display: block; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-card); }
+    .importar-formatos-celular summary { display: flex; align-items: center; min-height: 48px; padding: 0 16px; font-size: 15px; font-weight: 600; cursor: pointer; }
+    .importar-formatos-celular div { display: flex; flex-direction: column; gap: 8px; padding: 0 16px 16px; font-size: 14px; color: var(--text-muted); }
+    .importar-formatos-celular strong { color: var(--text-main); }
+    .importar-formatos-celular code { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; }
+}
+
+.btn-menu-celular { display: none; }
 
 /* Custom Scrollbars */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
