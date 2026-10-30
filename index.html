@@ -1073,9 +1073,22 @@
 
                         <div class="info-introducao">
                             <!-- Toast UI Editor (avaliação em andamento) - textarea original preservado comentado abaixo para reverter -->
-                            <h3>Introdução</h3>
-                            <span class="campo-ajuda">Texto de apresentação, exibido na página inicial e no início do PDF: a língua, o povo, como o material foi reunido.</span>
+                            <div class="info-introducao-topo">
+                                <div>
+                                    <h3>Introdução</h3>
+                                    <span class="campo-ajuda">Texto de apresentação, exibido na página inicial e no início do PDF.</span>
+                                </div>
+                                <div class="info-introducao-acoes">
+                                    <button type="button" class="btn-secundario btn-compacto" onclick="document.getElementById('inputIntroArquivo').click()">Importar .md ou .html</button>
+                                    <input type="file" id="inputIntroArquivo" accept=".md,.markdown,.txt,.html,.htm" hidden onchange="window.importarIntroArquivo(this.files[0])">
+                                    <div class="segmentado-botoes intro-modos" role="group" aria-label="Modo de edição">
+                                        <button type="button" data-modo="wysiwyg" aria-pressed="true" onclick="window.mudarModoIntro('wysiwyg')">Visual</button>
+                                        <button type="button" data-modo="markdown" aria-pressed="false" onclick="window.mudarModoIntro('markdown')">Markdown</button>
+                                    </div>
+                                </div>
+                            </div>
                             <div id="introMarkdownEditor"></div>
+                            <span class="campo-ajuda" id="introStatus" role="status"></span>
                             <!--
                             <label>Introdução (Markdown)</label>
                             <textarea id="introMarkdown" placeholder="Escreva a introdução em Markdown..." rows="8" style="font-family: 'Fira Code', monospace; font-size: 13px;"></textarea>
@@ -2752,12 +2765,71 @@
         if (window._introEditor) return; // já inicializado
         const container = document.getElementById('introMarkdownEditor');
         if (!container || typeof toastui === 'undefined') return;
+        // Textos do editor em português. O Toast exige todas as chaves do pacote en-US (3.2.2).
+        if (toastui.Editor.setLanguage) {
+            toastui.Editor.setLanguage(['pt-BR'], {
+                'Markdown': 'Markdown', 'WYSIWYG': 'Visual', 'Write': 'Escrever', 'Preview': 'Prévia',
+                'Headings': 'Títulos', 'Paragraph': 'Parágrafo', 'Bold': 'Negrito', 'Italic': 'Itálico',
+                'Strike': 'Tachado', 'Code': 'Código', 'Line': 'Linha', 'Blockquote': 'Citação',
+                'Unordered list': 'Lista', 'Ordered list': 'Lista numerada', 'Task': 'Tarefa',
+                'Indent': 'Aumentar recuo', 'Outdent': 'Diminuir recuo',
+                'Insert link': 'Inserir link', 'Insert CodeBlock': 'Inserir bloco de código',
+                'Insert table': 'Inserir tabela', 'Insert image': 'Inserir imagem', 'Heading': 'Título',
+                'Image URL': 'Endereço da imagem', 'Select image file': 'Selecione uma imagem',
+                'Choose a file': 'Escolher arquivo', 'No file': 'Nenhum arquivo', 'Description': 'Descrição',
+                'OK': 'OK', 'More': 'Mais', 'Cancel': 'Cancelar', 'File': 'Arquivo', 'URL': 'Endereço (URL)',
+                'Link text': 'Texto do link',
+                'Add row to up': 'Adicionar linha acima', 'Add row to down': 'Adicionar linha abaixo',
+                'Add column to left': 'Adicionar coluna à esquerda', 'Add column to right': 'Adicionar coluna à direita',
+                'Remove row': 'Remover linha', 'Remove column': 'Remover coluna',
+                'Align column to left': 'Alinhar coluna à esquerda', 'Align column to center': 'Centralizar coluna',
+                'Align column to right': 'Alinhar coluna à direita', 'Remove table': 'Remover tabela',
+                'Would you like to paste as table?': 'Colar como tabela?', 'Text color': 'Cor do texto',
+                'Auto scroll enabled': 'Rolagem automática ativada', 'Auto scroll disabled': 'Rolagem automática desativada',
+                'Choose language': 'Escolher linguagem'
+            });
+        }
         window._introEditor = new toastui.Editor({
             el: container,
             height: '320px',
             initialEditType: 'wysiwyg',
             previewStyle: 'tab',
+            language: 'pt-BR',
+            // Barra reduzida: título, negrito e itálico; listas; link e imagem
+            toolbarItems: [['heading', 'bold', 'italic'], ['ul', 'ol'], ['link', 'image']],
+            hideModeSwitch: true, // o modo é trocado pelos botões "Visual / Markdown" acima do editor
+            placeholder: 'Escreva aqui uma apresentação do dicionário: a língua, o povo, como o material foi reunido…',
+            usageStatistics: false
         });
+        window._introEditor.on('changeMode', marcarModoIntro);
+    };
+
+    function marcarModoIntro(modo) {
+        document.querySelectorAll('.intro-modos [data-modo]').forEach(b => {
+            b.setAttribute('aria-pressed', String(b.dataset.modo === modo));
+        });
+    }
+
+    window.mudarModoIntro = function(modo) {
+        if (!window._introEditor) return;
+        window._introEditor.changeMode(modo);
+        marcarModoIntro(modo);
+    };
+
+    // Importa um arquivo para a introdução: .html é convertido para Markdown pelo editor
+    window.importarIntroArquivo = async function(arquivo) {
+        if (!arquivo) return;
+        const texto = await arquivo.text();
+        document.getElementById('inputIntroArquivo').value = '';
+        window.inicializarIntroEditor();
+        const status = document.getElementById('introStatus');
+        if (!window._introEditor) {
+            status.textContent = 'O editor ainda não está pronto. Tente de novo.';
+            return;
+        }
+        if (/\.html?$/i.test(arquivo.name)) window._introEditor.setHTML(texto);
+        else window._introEditor.setMarkdown(texto);
+        status.textContent = `Introdução importada de ${arquivo.name}.`;
     };
 
     window.obterIntroMarkdown = function() {

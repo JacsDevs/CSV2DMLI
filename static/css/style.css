@@ -1045,6 +1045,27 @@ body {
     margin-top: 28px;
 }
 .info-introducao #introMarkdownEditor { margin-top: 4px; }
+.info-introducao-topo { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px 16px; }
+.info-introducao-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.intro-modos { background: var(--border-color); }
+.intro-modos button { flex: 0 0 auto; min-height: 38px; font-size: 13px; }
+
+/* Toast UI Editor da introdução, nas cores e cantos da interface */
+#introMarkdownEditor .toastui-editor-defaultUI { border-color: var(--border-strong); border-radius: var(--radius-control); font-family: inherit; }
+#introMarkdownEditor .toastui-editor-defaultUI-toolbar {
+    padding: 4px 12px;
+    border-radius: var(--radius-control) var(--radius-control) 0 0;
+    background: var(--bg-main);
+    border-bottom-color: var(--border-color);
+}
+/* Os ícones vêm de um sprite recortado por posição: não mudar width/height */
+#introMarkdownEditor .toastui-editor-toolbar-icons { border-radius: var(--radius-sm); }
+#introMarkdownEditor .toastui-editor-toolbar-icons:not(:disabled):hover { background-color: var(--primary-light); border-color: transparent; }
+#introMarkdownEditor .toastui-editor-toolbar-divider { background-color: var(--border-color); }
+#introMarkdownEditor .toastui-editor-contents { font-family: inherit; font-size: 15px; }
+#introMarkdownEditor .toastui-editor-contents p { color: var(--text-main); }
+#introMarkdownEditor .placeholder,
+#introMarkdownEditor .ProseMirror .placeholder { color: var(--text-light); }
 
 @media (max-width: 1024px) {
     .info-grade { grid-template-columns: 1fr; }
