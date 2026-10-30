@@ -752,6 +752,10 @@
                         <span class="btn-cabecalho-texto">Histórico</span>
                         <span class="terminal-badge" id="terminalBadge" style="display:none;">0</span>
                     </button>
+                    <button type="button" class="btn-cabecalho" title="Modelos, ferramentas e documentação" aria-haspopup="dialog" onclick="window.abrirRecursos()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"></path><path d="M4 20h16"></path></svg>
+                        <span class="btn-cabecalho-texto">Recursos</span>
+                    </button>
                     <button type="button" class="btn-cabecalho" title="Avançado: modelos de exportação" aria-haspopup="dialog" onclick="document.getElementById('modalCustomizacao').showModal()">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 6-6 6 6 6M16 6l6 6-6 6"></path></svg>
                         <span class="btn-cabecalho-texto">Avançado</span>
@@ -815,6 +819,19 @@
                                         <li>Mídias referenciadas nas tabelas (opcional)</li>
                                         <li>Colunas extras são mapeadas logo após a importação</li>
                                     </ul>
+                                </div>
+                            </div>
+
+                            <div class="importar-sem-projeto">
+                                <span class="importar-sem-projeto-icone" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6M12 12v6M9 15h6"></path></svg></span>
+                                <div class="importar-sem-projeto-texto">
+                                    <strong>Ainda não tem um projeto?</strong>
+                                    <span>Baixe um modelo, preencha a planilha e coloque as mídias nas pastas. Depois é só importar aqui.</span>
+                                </div>
+                                <div class="importar-sem-projeto-acoes">
+                                    <button type="button" class="btn-principal" onclick="window.abrirRecursos()">Modelo com exemplo</button>
+                                    <button type="button" class="btn-secundario" onclick="window.abrirRecursos()">Modelo vazio</button>
+                                    <button type="button" class="btn-link" onclick="window.abrirRecursos()">Mais recursos</button>
                                 </div>
                             </div>
                         </div>
@@ -881,6 +898,19 @@
                                     <li class="validacao-vazia">Importe um projeto na etapa 1 para ver a validação.</li>
                                 </ul>
                             </section>
+
+                            <!-- Sugestão do programa de preparação quando as mídias passam de LIMITE_MIDIAS_SUGESTAO -->
+                            <aside class="sugestao-preparacao" id="sugestaoPreparacao" aria-label="Sugestão" hidden>
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"></path></svg>
+                                <div class="sugestao-preparacao-texto">
+                                    <strong id="sugestaoPreparacaoTitulo"></strong>
+                                    <span>Áudios, vídeos e imagens costumam estar em qualidade maior do que o dicionário precisa. O programa de preparação pode reduzir esse tamanho no seu computador.</span>
+                                </div>
+                                <div class="sugestao-preparacao-acoes">
+                                    <button type="button" class="btn-principal" onclick="window.abrirRecursos('preparacao')">Conhecer o programa</button>
+                                    <button type="button" class="btn-link btn-cancelar" onclick="window.dispensarSugestaoPreparacao()">Não mostrar de novo</button>
+                                </div>
+                            </aside>
 
                             <!-- Contagem de entradas e mídias; os cartões de mídia aceitam arquivos arrastados -->
                             <section class="midias-secao" aria-labelledby="midiasTitulo">
@@ -1314,6 +1344,166 @@
         </div>
     </div>
 </div>
+
+<!-- Recursos (modelos, programa de preparação e documentação). Duas telas no mesmo diálogo:
+     #recursosInicio e #recursosPreparacao. Botões com [data-acao] ainda não têm destino (ver mostrarAcaoEmBreve). -->
+<dialog id="dialogoRecursos" class="dialogo dialogo-recursos" aria-labelledby="recursosTitulo">
+    <div class="dialogo-topo dialogo-topo-separado">
+        <div>
+            <button type="button" class="btn-link recursos-voltar" id="recursosVoltar" hidden onclick="window.mostrarTelaRecursos('inicio')">← Recursos</button>
+            <h2 id="recursosTitulo">Recursos</h2>
+            <p id="recursosDescricao">Modelos, ferramentas e documentação para preparar o seu dicionário.</p>
+        </div>
+        <button type="button" class="btn-icone" aria-label="Fechar" onclick="document.getElementById('dialogoRecursos').close()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+    </div>
+
+    <div class="dialogo-corpo recursos-corpo">
+        <p class="recursos-aviso" id="recursosAviso" role="status" hidden></p>
+
+        <!-- Tela inicial -->
+        <div class="recursos-tela" id="recursosInicio">
+            <section class="recursos-secao">
+                <div>
+                    <h3>Começar um projeto</h3>
+                    <span class="campo-ajuda">Uma pasta pronta para preencher, na estrutura que a etapa Fonte de Dados reconhece.</span>
+                </div>
+                <div class="recursos-modelos">
+                    <div class="recursos-cartao">
+                        <strong>Modelo vazio</strong>
+                        <span class="recursos-cartao-texto"><code>dicionario.csv</code> só com os cabeçalhos e as pastas de áudio, imagem e vídeo vazias.</span>
+                        <button type="button" class="btn-contorno btn-compacto-acao" data-acao="Baixar o modelo vazio">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"></path><path d="M4 20h16"></path></svg>
+                            Baixar ZIP
+                        </button>
+                    </div>
+                    <div class="recursos-cartao destaque">
+                        <span class="recursos-cartao-titulo"><strong>Modelo com exemplo</strong><span class="selo-recomendado">Recomendado</span></span>
+                        <span class="recursos-cartao-texto">Algumas entradas já preenchidas, com áudio e imagem, para ver como cada coluna funciona.</span>
+                        <button type="button" class="btn-principal btn-compacto-acao" data-acao="Baixar o modelo com exemplo">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"></path><path d="M4 20h16"></path></svg>
+                            Baixar ZIP
+                        </button>
+                    </div>
+                </div>
+                <button type="button" class="btn-link recursos-link" data-acao="Guia das colunas do CSV">Guia das colunas do CSV</button>
+            </section>
+
+            <section class="recursos-secao">
+                <div>
+                    <h3>Preparar mídias e dados</h3>
+                    <span class="campo-ajuda">Programa para instalar no computador. Opcional, mas recomendado para projetos com muitas mídias.</span>
+                </div>
+                <div class="recursos-cartao recursos-programa">
+                    <ul class="recursos-funcoes">
+                        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>Reduzir o tamanho dos áudios</li>
+                        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="15" height="14" rx="2"></rect><path d="m17 10 5-3v10l-5-3"></path></svg>Otimizar vídeos</li>
+                        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"></path></svg>Cortar áudios por trilhas EAF (ELAN)</li>
+                        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-5-5L5 21"></path></svg>Otimizar imagens</li>
+                        <li class="largo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3 8-8"></path><path d="M20 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>Validar os dados e completar campos vazios em lote</li>
+                    </ul>
+                    <div class="recursos-programa-acoes">
+                        <button type="button" class="btn-principal" data-acao="Baixar o programa de preparação para Windows">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"></path><path d="M4 20h16"></path></svg>
+                            Baixar para Windows
+                        </button>
+                        <span class="campo-ajuda">Disponível em breve</span>
+                        <button type="button" class="btn-link recursos-link-direita" onclick="window.mostrarTelaRecursos('preparacao')">Linux, código-fonte e instruções →</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="recursos-secao">
+                <h3>Projeto e documentação</h3>
+                <ul class="recursos-links">
+                    <li><button type="button" data-acao="Abrir o repositório do projeto">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="2.5"></circle><circle cx="6" cy="18" r="2.5"></circle><circle cx="18" cy="8" r="2.5"></circle><path d="M6 8.5v7M18 10.5c0 4-6 3-10.5 6"></path></svg>
+                        <span class="recursos-links-texto"><strong>Repositório do projeto</strong><span>Mantido pela área de Linguística do Museu Goeldi</span></span>
+                    </button></li>
+                    <li><button type="button" data-acao="Abrir a documentação">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"></path></svg>
+                        <span class="recursos-links-texto"><strong>Documentação</strong></span>
+                    </button></li>
+                    <li><button type="button" data-acao="Reportar um problema">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+                        <span class="recursos-links-texto"><strong>Reportar um problema</strong></span>
+                    </button></li>
+                    <li><button type="button" data-acao="Ver as novidades da versão">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"></path></svg>
+                        <span class="recursos-links-texto"><strong>Novidades da versão</strong></span>
+                    </button></li>
+                </ul>
+            </section>
+        </div>
+
+        <!-- Programa de preparação -->
+        <div class="recursos-tela" id="recursosPreparacao" hidden>
+            <section class="recursos-baixar">
+                <div class="recursos-baixar-topo">
+                    <span class="recursos-sistema">Sistema detectado: <strong id="recursosSistemaDetectado">Windows</strong></span>
+                    <div class="segmentado recursos-sistemas" role="radiogroup" aria-label="Escolher versão">
+                        <label><input type="radio" name="recursosSistema" value="windows" checked onchange="window.mostrarSistemaPreparacao(this.value)">Windows</label>
+                        <label><input type="radio" name="recursosSistema" value="linux" onchange="window.mostrarSistemaPreparacao(this.value)">Linux</label>
+                        <label><input type="radio" name="recursosSistema" value="fonte" onchange="window.mostrarSistemaPreparacao(this.value)">Código-fonte (Python)</label>
+                    </div>
+                </div>
+
+                <div class="recursos-sistema-painel" data-sistema="windows">
+                    <div class="recursos-baixar-linha">
+                        <button type="button" class="btn-principal btn-grande" data-acao="Baixar o programa de preparação para Windows">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"></path><path d="M4 20h16"></path></svg>
+                            Baixar para Windows
+                        </button>
+                        <span class="campo-ajuda">Instalador .exe · Windows 10 ou mais recente · disponível em breve</span>
+                    </div>
+                    <div class="recursos-nota">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"></path></svg>
+                        <span>Na primeira execução, o Windows pode mostrar o aviso “O Windows protegeu o computador”. Clique em <strong>Mais informações</strong> e depois em <strong>Executar assim mesmo</strong>.</span>
+                    </div>
+                </div>
+
+                <div class="recursos-sistema-painel" data-sistema="linux" hidden>
+                    <div class="recursos-baixar-linha">
+                        <button type="button" class="btn-principal btn-grande" data-acao="Baixar o programa de preparação para Linux">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"></path><path d="M4 20h16"></path></svg>
+                            Baixar para Linux
+                        </button>
+                        <span class="campo-ajuda">Disponível em breve</span>
+                    </div>
+                    <span class="campo-ajuda">Depois de baixar, dê permissão de execução ao arquivo, ou siga as instruções do repositório.</span>
+                </div>
+
+                <div class="recursos-sistema-painel" data-sistema="fonte" hidden>
+                    <span class="recursos-fonte-texto">Para quem prefere rodar em Python ou contribuir com o código.</span>
+                    <div class="recursos-comando">
+                        <code>Endereço do repositório disponível em breve</code>
+                        <button type="button" data-acao="Copiar o comando git clone">Copiar</button>
+                    </div>
+                    <button type="button" class="btn-link recursos-link" data-acao="Abrir o repositório e as instruções">Abrir o repositório e as instruções ↗</button>
+                </div>
+            </section>
+
+            <section class="recursos-secao">
+                <h3>Como usar com o CSV2DMLI</h3>
+                <ol class="recursos-passos">
+                    <li><span class="recursos-passo-num" aria-hidden="true">1</span><strong>Abra a pasta do projeto no programa</strong><span class="campo-ajuda">A mesma pasta com o <code>dicionario.csv</code> e as mídias.</span></li>
+                    <li><span class="recursos-passo-num" aria-hidden="true">2</span><strong>Escolha o que tratar</strong><span class="campo-ajuda">O programa grava o resultado numa pasta nova e não altera os originais.</span></li>
+                    <li><span class="recursos-passo-num" aria-hidden="true">3</span><strong>Importe a pasta tratada aqui</strong><span class="campo-ajuda">Na etapa <button type="button" class="btn-link btn-link-inline" onclick="document.getElementById('dialogoRecursos').close(); window.irParaPasso(1)">Fonte de Dados</button>, do mesmo jeito de sempre.</span></li>
+                </ol>
+            </section>
+
+            <section class="recursos-secao">
+                <h3>O que ele faz</h3>
+                <ul class="recursos-descricoes">
+                    <li><strong>Reduzir o tamanho dos áudios</strong><span class="campo-ajuda">Converte para uma qualidade suficiente para fala, deixando o app bem mais leve.</span></li>
+                    <li><strong>Otimizar vídeos</strong><span class="campo-ajuda">Ajusta resolução e formato para tocar bem em celulares simples.</span></li>
+                    <li><strong>Cortar áudios por trilhas EAF</strong><span class="campo-ajuda">Usa as anotações do ELAN para separar uma gravação longa em um áudio por entrada.</span></li>
+                    <li><strong>Otimizar imagens</strong><span class="campo-ajuda">Redimensiona e comprime fotos sem perda visível.</span></li>
+                    <li class="largo"><strong>Validar e completar dados</strong><span class="campo-ajuda">Usa as mesmas regras da etapa Mídias e Validação e permite preencher campos vazios em lote.</span></li>
+                </ul>
+            </section>
+        </div>
+    </div>
+</dialog>
 
 <!-- Relatório de validação: conteúdo montado por window.validarTudo() a partir de validador.diagnosticar() -->
 <dialog id="dialogoRelatorio" class="dialogo dialogo-relatorio" aria-labelledby="relatorioTitulo">
@@ -2464,7 +2654,37 @@
     };
 
     // Linha de detalhe dos cartões: quantos arquivos o CSV cita e quantos faltam
+    // Mesmo limite de LIMITES.avisoDadosMoveis (packages/android/limitesTamanho.js), em unidades decimais
+    const LIMITE_MIDIAS_SUGESTAO = 200 * 1000 * 1000;
+    const CHAVE_SUGESTAO_DISPENSADA = 'csv2dmli-sugestao-preparacao-dispensada';
+
+    function atualizarSugestaoPreparacao() {
+        const aside = document.getElementById('sugestaoPreparacao');
+        let dispensada = false;
+        try { dispensada = localStorage.getItem(CHAVE_SUGESTAO_DISPENSADA) === '1'; } catch (e) {}
+        const vfs = window.sistema && window.sistema.vfs;
+        let total = 0;
+        if (vfs && !dispensada) {
+            ['audio', 'imagem', 'video'].forEach(tipo => vfs.obterTodosNomes(tipo).forEach(nome => {
+                total += ((vfs.obterMetadados(tipo, nome) || {}).tamanho) || 0;
+            }));
+        }
+        aside.hidden = dispensada || total < LIMITE_MIDIAS_SUGESTAO;
+        if (!aside.hidden) {
+            const tamanho = total >= 1e9
+                ? `${(total / 1e9).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} GB`
+                : `${Math.round(total / 1e6).toLocaleString('pt-BR')} MB`;
+            document.getElementById('sugestaoPreparacaoTitulo').textContent = `As mídias somam ${tamanho} e o aplicativo pode ficar pesado`;
+        }
+    }
+
+    window.dispensarSugestaoPreparacao = function() {
+        try { localStorage.setItem(CHAVE_SUGESTAO_DISPENSADA, '1'); } catch (e) {}
+        document.getElementById('sugestaoPreparacao').hidden = true;
+    };
+
     function atualizarDetalhesMidias(diag) {
+        atualizarSugestaoPreparacao();
         const detalheEntradas = document.getElementById('detalheEntradas');
         if (!diag) {
             detalheEntradas.textContent = 'nenhum dicionário carregado';
@@ -5680,6 +5900,64 @@
         if (passo === 2 && window.atualizarValidacaoEtapa2) window.atualizarValidacaoEtapa2();
         if (passo === totalPassos) atualizarResumoExportar();
     }
+
+    // ===================================================================
+    // RECURSOS (diálogo #dialogoRecursos)
+    // Os botões com [data-acao] ainda não têm destino: ao clicar, o diálogo avisa
+    // que a ação estará disponível em breve. Para ligar um deles, troque o data-acao
+    // por um onclick com a ação real.
+    // ===================================================================
+    const TELAS_RECURSOS = {
+        inicio: { titulo: 'Recursos', descricao: 'Modelos, ferramentas e documentação para preparar o seu dicionário.' },
+        preparacao: { titulo: 'Programa de preparação', descricao: 'Trata as mídias e os dados no seu computador antes da importação. Assim o dicionário fica mais leve e com menos erros.' }
+    };
+
+    function detectarSistema() {
+        const plataforma = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || navigator.userAgent;
+        if (/win/i.test(plataforma)) return { id: 'windows', nome: 'Windows' };
+        if (/linux|x11/i.test(plataforma) && !/android/i.test(navigator.userAgent)) return { id: 'linux', nome: 'Linux' };
+        if (/mac/i.test(plataforma)) return { id: 'fonte', nome: 'macOS' };
+        return { id: 'windows', nome: 'não identificado' };
+    }
+
+    window.mostrarTelaRecursos = function(tela) {
+        document.getElementById('recursosInicio').hidden = tela !== 'inicio';
+        document.getElementById('recursosPreparacao').hidden = tela !== 'preparacao';
+        document.getElementById('recursosVoltar').hidden = tela === 'inicio';
+        document.getElementById('recursosTitulo').textContent = TELAS_RECURSOS[tela].titulo;
+        document.getElementById('recursosDescricao').textContent = TELAS_RECURSOS[tela].descricao;
+        document.getElementById('recursosAviso').hidden = true;
+        document.querySelector('#dialogoRecursos .dialogo-corpo').scrollTop = 0;
+        if (tela === 'preparacao') {
+            const sistema = detectarSistema();
+            document.getElementById('recursosSistemaDetectado').textContent = sistema.nome;
+            document.querySelector(`input[name="recursosSistema"][value="${sistema.id}"]`).checked = true;
+            window.mostrarSistemaPreparacao(sistema.id);
+            document.getElementById('recursosVoltar').focus();
+        }
+    };
+
+    window.mostrarSistemaPreparacao = function(sistema) {
+        document.querySelectorAll('#recursosPreparacao .recursos-sistema-painel').forEach(painel => {
+            painel.hidden = painel.dataset.sistema !== sistema;
+        });
+    };
+
+    // `tela`: 'inicio' (padrão) ou 'preparacao'
+    window.abrirRecursos = function(tela = 'inicio') {
+        window.mostrarTelaRecursos(tela);
+        const dialogo = document.getElementById('dialogoRecursos');
+        if (!dialogo.open) dialogo.showModal();
+    };
+
+    document.getElementById('dialogoRecursos').addEventListener('click', e => {
+        const botao = e.target.closest('[data-acao]');
+        if (!botao) return;
+        const aviso = document.getElementById('recursosAviso');
+        aviso.textContent = `“${botao.dataset.acao}” ainda não está disponível. Esta opção será ligada em uma próxima versão.`;
+        aviso.hidden = false;
+        aviso.scrollIntoView({ block: 'nearest' });
+    });
 
     // Resumo da etapa Exportar: projeto, pendências da validação, título e tema
     const ICONE_RESUMO_OK = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"></path></svg>';
