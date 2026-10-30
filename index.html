@@ -1247,42 +1247,36 @@
 </div>
 
 <!-- MODAL CUSTOMIZAÇÃO E EDITOR (Escondidos mas mantidos para compatibilidade) -->
-<!-- MODAL IMPORTAÇÃO CLDF EXTRAS -->
-<div class="apk-wizard-overlay" id="modalCldfExtras" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999999; justify-content: center; align-items: center;">
-    <div class="modal-content" style="background: var(--bg-secondary); border-radius: 10px; max-width: 600px; width: 100%; padding: 20px;">
-        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3 style="margin: 0; color: var(--text-main);">Colunas Extras Detectadas</h3>
-            <button class="modal-close" style="background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.2em;">
-                <i class="fas fa-times"></i>
-            </button>
+<!-- IMPORTAÇÃO CLDF: colunas extras. Conteúdo montado por window.pedirMapeamentoCldf() -->
+<dialog id="modalCldfExtras" class="dialogo dialogo-cldf" aria-labelledby="cldfExtrasTitulo">
+    <div class="dialogo-topo dialogo-topo-separado">
+        <div>
+            <span class="etapa-contador">Importação CLDF</span>
+            <h2 id="cldfExtrasTitulo">Colunas extras encontradas</h2>
+            <p id="cldfExtrasDescricao"></p>
         </div>
-        <div class="modal-body">
-            <div style="max-height: 50vh; overflow-y: auto; padding-right: 5px; margin-bottom: 20px;">
-                <fieldset style="margin-bottom: 20px; border: 1px solid var(--border-color); padding: 15px; border-radius: 5px;">
-                    <legend style="color: var(--text-main); font-weight: bold; padding: 0 5px;">1. Textos e Descrições Extras</legend>
-                    <p style="font-size: 0.9em; color: var(--text-muted); margin-bottom: 15px;">Defina o que fazer com os dados textuais não mapeados:</p>
-                    <div id="cldfExtrasContainer" style="display: flex; flex-direction: column; gap: 10px;">
-                        <!-- Preenchido via JS -->
-                    </div>
-                </fieldset>
-
-                <fieldset style="border: 1px solid var(--border-color); padding: 15px; border-radius: 5px;">
-                    <legend style="color: var(--text-main); font-weight: bold; padding: 0 5px;">2. Hierarquia Semântica</legend>
-                    <p style="font-size: 0.9em; color: var(--text-muted); margin-bottom: 15px;">(Opcional) Vincule as colunas extras à estrutura de categorias:</p>
-                    <div id="cldfSemanticContainer" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                        <!-- Preenchido via JS -->
-                    </div>
-                </fieldset>
-            </div>
-            <div class="modal-actions" style="display: flex; gap: 10px; justify-content: flex-end;">
-                <button class="btn btn-outline" id="btnSalvarMapeamentoCldf" style="margin-right: auto;"><i class="fas fa-download"></i> Salvar</button>
-                <button class="btn btn-outline" id="btnCarregarMapeamentoCldf"><i class="fas fa-upload"></i> Carregar</button>
-                <input type="file" id="fileCarregarMapeamentoCldf" accept=".json" style="display: none;">
-                <button class="btn btn-primary" id="btnConfirmarCldfExtras"><i class="fas fa-check"></i> Continuar Importação</button>
-            </div>
-        </div>
+        <button type="button" class="btn-icone" id="btnCancelarCldfExtras" aria-label="Cancelar importação"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
     </div>
-</div>
+    <div class="dialogo-corpo cldf-extras-corpo">
+        <div class="cldf-extras-lista" id="cldfExtrasContainer"></div>
+        <details class="editor-icone-detalhes cldf-hierarquia">
+            <summary>
+                <span><strong>Hierarquia semântica</strong> <span class="campo-opcional">(opcional)</span></span>
+                <span class="campo-ajuda">Use se o CLDF tiver colunas com campos e subcampos de categoria ou transcrições.</span>
+            </summary>
+            <div class="cldf-hierarquia-grade" id="cldfSemanticContainer"></div>
+        </details>
+    </div>
+    <div class="dialogo-rodape">
+        <div class="cldf-extras-arquivo">
+            <button type="button" class="btn-link" id="btnSalvarMapeamentoCldf">Salvar estas escolhas</button>
+            <button type="button" class="btn-link" id="btnCarregarMapeamentoCldf">Usar escolhas salvas</button>
+            <input type="file" id="fileCarregarMapeamentoCldf" accept=".json" hidden>
+            <span class="campo-ajuda" id="cldfExtrasStatus" role="status"></span>
+        </div>
+        <button type="button" class="btn-principal btn-rodape" id="btnConfirmarCldfExtras">Continuar importação</button>
+    </div>
+</dialog>
 
 <!-- MODAL CLDF -->
 <div class="apk-wizard-overlay" id="modalCldf" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999999; justify-content: center; align-items: center;">
@@ -1948,11 +1942,25 @@
     </div>
 </div>
 
+<!-- Carregando: mostrarLoader(titulo, descricao) / atualizarProgressoLoader(atual, total) / ocultarLoader() -->
 <div class="loader-overlay" id="globalLoader" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999999;">
-    <div class="loader-box">
-        <div class="loader-spinner"></div>
-        <div class="loader-title" id="loaderTitle">Carregando...</div>
-        <div class="loader-text" id="loaderDesc" style="color: #64748b; font-size: 14px;">Aguarde um momento.</div>
+    <div class="carregando-caixa" role="status" aria-live="polite">
+        <div class="carregando-topo">
+            <span class="carregando-giro" aria-hidden="true"></span>
+            <div>
+                <h2 class="carregando-titulo" id="loaderTitle">Carregando...</h2>
+                <p class="carregando-texto" id="loaderDesc">Aguarde um momento.</p>
+            </div>
+        </div>
+        <div class="carregando-progresso" id="loaderProgresso" hidden>
+            <div class="carregando-barra" role="progressbar" id="loaderBarra" aria-labelledby="loaderTitle" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <div class="carregando-barra-preenchida" id="loaderBarraPreenchida"></div>
+            </div>
+            <div class="carregando-numeros">
+                <span id="loaderContagem"></span>
+                <span id="loaderPercentual"></span>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -1963,10 +1971,22 @@
         if (loader) {
             document.getElementById('loaderTitle').textContent = titulo;
             document.getElementById('loaderDesc').textContent = descricao;
+            document.getElementById('loaderProgresso').hidden = true;
             loader.style.display = 'flex';
         }
     };
-    
+
+    // Barra de progresso (opcional): aparece quando há contagem de itens, como na exportação de mídias
+    window.atualizarProgressoLoader = function(atual, total) {
+        if (!total) return;
+        const percentual = Math.min(100, Math.round((atual / total) * 100));
+        document.getElementById('loaderProgresso').hidden = false;
+        document.getElementById('loaderBarra').setAttribute('aria-valuenow', String(percentual));
+        document.getElementById('loaderBarraPreenchida').style.width = `${percentual}%`;
+        document.getElementById('loaderContagem').textContent = `${atual.toLocaleString('pt-BR')} de ${total.toLocaleString('pt-BR')}`;
+        document.getElementById('loaderPercentual').textContent = `${percentual}%`;
+    };
+
     window.ocultarLoader = function() {
         const loader = document.getElementById('globalLoader');
         if (loader) loader.style.display = 'none';
@@ -2604,9 +2624,9 @@
         const loaderDesc = document.getElementById('loaderDesc');
         const loader = document.getElementById('globalLoader');
 
-        const percent = Math.round((progresso / total) * 100);
         if (loader && loader.style.display !== 'none' && loaderDesc) {
-            loaderDesc.textContent = mensagem || `Processando mídias (Base64): ${progresso}/${total} (${percent}%)`;
+            loaderDesc.textContent = mensagem || 'Preparando as mídias';
+            window.atualizarProgressoLoader(progresso, total);
         }
     });
     
@@ -2978,110 +2998,201 @@
         };
     }
 
-    window.pedirMapeamentoCldf = function(extraCols, allCols) {
+    // Diálogo "Colunas extras encontradas" (importação CLDF). Devolve o mapa lido por
+    // LeitorCLDF: { [coluna]: { dest, prefix, suffix, usePrefix, order, semanticRole } }.
+    // `amostras` (opcional): { [coluna]: { exemplo, preenchidas } }.
+    const CLDF_DESTINOS = [
+        ['desc_entrada', 'Mostrar junto à entrada', 'Aparece na informação da entrada, para todos os significados.'],
+        ['desc_significado', 'Mostrar junto ao significado', 'Aparece na informação do significado correspondente.'],
+        ['ignorar', 'Não mostrar no dicionário', 'A coluna é guardada e volta na exportação CLDF.']
+    ];
+    const CLDF_TABELAS = { Entrada: 'Tabela de entradas', Significado: 'Tabela de significados', Forma: 'Tabela de formas' };
+    const CLDF_NIVEIS = [
+        { id: 'CAMPO_SEMANTICO', label: 'Campo principal' },
+        { id: 'SUB_CAMPO_SEMANTICO_1', label: 'Subcampo nível 1' },
+        { id: 'SUB_CAMPO_SEMANTICO_2', label: 'Subcampo nível 2' },
+        { id: 'SUB_CAMPO_SEMANTICO_3', label: 'Subcampo nível 3' },
+        { id: 'SUB_CAMPO_SEMANTICO_4', label: 'Subcampo nível 4' },
+        { id: 'SUB_CAMPO_SEMANTICO_5', label: 'Subcampo nível 5' },
+        { id: 'SUB_CAMPO_SEMANTICO_6', label: 'Subcampo nível 6' },
+        { id: 'TRANSCRICAO_FONEMICA', label: 'Transcrição fonêmica' },
+        { id: 'TRANSCRICAO_FONETICA', label: 'Transcrição fonética' }
+    ];
+
+    window.pedirMapeamentoCldf = function(extraCols, allCols, amostras = {}) {
         return new Promise((resolve, reject) => {
             const modal = document.getElementById('modalCldfExtras');
             const container = document.getElementById('cldfExtrasContainer');
             const semContainer = document.getElementById('cldfSemanticContainer');
-            if (container) container.innerHTML = '';
-            if (semContainer) semContainer.innerHTML = '';
-            
-            // Section 1: Descrições
-            extraCols.forEach(col => {
-                const div = document.createElement('div');
-                div.style = "display: flex; flex-direction: column; background: var(--bg-primary); padding: 10px; border-radius: 5px; border: 1px solid var(--border-color); margin-bottom: 5px;";
-                div.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                        <strong>${col.origem}: ${col.id}</strong>
-                        <div>
-                            <button type="button" class="btn btn-sm btn-outline" onclick="const el = this.parentElement.parentElement.parentElement; if(el.previousElementSibling) el.parentElement.insertBefore(el, el.previousElementSibling);" title="Mover para cima"><i class="fas fa-arrow-up"></i></button>
-                            <button type="button" class="btn btn-sm btn-outline" onclick="const el = this.parentElement.parentElement.parentElement; if(el.nextElementSibling) el.parentElement.insertBefore(el.nextElementSibling, el);" title="Mover para baixo"><i class="fas fa-arrow-down"></i></button>
-                        </div>
-                    </div>
-                    <select id="sel_dest_${col.id}" class="form-input" style="padding: 5px; border-radius: 3px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-main); margin-bottom: 5px;" onchange="document.getElementById('prefix_container_${col.id}').style.display = (this.value === 'ignorar' ? 'none' : 'flex')">
-                        <option value="desc_entrada" ${col.origem !== "Significado" ? "selected" : ""}>Adicionar à informação da entrada</option>
-                        <option value="desc_significado" ${col.origem === "Significado" ? "selected" : ""}>Adicionar à informação do significado</option>
-                        <option value="ignorar">Ignorar coluna na Descrição (Mantém como Coluna Extra no CLDF)</option>
-                    </select>
-                    <div style="display: flex; align-items: center; gap: 5px; flex-wrap: wrap;" id="prefix_container_${col.id}">
-                        <label style="font-size: 0.85em; color: var(--text-muted); display: flex; align-items: center; gap: 4px; margin: 0; cursor: pointer;">
-                            <input type="checkbox" id="chk_prefix_${col.id}" checked onchange="document.getElementById('prefix_${col.id}').disabled = !this.checked">
-                            Prefixo:
-                        </label>
-                        <input type="text" id="prefix_${col.id}" class="form-input" style="padding: 4px; font-size: 0.9em; width: 100px;" value="${col.id}: ">
-                        
-                        <span style="font-size: 0.85em; color: var(--text-muted); margin-left: 10px;">Sufixo:</span>
-                        <input type="text" id="suffix_${col.id}" class="form-input" style="padding: 4px; font-size: 0.9em; width: 50px;" value=".">
-                    </div>
-                `;
-                container.appendChild(div);
-                setTimeout(() => {
-                    const selVal = document.getElementById(`sel_dest_${col.id}`).value;
-                    document.getElementById(`prefix_container_${col.id}`).style.display = (selVal === 'ignorar' ? 'none' : 'flex');
-                }, 0);
+            const status = document.getElementById('cldfExtrasStatus');
+            container.replaceChildren();
+            semContainer.replaceChildren();
+            status.textContent = '';
+
+            const n = extraCols.length;
+            document.getElementById('cldfExtrasDescricao').textContent = n
+                ? `${n === 1 ? 'Esta coluna não tem' : `Estas ${n} colunas não têm`} um lugar padrão no dicionário. Escolha onde ${n === 1 ? 'ela deve' : 'cada uma deve'} aparecer.`
+                : 'Nenhuma coluna extra. Se quiser, ligue colunas à hierarquia semântica abaixo.';
+
+            // Uma caixa por coluna extra; os ids dos campos (sel_dest_, prefix_, suffix_) são os de antes
+            const caixas = extraCols.map((col, i) => {
+                const amostra = amostras[col.id] || {};
+                const caixa = document.createElement('fieldset');
+                caixa.className = 'cldf-coluna';
+                caixa.dataset.colId = col.id;
+
+                const legenda = document.createElement('legend');
+                const nome = document.createElement('span');
+                nome.className = 'cldf-coluna-nome';
+                nome.textContent = col.id;
+                const tabela = document.createElement('span');
+                tabela.className = 'modelo-selo';
+                tabela.textContent = CLDF_TABELAS[col.origem] || col.origem;
+                legenda.append(nome, tabela);
+
+                const topo = document.createElement('div');
+                topo.className = 'cldf-coluna-topo';
+                const info = document.createElement('span');
+                info.className = 'campo-ajuda';
+                info.textContent = amostra.exemplo
+                    ? `Exemplo de valor: “${amostra.exemplo}” · preenchida em ${amostra.preenchidas.toLocaleString('pt-BR')} ${amostra.preenchidas === 1 ? 'linha' : 'linhas'}`
+                    : 'Sem valores preenchidos nesta tabela.';
+                const ordem = document.createElement('div');
+                ordem.className = 'cldf-coluna-ordem';
+                [['Subir', -1, ICONE_SETA_CIMA], ['Descer', 1, ICONE_SETA_BAIXO]].forEach(([rotulo, direcao, icone]) => {
+                    const b = document.createElement('button');
+                    b.type = 'button';
+                    b.className = 'btn-icone';
+                    b.setAttribute('aria-label', `${rotulo} ${col.id} na ordem de exibição`);
+                    b.innerHTML = icone;
+                    b.addEventListener('click', () => {
+                        if (direcao < 0 && caixa.previousElementSibling) container.insertBefore(caixa, caixa.previousElementSibling);
+                        else if (direcao > 0 && caixa.nextElementSibling) container.insertBefore(caixa.nextElementSibling, caixa);
+                        b.focus();
+                    });
+                    ordem.append(b);
+                });
+                topo.append(info, ordem);
+
+                const destinoPadrao = col.origem === 'Significado' ? 'desc_significado' : 'desc_entrada';
+                const opcoes = document.createElement('div');
+                opcoes.className = 'cldf-opcoes';
+                opcoes.setAttribute('role', 'radiogroup');
+                opcoes.setAttribute('aria-label', `Onde mostrar ${col.id}`);
+                // <select> oculto com o id antigo: guarda o destino e é usado pelo salvar/carregar
+                const sel = document.createElement('select');
+                sel.id = `sel_dest_${col.id}`;
+                sel.hidden = true;
+                CLDF_DESTINOS.forEach(([valor]) => sel.append(new Option(valor, valor)));
+                sel.value = destinoPadrao;
+                CLDF_DESTINOS.forEach(([valor, titulo, desc]) => {
+                    const label = document.createElement('label');
+                    label.className = 'cldf-opcao';
+                    const radio = document.createElement('input');
+                    radio.type = 'radio';
+                    radio.name = `cldfDestino${i}`;
+                    radio.value = valor;
+                    radio.checked = valor === destinoPadrao;
+                    radio.addEventListener('change', () => { sel.value = valor; sel.dispatchEvent(new Event('change')); });
+                    const texto = document.createElement('span');
+                    const forte = document.createElement('strong');
+                    forte.textContent = titulo;
+                    texto.append(forte, desc);
+                    label.append(radio, texto);
+                    opcoes.append(label);
+                });
+
+                const rotulos = document.createElement('div');
+                rotulos.className = 'cldf-rotulos';
+                rotulos.id = `prefix_container_${col.id}`;
+                const campoPrefixo = document.createElement('label');
+                campoPrefixo.className = 'campo';
+                campoPrefixo.innerHTML = '<span class="campo-rotulo">Rótulo antes do valor</span>';
+                const prefixo = document.createElement('input');
+                prefixo.type = 'text';
+                prefixo.id = `prefix_${col.id}`;
+                prefixo.className = 'campo-entrada';
+                prefixo.value = `${col.id}: `;
+                campoPrefixo.append(prefixo);
+                const campoSufixo = document.createElement('label');
+                campoSufixo.className = 'campo cldf-sufixo';
+                campoSufixo.innerHTML = '<span class="campo-rotulo">Final</span>';
+                const sufixo = document.createElement('input');
+                sufixo.type = 'text';
+                sufixo.id = `suffix_${col.id}`;
+                sufixo.className = 'campo-entrada';
+                sufixo.value = '.';
+                campoSufixo.append(sufixo);
+                const previa = document.createElement('div');
+                previa.className = 'campo cldf-previa';
+                previa.innerHTML = '<span class="campo-rotulo">Como vai aparecer</span><span class="cldf-previa-texto"></span>';
+                const atualizarPrevia = () => {
+                    const alvo = previa.querySelector('.cldf-previa-texto');
+                    alvo.replaceChildren();
+                    if (prefixo.value) {
+                        const forte = document.createElement('strong');
+                        forte.textContent = prefixo.value;
+                        alvo.append(forte);
+                    }
+                    alvo.append(`${amostra.exemplo || 'valor'}${sufixo.value}`);
+                };
+                prefixo.addEventListener('input', atualizarPrevia);
+                sufixo.addEventListener('input', atualizarPrevia);
+                atualizarPrevia();
+                rotulos.append(campoPrefixo, campoSufixo, previa);
+
+                sel.addEventListener('change', () => {
+                    rotulos.hidden = sel.value === 'ignorar';
+                    opcoes.querySelectorAll('input').forEach(r => { r.checked = r.value === sel.value; });
+                    caixa.classList.toggle('oculta', sel.value === 'ignorar');
+                });
+
+                caixa.append(legenda, topo, opcoes, sel, rotulos);
+                return caixa;
+            });
+            container.append(...caixas);
+
+            // Hierarquia semântica: qualquer coluna pode virar campo/subcampo ou transcrição
+            const colunasHierarquia = allCols || extraCols;
+            CLDF_NIVEIS.forEach(lvl => {
+                const label = document.createElement('label');
+                label.className = 'campo';
+                label.innerHTML = `<span class="campo-rotulo">${lvl.label}</span>`;
+                const sel = document.createElement('select');
+                sel.id = `sel_sem_${lvl.id}`;
+                sel.className = 'campo-entrada';
+                sel.append(new Option('Nenhuma coluna', ''));
+                colunasHierarquia.forEach(c => sel.append(new Option(`${c.id} (${(CLDF_TABELAS[c.origem] || c.origem).toLowerCase()})`, c.id)));
+                label.append(sel);
+                semContainer.append(label);
             });
 
-            // Section 2: Semântica
-            const buildOptions = () => {
-                let html = `<option value="">-- Nenhuma --</option>`;
-                if (allCols) {
-                    allCols.forEach(c => html += `<option value="${c.id}">${c.origem}: ${c.id}</option>`);
-                } else {
-                    extraCols.forEach(c => html += `<option value="${c.id}">${c.origem}: ${c.id}</option>`);
-                }
-                return html;
-            };
-
-            const levels = [
-                { id: 'CAMPO_SEMANTICO', label: 'Campo Principal' },
-                { id: 'SUB_CAMPO_SEMANTICO_1', label: 'Subcampo Nível 1' },
-                { id: 'SUB_CAMPO_SEMANTICO_2', label: 'Subcampo Nível 2' },
-                { id: 'SUB_CAMPO_SEMANTICO_3', label: 'Subcampo Nível 3' },
-                { id: 'SUB_CAMPO_SEMANTICO_4', label: 'Subcampo Nível 4' },
-                { id: 'SUB_CAMPO_SEMANTICO_5', label: 'Subcampo Nível 5' },
-                { id: 'SUB_CAMPO_SEMANTICO_6', label: 'Subcampo Nível 6' },
-                { id: 'TRANSCRICAO_FONEMICA', label: 'Transcrição Fonêmica' },
-                { id: 'TRANSCRICAO_FONETICA', label: 'Transcrição Fonética' }
-            ];
-
-            levels.forEach(lvl => {
-                const div = document.createElement('div');
-                div.innerHTML = `
-                    <label style="font-size: 0.9em; color: var(--text-muted); display: block; margin-bottom: 3px;">${lvl.label}</label>
-                    <select id="sel_sem_${lvl.id}" class="form-input" style="width: 100%; padding: 5px; border-radius: 3px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-main);">
-                        ${buildOptions()}
-                    </select>
-                `;
-                semContainer.appendChild(div);
-            });
-            
-            const btn = document.getElementById('btnConfirmarCldfExtras');
-            
-            const btnSalvar = document.getElementById('btnSalvarMapeamentoCldf');
-            const btnCarregar = document.getElementById('btnCarregarMapeamentoCldf');
-            const fileCarregar = document.getElementById('fileCarregarMapeamentoCldf');
-
-            btnSalvar.onclick = () => {
+            const montarMapa = () => {
+                const ordem = Array.from(container.children).map(d => d.dataset.colId);
                 const map = {};
                 extraCols.forEach(col => {
-                    const usePrefix = document.getElementById(`chk_prefix_${col.id}`).checked;
+                    const prefixo = document.getElementById(`prefix_${col.id}`).value;
                     map[col.id] = {
                         dest: document.getElementById(`sel_dest_${col.id}`).value,
-                        prefix: usePrefix ? document.getElementById(`prefix_${col.id}`).value : '',
+                        prefix: prefixo,
                         suffix: document.getElementById(`suffix_${col.id}`).value,
-                        usePrefix: usePrefix,
-                        order: Array.from(document.getElementById('cldfExtrasContainer').children).findIndex(d => d.dataset.colId === col.id),
+                        usePrefix: prefixo !== '',
+                        order: ordem.indexOf(col.id),
                         semanticRole: null
                     };
                 });
-                levels.forEach(lvl => {
+                CLDF_NIVEIS.forEach(lvl => {
                     const sel = document.getElementById(`sel_sem_${lvl.id}`).value;
                     if (sel) {
                         if (!map[sel]) map[sel] = { dest: 'ignorar', prefix: '', semanticRole: null };
                         map[sel].semanticRole = lvl.id;
                     }
                 });
-                const blob = new Blob([JSON.stringify(map, null, 2)], { type: 'application/json' });
+                return map;
+            };
+
+            document.getElementById('btnSalvarMapeamentoCldf').onclick = () => {
+                const blob = new Blob([JSON.stringify(montarMapa(), null, 2)], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
@@ -3090,98 +3201,61 @@
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
+                status.textContent = 'Escolhas salvas em cldf-mapeamento-extras.json.';
             };
 
-            btnCarregar.onclick = () => fileCarregar.click();
+            const fileCarregar = document.getElementById('fileCarregarMapeamentoCldf');
+            document.getElementById('btnCarregarMapeamentoCldf').onclick = () => fileCarregar.click();
             fileCarregar.onchange = async (e) => {
-                if (e.target.files.length > 0) {
-                    try {
-                        const text = await e.target.files[0].text();
-                        const map = JSON.parse(text);
-                        extraCols.forEach(col => {
-                            if (map[col.id]) {
-                                const sel = document.getElementById(`sel_dest_${col.id}`);
-                                const prefix = document.getElementById(`prefix_${col.id}`);
-                                const chk = document.getElementById(`chk_prefix_${col.id}`);
-                                const suffix = document.getElementById(`suffix_${col.id}`);
-                                if (sel) {
-                                    sel.value = map[col.id].dest || map[col.id];
-                                    sel.dispatchEvent(new Event('change'));
-                                }
-                                if (prefix && map[col.id].prefix !== undefined) prefix.value = map[col.id].prefix;
-                                if (suffix && map[col.id].suffix !== undefined) suffix.value = map[col.id].suffix;
-                                if (chk && map[col.id].usePrefix !== undefined) {
-                                    chk.checked = map[col.id].usePrefix;
-                                    chk.dispatchEvent(new Event('change'));
-                                }
-                            }
-                        });
-                        
-                        // Restore Order in DOM
-                        const container = document.getElementById('cldfExtrasContainer');
-                        const children = Array.from(container.children);
-                        children.sort((a, b) => {
-                            const mapA = map[a.dataset.colId];
-                            const mapB = map[b.dataset.colId];
-                            const orderA = mapA && mapA.order !== undefined ? mapA.order : 999;
-                            const orderB = mapB && mapB.order !== undefined ? mapB.order : 999;
-                            return orderA - orderB;
-                        });
-                        children.forEach(c => container.appendChild(c));
-                        // Restore semantic roles
-                        levels.forEach(lvl => document.getElementById(`sel_sem_${lvl.id}`).value = '');
-                        Object.keys(map).forEach(colId => {
-                            const m = map[colId];
-                            if (m && m.semanticRole) {
-                                const s = document.getElementById(`sel_sem_${m.semanticRole}`);
-                                if (s) s.value = colId;
-                            }
-                        });
-                        alert('Mapeamento carregado com sucesso!');
-                    } catch (err) {
-                        alert('Erro ao carregar o arquivo de mapeamento.');
-                    }
-                    e.target.value = '';
+                if (!e.target.files.length) return;
+                try {
+                    const map = JSON.parse(await e.target.files[0].text());
+                    extraCols.forEach(col => {
+                        const m = map[col.id];
+                        if (!m) return;
+                        const sel = document.getElementById(`sel_dest_${col.id}`);
+                        sel.value = m.dest || m;
+                        sel.dispatchEvent(new Event('change'));
+                        // Arquivos antigos: usePrefix=false significava "sem rótulo"
+                        const prefixo = document.getElementById(`prefix_${col.id}`);
+                        if (m.prefix !== undefined) prefixo.value = m.usePrefix === false ? '' : m.prefix;
+                        if (m.suffix !== undefined) document.getElementById(`suffix_${col.id}`).value = m.suffix;
+                        prefixo.dispatchEvent(new Event('input'));
+                    });
+                    Array.from(container.children)
+                        .sort((a, b) => ((map[a.dataset.colId]?.order ?? 999) < 0 ? 999 : (map[a.dataset.colId]?.order ?? 999))
+                                      - ((map[b.dataset.colId]?.order ?? 999) < 0 ? 999 : (map[b.dataset.colId]?.order ?? 999)))
+                        .forEach(c => container.appendChild(c));
+                    CLDF_NIVEIS.forEach(lvl => { document.getElementById(`sel_sem_${lvl.id}`).value = ''; });
+                    Object.keys(map).forEach(colId => {
+                        const s = map[colId] && map[colId].semanticRole && document.getElementById(`sel_sem_${map[colId].semanticRole}`);
+                        if (s) s.value = colId;
+                    });
+                    status.textContent = 'Escolhas salvas aplicadas.';
+                } catch (err) {
+                    status.textContent = 'Não foi possível ler este arquivo de escolhas.';
                 }
+                e.target.value = '';
             };
 
-            // Handling Modal Close / Cancel
-            const cancelBtn = modal.querySelector('.modal-close');
-            const handleCancel = () => {
-                modal.style.display = 'none';
+            const cancelar = () => {
+                modal.close();
                 reject(new Error('Importação CLDF cancelada pelo usuário.'));
             };
-            cancelBtn.onclick = handleCancel;
+            document.getElementById('btnCancelarCldfExtras').onclick = cancelar;
+            modal.oncancel = (e) => { e.preventDefault(); cancelar(); }; // tecla Esc
 
-            btn.onclick = async () => {
-                const map = {};
-                extraCols.forEach(col => {
-                    const usePrefix = document.getElementById(`chk_prefix_${col.id}`).checked;
-                    map[col.id] = {
-                        dest: document.getElementById(`sel_dest_${col.id}`).value,
-                        prefix: usePrefix ? document.getElementById(`prefix_${col.id}`).value : '',
-                        suffix: document.getElementById(`suffix_${col.id}`).value,
-                        usePrefix: usePrefix,
-                        order: Array.from(document.getElementById('cldfExtrasContainer').children).findIndex(d => d.dataset.colId === col.id),
-                        semanticRole: null
-                    };
-                });
-                levels.forEach(lvl => {
-                    const sel = document.getElementById(`sel_sem_${lvl.id}`).value;
-                    if (sel) {
-                        if (!map[sel]) map[sel] = { dest: 'ignorar', prefix: '', semanticRole: null };
-                        map[sel].semanticRole = lvl.id;
-                    }
-                });
-                modal.style.display = 'none';
+            document.getElementById('btnConfirmarCldfExtras').onclick = async () => {
+                const map = montarMapa();
+                modal.close();
                 if (window.mostrarLoader) window.mostrarLoader('Processando Projeto', 'Finalizando importação CLDF...');
                 // Permite que o navegador renderize a animação do loader antes de travar a thread com o processamento do CLDF
                 await new Promise(r => setTimeout(r, 60));
                 resolve(map);
             };
-            
+
             if (window.ocultarLoader) window.ocultarLoader();
-            modal.style.display = 'flex';
+            modal.showModal();
         });
     };
 

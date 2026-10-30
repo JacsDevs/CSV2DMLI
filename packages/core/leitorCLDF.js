@@ -163,9 +163,18 @@ export class LeitorCLDF {
             });
         }
         
+        // Amostra de cada coluna extra para o diálogo: primeiro valor preenchido e quantas linhas têm valor
+        const tabelasPorOrigem = { Entrada: entriesData, Significado: sensesData, Forma: formsData };
+        const amostras = {};
+        extraCols.forEach(col => {
+            const linhas = tabelasPorOrigem[col.origem] || [];
+            const preenchidas = linhas.filter(l => l[col.id] !== undefined && String(l[col.id]).trim() !== '');
+            amostras[col.id] = { exemplo: preenchidas.length ? String(preenchidas[0][col.id]).trim() : '', preenchidas: preenchidas.length };
+        });
+
         let cfgMap = {};
         if (window.pedirMapeamentoCldf && (extraCols.length > 0 || allCols.length > 0)) {
-            cfgMap = await window.pedirMapeamentoCldf(extraCols, allCols);
+            cfgMap = await window.pedirMapeamentoCldf(extraCols, allCols, amostras);
         }
 
         let dmliData = [];
