@@ -54,6 +54,9 @@ function els() {
         inputTroca: document.getElementById('inputIconeTrocarImagem'),
         btnEncaixar: document.getElementById('btnIconeEncaixar'),
         btnPreencher: document.getElementById('btnIconePreencher'),
+        btnZoomMenos: document.getElementById('btnIconeZoomMenos'),
+        btnZoomMais: document.getElementById('btnIconeZoomMais'),
+        formas: document.getElementById('iconeFormas'),
     };
 }
 
@@ -71,6 +74,7 @@ export async function abrirEditorIcone(origem) {
         : await dataUrlParaFile(origem.dataUrl, origem.nome || 'icone.png');
 
     await carregarOrigem(arquivo);
+    marcarCorFundo();
     dialog.showModal();
 
     return new Promise((resolve) => {
@@ -141,7 +145,19 @@ function garantirListeners() {
 
     bgColor.addEventListener('input', () => {
         _corFundo = bgColor.value;
+        marcarCorFundo();
         redesenhar();
+    });
+
+    // Botões − / + de zoom e cores de fundo prontas (opcionais no markup)
+    const { btnZoomMenos, btnZoomMais } = els();
+    btnZoomMenos?.addEventListener('click', () => { if (_enq) aplicarZoom(_enq.zoom - 10); });
+    btnZoomMais?.addEventListener('click', () => { if (_enq) aplicarZoom(_enq.zoom + 10); });
+    dialog.querySelectorAll('[data-cor-fundo]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            bgColor.value = btn.dataset.corFundo;
+            bgColor.dispatchEvent(new Event('input'));
+        });
     });
 
     btnAplicar.addEventListener('click', async () => {
@@ -157,7 +173,8 @@ function garantirListeners() {
     });
     btnCancelar.addEventListener('click', () => finalizar(null));
     btnFechar.addEventListener('click', () => finalizar(null));
-    dialog.addEventListener('cancel', () => finalizar(null)); // tecla Esc
+    // Só Esc no próprio diálogo: o "cancel" do seletor de "Trocar imagem" também sobe até aqui
+    dialog.addEventListener('cancel', (e) => { if (e.target === dialog) finalizar(null); });
 
     btnTrocar.addEventListener('click', () => inputTroca.click());
     inputTroca.addEventListener('change', async () => {
@@ -211,7 +228,47 @@ function redesenhar() {
     desenharSafeZone(ctx);
 
     clearTimeout(_debounceGrid);
-    _debounceGrid = setTimeout(atualizarGradeDensidades, 80);
+    _debounceGrid = setTimeout(() => {
+        atualizarGradeDensidades();
+        atualizarFormas();
+    }, 80);
+}
+
+// Marca a cor pronta que corresponde ao fundo atual (aria-pressed)
+function marcarCorFundo() {
+    const { dialog } = els();
+    dialog.querySelectorAll('[data-cor-fundo]').forEach((btn) => {
+        btn.setAttribute('aria-pressed', String(btn.dataset.corFundo.toLowerCase() === _corFundo.toLowerCase()));
+    });
+}
+
+// "Como vai aparecer": o ícone nos formatos que os launchers usam; o formato vem do CSS
+// (border-radius de .icone-forma-*), como fazem os próprios aparelhos.
+const FORMAS_LAUNCHER = [['circulo', 'Círculo'], ['arredondado', 'Arredondado'], ['gota', 'Gota']];
+const FORMA_TAMANHO = 128;
+
+function atualizarFormas() {
+    const { formas } = els();
+    if (!formas || !_bitmap || !_enq) return;
+    formas.replaceChildren(...FORMAS_LAUNCHER.map(([classe, nome]) => {
+        const item = document.createElement('div');
+        item.className = 'icone-forma';
+        const canvasEl = document.createElement('canvas');
+        canvasEl.width = FORMA_TAMANHO;
+        canvasEl.height = FORMA_TAMANHO;
+        canvasEl.className = `icone-forma-${classe}`;
+        canvasEl.setAttribute('role', 'img');
+        canvasEl.setAttribute('aria-label', `Ícone no formato ${nome.toLowerCase()}`);
+        desenharEnquadrado(canvasEl.getContext('2d'), FORMA_TAMANHO, _bitmap, _enq, _corFundo);
+        const app = document.createElement('span');
+        app.className = 'icone-forma-app';
+        app.textContent = 'Dicionário';
+        const rotulo = document.createElement('span');
+        rotulo.className = 'icone-forma-nome';
+        rotulo.textContent = nome;
+        item.append(canvasEl, app, rotulo);
+        return item;
+    }));
 }
 
 /**
@@ -289,17 +346,17 @@ async function atualizarInfo(file) {
     const analise = await analisarImagem(file);
     const tamanhoKb = analise.tamanhoBytes != null ? (analise.tamanhoBytes / 1024).toFixed(1) : '?';
 
-    const avisosHtml = analise.avisos.length
-        ? `<ul class="icone-info-avisos">${analise.avisos.map((a) => `<li>⚠️ ${escapeHtml(a)}</li>`).join('')}</ul>`
-        : '<p class="icone-info-ok">✅ Nenhum problema detectado.</p>';
+    const OK = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"></path></svg>';
+    const AVISO = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path><path d="M12 9v4M12 17h.01"></path></svg>';
 
     info.innerHTML = `
-        <dl class="icone-info-dl">
-            <dt>Dimensões originais</dt><dd>${analise.largura}×${analise.altura}px</dd>
-            <dt>Formato</dt><dd>${escapeHtml(analise.formato)}</dd>
-            <dt>Tamanho do arquivo</dt><dd>${tamanhoKb} KB</dd>
-        </dl>
-        ${avisosHtml}
+        <ul class="icone-verificacao">
+            <li class="ok">${OK}<span>Dimensões: ${analise.largura} × ${analise.altura} px</span></li>
+            <li class="ok">${OK}<span>Formato ${escapeHtml(analise.formato)} · ${tamanhoKb} KB</span></li>
+            ${analise.avisos.length
+                ? analise.avisos.map((a) => `<li class="aviso">${AVISO}<span>${escapeHtml(a)}</span></li>`).join('')
+                : `<li class="ok">${OK}<span>Nenhum problema detectado</span></li>`}
+        </ul>
     `;
 }
 
