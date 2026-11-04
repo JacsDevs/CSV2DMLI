@@ -1081,11 +1081,11 @@
 
                     <!-- PASSO 4 -->
                     <div class="wizard-step" id="step4">
-                        <span id="badgeEstrutura" class="step-badge" hidden>Automático</span>
+                        <span id="badgeEstrutura" class="step-badge" hidden data-i18n>Automático</span>
                         <div class="etapa-cabecalho">
-                            <span class="etapa-contador">Etapa 4 de 6</span>
-                            <h2 class="etapa-titulo">Estrutura</h2>
-                            <p class="etapa-descricao">Defina em que ordem as categorias e as entradas aparecem no dicionário. Se não mudar nada, tudo fica em ordem alfabética.</p>
+                            <span class="etapa-contador" data-i18n>Etapa 4 de 6</span>
+                            <h2 class="etapa-titulo" data-i18n>Estrutura</h2>
+                            <p class="etapa-descricao" data-i18n>Defina em que ordem as categorias e as entradas aparecem no dicionário. Se não mudar nada, tudo fica em ordem alfabética.</p>
                         </div>
 
                         <!-- Estado lido por GerenciadorDados.obterArvoreOrdenada: swAlpha/swSemantic marcados = ordem automática;
@@ -1099,31 +1099,31 @@
                                 <section class="estrutura-painel" aria-labelledby="ordemEntradasTitulo">
                                     <div class="estrutura-painel-topo">
                                         <div>
-                                            <h3 id="ordemEntradasTitulo">Ordem das entradas</h3>
-                                            <span class="campo-ajuda">Como as palavras ficam ordenadas dentro de cada categoria.</span>
+                                            <h3 id="ordemEntradasTitulo" data-i18n>Ordem das entradas</h3>
+                                            <span class="campo-ajuda" data-i18n>Como as palavras ficam ordenadas dentro de cada categoria.</span>
                                         </div>
                                         <div class="estrutura-painel-acoes">
-                                            <button type="button" class="btn-secundario btn-compacto" onclick="window.definirOrdemEntradasTodas(true)">Todas alfabéticas</button>
-                                            <button type="button" class="btn-secundario btn-compacto" onclick="window.definirOrdemEntradasTodas(false)">Todas na ordem do arquivo</button>
+                                            <button type="button" class="btn-secundario btn-compacto" onclick="window.definirOrdemEntradasTodas(true)" data-i18n>Todas alfabéticas</button>
+                                            <button type="button" class="btn-secundario btn-compacto" onclick="window.definirOrdemEntradasTodas(false)" data-i18n>Todas na ordem do arquivo</button>
                                         </div>
                                     </div>
-                                    <ul class="estrutura-lista" id="gridAlpha"><li class="estrutura-vazia">Importe um projeto para ver as categorias.</li></ul>
+                                    <ul class="estrutura-lista" id="gridAlpha"><li class="estrutura-vazia" data-i18n>Importe um projeto para ver as categorias.</li></ul>
                                 </section>
 
                                 <fieldset class="info-grupo estrutura-alfabeto">
-                                    <legend>Alfabeto usado na ordenação</legend>
+                                    <legend data-i18n>Alfabeto usado na ordenação</legend>
                                     <label class="opcao-radio">
                                         <input type="radio" name="tipoAlfabeto" value="padrao" id="alfabetoPadrao" checked onchange="window.aplicarAlfabeto()">
-                                        <span><strong>Padrão (A a Z)</strong><span class="campo-ajuda">Ordem alfabética do português.</span></span>
+                                        <span><strong data-i18n>Padrão (A a Z)</strong><span class="campo-ajuda" data-i18n>Ordem alfabética do português.</span></span>
                                     </label>
                                     <label class="opcao-radio">
                                         <input type="radio" name="tipoAlfabeto" value="lingua" id="alfabetoLingua" onchange="window.aplicarAlfabeto()">
-                                        <span><strong>Alfabeto da língua</strong><span class="campo-ajuda">Defina a sequência de letras, incluindo dígrafos. Acentos são ignorados na comparação.</span></span>
+                                        <span><strong data-i18n>Alfabeto da língua</strong><span class="campo-ajuda" data-i18n>Defina a sequência de letras, incluindo dígrafos. Acentos são ignorados na comparação.</span></span>
                                     </label>
                                     <div class="campo estrutura-alfabeto-letras" id="alfabetoLetrasCampo" hidden>
-                                        <label class="campo-rotulo" for="alfabetoLetras">Letras, em ordem, separadas por vírgula</label>
+                                        <label class="campo-rotulo" for="alfabetoLetras" data-i18n>Letras, em ordem, separadas por vírgula</label>
                                         <textarea id="alfabetoLetras" class="campo-entrada mono" rows="3" placeholder="Ex.: a, b, ch, d, e, …" oninput="window.aplicarAlfabeto()"></textarea>
-                                        <button type="button" class="btn-secundario btn-compacto" onclick="document.getElementById('inputAlfabeto').click()">Importar de arquivo</button>
+                                        <button type="button" class="btn-secundario btn-compacto" onclick="document.getElementById('inputAlfabeto').click()" data-i18n>Importar de arquivo</button>
                                         <input type="file" id="inputAlfabeto" accept=".txt,text/plain" hidden onchange="window.importarAlfabeto(this.files[0])">
                                     </div>
                                 </fieldset>
@@ -1132,12 +1132,12 @@
                             <section class="estrutura-painel" aria-labelledby="ordemCategoriasTitulo">
                                 <div class="estrutura-painel-topo">
                                     <div>
-                                        <h3 id="ordemCategoriasTitulo">Ordem das categorias</h3>
-                                        <span class="campo-ajuda" id="ordemCategoriasAjuda">Ordem alfabética. Arraste pela alça ou use as setas para mudar.</span>
+                                        <h3 id="ordemCategoriasTitulo" data-i18n>Ordem das categorias</h3>
+                                        <span class="campo-ajuda" id="ordemCategoriasAjuda" data-i18n>Ordem alfabética. Arraste pela alça ou use as setas para mudar.</span>
                                     </div>
-                                    <button type="button" class="btn-secundario btn-compacto" id="btnRestaurarCategorias" onclick="window.restaurarOrdemCategorias()" disabled>Restaurar ordem alfabética</button>
+                                    <button type="button" class="btn-secundario btn-compacto" id="btnRestaurarCategorias" onclick="window.restaurarOrdemCategorias()" disabled data-i18n>Restaurar ordem alfabética</button>
                                 </div>
-                                <ol class="estrutura-categorias" id="gridSemantic"><li class="estrutura-vazia">Importe um projeto para ver as categorias.</li></ol>
+                                <ol class="estrutura-categorias" id="gridSemantic"><li class="estrutura-vazia" data-i18n>Importe um projeto para ver as categorias.</li></ol>
                             </section>
                         </div>
                     </div>
@@ -6203,8 +6203,8 @@
             const grupo = document.createElement('div');
             grupo.className = 'segmentado';
             grupo.setAttribute('role', 'radiogroup');
-            grupo.setAttribute('aria-label', `Ordem das entradas em ${cat}`);
-            [['Alfabética', true], ['Ordem do arquivo', false]].forEach(([rotulo, alfabetica]) => {
+            grupo.setAttribute('aria-label', _t('Ordem das entradas em {categoria}', { categoria: cat }));
+            [[_t('Alfabética'), true], [_t('Ordem do arquivo'), false]].forEach(([rotulo, alfabetica]) => {
                 const label = document.createElement('label');
                 const radio = document.createElement('input');
                 radio.type = 'radio';
@@ -6254,13 +6254,15 @@
             const subir = document.createElement('button');
             subir.type = 'button';
             subir.className = 'btn-icone';
-            subir.setAttribute('aria-label', `Mover ${cat} para cima`);
+            subir.setAttribute('aria-label', _t('Mover {categoria} para cima', { categoria: cat }));
+            subir.dataset.direcao = 'cima';
             subir.innerHTML = ICONE_SETA_CIMA;
             subir.addEventListener('click', () => moverCategoria(item, -1, subir));
             const descer = document.createElement('button');
             descer.type = 'button';
             descer.className = 'btn-icone';
-            descer.setAttribute('aria-label', `Mover ${cat} para baixo`);
+            descer.setAttribute('aria-label', _t('Mover {categoria} para baixo', { categoria: cat }));
+            descer.dataset.direcao = 'baixo';
             descer.innerHTML = ICONE_SETA_BAIXO;
             descer.addEventListener('click', () => moverCategoria(item, 1, descer));
             item.append(pos, alca, nome, subir, descer);
@@ -6318,12 +6320,29 @@
         atualizarEstadoOrdemCategorias();
     };
 
+    // Atualiza só os textos, sem recriar as listas: a ordem escolhida fica no DOM
+    document.addEventListener('idioma-alterado', () => {
+        atualizarEstadoOrdemCategorias();
+        document.querySelectorAll('#gridAlpha .estrutura-item').forEach(li => {
+            const categoria = li.dataset.category;
+            li.querySelector('.segmentado').setAttribute('aria-label', _t('Ordem das entradas em {categoria}', { categoria }));
+            const [alfabetica, doArquivo] = li.querySelectorAll('.segmentado label');
+            alfabetica.lastChild.nodeValue = _t('Alfabética');
+            doArquivo.lastChild.nodeValue = _t('Ordem do arquivo');
+        });
+        document.querySelectorAll('#gridSemantic .sortable-item').forEach(li => {
+            const categoria = li.dataset.category;
+            li.querySelector('[data-direcao="cima"]').setAttribute('aria-label', _t('Mover {categoria} para cima', { categoria }));
+            li.querySelector('[data-direcao="baixo"]').setAttribute('aria-label', _t('Mover {categoria} para baixo', { categoria }));
+        });
+    });
+
     function atualizarEstadoOrdemCategorias() {
         const automatica = document.getElementById('swSemantic').checked;
         document.getElementById('btnRestaurarCategorias').disabled = automatica;
         document.getElementById('ordemCategoriasAjuda').textContent = automatica
-            ? 'Ordem alfabética. Arraste pela alça ou use as setas para mudar.'
-            : 'Ordem personalizada. Arraste pela alça ou use as setas.';
+            ? _t('Ordem alfabética. Arraste pela alça ou use as setas para mudar.')
+            : _t('Ordem personalizada. Arraste pela alça ou use as setas.');
     }
 
     function atualizarIndices() {
