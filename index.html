@@ -1372,11 +1372,11 @@
 <dialog id="dialogoRecursos" class="dialogo dialogo-recursos" aria-labelledby="recursosTitulo">
     <div class="dialogo-topo dialogo-topo-separado">
         <div>
-            <button type="button" class="btn-link recursos-voltar" id="recursosVoltar" hidden onclick="window.mostrarTelaRecursos('inicio')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg>Recursos</button>
-            <h2 id="recursosTitulo">Recursos</h2>
-            <p id="recursosDescricao">Modelos, ferramentas e documentação para preparar o seu dicionário.</p>
+            <button type="button" class="btn-link recursos-voltar" id="recursosVoltar" hidden onclick="window.mostrarTelaRecursos('inicio')" data-i18n><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg>Recursos</button>
+            <h2 id="recursosTitulo" data-i18n>Recursos</h2>
+            <p id="recursosDescricao" data-i18n>Modelos, ferramentas e documentação para preparar o seu dicionário.</p>
         </div>
-        <button type="button" class="btn-icone" aria-label="Fechar" onclick="document.getElementById('dialogoRecursos').close()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+        <button type="button" class="btn-icone" aria-label="Fechar" onclick="document.getElementById('dialogoRecursos').close()" data-i18n-attr="aria-label"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
     </div>
 
     <div class="dialogo-corpo recursos-corpo">
@@ -1386,72 +1386,72 @@
         <div class="recursos-tela" id="recursosInicio">
             <section class="recursos-secao">
                 <div>
-                    <h3>Começar um projeto</h3>
-                    <span class="campo-ajuda">Uma pasta pronta para preencher, na estrutura que a etapa Fonte de Dados reconhece.</span>
+                    <h3 data-i18n>Começar um projeto</h3>
+                    <span class="campo-ajuda" data-i18n>Uma pasta pronta para preencher, na estrutura que a etapa Fonte de Dados reconhece.</span>
                 </div>
                 <div class="recursos-modelos">
                     <div class="recursos-cartao">
-                        <strong>Modelo vazio</strong>
-                        <span class="recursos-cartao-texto"><code>dicionario.csv</code> só com os cabeçalhos e as pastas de áudio, imagem e vídeo vazias.</span>
-                        <button type="button" class="btn-contorno btn-compacto-acao" data-acao="Baixar o modelo vazio">
+                        <strong data-i18n>Modelo vazio</strong>
+                        <span class="recursos-cartao-texto" data-i18n="html"><code>dicionario.csv</code> só com os cabeçalhos e as pastas de áudio, imagem e vídeo vazias.</span>
+                        <button type="button" class="btn-contorno btn-compacto-acao" data-i18n-attr="data-acao" data-acao="Baixar o modelo vazio" data-i18n>
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"></path><path d="M4 20h16"></path></svg>
                             Baixar ZIP
                         </button>
                     </div>
                     <div class="recursos-cartao destaque">
-                        <span class="recursos-cartao-titulo"><strong>Modelo com exemplo</strong><span class="selo-recomendado">Recomendado</span></span>
-                        <span class="recursos-cartao-texto">Algumas entradas já preenchidas, com áudio e imagem, para ver como cada coluna funciona.</span>
-                        <button type="button" class="btn-principal btn-compacto-acao" data-acao="Baixar o modelo com exemplo">
+                        <span class="recursos-cartao-titulo"><strong data-i18n>Modelo com exemplo</strong><span class="selo-recomendado" data-i18n>Recomendado</span></span>
+                        <span class="recursos-cartao-texto" data-i18n>Algumas entradas já preenchidas, com áudio e imagem, para ver como cada coluna funciona.</span>
+                        <button type="button" class="btn-principal btn-compacto-acao" data-i18n-attr="data-acao" data-acao="Baixar o modelo com exemplo" data-i18n>
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"></path><path d="M4 20h16"></path></svg>
                             Baixar ZIP
                         </button>
                     </div>
                 </div>
-                <button type="button" class="btn-link recursos-link" data-acao="Guia das colunas do CSV">Guia das colunas do CSV</button>
+                <button type="button" class="btn-link recursos-link" data-i18n-attr="data-acao" data-acao="Guia das colunas do CSV" data-i18n>Guia das colunas do CSV</button>
             </section>
 
             <section class="recursos-secao">
                 <div>
-                    <h3>Preparar mídias e dados</h3>
-                    <span class="campo-ajuda">Programa para instalar no computador. Opcional, mas recomendado para projetos com muitas mídias.</span>
+                    <h3 data-i18n>Preparar mídias e dados</h3>
+                    <span class="campo-ajuda" data-i18n>Programa para instalar no computador. Opcional, mas recomendado para projetos com muitas mídias.</span>
                 </div>
                 <div class="recursos-cartao recursos-programa">
                     <ul class="recursos-funcoes">
-                        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>Reduzir o tamanho dos áudios</li>
-                        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="15" height="14" rx="2"></rect><path d="m17 10 5-3v10l-5-3"></path></svg>Otimizar vídeos</li>
-                        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"></path></svg>Cortar áudios por trilhas EAF (ELAN)</li>
-                        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-5-5L5 21"></path></svg>Otimizar imagens</li>
-                        <li class="largo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3 8-8"></path><path d="M20 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>Validar os dados e completar campos vazios em lote</li>
+                        <li data-i18n><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>Reduzir o tamanho dos áudios</li>
+                        <li data-i18n><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="15" height="14" rx="2"></rect><path d="m17 10 5-3v10l-5-3"></path></svg>Otimizar vídeos</li>
+                        <li data-i18n><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"></path></svg>Cortar áudios por trilhas EAF (ELAN)</li>
+                        <li data-i18n><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-5-5L5 21"></path></svg>Otimizar imagens</li>
+                        <li class="largo" data-i18n><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3 8-8"></path><path d="M20 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>Validar os dados e completar campos vazios em lote</li>
                     </ul>
                     <div class="recursos-programa-acoes">
-                        <button type="button" class="btn-principal" data-acao="Baixar o programa de preparação para Windows">
+                        <button type="button" class="btn-principal" data-i18n-attr="data-acao" data-acao="Baixar o programa de preparação para Windows" data-i18n>
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"></path><path d="M4 20h16"></path></svg>
                             Baixar para Windows
                         </button>
-                        <span class="campo-ajuda">Disponível em breve</span>
-                        <button type="button" class="btn-link recursos-link-direita" onclick="window.mostrarTelaRecursos('preparacao')">Linux, código-fonte e instruções →</button>
+                        <span class="campo-ajuda" data-i18n>Disponível em breve</span>
+                        <button type="button" class="btn-link recursos-link-direita" onclick="window.mostrarTelaRecursos('preparacao')" data-i18n>Linux, código-fonte e instruções →</button>
                     </div>
                 </div>
             </section>
 
             <section class="recursos-secao">
-                <h3>Projeto e documentação</h3>
+                <h3 data-i18n>Projeto e documentação</h3>
                 <ul class="recursos-links">
-                    <li><button type="button" data-acao="Abrir o repositório do projeto">
+                    <li><button type="button" data-i18n-attr="data-acao" data-acao="Abrir o repositório do projeto">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="2.5"></circle><circle cx="6" cy="18" r="2.5"></circle><circle cx="18" cy="8" r="2.5"></circle><path d="M6 8.5v7M18 10.5c0 4-6 3-10.5 6"></path></svg>
-                        <span class="recursos-links-texto"><strong>Repositório do projeto</strong><span>Mantido pela área de Linguística do Museu Goeldi</span></span>
+                        <span class="recursos-links-texto"><strong data-i18n>Repositório do projeto</strong><span data-i18n>Mantido pela área de Linguística do Museu Goeldi</span></span>
                     </button></li>
-                    <li><button type="button" data-acao="Abrir a documentação">
+                    <li><button type="button" data-i18n-attr="data-acao" data-acao="Abrir a documentação">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"></path></svg>
-                        <span class="recursos-links-texto"><strong>Documentação</strong></span>
+                        <span class="recursos-links-texto"><strong data-i18n>Documentação</strong></span>
                     </button></li>
-                    <li><button type="button" data-acao="Reportar um problema">
+                    <li><button type="button" data-i18n-attr="data-acao" data-acao="Reportar um problema">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v4M12 16h.01"></path></svg>
-                        <span class="recursos-links-texto"><strong>Reportar um problema</strong></span>
+                        <span class="recursos-links-texto"><strong data-i18n>Reportar um problema</strong></span>
                     </button></li>
-                    <li><button type="button" data-acao="Ver as novidades da versão">
+                    <li><button type="button" data-i18n-attr="data-acao" data-acao="Ver as novidades da versão">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"></path></svg>
-                        <span class="recursos-links-texto"><strong>Novidades da versão</strong></span>
+                        <span class="recursos-links-texto"><strong data-i18n>Novidades da versão</strong></span>
                     </button></li>
                 </ul>
             </section>
@@ -1461,66 +1461,66 @@
         <div class="recursos-tela" id="recursosPreparacao" hidden>
             <section class="recursos-baixar">
                 <div class="recursos-baixar-topo">
-                    <span class="recursos-sistema">Sistema detectado: <strong id="recursosSistemaDetectado">Windows</strong></span>
-                    <div class="segmentado recursos-sistemas" role="radiogroup" aria-label="Escolher versão">
-                        <label><input type="radio" name="recursosSistema" value="windows" checked onchange="window.mostrarSistemaPreparacao(this.value)">Windows</label>
-                        <label><input type="radio" name="recursosSistema" value="linux" onchange="window.mostrarSistemaPreparacao(this.value)">Linux</label>
-                        <label><input type="radio" name="recursosSistema" value="fonte" onchange="window.mostrarSistemaPreparacao(this.value)">Código-fonte (Python)</label>
+                    <span class="recursos-sistema" data-i18n>Sistema detectado: <strong id="recursosSistemaDetectado" data-i18n>Windows</strong></span>
+                    <div class="segmentado recursos-sistemas" role="radiogroup" aria-label="Escolher versão" data-i18n-attr="aria-label">
+                        <label data-i18n><input type="radio" name="recursosSistema" value="windows" checked onchange="window.mostrarSistemaPreparacao(this.value)">Windows</label>
+                        <label data-i18n><input type="radio" name="recursosSistema" value="linux" onchange="window.mostrarSistemaPreparacao(this.value)">Linux</label>
+                        <label data-i18n><input type="radio" name="recursosSistema" value="fonte" onchange="window.mostrarSistemaPreparacao(this.value)">Código-fonte (Python)</label>
                     </div>
                 </div>
 
                 <div class="recursos-sistema-painel" data-sistema="windows">
                     <div class="recursos-baixar-linha">
-                        <button type="button" class="btn-principal btn-grande" data-acao="Baixar o programa de preparação para Windows">
+                        <button type="button" class="btn-principal btn-grande" data-i18n-attr="data-acao" data-acao="Baixar o programa de preparação para Windows" data-i18n>
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"></path><path d="M4 20h16"></path></svg>
                             Baixar para Windows
                         </button>
-                        <span class="campo-ajuda">Instalador .exe · Windows 10 ou mais recente · disponível em breve</span>
+                        <span class="campo-ajuda" data-i18n>Instalador .exe · Windows 10 ou mais recente · disponível em breve</span>
                     </div>
                     <div class="recursos-nota">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"></path></svg>
-                        <span>Na primeira execução, o Windows pode mostrar o aviso “O Windows protegeu o computador”. Clique em <strong>Mais informações</strong> e depois em <strong>Executar assim mesmo</strong>.</span>
+                        <span data-i18n="html">Na primeira execução, o Windows pode mostrar o aviso “O Windows protegeu o computador”. Clique em <strong>Mais informações</strong> e depois em <strong>Executar assim mesmo</strong>.</span>
                     </div>
                 </div>
 
                 <div class="recursos-sistema-painel" data-sistema="linux" hidden>
                     <div class="recursos-baixar-linha">
-                        <button type="button" class="btn-principal btn-grande" data-acao="Baixar o programa de preparação para Linux">
+                        <button type="button" class="btn-principal btn-grande" data-i18n-attr="data-acao" data-acao="Baixar o programa de preparação para Linux" data-i18n>
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"></path><path d="M4 20h16"></path></svg>
                             Baixar para Linux
                         </button>
-                        <span class="campo-ajuda">Disponível em breve</span>
+                        <span class="campo-ajuda" data-i18n>Disponível em breve</span>
                     </div>
-                    <span class="campo-ajuda">Depois de baixar, dê permissão de execução ao arquivo, ou siga as instruções do repositório.</span>
+                    <span class="campo-ajuda" data-i18n>Depois de baixar, dê permissão de execução ao arquivo, ou siga as instruções do repositório.</span>
                 </div>
 
                 <div class="recursos-sistema-painel" data-sistema="fonte" hidden>
-                    <span class="recursos-fonte-texto">Para quem prefere rodar em Python ou contribuir com o código.</span>
+                    <span class="recursos-fonte-texto" data-i18n>Para quem prefere rodar em Python ou contribuir com o código.</span>
                     <div class="recursos-comando">
                         <code>Endereço do repositório disponível em breve</code>
-                        <button type="button" data-acao="Copiar o comando git clone">Copiar</button>
+                        <button type="button" data-i18n-attr="data-acao" data-acao="Copiar o comando git clone" data-i18n>Copiar</button>
                     </div>
-                    <button type="button" class="btn-link recursos-link" data-acao="Abrir o repositório e as instruções">Abrir o repositório e as instruções ↗</button>
+                    <button type="button" class="btn-link recursos-link" data-i18n-attr="data-acao" data-acao="Abrir o repositório e as instruções" data-i18n>Abrir o repositório e as instruções ↗</button>
                 </div>
             </section>
 
             <section class="recursos-secao">
-                <h3>Como usar com o CSV2DMLI</h3>
+                <h3 data-i18n>Como usar com o CSV2DMLI</h3>
                 <ol class="recursos-passos">
-                    <li><span class="recursos-passo-num" aria-hidden="true">1</span><strong>Abra a pasta do projeto no programa</strong><span class="campo-ajuda">A mesma pasta com o <code>dicionario.csv</code> e as mídias.</span></li>
-                    <li><span class="recursos-passo-num" aria-hidden="true">2</span><strong>Escolha o que tratar</strong><span class="campo-ajuda">O programa grava o resultado numa pasta nova e não altera os originais.</span></li>
-                    <li><span class="recursos-passo-num" aria-hidden="true">3</span><strong>Importe a pasta tratada aqui</strong><span class="campo-ajuda">Na etapa <button type="button" class="btn-link btn-link-inline" onclick="document.getElementById('dialogoRecursos').close(); window.irParaPasso(1)">Fonte de Dados</button>, do mesmo jeito de sempre.</span></li>
+                    <li><span class="recursos-passo-num" aria-hidden="true">1</span><strong data-i18n>Abra a pasta do projeto no programa</strong><span class="campo-ajuda" data-i18n="html">A mesma pasta com o <code>dicionario.csv</code> e as mídias.</span></li>
+                    <li><span class="recursos-passo-num" aria-hidden="true">2</span><strong data-i18n>Escolha o que tratar</strong><span class="campo-ajuda" data-i18n>O programa grava o resultado numa pasta nova e não altera os originais.</span></li>
+                    <li><span class="recursos-passo-num" aria-hidden="true">3</span><strong data-i18n>Importe a pasta tratada aqui</strong><span class="campo-ajuda" data-i18n>Na etapa <button type="button" class="btn-link btn-link-inline" onclick="document.getElementById('dialogoRecursos').close(); window.irParaPasso(1)" data-i18n>Fonte de Dados</button>, do mesmo jeito de sempre.</span></li>
                 </ol>
             </section>
 
             <section class="recursos-secao">
-                <h3>O que ele faz</h3>
+                <h3 data-i18n>O que ele faz</h3>
                 <ul class="recursos-descricoes">
-                    <li><strong>Reduzir o tamanho dos áudios</strong><span class="campo-ajuda">Converte para uma qualidade suficiente para fala, deixando o app bem mais leve.</span></li>
-                    <li><strong>Otimizar vídeos</strong><span class="campo-ajuda">Ajusta resolução e formato para tocar bem em celulares simples.</span></li>
-                    <li><strong>Cortar áudios por trilhas EAF</strong><span class="campo-ajuda">Usa as anotações do ELAN para separar uma gravação longa em um áudio por entrada.</span></li>
-                    <li><strong>Otimizar imagens</strong><span class="campo-ajuda">Redimensiona e comprime fotos sem perda visível.</span></li>
-                    <li class="largo"><strong>Validar e completar dados</strong><span class="campo-ajuda">Usa as mesmas regras da etapa Mídias e Validação e permite preencher campos vazios em lote.</span></li>
+                    <li><strong data-i18n>Reduzir o tamanho dos áudios</strong><span class="campo-ajuda" data-i18n>Converte para uma qualidade suficiente para fala, deixando o app bem mais leve.</span></li>
+                    <li><strong data-i18n>Otimizar vídeos</strong><span class="campo-ajuda" data-i18n>Ajusta resolução e formato para tocar bem em celulares simples.</span></li>
+                    <li><strong data-i18n>Cortar áudios por trilhas EAF</strong><span class="campo-ajuda" data-i18n>Usa as anotações do ELAN para separar uma gravação longa em um áudio por entrada.</span></li>
+                    <li><strong data-i18n>Otimizar imagens</strong><span class="campo-ajuda" data-i18n>Redimensiona e comprime fotos sem perda visível.</span></li>
+                    <li class="largo"><strong data-i18n>Validar e completar dados</strong><span class="campo-ajuda" data-i18n>Usa as mesmas regras da etapa Mídias e Validação e permite preencher campos vazios em lote.</span></li>
                 </ul>
             </section>
         </div>
@@ -1577,19 +1577,19 @@
 <dialog id="modalCustomizacao" class="dialogo dialogo-largo" aria-labelledby="modelosTitulo">
     <div class="dialogo-topo">
         <div>
-            <h2 id="modelosTitulo">Avançado: modelos</h2>
-            <p>Para quem quer alterar o código dos modelos. Se você não enviar nada aqui, o sistema usa os modelos padrão.</p>
+            <h2 id="modelosTitulo" data-i18n>Avançado: modelos</h2>
+            <p data-i18n>Para quem quer alterar o código dos modelos. Se você não enviar nada aqui, o sistema usa os modelos padrão.</p>
         </div>
-        <button type="button" class="btn-icone" aria-label="Fechar" onclick="document.getElementById('modalCustomizacao').close()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+        <button type="button" class="btn-icone" aria-label="Fechar" onclick="document.getElementById('modalCustomizacao').close()" data-i18n-attr="aria-label"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
     </div>
-    <div class="dialogo-abas" role="tablist" aria-label="Formato" id="modelosAbas"></div>
+    <div class="dialogo-abas" role="tablist" aria-label="Formato" id="modelosAbas" data-i18n-attr="aria-label"></div>
     <div class="dialogo-corpo" role="tabpanel" id="modelosPainel" aria-labelledby="modelosTitulo">
         <p class="campo-ajuda modelos-nota" id="modelosNota" hidden></p>
         <ul class="modelos-lista" id="modelosLista"></ul>
     </div>
     <div class="dialogo-rodape">
-        <span class="campo-ajuda" id="modelosRodapeDica">Arraste um arquivo sobre um item para enviá-lo.</span>
-        <button type="button" class="btn-principal btn-rodape" onclick="document.getElementById('modalCustomizacao').close()">Concluir</button>
+        <span class="campo-ajuda" id="modelosRodapeDica" data-i18n>Arraste um arquivo sobre um item para enviá-lo.</span>
+        <button type="button" class="btn-principal btn-rodape" onclick="document.getElementById('modalCustomizacao').close()" data-i18n>Concluir</button>
     </div>
 </dialog>
 
@@ -4066,20 +4066,20 @@
         // Sem `chave`, o formato não aceita envio: só baixar o padrão (Typst está desligado
         // em exportadorTypst.carregarTemplates; LaTeX não tem envio).
         const MODELOS_EXPORTACAO = [
-            { nome: 'Site e aplicativo', itens: [
-                { nome: 'Página base', desc: 'Estrutura geral do site: cabeçalho, busca e navegação.', arquivo: 'template.html', chave: 'csv2dmli_template_html', aceita: '.html', padrao: 'config/templates/html-cards/template.html', baixarComo: 'cards-template.html' },
-                { nome: 'Verbete', desc: 'Como cada entrada é exibida na página de detalhe.', arquivo: 'entrada.tmpl', chave: 'csv2dmli_templateEntradaHtml', aceita: '.tmpl,.html', padrao: 'config/templates/html-cards/entrada.tmpl', baixarComo: 'cards-entrada.tmpl' },
-                { nome: 'Item de lista', desc: 'Cada linha na lista de palavras.', arquivo: 'lista.tmpl', chave: 'csv2dmli_templateListaHtml', aceita: '.tmpl,.html', padrao: 'config/templates/html-cards/lista.tmpl', baixarComo: 'cards-lista.tmpl' },
-                { nome: 'Mini card', desc: 'Cartão resumido usado nas buscas.', arquivo: 'card.tmpl', chave: 'csv2dmli_templateCardHtml', aceita: '.tmpl,.html', padrao: 'config/templates/html-cards/card.tmpl', baixarComo: 'cards-card.tmpl' },
-                { nome: 'Estilos globais', desc: 'Folha de estilos CSS aplicada a todas as páginas.', arquivo: 'estilos-globais.css', chave: 'csv2dmli_templateCssCard', aceita: '.css', padrao: 'config/templates/estilos-globais.css', baixarComo: 'estilos-globais.css' },
+            { nome: () => _t('Site e aplicativo'), itens: [
+                { nome: () => _t('Página base'), desc: () => _t('Estrutura geral do site: cabeçalho, busca e navegação.'), arquivo: 'template.html', chave: 'csv2dmli_template_html', aceita: '.html', padrao: 'config/templates/html-cards/template.html', baixarComo: 'cards-template.html' },
+                { nome: () => _t('Verbete'), desc: () => _t('Como cada entrada é exibida na página de detalhe.'), arquivo: 'entrada.tmpl', chave: 'csv2dmli_templateEntradaHtml', aceita: '.tmpl,.html', padrao: 'config/templates/html-cards/entrada.tmpl', baixarComo: 'cards-entrada.tmpl' },
+                { nome: () => _t('Item de lista'), desc: () => _t('Cada linha na lista de palavras.'), arquivo: 'lista.tmpl', chave: 'csv2dmli_templateListaHtml', aceita: '.tmpl,.html', padrao: 'config/templates/html-cards/lista.tmpl', baixarComo: 'cards-lista.tmpl' },
+                { nome: () => _t('Mini card'), desc: () => _t('Cartão resumido usado nas buscas.'), arquivo: 'card.tmpl', chave: 'csv2dmli_templateCardHtml', aceita: '.tmpl,.html', padrao: 'config/templates/html-cards/card.tmpl', baixarComo: 'cards-card.tmpl' },
+                { nome: () => _t('Estilos globais'), desc: () => _t('Folha de estilos CSS aplicada a todas as páginas.'), arquivo: 'estilos-globais.css', chave: 'csv2dmli_templateCssCard', aceita: '.css', padrao: 'config/templates/estilos-globais.css', baixarComo: 'estilos-globais.css' },
             ] },
-            { nome: 'PDF (Typst)', nota: 'O envio de modelos Typst está desativado no exportador: o PDF sempre usa os modelos padrão. Você pode baixá-los para consulta.', itens: [
-                { nome: 'Modelo principal', desc: 'Capa, sumário e diagramação das páginas.', arquivo: 'template.typ', padrao: 'config/templates/typst/template.typ', baixarComo: 'typst-template.typ' },
-                { nome: 'Verbete', desc: 'Como cada entrada aparece no PDF.', arquivo: 'entrada.typ', padrao: 'config/templates/typst/entrada.typ', baixarComo: 'typst-entrada.typ' },
+            { nome: () => _t('PDF (Typst)'), nota: () => _t('O envio de modelos Typst está desativado no exportador: o PDF sempre usa os modelos padrão. Você pode baixá-los para consulta.'), itens: [
+                { nome: () => _t('Modelo principal'), desc: () => _t('Capa, sumário e diagramação das páginas.'), arquivo: 'template.typ', padrao: 'config/templates/typst/template.typ', baixarComo: 'typst-template.typ' },
+                { nome: () => _t('Verbete'), desc: () => _t('Como cada entrada aparece no PDF.'), arquivo: 'entrada.typ', padrao: 'config/templates/typst/entrada.typ', baixarComo: 'typst-entrada.typ' },
             ] },
-            { nome: 'LaTeX', nota: 'Os modelos LaTeX não aceitam envio: baixe o padrão e edite o projeto LaTeX gerado.', itens: [
-                { nome: 'Modelo principal', desc: 'Preâmbulo e estrutura do documento.', arquivo: 'template.tex', padrao: 'config/templates/latex/template.tex', baixarComo: 'latex-template.tex' },
-                { nome: 'Verbete', desc: 'Como cada entrada aparece no documento.', arquivo: 'entrada.tex', padrao: 'config/templates/latex/entrada.tex', baixarComo: 'latex-entrada.tex' },
+            { nome: () => _t('LaTeX'), nota: () => _t('Os modelos LaTeX não aceitam envio: baixe o padrão e edite o projeto LaTeX gerado.'), itens: [
+                { nome: () => _t('Modelo principal'), desc: () => _t('Preâmbulo e estrutura do documento.'), arquivo: 'template.tex', padrao: 'config/templates/latex/template.tex', baixarComo: 'latex-template.tex' },
+                { nome: () => _t('Verbete'), desc: () => _t('Como cada entrada aparece no documento.'), arquivo: 'entrada.tex', padrao: 'config/templates/latex/entrada.tex', baixarComo: 'latex-entrada.tex' },
             ] },
         ];
         const CHAVE_INFO_MODELOS = 'csv2dmli_modelos_info'; // { [chave]: { nome, data } } do arquivo enviado
@@ -4092,7 +4092,7 @@
             if (!arquivo) return;
             localStorage.setItem(item.chave, await arquivo.text());
             const info = lerInfoModelos();
-            info[item.chave] = { nome: arquivo.name, data: new Date().toLocaleDateString('pt-BR') };
+            info[item.chave] = { nome: arquivo.name, data: I18N.data(new Date()) };
             try { localStorage.setItem(CHAVE_INFO_MODELOS, JSON.stringify(info)); } catch (e) {}
             console.log(`✅ Template customizado salvo: ${arquivo.name}`);
             if (window.exportador) await window.exportador.inicializar();
@@ -4129,12 +4129,12 @@
                 aba.setAttribute('role', 'tab');
                 aba.setAttribute('aria-selected', String(i === abaModelos));
                 aba.tabIndex = i === abaModelos ? 0 : -1;
-                aba.textContent = grupo.nome;
+                aba.textContent = grupo.nome();
                 const alterados = grupo.itens.filter(modeloPersonalizado).length;
                 if (alterados) {
                     const selo = document.createElement('span');
                     selo.className = 'dialogo-aba-selo';
-                    selo.textContent = `${alterados} ${alterados === 1 ? 'alterado' : 'alterados'}`;
+                    selo.textContent = _tn('{n} alterado', '{n} alterados', alterados);
                     aba.append(selo);
                 }
                 aba.addEventListener('click', () => { abaModelos = i; renderizarModelos(); });
@@ -4150,7 +4150,7 @@
             const grupo = MODELOS_EXPORTACAO[abaModelos];
             const nota = document.getElementById('modelosNota');
             nota.hidden = !grupo.nota;
-            nota.textContent = grupo.nota || '';
+            nota.textContent = grupo.nota ? grupo.nota() : '';
             document.getElementById('modelosRodapeDica').hidden = !grupo.itens.some(item => item.chave);
 
             const info = lerInfoModelos();
@@ -4164,18 +4164,18 @@
                 const linha = document.createElement('div');
                 linha.className = 'modelo-titulo';
                 const nome = document.createElement('strong');
-                nome.textContent = item.nome;
+                nome.textContent = item.nome();
                 const selo = document.createElement('span');
                 selo.className = 'modelo-selo';
-                selo.textContent = personalizado ? 'Personalizado' : 'Padrão';
+                selo.textContent = personalizado ? _t('Personalizado') : _t('Padrão');
                 linha.append(nome, selo);
                 const desc = document.createElement('span');
                 desc.className = 'campo-ajuda';
-                desc.textContent = item.desc;
+                desc.textContent = item.desc();
                 const arquivo = document.createElement('span');
                 arquivo.className = 'modelo-arquivo';
                 const enviado = info[item.chave];
-                arquivo.textContent = personalizado && enviado ? `${enviado.nome} · enviado em ${enviado.data}` : item.arquivo;
+                arquivo.textContent = personalizado && enviado ? _t('{arquivo} · enviado em {data}', { arquivo: enviado.nome, data: enviado.data }) : item.arquivo;
                 texto.append(linha, desc, arquivo);
 
                 const acoes = document.createElement('div');
@@ -4186,17 +4186,18 @@
                     entrada.accept = item.aceita;
                     entrada.hidden = true;
                     entrada.addEventListener('change', () => enviarModelo(item, entrada.files[0]));
-                    acoes.append(entrada, criarBotao('btn-secundario btn-compacto', personalizado ? 'Substituir' : 'Enviar arquivo', () => { entrada.value = ''; entrada.click(); }));
+                    acoes.append(entrada, criarBotao('btn-secundario btn-compacto', personalizado ? _t('Substituir') : _t('Enviar arquivo'), () => { entrada.value = ''; entrada.click(); }));
                     setupDropZone(li, arquivos => enviarModelo(item, arquivos[0]));
                 }
-                acoes.append(criarBotao('btn-link', 'Baixar padrão', () => window.baixarArquivoPadrao(item.padrao, item.baixarComo)));
-                if (personalizado) acoes.append(criarBotao('btn-link btn-link-perigo', 'Restaurar padrão', () => restaurarModelo(item)));
+                acoes.append(criarBotao('btn-link', _t('Baixar padrão'), () => window.baixarArquivoPadrao(item.padrao, item.baixarComo)));
+                if (personalizado) acoes.append(criarBotao('btn-link btn-link-perigo', _t('Restaurar padrão'), () => restaurarModelo(item)));
 
                 li.append(texto, acoes);
                 return li;
             }));
         }
         renderizarModelos();
+        document.addEventListener('idioma-alterado', renderizarModelos);
         // -----------------------------------------
 
         // Engatilha os inputs escondidos nas DropZones
@@ -6029,8 +6030,8 @@
     // por um onclick com a ação real.
     // ===================================================================
     const TELAS_RECURSOS = {
-        inicio: { titulo: 'Recursos', descricao: 'Modelos, ferramentas e documentação para preparar o seu dicionário.' },
-        preparacao: { titulo: 'Programa para Tratamento de Mídias', descricao: 'Trata as mídias e os dados no seu computador antes da importação. Assim o dicionário fica mais leve e com menos erros.' }
+        inicio: { titulo: () => _t('Recursos'), descricao: () => _t('Modelos, ferramentas e documentação para preparar o seu dicionário.') },
+        preparacao: { titulo: () => _t('Programa para Tratamento de Mídias'), descricao: () => _t('Trata as mídias e os dados no seu computador antes da importação. Assim o dicionário fica mais leve e com menos erros.') }
     };
 
     function detectarSistema() {
@@ -6038,15 +6039,15 @@
         if (/win/i.test(plataforma)) return { id: 'windows', nome: 'Windows' };
         if (/linux|x11/i.test(plataforma) && !/android/i.test(navigator.userAgent)) return { id: 'linux', nome: 'Linux' };
         if (/mac/i.test(plataforma)) return { id: 'fonte', nome: 'macOS' };
-        return { id: 'windows', nome: 'não identificado' };
+        return { id: 'windows', nome: _t('não identificado') };
     }
 
     window.mostrarTelaRecursos = function(tela) {
         document.getElementById('recursosInicio').hidden = tela !== 'inicio';
         document.getElementById('recursosPreparacao').hidden = tela !== 'preparacao';
         document.getElementById('recursosVoltar').hidden = tela === 'inicio';
-        document.getElementById('recursosTitulo').textContent = TELAS_RECURSOS[tela].titulo;
-        document.getElementById('recursosDescricao').textContent = TELAS_RECURSOS[tela].descricao;
+        document.getElementById('recursosTitulo').textContent = TELAS_RECURSOS[tela].titulo();
+        document.getElementById('recursosDescricao').textContent = TELAS_RECURSOS[tela].descricao();
         document.getElementById('recursosAviso').hidden = true;
         document.querySelector('#dialogoRecursos .dialogo-corpo').scrollTop = 0;
         if (tela === 'preparacao') {
@@ -6075,7 +6076,7 @@
         const botao = e.target.closest('[data-acao]');
         if (!botao) return;
         const aviso = document.getElementById('recursosAviso');
-        aviso.textContent = `“${botao.dataset.acao}” ainda não está disponível. Esta opção será ligada em uma próxima versão.`;
+        aviso.textContent = _t('“{acao}” ainda não está disponível. Esta opção será ligada em uma próxima versão.', { acao: botao.dataset.acao });
         aviso.hidden = false;
         aviso.scrollIntoView({ block: 'nearest' });
     });
