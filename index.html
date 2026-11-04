@@ -956,98 +956,98 @@
 
                     <!-- PASSO 3 -->
                     <div class="wizard-step" id="step3">
-                        <span id="badgeMeta" class="step-badge" hidden>Pendente</span>
+                        <span id="badgeMeta" class="step-badge" hidden data-i18n>Pendente</span>
                         <div class="etapa-cabecalho">
-                            <span class="etapa-contador">Etapa 3 de 6</span>
-                            <h2 class="etapa-titulo">Metadados</h2>
-                            <p class="etapa-descricao">Dados que aparecem na capa, no cabeçalho e nos créditos de todos os formatos gerados.</p>
+                            <span class="etapa-contador" data-i18n>Etapa 3 de 6</span>
+                            <h2 class="etapa-titulo" data-i18n>Metadados</h2>
+                            <p class="etapa-descricao" data-i18n>Dados que aparecem na capa, no cabeçalho e nos créditos de todos os formatos gerados.</p>
                         </div>
 
                         <div class="info-grade">
                             <div class="info-coluna-principal">
                             <fieldset class="info-grupo">
-                                <legend>Identificação</legend>
+                                <legend data-i18n>Identificação</legend>
                                 <label class="campo campo-largo">
-                                    <span class="campo-rotulo">Título do dicionário</span>
-                                    <input type="text" id="metaHtml" class="campo-entrada" value="Meu Dicionário Multimídia" placeholder="Ex.: Dicionário Karitiana–Português">
-                                    <span class="campo-ajuda">Usado no site, no aplicativo e nos demais formatos.</span>
+                                    <span class="campo-rotulo" data-i18n>Título do dicionário</span>
+                                    <input type="text" id="metaHtml" class="campo-entrada" value="Meu Dicionário Multimídia" placeholder="Ex.: Dicionário Karitiana–Português" data-i18n-attr="placeholder">
+                                    <span class="campo-ajuda" data-i18n>Usado no site, no aplicativo e nos demais formatos.</span>
                                 </label>
-                                <label class="campo-opcao campo-largo">
+                                <label class="campo-opcao campo-largo" data-i18n>
                                     <input type="checkbox" id="metaPdfDiferente" onchange="window.sincronizarTituloPdf()">
                                     Usar um título diferente no PDF
                                 </label>
                                 <label class="campo campo-largo" id="metaPdfCampo">
-                                    <span class="campo-rotulo">Título do PDF / livro</span>
+                                    <span class="campo-rotulo" data-i18n>Título do PDF / livro</span>
                                     <input type="text" id="metaPdf" class="campo-entrada" value="Meu Dicionário">
                                 </label>
                                 <label class="campo">
-                                    <span class="campo-rotulo">Autoria</span>
-                                    <input type="text" id="metaAutor" class="campo-entrada" placeholder="Nomes separados por vírgula">
+                                    <span class="campo-rotulo" data-i18n>Autoria</span>
+                                    <input type="text" id="metaAutor" class="campo-entrada" placeholder="Nomes separados por vírgula" data-i18n-attr="placeholder">
                                 </label>
                                 <label class="campo">
-                                    <span class="campo-rotulo">Ano de publicação</span>
-                                    <input type="text" id="metaAno" class="campo-entrada" inputmode="numeric" placeholder="Ex.: 2026">
+                                    <span class="campo-rotulo" data-i18n>Ano de publicação</span>
+                                    <input type="text" id="metaAno" class="campo-entrada" inputmode="numeric" placeholder="Ex.: 2026" data-i18n-attr="placeholder">
                                 </label>
                             </fieldset>
 
                             <!-- Só para projetos CLDF; campos espelhados no diálogo de exportação CLDF (ver sincronizarCamposCldf) -->
                             <fieldset class="info-grupo" id="metaCldfGrupo" hidden>
-                                <legend>Língua documentada <span class="info-grupo-selo">CLDF</span></legend>
+                                <legend data-i18n>Língua documentada <span class="info-grupo-selo" data-i18n>CLDF</span></legend>
                                 <label class="campo">
-                                    <span class="campo-rotulo">Nome da língua</span>
-                                    <input type="text" id="metaCldfLingua" class="campo-entrada" data-espelho="cldfLangName" placeholder="Ex.: Karitiana">
+                                    <span class="campo-rotulo" data-i18n>Nome da língua</span>
+                                    <input type="text" id="metaCldfLingua" class="campo-entrada" data-espelho="cldfLangName" placeholder="Ex.: Karitiana" data-i18n-attr="placeholder">
                                 </label>
                                 <label class="campo">
-                                    <span class="campo-rotulo">Idioma das traduções</span>
+                                    <span class="campo-rotulo" data-i18n>Idioma das traduções</span>
                                     <select id="metaCldfIdioma" class="campo-entrada" data-espelho="cldfGlossLang">
-                                        <option value="pt">Português</option>
-                                        <option value="en">Inglês</option>
-                                        <option value="es">Espanhol</option>
+                                        <option value="pt" data-i18n>Português</option>
+                                        <option value="en" data-i18n>Inglês</option>
+                                        <option value="es" data-i18n>Espanhol</option>
                                     </select>
-                                    <span class="campo-ajuda">Usado para ligar os significados ao Concepticon.</span>
+                                    <span class="campo-ajuda" data-i18n>Usado para ligar os significados ao Concepticon.</span>
                                 </label>
                                 <label class="campo">
-                                    <span class="campo-rotulo">Código ISO 639-3 <span class="campo-opcional">(opcional)</span></span>
-                                    <input type="text" id="metaCldfIso" class="campo-entrada mono" data-espelho="cldfIsoCode" maxlength="3" placeholder="Ex.: ktn">
-                                    <span class="campo-ajuda">Três letras. Usado na exportação CLDF.</span>
+                                    <span class="campo-rotulo" data-i18n>Código ISO 639-3 <span class="campo-opcional" data-i18n>(opcional)</span></span>
+                                    <input type="text" id="metaCldfIso" class="campo-entrada mono" data-espelho="cldfIsoCode" maxlength="3" placeholder="Ex.: ktn" data-i18n-attr="placeholder">
+                                    <span class="campo-ajuda" data-i18n>Três letras. Usado na exportação CLDF.</span>
                                 </label>
                                 <label class="campo">
-                                    <span class="campo-rotulo">Glottocode <span class="campo-opcional">(opcional)</span></span>
-                                    <input type="text" id="metaCldfGlottocode" class="campo-entrada mono" data-espelho="cldfGlottocode" placeholder="Ex.: kari1311">
-                                    <span class="campo-ajuda">Código do catálogo Glottolog. Usado na exportação CLDF.</span>
+                                    <span class="campo-rotulo" data-i18n>Glottocode <span class="campo-opcional" data-i18n>(opcional)</span></span>
+                                    <input type="text" id="metaCldfGlottocode" class="campo-entrada mono" data-espelho="cldfGlottocode" placeholder="Ex.: kari1311" data-i18n-attr="placeholder">
+                                    <span class="campo-ajuda" data-i18n>Código do catálogo Glottolog. Usado na exportação CLDF.</span>
                                 </label>
                             </fieldset>
                             </div>
 
                             <div class="info-coluna-lateral">
                             <div class="info-cartao" id="metaIconGroup">
-                                <h3>Logo</h3>
-                                <button type="button" class="logo-previa" id="metaIconPicker" onclick="metaLogoEscolher()" aria-label="Escolher imagem do logo">
-                                    <img id="metaIconPreview" style="display:none;" alt="Logo atual do projeto">
-                                    <span id="metaIconPlaceholder" class="logo-previa-vazia">
+                                <h3 data-i18n>Logo</h3>
+                                <button type="button" class="logo-previa" id="metaIconPicker" onclick="metaLogoEscolher()" aria-label="Escolher imagem do logo" data-i18n-attr="aria-label">
+                                    <img id="metaIconPreview" style="display:none;" alt="Logo atual do projeto" data-i18n-attr="alt">
+                                    <span id="metaIconPlaceholder" class="logo-previa-vazia" data-i18n>
                                         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-5-5L5 21"></path></svg>
                                         Nenhum logo escolhido
                                     </span>
                                 </button>
                                 <div class="info-cartao-acoes">
-                                    <button type="button" id="btnMetaLogoTrocar" class="btn-secundario" onclick="metaLogoEscolher()">Escolher imagem</button>
-                                    <button type="button" id="btnMetaLogoAjustar" class="btn-secundario" style="display:none;" onclick="metaLogoAjustar()" title="Recortar ou aparar margens (opcional)">Ajustar</button>
-                                    <button type="button" id="btnMetaIconeRemover" class="btn-secundario" style="display:none;" onclick="metaLogoRemover()">Remover</button>
+                                    <button type="button" id="btnMetaLogoTrocar" class="btn-secundario" onclick="metaLogoEscolher()" data-i18n>Escolher imagem</button>
+                                    <button type="button" id="btnMetaLogoAjustar" class="btn-secundario" style="display:none;" onclick="metaLogoAjustar()" title="Recortar ou aparar margens (opcional)" data-i18n data-i18n-attr="title">Ajustar</button>
+                                    <button type="button" id="btnMetaIconeRemover" class="btn-secundario" style="display:none;" onclick="metaLogoRemover()" data-i18n>Remover</button>
                                 </div>
-                                <span class="campo-ajuda">Aparece no cabeçalho, antes do título, em qualquer proporção. Detectado automaticamente se houver <code>logo.png</code> na raiz da pasta; sem ele, usa o <code>icone.png</code>.</span>
+                                <span class="campo-ajuda" data-i18n="html">Aparece no cabeçalho, antes do título, em qualquer proporção. Detectado automaticamente se houver <code>logo.png</code> na raiz da pasta; sem ele, usa o <code>icone.png</code>.</span>
                                 <input type="file" id="inputMetaIcone" accept="image/png,image/jpeg,image/webp" hidden onchange="metaLogoSelecionar(this.files[0])">
                             </div>
 
                             <div class="info-cartao">
-                                <h3>Referências bibliográficas <span class="campo-opcional">(opcional)</span></h3>
-                                <span class="campo-ajuda">Lista exibida ao final do dicionário, uma referência por linha. Detectada automaticamente se houver <code>referencia.txt</code> na raiz da pasta.</span>
-                                <span class="info-cartao-status" id="metaReferenciaStatus">Nenhuma referência importada</span>
+                                <h3 data-i18n>Referências bibliográficas <span class="campo-opcional" data-i18n>(opcional)</span></h3>
+                                <span class="campo-ajuda" data-i18n="html">Lista exibida ao final do dicionário, uma referência por linha. Detectada automaticamente se houver <code>referencia.txt</code> na raiz da pasta.</span>
+                                <span class="info-cartao-status" id="metaReferenciaStatus" data-i18n>Nenhuma referência importada</span>
                                 <div class="info-cartao-acoes">
-                                    <button type="button" class="btn-secundario" onclick="document.getElementById('inputMetaReferencia').click()">
+                                    <button type="button" class="btn-secundario" onclick="document.getElementById('inputMetaReferencia').click()" data-i18n>
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"></path><path d="M4 20h16"></path></svg>
                                         Importar arquivo
                                     </button>
-                                    <button type="button" class="btn-secundario" id="btnMetaReferenciaRemover" hidden onclick="metaReferenciaRemover()">Remover</button>
+                                    <button type="button" class="btn-secundario" id="btnMetaReferenciaRemover" hidden onclick="metaReferenciaRemover()" data-i18n>Remover</button>
                                 </div>
                                 <input type="file" id="inputMetaReferencia" accept=".txt,.md,text/plain" hidden onchange="metaReferenciaSelecionar(this.files[0])">
                             </div>
@@ -1058,15 +1058,15 @@
                             <!-- Toast UI Editor (avaliação em andamento) - textarea original preservado comentado abaixo para reverter -->
                             <div class="info-introducao-topo">
                                 <div>
-                                    <h3>Introdução</h3>
-                                    <span class="campo-ajuda">Texto de apresentação, exibido na página inicial e no início do PDF.</span>
+                                    <h3 data-i18n>Introdução</h3>
+                                    <span class="campo-ajuda" data-i18n>Texto de apresentação, exibido na página inicial e no início do PDF.</span>
                                 </div>
                                 <div class="info-introducao-acoes">
-                                    <button type="button" class="btn-secundario btn-compacto" onclick="document.getElementById('inputIntroArquivo').click()">Importar .md ou .txt</button>
+                                    <button type="button" class="btn-secundario btn-compacto" onclick="document.getElementById('inputIntroArquivo').click()" data-i18n>Importar .md ou .txt</button>
                                     <input type="file" id="inputIntroArquivo" accept=".md,.markdown,.txt" hidden onchange="window.importarIntroArquivo(this.files[0])">
-                                    <div class="segmentado-botoes intro-modos" role="group" aria-label="Modo de edição">
-                                        <button type="button" data-modo="wysiwyg" aria-pressed="true" onclick="window.mudarModoIntro('wysiwyg')">Visual</button>
-                                        <button type="button" data-modo="markdown" aria-pressed="false" onclick="window.mudarModoIntro('markdown')">Markdown</button>
+                                    <div class="segmentado-botoes intro-modos" role="group" aria-label="Modo de edição" data-i18n-attr="aria-label">
+                                        <button type="button" data-modo="wysiwyg" aria-pressed="true" onclick="window.mudarModoIntro('wysiwyg')" data-i18n>Visual</button>
+                                        <button type="button" data-modo="markdown" aria-pressed="false" onclick="window.mudarModoIntro('markdown')" data-i18n>Markdown</button>
                                     </div>
                                 </div>
                             </div>
@@ -2679,28 +2679,28 @@
         if (window._introEditor) return; // já inicializado
         const container = document.getElementById('introMarkdownEditor');
         if (!container || typeof toastui === 'undefined') return;
-        // Textos do editor em português. O Toast exige todas as chaves do pacote en-US (3.2.2).
+        // Textos do editor no idioma ativo. O Toast exige todas as chaves do pacote en-US (3.2.2).
         if (toastui.Editor.setLanguage) {
-            toastui.Editor.setLanguage(['pt-BR'], {
-                'Markdown': 'Markdown', 'WYSIWYG': 'Visual', 'Write': 'Escrever', 'Preview': 'Prévia',
-                'Headings': 'Títulos', 'Paragraph': 'Parágrafo', 'Bold': 'Negrito', 'Italic': 'Itálico',
-                'Strike': 'Tachado', 'Code': 'Código', 'Line': 'Linha', 'Blockquote': 'Citação',
-                'Unordered list': 'Lista', 'Ordered list': 'Lista numerada', 'Task': 'Tarefa',
-                'Indent': 'Aumentar recuo', 'Outdent': 'Diminuir recuo',
-                'Insert link': 'Inserir link', 'Insert CodeBlock': 'Inserir bloco de código',
-                'Insert table': 'Inserir tabela', 'Insert image': 'Inserir imagem', 'Heading': 'Título',
-                'Image URL': 'Endereço da imagem', 'Select image file': 'Selecione uma imagem',
-                'Choose a file': 'Escolher arquivo', 'No file': 'Nenhum arquivo', 'Description': 'Descrição',
-                'OK': 'OK', 'More': 'Mais', 'Cancel': 'Cancelar', 'File': 'Arquivo', 'URL': 'Endereço (URL)',
-                'Link text': 'Texto do link',
-                'Add row to up': 'Adicionar linha acima', 'Add row to down': 'Adicionar linha abaixo',
-                'Add column to left': 'Adicionar coluna à esquerda', 'Add column to right': 'Adicionar coluna à direita',
-                'Remove row': 'Remover linha', 'Remove column': 'Remover coluna',
-                'Align column to left': 'Alinhar coluna à esquerda', 'Align column to center': 'Centralizar coluna',
-                'Align column to right': 'Alinhar coluna à direita', 'Remove table': 'Remover tabela',
-                'Would you like to paste as table?': 'Colar como tabela?', 'Text color': 'Cor do texto',
-                'Auto scroll enabled': 'Rolagem automática ativada', 'Auto scroll disabled': 'Rolagem automática desativada',
-                'Choose language': 'Escolher linguagem'
+            toastui.Editor.setLanguage([I18N.idioma], {
+                'Markdown': _t('Markdown'), 'WYSIWYG': _t('Visual'), 'Write': _t('Escrever'), 'Preview': _t('Prévia'),
+                'Headings': _t('Títulos'), 'Paragraph': _t('Parágrafo'), 'Bold': _t('Negrito'), 'Italic': _t('Itálico'),
+                'Strike': _t('Tachado'), 'Code': _t('Código'), 'Line': _t('Linha'), 'Blockquote': _t('Citação'),
+                'Unordered list': _t('Lista'), 'Ordered list': _t('Lista numerada'), 'Task': _t('Tarefa'),
+                'Indent': _t('Aumentar recuo'), 'Outdent': _t('Diminuir recuo'),
+                'Insert link': _t('Inserir link'), 'Insert CodeBlock': _t('Inserir bloco de código'),
+                'Insert table': _t('Inserir tabela'), 'Insert image': _t('Inserir imagem'), 'Heading': _t('Título'),
+                'Image URL': _t('Endereço da imagem'), 'Select image file': _t('Selecione uma imagem'),
+                'Choose a file': _t('Escolher arquivo'), 'No file': _t('Nenhum arquivo'), 'Description': _t('Descrição'),
+                'OK': _t('OK'), 'More': _t('Mais'), 'Cancel': _t('Cancelar'), 'File': _t('Arquivo'), 'URL': _t('Endereço (URL)'),
+                'Link text': _t('Texto do link'),
+                'Add row to up': _t('Adicionar linha acima'), 'Add row to down': _t('Adicionar linha abaixo'),
+                'Add column to left': _t('Adicionar coluna à esquerda'), 'Add column to right': _t('Adicionar coluna à direita'),
+                'Remove row': _t('Remover linha'), 'Remove column': _t('Remover coluna'),
+                'Align column to left': _t('Alinhar coluna à esquerda'), 'Align column to center': _t('Centralizar coluna'),
+                'Align column to right': _t('Alinhar coluna à direita'), 'Remove table': _t('Remover tabela'),
+                'Would you like to paste as table?': _t('Colar como tabela?'), 'Text color': _t('Cor do texto'),
+                'Auto scroll enabled': _t('Rolagem automática ativada'), 'Auto scroll disabled': _t('Rolagem automática desativada'),
+                'Choose language': _t('Escolher linguagem')
             });
         }
         window._introEditor = new toastui.Editor({
@@ -2708,15 +2708,28 @@
             height: '320px',
             initialEditType: 'wysiwyg',
             previewStyle: 'tab',
-            language: 'pt-BR',
+            language: I18N.idioma,
             // Barra reduzida: título, negrito e itálico; listas; link e imagem
             toolbarItems: [['heading', 'bold', 'italic'], ['ul', 'ol'], ['link', 'image']],
             hideModeSwitch: true, // o modo é trocado pelos botões "Visual / Markdown" acima do editor
-            placeholder: 'Escreva aqui uma apresentação do dicionário: a língua, o povo, como o material foi reunido…',
+            placeholder: _t('Escreva aqui uma apresentação do dicionário: a língua, o povo, como o material foi reunido…'),
             usageStatistics: false
         });
         window._introEditor.on('changeMode', marcarModoIntro);
     };
+
+    // O Toast define os textos ao ser criado: recria o editor ao trocar de idioma, mantendo o conteúdo e o modo
+    document.addEventListener('idioma-alterado', () => {
+        const editor = window._introEditor;
+        if (!editor) return;
+        const conteudo = editor.getMarkdown();
+        const modo = editor.isMarkdownMode() ? 'markdown' : 'wysiwyg';
+        editor.destroy();
+        window._introEditor = null;
+        window.inicializarIntroEditor();
+        window._introEditor.setMarkdown(conteudo);
+        window.mudarModoIntro(modo);
+    });
 
     function marcarModoIntro(modo) {
         document.querySelectorAll('.intro-modos [data-modo]').forEach(b => {
@@ -2738,11 +2751,11 @@
         window.inicializarIntroEditor();
         const status = document.getElementById('introStatus');
         if (!window._introEditor) {
-            status.textContent = 'O editor ainda não está pronto. Tente de novo.';
+            status.textContent = _t('O editor ainda não está pronto. Tente de novo.');
             return;
         }
         window._introEditor.setMarkdown(texto);
-        status.textContent = `Introdução importada de ${arquivo.name}.`;
+        status.textContent = _t('Introdução importada de {arquivo}.', { arquivo: arquivo.name });
     };
 
     window.obterIntroMarkdown = function() {
@@ -2800,9 +2813,9 @@
         const origem = window._referenciaArquivo
             || (window.carregadorPasta && window.carregadorPasta.arquivosEncontrados?.textosExtra?.referencia?.name);
         if (linhas === 0) {
-            status.textContent = 'Nenhuma referência importada';
+            status.textContent = _t('Nenhuma referência importada');
         } else {
-            status.textContent = `${linhas.toLocaleString('pt-BR')} ${linhas === 1 ? 'referência' : 'referências'}${origem ? ` · ${origem}` : ''}`;
+            status.textContent = `${_tn('{n} referência', '{n} referências', linhas)}${origem ? ` · ${origem}` : ''}`;
         }
         document.getElementById('btnMetaReferenciaRemover').hidden = linhas === 0;
     };
@@ -3098,7 +3111,7 @@
             window.sistema.definirLogo(await processarLogo(file));
         } catch (e) {
             console.error('Erro ao ler o logo:', e);
-            alert('Não foi possível ler esta imagem. Use um arquivo PNG, JPG ou WebP.');
+            alert(_t('Não foi possível ler esta imagem. Use um arquivo PNG, JPG ou WebP.'));
             return;
         }
         atualizarUILogo();
@@ -3139,7 +3152,7 @@
         const btnAjustar = document.getElementById('btnMetaLogoAjustar');
         const btnTrocar = document.getElementById('btnMetaLogoTrocar');
         if (!preview) return; // etapa 3 ainda não renderizada no DOM
-        if (btnTrocar) btnTrocar.textContent = temLogo ? 'Trocar imagem' : 'Escolher imagem';
+        if (btnTrocar) btnTrocar.textContent = temLogo ? _t('Trocar imagem') : _t('Escolher imagem');
         if (temLogo) {
             preview.src = logo.dataUrl;
             preview.style.display = 'block';
@@ -5997,6 +6010,8 @@
 
     document.addEventListener('idioma-alterado', () => {
         if (window.atualizarValidacaoEtapa2) window.atualizarValidacaoEtapa2();
+        if (window.atualizarUILogo) window.atualizarUILogo();
+        if (window.atualizarUIReferencia) window.atualizarUIReferencia();
         atualizarStepper(window.passoAtual);
         atualizarBotoesPasso(window.passoAtual);
     });
