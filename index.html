@@ -869,29 +869,29 @@
 
                     <!-- PASSO 2 -->
                     <div class="wizard-step etapa-conferir" id="step2">
-                        <span id="badgeMidias" class="step-badge" hidden>Pendente</span>
+                        <span id="badgeMidias" class="step-badge" hidden data-i18n>Pendente</span>
                         <div class="etapa-cabecalho">
-                            <span class="etapa-contador">Etapa 2 de 6</span>
-                            <h2 class="etapa-titulo">Mídias e Validação</h2>
-                            <p class="etapa-descricao">Verificamos o dicionário e as mídias logo após a importação. Corrija os erros e revise os avisos antes de exportar.</p>
+                            <span class="etapa-contador" data-i18n>Etapa 2 de 6</span>
+                            <h2 class="etapa-titulo" data-i18n>Mídias e Validação</h2>
+                            <p class="etapa-descricao" data-i18n>Verificamos o dicionário e as mídias logo após a importação. Corrija os erros e revise os avisos antes de exportar.</p>
                         </div>
 
                         <div class="conferir-conteudo">
                             <!-- Pasta importada e resultado da validação (preenchido por atualizarValidacaoEtapa2) -->
-                            <section class="projeto-status" aria-label="Projeto importado">
+                            <section class="projeto-status" data-i18n-attr="aria-label" aria-label="Projeto importado">
                                 <div class="importar-resumo">
                                     <span class="importar-resumo-icone" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg></span>
                                     <div class="importar-resumo-info">
-                                        <span class="importar-resumo-pasta" id="nomePastaProjeto">Projeto carregado</span>
+                                        <span class="importar-resumo-pasta" id="nomePastaProjeto" data-i18n>Projeto carregado</span>
                                         <div class="mini-stats importar-chips">
                                             <span id="formatoDetectado" class="formato-detectado" style="display:none"></span>
-                                            <span id="csvLinhas">0 entradas</span>
-                                            <span id="csvColunas">0 colunas</span>
-                                            <span id="csvCategorias">0 categorias</span>
-                                            <span id="csvMidias">0 mídias</span>
+                                            <span id="csvLinhas" data-i18n>0 entradas</span>
+                                            <span id="csvColunas" data-i18n>0 colunas</span>
+                                            <span id="csvCategorias" data-i18n>0 categorias</span>
+                                            <span id="csvMidias" data-i18n>0 mídias</span>
                                         </div>
                                     </div>
-                                    <button type="button" class="btn-secundario" id="btnTrocarPasta">
+                                    <button type="button" class="btn-secundario" id="btnTrocarPasta" data-i18n>
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"></path><path d="M21 3v5h-5"></path></svg>
                                         Trocar pasta
                                     </button>
@@ -903,53 +903,53 @@
                                         <strong id="importarAlertaTitulo"></strong>
                                         <span id="importarAlertaHora"></span>
                                     </div>
-                                    <button type="button" class="btn-secundario importar-alerta-botao" onclick="window.validarTudo()">Ver detalhes</button>
+                                    <button type="button" class="btn-secundario importar-alerta-botao" onclick="window.validarTudo()" data-i18n>Ver detalhes</button>
                                 </div>
                             </section>
-                            <p class="validacao-vazia conferir-sem-projeto">Importe um projeto na etapa 1 para ver a validação.</p>
+                            <p class="validacao-vazia conferir-sem-projeto" data-i18n>Importe um projeto na etapa 1 para ver a validação.</p>
 
                             <!-- Sugestão do programa de preparação quando as mídias passam de LIMITE_MIDIAS_SUGESTAO -->
-                            <aside class="sugestao-preparacao" id="sugestaoPreparacao" aria-label="Sugestão" hidden>
+                            <aside class="sugestao-preparacao" id="sugestaoPreparacao" data-i18n-attr="aria-label" aria-label="Sugestão" hidden>
                                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"></path></svg>
                                 <div class="sugestao-preparacao-texto">
                                     <strong id="sugestaoPreparacaoTitulo"></strong>
-                                    <span>Áudios, vídeos e imagens costumam estar em qualidade maior do que o dicionário precisa. O programa de preparação pode reduzir esse tamanho no seu computador.</span>
+                                    <span data-i18n>Áudios, vídeos e imagens costumam estar em qualidade maior do que o dicionário precisa. O programa de preparação pode reduzir esse tamanho no seu computador.</span>
                                 </div>
                                 <div class="sugestao-preparacao-acoes">
-                                    <button type="button" class="btn-principal" onclick="window.abrirRecursos('preparacao')">Conhecer o programa</button>
-                                    <button type="button" class="btn-link btn-cancelar" onclick="window.dispensarSugestaoPreparacao()">Não mostrar de novo</button>
+                                    <button type="button" class="btn-principal" onclick="window.abrirRecursos('preparacao')" data-i18n>Conhecer o programa</button>
+                                    <button type="button" class="btn-link btn-cancelar" onclick="window.dispensarSugestaoPreparacao()" data-i18n>Não mostrar de novo</button>
                                 </div>
                             </aside>
 
                             <!-- Contagem de entradas e mídias; os cartões de mídia aceitam arquivos arrastados -->
                             <section class="midias-secao" aria-labelledby="midiasTitulo">
-                                <h3 id="midiasTitulo">Conteúdo do projeto</h3>
+                                <h3 id="midiasTitulo" data-i18n>Conteúdo do projeto</h3>
                                 <div class="midias-grade">
                                     <div class="midia-cartao midia-cartao-entradas" id="panelEntradas">
-                                        <span class="midia-cartao-rotulo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"></path><path d="M4 19.5V21h16"></path></svg>Entradas</span>
+                                        <span class="midia-cartao-rotulo" data-i18n><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"></path><path d="M4 19.5V21h16"></path></svg>Entradas</span>
                                         <span class="midia-cartao-numero" id="countEntradas">0</span>
-                                        <span class="midia-cartao-detalhe" id="detalheEntradas">nenhum dicionário carregado</span>
+                                        <span class="midia-cartao-detalhe" id="detalheEntradas" data-i18n>nenhum dicionário carregado</span>
                                     </div>
                                     <div class="midia-cartao" id="panelAudio">
-                                        <span class="midia-cartao-rotulo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>Áudios</span>
+                                        <span class="midia-cartao-rotulo" data-i18n><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>Áudios</span>
                                         <span class="midia-cartao-numero" id="countAudio">0</span>
-                                        <span class="midia-cartao-detalhe" id="detalheAudio">arquivos na pasta</span>
-                                        <button type="button" class="btn-secundario midia-cartao-botao" onclick="abrirExploradorMidias('audio')">Ver e adicionar</button>
+                                        <span class="midia-cartao-detalhe" id="detalheAudio" data-i18n>arquivos na pasta</span>
+                                        <button type="button" class="btn-secundario midia-cartao-botao" onclick="abrirExploradorMidias('audio')" data-i18n>Ver e adicionar</button>
                                     </div>
                                     <div class="midia-cartao" id="panelImagem">
-                                        <span class="midia-cartao-rotulo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-5-5L5 21"></path></svg>Imagens</span>
+                                        <span class="midia-cartao-rotulo" data-i18n><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-5-5L5 21"></path></svg>Imagens</span>
                                         <span class="midia-cartao-numero" id="countImagem">0</span>
-                                        <span class="midia-cartao-detalhe" id="detalheImagem">arquivos na pasta</span>
-                                        <button type="button" class="btn-secundario midia-cartao-botao" onclick="abrirExploradorMidias('imagem')">Ver e adicionar</button>
+                                        <span class="midia-cartao-detalhe" id="detalheImagem" data-i18n>arquivos na pasta</span>
+                                        <button type="button" class="btn-secundario midia-cartao-botao" onclick="abrirExploradorMidias('imagem')" data-i18n>Ver e adicionar</button>
                                     </div>
                                     <div class="midia-cartao" id="panelVideo">
-                                        <span class="midia-cartao-rotulo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="15" height="14" rx="2"></rect><path d="m17 10 5-3v10l-5-3"></path></svg>Vídeos</span>
+                                        <span class="midia-cartao-rotulo" data-i18n><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="15" height="14" rx="2"></rect><path d="m17 10 5-3v10l-5-3"></path></svg>Vídeos</span>
                                         <span class="midia-cartao-numero" id="countVideo">0</span>
-                                        <span class="midia-cartao-detalhe" id="detalheVideo">arquivos na pasta</span>
-                                        <button type="button" class="btn-secundario midia-cartao-botao" onclick="abrirExploradorMidias('video')">Ver e adicionar</button>
+                                        <span class="midia-cartao-detalhe" id="detalheVideo" data-i18n>arquivos na pasta</span>
+                                        <button type="button" class="btn-secundario midia-cartao-botao" onclick="abrirExploradorMidias('video')" data-i18n>Ver e adicionar</button>
                                     </div>
                                 </div>
-                                <p class="midias-nota">O número grande é quantos arquivos estão na pasta. Abaixo dele, quantos o CSV cita e quantos desses não foram encontrados. Também dá para arrastar arquivos para um cartão.</p>
+                                <p class="midias-nota" data-i18n>O número grande é quantos arquivos estão na pasta. Abaixo dele, quantos o CSV cita e quantos desses não foram encontrados. Também dá para arrastar arquivos para um cartão.</p>
                             </section>
                         </div>
                     </div>
@@ -1531,40 +1531,40 @@
 <dialog id="dialogoRelatorio" class="dialogo dialogo-relatorio" aria-labelledby="relatorioTitulo">
     <div class="dialogo-topo dialogo-topo-separado">
         <div class="relatorio-cabecalho">
-            <h2 id="relatorioTitulo">Relatório de validação</h2>
+            <h2 id="relatorioTitulo" data-i18n>Relatório de validação</h2>
             <div class="relatorio-resumo" id="relatorioResumo"></div>
         </div>
-        <button type="button" class="btn-icone" aria-label="Fechar" onclick="document.getElementById('dialogoRelatorio').close()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+        <button type="button" class="btn-icone" data-i18n-attr="aria-label" aria-label="Fechar" onclick="document.getElementById('dialogoRelatorio').close()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
     </div>
     <div class="dialogo-corpo relatorio-corpo" id="relatorioCorpo"></div>
     <div class="dialogo-rodape">
-        <button type="button" class="btn-secundario" id="btnBaixarRelatorio">
+        <button type="button" class="btn-secundario" id="btnBaixarRelatorio" data-i18n>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"></path><path d="M4 20h16"></path></svg>
             Baixar relatório (TXT)
         </button>
-        <button type="button" class="btn-principal btn-rodape" onclick="document.getElementById('dialogoRelatorio').close()">Fechar</button>
+        <button type="button" class="btn-principal btn-rodape" onclick="document.getElementById('dialogoRelatorio').close()" data-i18n>Fechar</button>
     </div>
 </dialog>
 
 <!-- Mídias do projeto: aberto por abrirExploradorMidias(tipo); conteúdo montado por _explorerRenderizar() -->
 <dialog id="dialogoMidias" class="dialogo dialogo-largo dialogo-midias" aria-labelledby="midiasDialogoTitulo">
     <div class="dialogo-topo midias-topo">
-        <h2 id="midiasDialogoTitulo">Mídias do projeto</h2>
+        <h2 id="midiasDialogoTitulo" data-i18n>Mídias do projeto</h2>
         <div class="midias-topo-acoes">
             <input type="file" id="explorerFileInput" multiple hidden>
-            <button type="button" class="btn-principal" id="explorerBtnAdicionar" onclick="document.getElementById('explorerFileInput').click()">
+            <button type="button" class="btn-principal" id="explorerBtnAdicionar" onclick="document.getElementById('explorerFileInput').click()" data-i18n>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
                 Adicionar arquivos
             </button>
-            <button type="button" class="btn-icone" aria-label="Fechar" onclick="document.getElementById('dialogoMidias').close()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+            <button type="button" class="btn-icone" data-i18n-attr="aria-label" aria-label="Fechar" onclick="document.getElementById('dialogoMidias').close()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
         </div>
     </div>
-    <div class="dialogo-abas" role="tablist" aria-label="Tipo de mídia" id="explorerAbas"></div>
+    <div class="dialogo-abas" role="tablist" data-i18n-attr="aria-label" aria-label="Tipo de mídia" id="explorerAbas"></div>
     <div class="midias-ferramentas">
-        <div class="midias-filtros" role="group" aria-label="Filtrar" id="explorerFiltros"></div>
+        <div class="midias-filtros" role="group" data-i18n-attr="aria-label" aria-label="Filtrar" id="explorerFiltros"></div>
         <label class="midias-busca">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
-            <input type="search" id="explorerBusca" aria-label="Buscar por nome de arquivo" placeholder="Buscar arquivo">
+            <input type="search" id="explorerBusca" data-i18n-attr="aria-label placeholder" aria-label="Buscar por nome de arquivo" placeholder="Buscar arquivo">
         </label>
     </div>
     <div class="dialogo-corpo midias-corpo" role="tabpanel" aria-labelledby="midiasDialogoTitulo">
@@ -2425,7 +2425,7 @@
     const listaMono = (arquivos) => {
         const ul = criarEl('ul', 'relatorio-arquivos');
         arquivos.slice(0, RELATORIO_MAX_ARQUIVOS).forEach(a => ul.append(criarEl('li', '', a)));
-        if (arquivos.length > RELATORIO_MAX_ARQUIVOS) ul.append(criarEl('li', 'relatorio-mais', `e mais ${(arquivos.length - RELATORIO_MAX_ARQUIVOS).toLocaleString('pt-BR')} (lista completa no TXT)`));
+        if (arquivos.length > RELATORIO_MAX_ARQUIVOS) ul.append(criarEl('li', 'relatorio-mais', _t('e mais {n} (lista completa no TXT)', { n: arquivos.length - RELATORIO_MAX_ARQUIVOS })));
         return ul;
     };
 
@@ -2440,7 +2440,7 @@
         document.getElementById('btnBaixarRelatorio').hidden = !diagnostico.sucesso;
 
         if (!diagnostico.sucesso) {
-            corpo.append(criarEl('p', 'validacao-vazia', 'Importe um projeto na etapa 1 para gerar o relatório.'));
+            corpo.append(criarEl('p', 'validacao-vazia', _t('Importe um projeto na etapa 1 para gerar o relatório.')));
             document.getElementById('dialogoRelatorio').showModal();
             return;
         }
@@ -2450,42 +2450,42 @@
         const tipos = Object.keys(NOMES_TIPO_MIDIA);
         const avisos = tipos.filter(t => midiasFaltando[t].length).length + tipos.filter(t => midiasNaoUsadas[t].length).length;
 
-        if (linhasComErro.length) resumo.append(criarEl('span', 'selo selo-erro', plural(linhasComErro.length, 'erro', 'erros')));
-        if (avisos) resumo.append(criarEl('span', 'selo selo-aviso', plural(avisos, 'aviso', 'avisos')));
-        if (!linhasComErro.length && !avisos) resumo.append(criarEl('span', 'selo selo-ok', 'Nenhum problema'));
+        if (linhasComErro.length) resumo.append(criarEl('span', 'selo selo-erro', _tn('{n} erro', '{n} erros', linhasComErro.length)));
+        if (avisos) resumo.append(criarEl('span', 'selo selo-aviso', _tn('{n} aviso', '{n} avisos', avisos)));
+        if (!linhasComErro.length && !avisos) resumo.append(criarEl('span', 'selo selo-ok', _t('Nenhum problema')));
         const pasta = document.getElementById('nomePastaProjeto').textContent.replace(/\/$/, '');
-        const hora = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-        resumo.append(criarEl('span', 'validacao-hora', `${pasta} · verificado às ${hora}`));
+        const hora = I18N.hora(new Date(), { hour: '2-digit', minute: '2-digit' });
+        resumo.append(criarEl('span', 'validacao-hora', _t('{pasta} · verificado às {hora}', { pasta, hora })));
 
         // Erros: linhas do CSV
         if (linhasComErro.length) {
             const secao = criarEl('section', 'relatorio-secao');
-            secao.append(criarEl('h3', 'relatorio-titulo-erro', 'Erros: precisam de correção'));
+            secao.append(criarEl('h3', 'relatorio-titulo-erro', _t('Erros: precisam de correção')));
             linhasComErro.slice(0, RELATORIO_MAX_LINHAS).forEach(linha => {
                 const caixa = criarEl('div', 'relatorio-caixa erro');
-                caixa.append(criarEl('strong', '', `Linha ${linha} do dicionário`));
+                caixa.append(criarEl('strong', '', _t('Linha {linha} do dicionário', { linha })));
                 const ul = criarEl('ul', 'relatorio-itens');
                 errosValidacao[linha].forEach(erro => ul.append(criarEl('li', '', erro)));
                 caixa.append(ul);
                 secao.append(caixa);
             });
             if (linhasComErro.length > RELATORIO_MAX_LINHAS) {
-                secao.append(criarEl('p', 'campo-ajuda', `E mais ${plural(linhasComErro.length - RELATORIO_MAX_LINHAS, 'linha', 'linhas')} com erro. A lista completa está no relatório em TXT.`));
+                secao.append(criarEl('p', 'campo-ajuda', _t('E mais {linhas} com erro. A lista completa está no relatório em TXT.', { linhas: _tn('{n} linha', '{n} linhas', linhasComErro.length - RELATORIO_MAX_LINHAS) })));
             }
-            secao.append(criarEl('p', 'campo-ajuda', 'Corrija essas linhas no arquivo do dicionário e importe a pasta de novo.'));
+            secao.append(criarEl('p', 'campo-ajuda', _t('Corrija essas linhas no arquivo do dicionário e importe a pasta de novo.')));
             corpo.append(secao);
         }
 
         // Avisos: mídias citadas e não encontradas, e mídias sem uso
         if (avisos) {
             const secao = criarEl('section', 'relatorio-secao');
-            secao.append(criarEl('h3', 'relatorio-titulo-aviso', 'Avisos: revise se necessário'));
+            secao.append(criarEl('h3', 'relatorio-titulo-aviso', _t('Avisos: revise se necessário')));
             tipos.forEach(tipo => {
                 const faltando = midiasFaltando[tipo];
                 if (!faltando.length) return;
                 const caixa = criarEl('div', 'relatorio-caixa aviso');
-                caixa.append(criarEl('strong', '', `${NOMES_TIPO_MIDIA[tipo].faltando}: ${faltando.length.toLocaleString('pt-BR')}`));
-                caixa.append(criarEl('span', 'relatorio-explicacao', 'As entradas que citam esses arquivos vão aparecer sem essa mídia.'));
+                caixa.append(criarEl('strong', '', `${NOMES_TIPO_MIDIA[tipo].faltando()}: ${I18N.numero(faltando.length)}`));
+                caixa.append(criarEl('span', 'relatorio-explicacao', _t('As entradas que citam esses arquivos vão aparecer sem essa mídia.')));
                 caixa.append(listaMono(faltando));
                 secao.append(caixa);
             });
@@ -2493,8 +2493,8 @@
                 const sobrando = midiasNaoUsadas[tipo];
                 if (!sobrando.length) return;
                 const caixa = criarEl('div', 'relatorio-caixa aviso');
-                caixa.append(criarEl('strong', '', `${NOMES_TIPO_MIDIA[tipo].sobrando}: ${sobrando.length.toLocaleString('pt-BR')}`));
-                caixa.append(criarEl('span', 'relatorio-explicacao', 'Nenhuma entrada cita esses arquivos, então eles ficam de fora do dicionário.'));
+                caixa.append(criarEl('strong', '', `${NOMES_TIPO_MIDIA[tipo].sobrando()}: ${I18N.numero(sobrando.length)}`));
+                caixa.append(criarEl('span', 'relatorio-explicacao', _t('Nenhuma entrada cita esses arquivos, então eles ficam de fora do dicionário.')));
                 caixa.append(listaMono(sobrando));
                 secao.append(caixa);
             });
@@ -2502,15 +2502,15 @@
         }
 
         if (!linhasComErro.length && !avisos) {
-            corpo.append(criarEl('p', 'relatorio-tudo-ok', 'Tudo certo: as linhas do dicionário estão completas e todas as mídias citadas estão na pasta.'));
+            corpo.append(criarEl('p', 'relatorio-tudo-ok', _t('Tudo certo: as linhas do dicionário estão completas e todas as mídias citadas estão na pasta.')));
         }
 
         // Tabela de mídias por tipo
         const secao = criarEl('section', 'relatorio-secao');
-        secao.append(criarEl('h3', '', 'Mídias por tipo'));
+        secao.append(criarEl('h3', '', _t('Mídias por tipo')));
         const tabela = criarEl('table', 'relatorio-tabela');
         const cabecalho = criarEl('tr');
-        ['Tipo', 'Citadas no CSV', 'Encontradas', 'Entradas sem este tipo'].forEach((t, i) => {
+        [_t('Tipo'), _t('Citadas no CSV'), _t('Encontradas'), _t('Entradas sem este tipo')].forEach((t, i) => {
             const th = criarEl('th', i ? 'num' : '', t);
             th.scope = 'col';
             cabecalho.append(th);
@@ -2518,22 +2518,22 @@
         const thead = criarEl('thead');
         thead.append(cabecalho);
         const tbody = criarEl('tbody');
-        [['Áudio', estatisticas.audiosRef, midiasFaltando.audio.length, estatisticas.entradasSemAudio],
-         ['Imagem', estatisticas.imagensRef, midiasFaltando.imagem.length, estatisticas.entradasSemImagem],
-         ['Vídeo', estatisticas.videosRef, midiasFaltando.video.length, estatisticas.entradasSemVideo]].forEach(([nome, citadas, faltando, sem]) => {
+        [[_t('Áudio'), estatisticas.audiosRef, midiasFaltando.audio.length, estatisticas.entradasSemAudio],
+         [_t('Imagem'), estatisticas.imagensRef, midiasFaltando.imagem.length, estatisticas.entradasSemImagem],
+         [_t('Vídeo'), estatisticas.videosRef, midiasFaltando.video.length, estatisticas.entradasSemVideo]].forEach(([nome, citadas, faltando, sem]) => {
             const tr = criarEl('tr');
             const th = criarEl('th', '', nome);
             th.scope = 'row';
             tr.append(th,
-                criarEl('td', 'num', citadas.toLocaleString('pt-BR')),
-                criarEl('td', faltando ? 'num falta' : 'num', (citadas - faltando).toLocaleString('pt-BR')),
-                criarEl('td', 'num', sem.toLocaleString('pt-BR')));
+                criarEl('td', 'num', I18N.numero(citadas)),
+                criarEl('td', faltando ? 'num falta' : 'num', I18N.numero(citadas - faltando)),
+                criarEl('td', 'num', I18N.numero(sem)));
             tbody.append(tr);
         });
         tabela.append(thead, tbody);
         const rolagem = criarEl('div', 'relatorio-tabela-rolagem');
         rolagem.append(tabela);
-        secao.append(rolagem, criarEl('span', 'campo-ajuda', `Total: ${plural(estatisticas.totalEntradas, 'entrada', 'entradas')}.`));
+        secao.append(rolagem, criarEl('span', 'campo-ajuda', _t('Total: {entradas}.', { entradas: _tn('{n} entrada', '{n} entradas', estatisticas.totalEntradas) })));
         corpo.append(secao);
 
         corpo.scrollTop = 0;
@@ -2549,11 +2549,10 @@
     // ou carregadas e não usadas. Roda ao entrar na etapa 2 e ao adicionar mídias.
     // ==========================================
     const NOMES_TIPO_MIDIA = {
-        audio: { faltando: 'Áudios citados no CSV que não estão na pasta', sobrando: 'Áudios da pasta que nenhuma entrada usa' },
-        imagem: { faltando: 'Imagens citadas no CSV que não estão na pasta', sobrando: 'Imagens da pasta que nenhuma entrada usa' },
-        video: { faltando: 'Vídeos citados no CSV que não estão na pasta', sobrando: 'Vídeos da pasta que nenhuma entrada usa' }
+        audio: { faltando: () => _t('Áudios citados no CSV que não estão na pasta'), sobrando: () => _t('Áudios da pasta que nenhuma entrada usa') },
+        imagem: { faltando: () => _t('Imagens citadas no CSV que não estão na pasta'), sobrando: () => _t('Imagens da pasta que nenhuma entrada usa') },
+        video: { faltando: () => _t('Vídeos citados no CSV que não estão na pasta'), sobrando: () => _t('Vídeos da pasta que nenhuma entrada usa') }
     };
-    const plural = (n, um, varios) => `${n.toLocaleString('pt-BR')} ${n === 1 ? um : varios}`;
 
     window.atualizarValidacaoEtapa2 = function() {
         const alerta = document.getElementById('importarAlerta');
@@ -2582,15 +2581,15 @@
         });
 
         const partes = [];
-        if (erros) partes.push(plural(erros, 'erro', 'erros'));
-        if (avisos) partes.push(plural(avisos, 'aviso', 'avisos'));
+        if (erros) partes.push(_tn('{n} erro', '{n} erros', erros));
+        if (avisos) partes.push(_tn('{n} aviso', '{n} avisos', avisos));
         alerta.hidden = false;
         alerta.classList.toggle('sem-pendencias', partes.length === 0);
         document.getElementById('importarAlertaTitulo').textContent = partes.length
-            ? `A validação automática encontrou ${partes.join(' e ')}`
-            : 'Nenhum problema encontrado';
+            ? _t('A validação automática encontrou {problemas}', { problemas: I18N.lista(partes) })
+            : _t('Nenhum problema encontrado');
         document.getElementById('importarAlertaHora').textContent =
-            `Verificado às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+            _t('Verificado às {hora}', { hora: I18N.hora(new Date(), { hour: '2-digit', minute: '2-digit' }) });
 
         atualizarDetalhesMidias(diag);
         window._pendenciasValidacao = erros + tiposFaltando;
@@ -2617,9 +2616,9 @@
         aside.hidden = dispensada || total < LIMITE_MIDIAS_SUGESTAO;
         if (!aside.hidden) {
             const tamanho = total >= 1e9
-                ? `${(total / 1e9).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} GB`
-                : `${Math.round(total / 1e6).toLocaleString('pt-BR')} MB`;
-            document.getElementById('sugestaoPreparacaoTitulo').textContent = `As mídias somam ${tamanho} e o aplicativo pode ficar pesado`;
+                ? `${I18N.numero(total / 1e9, { maximumFractionDigits: 1 })} GB`
+                : `${I18N.numero(Math.round(total / 1e6))} MB`;
+            document.getElementById('sugestaoPreparacaoTitulo').textContent = _t('As mídias somam {tamanho} e o aplicativo pode ficar pesado', { tamanho });
         }
     }
 
@@ -2632,10 +2631,10 @@
         atualizarSugestaoPreparacao();
         const detalheEntradas = document.getElementById('detalheEntradas');
         if (!diag) {
-            detalheEntradas.textContent = 'nenhum dicionário carregado';
+            detalheEntradas.textContent = _t('nenhum dicionário carregado');
             ['Audio', 'Imagem', 'Video'].forEach(t => {
                 const el = document.getElementById(`detalhe${t}`);
-                el.textContent = 'arquivos na pasta';
+                el.textContent = _t('arquivos na pasta');
                 el.classList.remove('falta', 'completo');
                 document.getElementById(`panel${t}`).classList.remove('com-falta');
             });
@@ -2643,7 +2642,7 @@
         }
         const stats = window.sistema ? window.sistema.obterEstatisticas() : null;
         const categorias = stats ? stats.categorias || 0 : 0;
-        detalheEntradas.textContent = `em ${plural(categorias, 'categoria', 'categorias')}`;
+        detalheEntradas.textContent = _t('em {categorias}', { categorias: _tn('{n} categoria', '{n} categorias', categorias) });
         const referencias = { audio: diag.estatisticas.audiosRef, imagem: diag.estatisticas.imagensRef, video: diag.estatisticas.videosRef };
         [['audio', 'Audio'], ['imagem', 'Imagem'], ['video', 'Video']].forEach(([tipo, sufixo]) => {
             const el = document.getElementById(`detalhe${sufixo}`);
@@ -2652,11 +2651,20 @@
             el.classList.toggle('falta', faltando > 0);
             el.classList.toggle('completo', citados > 0 && faltando === 0);
             document.getElementById(`panel${sufixo}`).classList.toggle('com-falta', faltando > 0);
-            const o = tipo === 'imagem' ? 'a' : 'o';
-            if (citados === 0) el.textContent = `nenhum${tipo === 'imagem' ? 'a' : ''} citad${o} no CSV`;
-            else if (faltando > 0) el.textContent = `${citados.toLocaleString('pt-BR')} citad${o}${citados === 1 ? '' : 's'} · ${faltando.toLocaleString('pt-BR')} não encontrad${o}${faltando === 1 ? '' : 's'}`;
-            else el.textContent = citados === 1 ? `1 citad${o} · encontrad${o}` : `${citados.toLocaleString('pt-BR')} citad${o}s · tod${o}s encontrad${o}s`;
+            el.textContent = detalheDaMidia(tipo === 'imagem', citados, faltando);
         });
+    }
+
+    // Frases completas por gênero (imagem é feminino; áudio e vídeo, masculino)
+    function detalheDaMidia(feminino, citados, faltando) {
+        if (feminino) {
+            if (citados === 0) return _t('nenhuma citada no CSV');
+            if (faltando > 0) return `${_tn('{n} citada', '{n} citadas', citados)} · ${_tn('{n} não encontrada', '{n} não encontradas', faltando)}`;
+            return citados === 1 ? _t('1 citada · encontrada') : _t('{n} citadas · todas encontradas', { n: citados });
+        }
+        if (citados === 0) return _t('nenhum citado no CSV');
+        if (faltando > 0) return `${_tn('{n} citado', '{n} citados', citados)} · ${_tn('{n} não encontrado', '{n} não encontrados', faltando)}`;
+        return citados === 1 ? _t('1 citado · encontrado') : _t('{n} citados · todos encontrados', { n: citados });
     }
     
 
@@ -2888,11 +2896,11 @@
     }
 
     const _explorerConfigTipos = {
-        audio: { nome: 'Áudios', accept: 'audio/*', icone: '<path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle>' },
-        imagem: { nome: 'Imagens', accept: 'image/*', icone: '<rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-5-5L5 21"></path>' },
-        video: { nome: 'Vídeos', accept: 'video/*', icone: '<rect x="2" y="5" width="15" height="14" rx="2"></rect><path d="m17 10 5-3v10l-5-3"></path>' }
+        audio: { nome: () => _t('Áudios'), adicionar: () => _t('Adicionar arquivos de áudios'), vazio: () => _t('Nenhum arquivo de áudios no projeto. Use "Adicionar arquivos" para incluir.'), accept: 'audio/*', icone: '<path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle>' },
+        imagem: { nome: () => _t('Imagens'), adicionar: () => _t('Adicionar arquivos de imagens'), vazio: () => _t('Nenhum arquivo de imagens no projeto. Use "Adicionar arquivos" para incluir.'), accept: 'image/*', icone: '<rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-5-5L5 21"></path>' },
+        video: { nome: () => _t('Vídeos'), adicionar: () => _t('Adicionar arquivos de vídeos'), vazio: () => _t('Nenhum arquivo de vídeos no projeto. Use "Adicionar arquivos" para incluir.'), accept: 'video/*', icone: '<rect x="2" y="5" width="15" height="14" rx="2"></rect><path d="m17 10 5-3v10l-5-3"></path>' }
     };
-    const _explorerFiltros = [['todas', 'Todas'], ['usada', 'Usadas'], ['semuso', 'Sem uso'], ['faltando', 'Faltando']];
+    const _explorerFiltros = [['todas', () => _t('Todas')], ['usada', () => _t('Usadas')], ['semuso', () => _t('Sem uso')], ['faltando', () => _t('Faltando')]];
     // Estado do diálogo; `diag` vem de validador.diagnosticar() (null sem dicionário carregado)
     const _explorer = { tipo: 'audio', filtro: 'todas', busca: '', diag: null };
 
@@ -2939,10 +2947,10 @@
             aba.setAttribute('role', 'tab');
             aba.setAttribute('aria-selected', String(t === tipo));
             aba.tabIndex = t === tipo ? 0 : -1;
-            aba.textContent = _explorerConfigTipos[t].nome;
+            aba.textContent = _explorerConfigTipos[t].nome();
             const conta = document.createElement('span');
             conta.className = 'dialogo-aba-selo' + (faltando ? ' alerta' : ' neutro');
-            conta.textContent = faltando ? `${(naPasta - (diag.midiasNaoUsadas[t].length)).toLocaleString('pt-BR')} de ${(naPasta - diag.midiasNaoUsadas[t].length + faltando).toLocaleString('pt-BR')}` : naPasta.toLocaleString('pt-BR');
+            conta.textContent = faltando ? _t('{encontrados} de {citados}', { encontrados: naPasta - diag.midiasNaoUsadas[t].length, citados: naPasta - diag.midiasNaoUsadas[t].length + faltando }) : I18N.numero(naPasta);
             aba.append(conta);
             aba.addEventListener('click', () => { Object.assign(_explorer, { tipo: t, filtro: 'todas' }); _explorerRenderizar(); });
             aba.addEventListener('keydown', e => {
@@ -2967,7 +2975,7 @@
             b.type = 'button';
             b.className = 'midias-filtro';
             b.setAttribute('aria-pressed', String(filtro === id));
-            b.textContent = `${nome} · ${qtd.toLocaleString('pt-BR')}`;
+            b.textContent = `${nome()} · ${I18N.numero(qtd)}`;
             b.addEventListener('click', () => { _explorer.filtro = id; _explorerRenderizar(); });
             return b;
         }));
@@ -2976,13 +2984,13 @@
         const visiveis = todos.filter(i => (filtro === 'todas' || i.estado === filtro) && (!termo || i.nome.toLowerCase().includes(termo)));
 
         document.getElementById('explorerFileInput').accept = config.accept;
-        document.getElementById('explorerBtnAdicionar').setAttribute('aria-label', `Adicionar arquivos de ${config.nome.toLowerCase()}`);
+        document.getElementById('explorerBtnAdicionar').setAttribute('aria-label', config.adicionar());
 
         const vazio = document.getElementById('explorerVazio');
         vazio.hidden = visiveis.length > 0;
         vazio.textContent = todos.length === 0
-            ? `Nenhum arquivo de ${config.nome.toLowerCase()} no projeto. Use "Adicionar arquivos" para incluir.`
-            : 'Nenhum arquivo neste filtro.';
+            ? config.vazio()
+            : _t('Nenhum arquivo neste filtro.');
 
         const grade = document.getElementById('explorerGrade');
         grade.replaceChildren(...visiveis.map(item => {
@@ -2993,10 +3001,10 @@
             const miniatura = document.createElement(faltando ? 'div' : 'button');
             miniatura.className = 'midia-arquivo-miniatura';
             if (faltando) {
-                miniatura.innerHTML = '<span>Não encontrado</span>';
+                miniatura.innerHTML = `<span>${_t('Não encontrado')}</span>`;
             } else {
                 miniatura.type = 'button';
-                miniatura.setAttribute('aria-label', `Abrir ${item.nome}`);
+                miniatura.setAttribute('aria-label', _t('Abrir {arquivo}', { arquivo: item.nome }));
                 miniatura.addEventListener('click', () => window._explorerAbrirItem(tipo, item.nome));
                 if (tipo === 'imagem') {
                     const img = document.createElement('img');
@@ -3017,12 +3025,12 @@
             const rodape = document.createElement('div');
             rodape.className = 'midia-arquivo-rodape';
             const info = document.createElement('span');
-            info.textContent = faltando ? 'citado no CSV' : _explorerFormatarTamanho((vfs.obterMetadados(tipo, item.nome) || {}).tamanho || 0);
+            info.textContent = faltando ? _t('citado no CSV') : _explorerFormatarTamanho((vfs.obterMetadados(tipo, item.nome) || {}).tamanho || 0);
             rodape.append(info);
             if (item.estado !== 'usada' && diag) {
                 const selo = document.createElement('span');
                 selo.className = 'midia-arquivo-selo ' + item.estado;
-                selo.textContent = faltando ? 'Faltando' : 'Sem uso';
+                selo.textContent = faltando ? _t('Faltando') : _t('Sem uso');
                 rodape.append(selo);
             }
             li.append(miniatura, nome, rodape);
@@ -3031,8 +3039,8 @@
                 const remover = document.createElement('button');
                 remover.type = 'button';
                 remover.className = 'midia-arquivo-remover';
-                remover.setAttribute('aria-label', `Remover ${item.nome}`);
-                remover.title = 'Remover arquivo';
+                remover.setAttribute('aria-label', _t('Remover {arquivo}', { arquivo: item.nome }));
+                remover.title = _t('Remover arquivo');
                 remover.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg>';
                 remover.addEventListener('click', () => window._explorerRemoverItem(tipo, item.nome));
                 li.append(remover);
@@ -3982,6 +3990,10 @@
 
         // Fluxo único do Passo 1 (seleção ou arraste da pasta): o carregador detecta CSV ou CLDF
         const NOMES_FORMATO = { csv: () => _t('Projeto CSV'), cldf: () => _t('Projeto CLDF'), projeto: () => _t('Projeto salvo') };
+        document.addEventListener('idioma-alterado', () => {
+            const nomeDoFormato = NOMES_FORMATO[window.carregadorPasta && window.carregadorPasta.formatoDetectado];
+            if (nomeDoFormato) document.getElementById('formatoDetectado').textContent = nomeDoFormato();
+        });
         const processarPastaProjeto = async (arquivos) => {
             if (!arquivos || arquivos.length === 0) return;
             const numArquivos = arquivos.length;
@@ -4199,19 +4211,18 @@
             
             document.getElementById('step2').classList.toggle('projeto-carregado', !!stats.disponivel);
             if (stats.disponivel) {
-                const qtd = (n, um, varios) => `${(n || 0).toLocaleString('pt-BR')} ${n === 1 ? um : varios}`;
-                document.getElementById('countEntradas').textContent = (stats.entradas || 0).toLocaleString('pt-BR');
-                document.getElementById('csvLinhas').textContent = qtd(stats.entradas, 'entrada', 'entradas');
-                document.getElementById('csvColunas').textContent = qtd(stats.colunas, 'coluna', 'colunas');
-                document.getElementById('csvCategorias').textContent = qtd(stats.categorias, 'categoria', 'categorias');
+                document.getElementById('countEntradas').textContent = I18N.numero(stats.entradas || 0);
+                document.getElementById('csvLinhas').textContent = _tn('{n} entrada', '{n} entradas', stats.entradas || 0);
+                document.getElementById('csvColunas').textContent = _tn('{n} coluna', '{n} colunas', stats.colunas || 0);
+                document.getElementById('csvCategorias').textContent = _tn('{n} categoria', '{n} categorias', stats.categorias || 0);
                 document.getElementById('badgeCsv').textContent = _t('✅ Carregado');
                 document.getElementById('badgeCsv').className = 'step-badge active badge-ok';
                 if (typeof popularEstrutura === 'function') popularEstrutura();
             } else {
                 document.getElementById('countEntradas').textContent = 0;
-                document.getElementById('csvLinhas').textContent = '0 entradas';
-                document.getElementById('csvColunas').textContent = '0 colunas';
-                document.getElementById('csvCategorias').textContent = '0 categorias';
+                document.getElementById('csvLinhas').textContent = _tn('{n} entrada', '{n} entradas', 0);
+                document.getElementById('csvColunas').textContent = _tn('{n} coluna', '{n} colunas', 0);
+                document.getElementById('csvCategorias').textContent = _tn('{n} categoria', '{n} categorias', 0);
                 document.getElementById('formatoDetectado').style.display = 'none';
                 document.getElementById('badgeCsv').textContent = _t('Pendente');
                 document.getElementById('badgeCsv').className = 'step-badge';
@@ -4220,18 +4231,18 @@
             const m = stats.midias || {};
             const au = m.audio || 0, ig = m.imagem || 0, vi = m.video || 0;
 
-            document.getElementById('countAudio').textContent = au.toLocaleString('pt-BR');
-            document.getElementById('countImagem').textContent = ig.toLocaleString('pt-BR');
-            document.getElementById('countVideo').textContent = vi.toLocaleString('pt-BR');
+            document.getElementById('countAudio').textContent = I18N.numero(au);
+            document.getElementById('countImagem').textContent = I18N.numero(ig);
+            document.getElementById('countVideo').textContent = I18N.numero(vi);
             
             const totMidia = au + ig + vi;
-            document.getElementById('csvMidias').textContent = `${totMidia.toLocaleString('pt-BR')} ${totMidia === 1 ? 'mídia' : 'mídias'}`;
+            document.getElementById('csvMidias').textContent = _tn('{n} mídia', '{n} mídias', totMidia);
             const bm = document.getElementById('badgeMidias');
             if (totMidia > 0) {
-                bm.textContent = `✅ ${totMidia} arquivos`;
+                bm.textContent = _t('✅ {total} arquivos', { total: String(totMidia) });
                 bm.className = 'step-badge active badge-ok';
             } else {
-                bm.textContent = 'Pendente';
+                bm.textContent = _t('Pendente');
                 bm.className = 'step-badge';
             }
         }, 1000);
@@ -5985,6 +5996,7 @@
     }
 
     document.addEventListener('idioma-alterado', () => {
+        if (window.atualizarValidacaoEtapa2) window.atualizarValidacaoEtapa2();
         atualizarStepper(window.passoAtual);
         atualizarBotoesPasso(window.passoAtual);
     });

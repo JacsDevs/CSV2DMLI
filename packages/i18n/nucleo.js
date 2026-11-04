@@ -171,6 +171,7 @@
         definirIdioma,
         aplicar,
         numero,
+        lista: (itens) => new Intl.ListFormat(idiomaAtivo, { style: 'long', type: 'conjunction' }).format(itens),
         data: (valor, opcoes) => new Date(valor).toLocaleDateString(idiomaAtivo, opcoes),
         hora: (valor, opcoes) => new Date(valor).toLocaleTimeString(idiomaAtivo, opcoes),
     };
