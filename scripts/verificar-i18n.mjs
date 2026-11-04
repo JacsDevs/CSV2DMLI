@@ -3,6 +3,8 @@
 //
 //   npm run i18n:verificar               erros reprovam; pendências são só avisos
 //   npm run i18n:verificar -- --estrito  traduções faltando e órfãs também reprovam
+//   npm run i18n:verificar -- --listar   imprime em JSON todos os textos marcados
+//   npm run i18n:verificar -- --pendentes  lista textos do HTML ainda sem marcação
 //
 // Executar a partir da raiz do projeto. Não tem dependências.
 import { existsSync, readFileSync, readdirSync } from 'fs';
@@ -187,6 +189,58 @@ function extrairDoHtml(fonte, origem, usadas) {
     }
 }
 
+// ---- Textos do HTML ainda sem marcação ----
+
+// Ignora <code> e elementos com translate="no". Não analisa textos dentro do JavaScript.
+function listarPendentes(fonte) {
+    const inicio = fonte.indexOf('<body');
+    const pendentes = [];
+    const pilha = [];
+    const coberto = () => pilha.some(p => p.coberto);
+    const anotar = (posicao, texto) => pendentes.push(`index.html:${linhaDe(fonte, posicao)}: ${normalizar(texto).slice(0, 90)}`);
+    let i = inicio;
+    while (i >= 0 && i < fonte.length) {
+        const proximo = fonte.indexOf('<', i);
+        if (proximo < 0) break;
+        const texto = fonte.slice(i, proximo);
+        const topo = pilha[pilha.length - 1];
+        if (/\p{L}{2}/u.test(texto) && !coberto() && !(topo && topo.marcado)) anotar(i, texto);
+        if (fonte.startsWith('<!--', proximo)) {
+            i = fonte.indexOf('-->', proximo) + 3;
+            continue;
+        }
+        if (fonte[proximo + 1] === '/') {
+            pilha.pop();
+            i = fonte.indexOf('>', proximo) + 1;
+            continue;
+        }
+        const fim = lerTagAbertura(fonte, proximo);
+        if (fim < 0) break;
+        const nome = (fonte.slice(proximo + 1, fim).match(/^[\w-]+/) || [''])[0].toLowerCase();
+        if (!nome) { i = proximo + 1; continue; }
+        if (nome === 'script' || nome === 'style' || nome === 'svg') {
+            i = fonte.indexOf(`</${nome}>`, fim) + nome.length + 3;
+            continue;
+        }
+        const atributos = lerAtributos(fonte.slice(proximo + 1 + nome.length, fim));
+        const traduzidos = (atributos.get('data-i18n-attr') || '').split(/\s+/);
+        for (const a of ['title', 'aria-label', 'placeholder', 'alt']) {
+            const valor = atributos.get(a);
+            if (valor && /\p{L}{2}/u.test(valor) && !traduzidos.includes(a) && !valor.includes('${')) {
+                anotar(proximo, `[${a}] ${valor}`);
+            }
+        }
+        if (fonte[fim - 1] !== '/' && !ELEMENTOS_VAZIOS.has(nome)) {
+            pilha.push({
+                marcado: atributos.has('data-i18n'),
+                coberto: nome === 'code' || atributos.get('translate') === 'no' || atributos.get('data-i18n') === 'html',
+            });
+        }
+        i = fim + 1;
+    }
+    return pendentes;
+}
+
 // ---- Registro dos idiomas ----
 
 function carregarIdiomas() {
@@ -304,6 +358,17 @@ extrairDoHtml(html, 'index.html', usadas);
 extrairDoJs(html, 'index.html', usadas);
 for (const arquivo of listarJs('packages')) {
     extrairDoJs(readFileSync(arquivo, 'utf8'), arquivo, usadas);
+}
+
+if (process.argv.includes('--listar')) {
+    console.log(JSON.stringify([...usadas].map(([chave, uso]) => ({ chave, tipo: uso.tipo })), null, 2));
+    process.exit(0);
+}
+if (process.argv.includes('--pendentes')) {
+    const pendentes = listarPendentes(html);
+    pendentes.forEach(p => console.log(p));
+    console.log(`\n${pendentes.length} texto(s) do HTML sem marcação.`);
+    process.exit(0);
 }
 
 console.log(`Textos marcados: ${usadas.size}`);

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CSV2DMLI - Assistente</title>    
+    <title data-i18n>CSV2DMLI - Assistente</title>    
     <!-- Idiomas da interface (ver packages/i18n/idiomas.js) -->
     <script src="packages/i18n/idiomas.js"></script>
     <script src="packages/i18n/nucleo.js"></script>
@@ -739,35 +739,35 @@
         <header class="app-header">
             <div class="logo-header">
                 <div class="app-marca">
-                    <img src="assets/images/MPEG-roxo.svg" alt="Logotipo Museu Goeldi"/>
+                    <img src="assets/images/MPEG-roxo.svg" alt="Logotipo Museu Goeldi" data-i18n-attr="alt"/>
                     <span class="app-marca-divisor" aria-hidden="true"></span>
                     <div class="app-marca-texto">
-                        <h1>CSV2DMLI</h1>
-                        <span class="app-subtitulo">Gerador de dicionários multimídia</span>
+                        <h1 translate="no">CSV2DMLI</h1>
+                        <span class="app-subtitulo" data-i18n>Gerador de dicionários multimídia</span>
                     </div>
                 </div>
                 <!-- No celular as ferramentas ficam num menu (ver alternarMenuCelular) -->
-                <button type="button" class="btn-icone btn-menu-celular" id="btnMenuCelular" aria-label="Mais opções" aria-expanded="false" aria-controls="ferramentasCabecalho" onclick="window.alternarMenuCelular()">
+                <button type="button" class="btn-icone btn-menu-celular" id="btnMenuCelular" data-i18n-attr="aria-label" aria-label="Mais opções" aria-expanded="false" aria-controls="ferramentasCabecalho" onclick="window.alternarMenuCelular()">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
-                <nav class="header-actions" id="ferramentasCabecalho" aria-label="Ferramentas">
-                    <div class="tamanho-interface" role="group" aria-label="Tamanho da interface">
-                        <button type="button" class="tamanho-btn" aria-label="Diminuir tamanho da interface" title="Diminuir tamanho da interface" onclick="ajustarZoom(-0.1)">A−</button>
-                        <button type="button" class="tamanho-btn tamanho-valor" id="zoomLevel" aria-label="Restaurar tamanho padrão" title="Restaurar tamanho padrão" onclick="resetZoom()">100%</button>
-                        <button type="button" class="tamanho-btn tamanho-maior" aria-label="Aumentar tamanho da interface" title="Aumentar tamanho da interface" onclick="ajustarZoom(0.1)">A+</button>
+                <nav class="header-actions" id="ferramentasCabecalho" data-i18n-attr="aria-label" aria-label="Ferramentas">
+                    <div class="tamanho-interface" role="group" data-i18n-attr="aria-label" aria-label="Tamanho da interface">
+                        <button type="button" class="tamanho-btn" data-i18n-attr="aria-label title" aria-label="Diminuir tamanho da interface" title="Diminuir tamanho da interface" onclick="ajustarZoom(-0.1)">A−</button>
+                        <button type="button" class="tamanho-btn tamanho-valor" id="zoomLevel" data-i18n-attr="aria-label title" aria-label="Restaurar tamanho padrão" title="Restaurar tamanho padrão" onclick="resetZoom()">100%</button>
+                        <button type="button" class="tamanho-btn tamanho-maior" data-i18n-attr="aria-label title" aria-label="Aumentar tamanho da interface" title="Aumentar tamanho da interface" onclick="ajustarZoom(0.1)">A+</button>
                     </div>
-                    <button type="button" class="btn-cabecalho" id="terminalToggleTab" aria-pressed="false" title="Histórico de atividades" onclick="window.toggleTerminal()">
+                    <button type="button" class="btn-cabecalho" id="terminalToggleTab" aria-pressed="false" data-i18n-attr="title" title="Histórico de atividades" onclick="window.toggleTerminal()">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 2.6-6.4L3 8"></path><path d="M3 3v5h5M12 7v5l3 2"></path></svg>
-                        <span class="btn-cabecalho-texto">Histórico</span>
+                        <span class="btn-cabecalho-texto" data-i18n>Histórico</span>
                         <span class="terminal-badge" id="terminalBadge" style="display:none;">0</span>
                     </button>
-                    <button type="button" class="btn-cabecalho" title="Modelos, ferramentas e documentação" aria-haspopup="dialog" onclick="window.abrirRecursos()">
+                    <button type="button" class="btn-cabecalho" data-i18n-attr="title" title="Modelos, ferramentas e documentação" aria-haspopup="dialog" onclick="window.abrirRecursos()">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"></path><path d="M4 20h16"></path></svg>
-                        <span class="btn-cabecalho-texto">Recursos</span>
+                        <span class="btn-cabecalho-texto" data-i18n>Recursos</span>
                     </button>
-                    <button type="button" class="btn-cabecalho" title="Avançado: modelos de exportação" aria-haspopup="dialog" onclick="document.getElementById('modalCustomizacao').showModal()">
+                    <button type="button" class="btn-cabecalho" data-i18n-attr="title" title="Avançado: modelos de exportação" aria-haspopup="dialog" onclick="document.getElementById('modalCustomizacao').showModal()">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 6-6 6 6 6M16 6l6 6-6 6"></path></svg>
-                        <span class="btn-cabecalho-texto">Avançado</span>
+                        <span class="btn-cabecalho-texto" data-i18n>Avançado</span>
                     </button>
                 </nav>
             </div>
@@ -778,28 +778,28 @@
             <div class="wizard-container">
                 
                 <!-- Stepper Superior -->
-                <nav class="wizard-stepper" aria-label="Etapas">
+                <nav class="wizard-stepper" data-i18n-attr="aria-label" aria-label="Etapas">
                     <ol class="stepper-lista">
-                        <li class="step-item"><button type="button" class="step-indicator active" id="indicator1" onclick="window.irParaPasso(1)"><span class="step-indicator-num" aria-hidden="true">1</span><span class="step-indicator-texto"><span class="step-indicator-title">Fonte de Dados</span><span class="step-indicator-estado">Etapa atual</span></span></button><span class="step-linha" aria-hidden="true"></span></li>
-                        <li class="step-item"><button type="button" class="step-indicator" id="indicator2" onclick="window.irParaPasso(2)"><span class="step-indicator-num" aria-hidden="true">2</span><span class="step-indicator-texto"><span class="step-indicator-title">Mídias e Validação</span><span class="step-indicator-estado">Pendente</span></span></button><span class="step-linha" aria-hidden="true"></span></li>
-                        <li class="step-item"><button type="button" class="step-indicator" id="indicator3" onclick="window.irParaPasso(3)"><span class="step-indicator-num" aria-hidden="true">3</span><span class="step-indicator-texto"><span class="step-indicator-title">Metadados</span><span class="step-indicator-estado">Pendente</span></span></button><span class="step-linha" aria-hidden="true"></span></li>
-                        <li class="step-item"><button type="button" class="step-indicator" id="indicator4" onclick="window.irParaPasso(4)"><span class="step-indicator-num" aria-hidden="true">4</span><span class="step-indicator-texto"><span class="step-indicator-title">Estrutura</span><span class="step-indicator-estado">Pendente</span></span></button><span class="step-linha" aria-hidden="true"></span></li>
-                        <li class="step-item"><button type="button" class="step-indicator" id="indicator5" onclick="window.irParaPasso(5)"><span class="step-indicator-num" aria-hidden="true">5</span><span class="step-indicator-texto"><span class="step-indicator-title">Aparência</span><span class="step-indicator-estado">Opcional</span></span></button><span class="step-linha" aria-hidden="true"></span></li>
-                        <li class="step-item"><button type="button" class="step-indicator" id="indicator6" onclick="window.irParaPasso(6)"><span class="step-indicator-num" aria-hidden="true">6</span><span class="step-indicator-texto"><span class="step-indicator-title">Exportar</span><span class="step-indicator-estado">Pendente</span></span></button></li>
+                        <li class="step-item"><button type="button" class="step-indicator active" id="indicator1" onclick="window.irParaPasso(1)"><span class="step-indicator-num" aria-hidden="true">1</span><span class="step-indicator-texto"><span class="step-indicator-title" data-i18n>Fonte de Dados</span><span class="step-indicator-estado" data-i18n>Etapa atual</span></span></button><span class="step-linha" aria-hidden="true"></span></li>
+                        <li class="step-item"><button type="button" class="step-indicator" id="indicator2" onclick="window.irParaPasso(2)"><span class="step-indicator-num" aria-hidden="true">2</span><span class="step-indicator-texto"><span class="step-indicator-title" data-i18n>Mídias e Validação</span><span class="step-indicator-estado" data-i18n>Pendente</span></span></button><span class="step-linha" aria-hidden="true"></span></li>
+                        <li class="step-item"><button type="button" class="step-indicator" id="indicator3" onclick="window.irParaPasso(3)"><span class="step-indicator-num" aria-hidden="true">3</span><span class="step-indicator-texto"><span class="step-indicator-title" data-i18n>Metadados</span><span class="step-indicator-estado" data-i18n>Pendente</span></span></button><span class="step-linha" aria-hidden="true"></span></li>
+                        <li class="step-item"><button type="button" class="step-indicator" id="indicator4" onclick="window.irParaPasso(4)"><span class="step-indicator-num" aria-hidden="true">4</span><span class="step-indicator-texto"><span class="step-indicator-title" data-i18n>Estrutura</span><span class="step-indicator-estado" data-i18n>Pendente</span></span></button><span class="step-linha" aria-hidden="true"></span></li>
+                        <li class="step-item"><button type="button" class="step-indicator" id="indicator5" onclick="window.irParaPasso(5)"><span class="step-indicator-num" aria-hidden="true">5</span><span class="step-indicator-texto"><span class="step-indicator-title" data-i18n>Aparência</span><span class="step-indicator-estado" data-i18n>Opcional</span></span></button><span class="step-linha" aria-hidden="true"></span></li>
+                        <li class="step-item"><button type="button" class="step-indicator" id="indicator6" onclick="window.irParaPasso(6)"><span class="step-indicator-num" aria-hidden="true">6</span><span class="step-indicator-texto"><span class="step-indicator-title" data-i18n>Exportar</span><span class="step-indicator-estado" data-i18n>Pendente</span></span></button></li>
                     </ol>
                 </nav>
 
                 <!-- Progresso no celular (substitui o stepper): preenchido por atualizarStepper; toque abre a lista de etapas -->
                 <details class="progresso-celular" id="progressoCelular">
-                    <summary aria-label="Progresso: abrir a lista de etapas">
+                    <summary data-i18n-attr="aria-label" aria-label="Progresso: abrir a lista de etapas">
                         <span class="progresso-celular-linha">
-                            <span class="progresso-celular-nome" id="progressoCelularNome">Fonte de Dados</span>
-                            <span class="progresso-celular-contador" id="progressoCelularContador">Etapa 1 de 6</span>
+                            <span class="progresso-celular-nome" id="progressoCelularNome" data-i18n>Fonte de Dados</span>
+                            <span class="progresso-celular-contador" id="progressoCelularContador" data-i18n>Etapa 1 de 6</span>
                         </span>
                         <span class="progresso-celular-barra" id="progressoCelularBarra" aria-hidden="true"></span>
-                        <span class="progresso-celular-seguinte" id="progressoCelularSeguinte">A seguir: Mídias e Validação</span>
+                        <span class="progresso-celular-seguinte" id="progressoCelularSeguinte" data-i18n>A seguir: Mídias e Validação</span>
                     </summary>
-                    <ol class="progresso-celular-lista" id="progressoCelularLista" aria-label="Etapas"></ol>
+                    <ol class="progresso-celular-lista" id="progressoCelularLista" data-i18n-attr="aria-label" aria-label="Etapas"></ol>
                 </details>
 
                 <!-- Corpo das Etapas -->
@@ -807,61 +807,61 @@
                     
                     <!-- PASSO 1 -->
                     <div class="wizard-step active etapa-importar" id="step1">
-                        <span id="badgeCsv" class="step-badge" hidden>Pendente</span>
+                        <span id="badgeCsv" class="step-badge" hidden data-i18n>Pendente</span>
                         <div class="etapa-cabecalho">
-                            <span class="etapa-contador">Etapa 1 de 6</span>
-                            <h2 class="etapa-titulo">Fonte de Dados</h2>
-                            <p class="etapa-descricao">Escolha a pasta do seu dicionário. Aceitamos projetos em CSV ou CLDF, e o formato é reconhecido automaticamente.</p>
+                            <span class="etapa-contador" data-i18n>Etapa 1 de 6</span>
+                            <h2 class="etapa-titulo" data-i18n>Fonte de Dados</h2>
+                            <p class="etapa-descricao" data-i18n>Escolha a pasta do seu dicionário. Aceitamos projetos em CSV ou CLDF, e o formato é reconhecido automaticamente.</p>
                         </div>
 
                         <input type="file" id="filePastaProjeto" webkitdirectory multiple hidden>
 
                         <!-- Área de importação + o que a pasta precisa ter -->
                         <div class="importar-bloco">
-                            <div class="importar-zona" id="pastaProjetoDropZone" role="button" tabindex="0" aria-label="Selecionar pasta do projeto ou arrastar a pasta para esta área">
+                            <div class="importar-zona" id="pastaProjetoDropZone" role="button" tabindex="0" data-i18n-attr="aria-label" aria-label="Selecionar pasta do projeto ou arrastar a pasta para esta área">
                                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><path d="M12 10v6M9 13l3-3 3 3"></path></svg>
-                                <span class="importar-zona-botao">Selecionar pasta do projeto</span>
-                                <span class="importar-zona-dica">ou arraste a pasta para esta área</span>
+                                <span class="importar-zona-botao" data-i18n>Selecionar pasta do projeto</span>
+                                <span class="importar-zona-dica" data-i18n>ou arraste a pasta para esta área</span>
                             </div>
 
                             <div class="importar-formatos">
                                 <div class="importar-formato">
-                                    <h3>Projeto em CSV</h3>
+                                    <h3 data-i18n>Projeto em CSV</h3>
                                     <ul>
-                                        <li><code>dicionario.csv</code> com as entradas (obrigatório)</li>
-                                        <li>Pastas de áudio, imagem e vídeo (opcional)</li>
-                                        <li>Arquivos de configuração salvos antes (opcional)</li>
+                                        <li data-i18n="html"><code>dicionario.csv</code> com as entradas (obrigatório)</li>
+                                        <li data-i18n>Pastas de áudio, imagem e vídeo (opcional)</li>
+                                        <li data-i18n>Arquivos de configuração salvos antes (opcional)</li>
                                     </ul>
                                 </div>
                                 <div class="importar-formato">
-                                    <h3>Projeto em CLDF</h3>
+                                    <h3 data-i18n>Projeto em CLDF</h3>
                                     <ul>
-                                        <li><code>metadata.json</code> e as tabelas de dados (obrigatório)</li>
-                                        <li>Mídias referenciadas nas tabelas (opcional)</li>
-                                        <li>Colunas extras são mapeadas logo após a importação</li>
+                                        <li data-i18n="html"><code>metadata.json</code> e as tabelas de dados (obrigatório)</li>
+                                        <li data-i18n>Mídias referenciadas nas tabelas (opcional)</li>
+                                        <li data-i18n>Colunas extras são mapeadas logo após a importação</li>
                                     </ul>
                                 </div>
                             </div>
 
                             <!-- Versão recolhida dos cartões acima, só no celular -->
                             <details class="importar-formatos-celular">
-                                <summary>O que a pasta precisa ter?</summary>
+                                <summary data-i18n>O que a pasta precisa ter?</summary>
                                 <div>
-                                    <span><strong>CSV:</strong> <code>dicionario.csv</code> e, se houver, as pastas de áudio, imagem e vídeo.</span>
-                                    <span><strong>CLDF:</strong> <code>metadata.json</code>, as tabelas de dados e as mídias.</span>
+                                    <span data-i18n="html"><strong>CSV:</strong> <code>dicionario.csv</code> e, se houver, as pastas de áudio, imagem e vídeo.</span>
+                                    <span data-i18n="html"><strong>CLDF:</strong> <code>metadata.json</code>, as tabelas de dados e as mídias.</span>
                                 </div>
                             </details>
 
                             <div class="importar-sem-projeto">
                                 <span class="importar-sem-projeto-icone" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6M12 12v6M9 15h6"></path></svg></span>
                                 <div class="importar-sem-projeto-texto">
-                                    <strong>Ainda não tem um projeto?</strong>
-                                    <span>Baixe um modelo, preencha a planilha e coloque as mídias nas pastas. Depois é só importar aqui.</span>
+                                    <strong data-i18n>Ainda não tem um projeto?</strong>
+                                    <span data-i18n>Baixe um modelo, preencha a planilha e coloque as mídias nas pastas. Depois é só importar aqui.</span>
                                 </div>
                                 <div class="importar-sem-projeto-acoes">
-                                    <button type="button" class="btn-principal" onclick="window.abrirRecursos()">Modelo com exemplo</button>
-                                    <button type="button" class="btn-secundario" onclick="window.abrirRecursos()">Modelo vazio</button>
-                                    <button type="button" class="btn-link" onclick="window.abrirRecursos()">Mais recursos</button>
+                                    <button type="button" class="btn-principal" onclick="window.abrirRecursos()" data-i18n>Modelo com exemplo</button>
+                                    <button type="button" class="btn-secundario" onclick="window.abrirRecursos()" data-i18n>Modelo vazio</button>
+                                    <button type="button" class="btn-link" onclick="window.abrirRecursos()" data-i18n>Mais recursos</button>
                                 </div>
                             </div>
                         </div>
@@ -1263,8 +1263,8 @@
                 
                 <!-- Footer Actions -->
                 <div class="wizard-footer">
-                    <button type="button" id="btnPrev" class="btn-secundario btn-rodape" onclick="window.passoAnterior()" disabled><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg><span id="btnPrevTexto">Anterior</span></button>
-                    <button type="button" id="btnNext" class="btn-principal btn-rodape" onclick="window.proximoPasso()"><span id="btnNextTexto">Próximo Passo</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></button>
+                    <button type="button" id="btnPrev" class="btn-secundario btn-rodape" onclick="window.passoAnterior()" disabled><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg><span id="btnPrevTexto" data-i18n>Anterior</span></button>
+                    <button type="button" id="btnNext" class="btn-principal btn-rodape" onclick="window.proximoPasso()"><span id="btnNextTexto" data-i18n>Próximo Passo</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></button>
                 </div>
             </div>
             
@@ -3981,13 +3981,13 @@
         const filePastaProj = document.getElementById('filePastaProjeto');
 
         // Fluxo único do Passo 1 (seleção ou arraste da pasta): o carregador detecta CSV ou CLDF
-        const NOMES_FORMATO = { csv: 'Projeto CSV', cldf: 'Projeto CLDF', projeto: 'Projeto salvo' };
+        const NOMES_FORMATO = { csv: () => _t('Projeto CSV'), cldf: () => _t('Projeto CLDF'), projeto: () => _t('Projeto salvo') };
         const processarPastaProjeto = async (arquivos) => {
             if (!arquivos || arquivos.length === 0) return;
             const numArquivos = arquivos.length;
             const primeiro = arquivos[0];
             const nomePasta = ((primeiro.webkitRelativePath || primeiro.caminhoPersonalizado || '').split('/')[0]) || '';
-            window.mostrarLoader('Processando Projeto', 'Lendo a estrutura da pasta e arquivos...');
+            window.mostrarLoader(_t('Processando Projeto'), _t('Lendo a estrutura da pasta e arquivos...'));
             // Permite que o navegador renderize o modal antes de travar a thread
             await new Promise(r => setTimeout(r, 50));
 
@@ -3996,20 +3996,20 @@
                 if(window.preencherUIComMetadados) window.preencherUIComMetadados();
                 if(window.atualizarUILogo) window.atualizarUILogo();
 
-                const nomeFormato = NOMES_FORMATO[window.carregadorPasta.formatoDetectado];
+                const nomeFormato = NOMES_FORMATO[window.carregadorPasta.formatoDetectado]?.();
                 const formatoEl = document.getElementById('formatoDetectado');
                 if (formatoEl) {
                     formatoEl.textContent = nomeFormato || '';
                     formatoEl.style.display = nomeFormato ? '' : 'none';
                 }
                 const nomePastaEl = document.getElementById('nomePastaProjeto');
-                if (nomePastaEl) nomePastaEl.textContent = nomePasta ? `${nomePasta}/` : 'Projeto carregado';
+                if (nomePastaEl) nomePastaEl.textContent = nomePasta ? `${nomePasta}/` : _t('Projeto carregado');
 
                 if (window.adicionarLogAoTerminal) {
                     const stats = window.sistema ? window.sistema.obterEstatisticas() : null;
                     const numRegistros = stats ? stats.totalBases : 0;
                     const sufixoFormato = nomeFormato ? ` — ${nomeFormato}` : '';
-                    window.adicionarLogAoTerminal(`✅ Passo 1 Concluído! Pasta processada (${numArquivos} arquivos, ${numRegistros} registros)${sufixoFormato}.`, 'info');
+                    window.adicionarLogAoTerminal(_t('✅ Passo 1 Concluído! Pasta processada ({arquivos} arquivos, {registros} registros){formato}.', { arquivos: String(numArquivos), registros: String(numRegistros), formato: sufixoFormato }), 'info');
                 }
 
                 // Avança para a aba "Mídias e Validação"
@@ -4204,7 +4204,7 @@
                 document.getElementById('csvLinhas').textContent = qtd(stats.entradas, 'entrada', 'entradas');
                 document.getElementById('csvColunas').textContent = qtd(stats.colunas, 'coluna', 'colunas');
                 document.getElementById('csvCategorias').textContent = qtd(stats.categorias, 'categoria', 'categorias');
-                document.getElementById('badgeCsv').textContent = '✅ Carregado';
+                document.getElementById('badgeCsv').textContent = _t('✅ Carregado');
                 document.getElementById('badgeCsv').className = 'step-badge active badge-ok';
                 if (typeof popularEstrutura === 'function') popularEstrutura();
             } else {
@@ -4213,7 +4213,7 @@
                 document.getElementById('csvColunas').textContent = '0 colunas';
                 document.getElementById('csvCategorias').textContent = '0 categorias';
                 document.getElementById('formatoDetectado').style.display = 'none';
-                document.getElementById('badgeCsv').textContent = 'Pendente';
+                document.getElementById('badgeCsv').textContent = _t('Pendente');
                 document.getElementById('badgeCsv').className = 'step-badge';
             }
 
@@ -5862,7 +5862,7 @@
             else indicador.removeAttribute('aria-current');
             indicador.querySelector('.step-indicator-num').innerHTML = concluida ? ICONE_CONCLUIDA : (comPendencias ? ICONE_PENDENCIA : String(n));
             indicador.querySelector('.step-indicator-estado').textContent =
-                atual ? 'Etapa atual' : (comPendencias ? 'Com pendências' : (concluida ? 'Concluída' : (n === PASSO_OPCIONAL ? 'Opcional' : 'Pendente')));
+                atual ? _t('Etapa atual') : (comPendencias ? _t('Com pendências') : (concluida ? _t('Concluída') : (n === PASSO_OPCIONAL ? _t('Opcional') : _t('Pendente'))));
             const linha = indicador.parentElement.querySelector('.step-linha');
             if (linha) linha.classList.toggle('feita', n < passo);
         }
@@ -5873,9 +5873,9 @@
     function atualizarProgressoCelular(passo) {
         const nome = n => document.querySelector(`#indicator${n} .step-indicator-title`).textContent;
         document.getElementById('progressoCelularNome').textContent = nome(passo);
-        document.getElementById('progressoCelularContador').textContent = `Etapa ${passo} de ${totalPassos}`;
+        document.getElementById('progressoCelularContador').textContent = _t('Etapa {atual} de {total}', { atual: passo, total: totalPassos });
         document.getElementById('progressoCelularSeguinte').textContent =
-            passo < totalPassos ? `A seguir: ${nome(passo + 1)}` : 'Última etapa';
+            passo < totalPassos ? _t('A seguir: {etapa}', { etapa: nome(passo + 1) }) : _t('Última etapa');
 
         const estadoDe = n => {
             const ind = document.getElementById(`indicator${n}`);
@@ -5960,25 +5960,34 @@
             }
         }
 
-        // Controla botões: cada um diz para qual etapa leva
+        atualizarBotoesPasso(passo);
+
+        window.passoAtual = passo;
+        if (passo === 2 && window.atualizarValidacaoEtapa2) window.atualizarValidacaoEtapa2();
+        if (passo === totalPassos) atualizarResumoExportar();
+    }
+
+    // Controla botões: cada um diz para qual etapa leva
+    function atualizarBotoesPasso(passo) {
         const nomeEtapa = n => document.querySelector(`#indicator${n} .step-indicator-title`).textContent;
         const btnPrev = document.getElementById('btnPrev');
         btnPrev.disabled = (passo === 1);
         btnPrev.style.display = passo === 1 ? 'none' : '';
-        if (passo > 1) document.getElementById('btnPrevTexto').textContent = `Voltar: ${nomeEtapa(passo - 1)}`;
+        if (passo > 1) document.getElementById('btnPrevTexto').textContent = _t('Voltar: {etapa}', { etapa: nomeEtapa(passo - 1) });
 
         const btnNext = document.getElementById('btnNext');
         if (passo === totalPassos) {
             btnNext.style.display = 'none';
         } else {
             btnNext.style.display = '';
-            document.getElementById('btnNextTexto').textContent = `Próximo: ${nomeEtapa(passo + 1)}`;
+            document.getElementById('btnNextTexto').textContent = _t('Próximo: {etapa}', { etapa: nomeEtapa(passo + 1) });
         }
-
-        window.passoAtual = passo;
-        if (passo === 2 && window.atualizarValidacaoEtapa2) window.atualizarValidacaoEtapa2();
-        if (passo === totalPassos) atualizarResumoExportar();
     }
+
+    document.addEventListener('idioma-alterado', () => {
+        atualizarStepper(window.passoAtual);
+        atualizarBotoesPasso(window.passoAtual);
+    });
 
     // ===================================================================
     // RECURSOS (diálogo #dialogoRecursos)

@@ -143,6 +143,10 @@
         });
     }
 
+    function avisarTelas() {
+        document.dispatchEvent(new CustomEvent('idioma-alterado', { detail: { idioma: idiomaAtivo } }));
+    }
+
     function definirIdioma(codigo, opcoes) {
         if (!idiomaValido(codigo)) return false;
         idiomaAtivo = codigo;
@@ -154,7 +158,7 @@
         if (typeof document !== 'undefined') {
             document.documentElement.lang = codigo;
             aplicar();
-            document.dispatchEvent(new CustomEvent('idioma-alterado', { detail: { idioma: codigo } }));
+            avisarTelas();
         }
         return true;
     }
@@ -176,6 +180,9 @@
     // Em PT-BR o HTML já está correto, então nada é tocado na inicialização.
     if (typeof document !== 'undefined' && idiomaAtivo !== PADRAO) {
         document.documentElement.lang = idiomaAtivo;
-        document.addEventListener('DOMContentLoaded', () => aplicar());
+        document.addEventListener('DOMContentLoaded', () => {
+            aplicar();
+            avisarTelas();
+        });
     }
 })(globalThis);
