@@ -1303,30 +1303,30 @@
 <dialog id="modalCldfExtras" class="dialogo dialogo-cldf" aria-labelledby="cldfExtrasTitulo">
     <div class="dialogo-topo dialogo-topo-separado">
         <div>
-            <span class="etapa-contador">Importação CLDF</span>
-            <h2 id="cldfExtrasTitulo">Colunas extras encontradas</h2>
+            <span class="etapa-contador" data-i18n>Importação CLDF</span>
+            <h2 id="cldfExtrasTitulo" data-i18n>Colunas extras encontradas</h2>
             <p id="cldfExtrasDescricao"></p>
         </div>
-        <button type="button" class="btn-icone" id="btnCancelarCldfExtras" aria-label="Cancelar importação"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+        <button type="button" class="btn-icone" id="btnCancelarCldfExtras" aria-label="Cancelar importação" data-i18n-attr="aria-label"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
     </div>
     <div class="dialogo-corpo cldf-extras-corpo">
         <div class="cldf-extras-lista" id="cldfExtrasContainer"></div>
         <details class="editor-icone-detalhes cldf-hierarquia">
             <summary>
-                <span><strong>Hierarquia semântica</strong> <span class="campo-opcional">(opcional)</span></span>
-                <span class="campo-ajuda">Use se o CLDF tiver colunas com campos e subcampos de categoria ou transcrições.</span>
+                <span><strong data-i18n>Hierarquia semântica</strong> <span class="campo-opcional" data-i18n>(opcional)</span></span>
+                <span class="campo-ajuda" data-i18n>Use se o CLDF tiver colunas com campos e subcampos de categoria ou transcrições.</span>
             </summary>
             <div class="cldf-hierarquia-grade" id="cldfSemanticContainer"></div>
         </details>
     </div>
     <div class="dialogo-rodape">
         <div class="cldf-extras-arquivo">
-            <button type="button" class="btn-link" id="btnSalvarMapeamentoCldf">Salvar estas escolhas</button>
-            <button type="button" class="btn-link" id="btnCarregarMapeamentoCldf">Usar escolhas salvas</button>
+            <button type="button" class="btn-link" id="btnSalvarMapeamentoCldf" data-i18n>Salvar estas escolhas</button>
+            <button type="button" class="btn-link" id="btnCarregarMapeamentoCldf" data-i18n>Usar escolhas salvas</button>
             <input type="file" id="fileCarregarMapeamentoCldf" accept=".json" hidden>
             <span class="campo-ajuda" id="cldfExtrasStatus" role="status"></span>
         </div>
-        <button type="button" class="btn-principal btn-rodape" id="btnConfirmarCldfExtras">Continuar importação</button>
+        <button type="button" class="btn-principal btn-rodape" id="btnConfirmarCldfExtras" data-i18n>Continuar importação</button>
     </div>
 </dialog>
 
@@ -1334,33 +1334,33 @@
 <div class="apk-wizard-overlay" id="modalCldf" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999999; justify-content: center; align-items: center;">
     <div class="modal-content" style="background: var(--bg-secondary); border-radius: 10px; max-width: 500px; width: 100%; padding: 20px;">
         <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3 style="margin: 0; color: var(--text-main);">Configuração CLDF</h3>
+            <h3 style="margin: 0; color: var(--text-main);" data-i18n>Configuração CLDF</h3>
             <button class="modal-close" onclick="document.getElementById('modalCldf').style.display='none'" style="background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.2em;">
                 <i class="fas fa-times"></i>
             </button>
         </div>
         <div class="modal-body">
             <label style="display: block; margin-bottom: 15px;">
-                <span style="color: var(--text-muted); display: block; margin-bottom: 5px;">Nome da Língua (CLDF Name)</span>
-                <input type="text" id="cldfLangName" class="form-input" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-primary); color: var(--text-main);" placeholder="Ex: Karitiana">
+                <span style="color: var(--text-muted); display: block; margin-bottom: 5px;" data-i18n>Nome da Língua (CLDF Name)</span>
+                <input type="text" id="cldfLangName" class="form-input" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-primary); color: var(--text-main);" placeholder="Ex: Karitiana" data-i18n-attr="placeholder">
             </label>
             <label style="display: block; margin-bottom: 15px;">
-                <span style="color: var(--text-muted); display: block; margin-bottom: 5px;">Código ISO 639-3</span>
-                <input type="text" id="cldfIsoCode" class="form-input" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-primary); color: var(--text-main);" placeholder="Ex: ktn">
+                <span style="color: var(--text-muted); display: block; margin-bottom: 5px;" data-i18n>Código ISO 639-3</span>
+                <input type="text" id="cldfIsoCode" class="form-input" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-primary); color: var(--text-main);" placeholder="Ex: ktn" data-i18n-attr="placeholder">
             </label>
             <label style="display: block; margin-bottom: 15px;">
-                <span style="color: var(--text-muted); display: block; margin-bottom: 5px;">Glottocode</span>
-                <input type="text" id="cldfGlottocode" class="form-input" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-primary); color: var(--text-main);" placeholder="Ex: kari1311">
+                <span style="color: var(--text-muted); display: block; margin-bottom: 5px;" data-i18n>Glottocode</span>
+                <input type="text" id="cldfGlottocode" class="form-input" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-primary); color: var(--text-main);" placeholder="Ex: kari1311" data-i18n-attr="placeholder">
             </label>
             <label style="display: block; margin-bottom: 20px;">
-                <span style="color: var(--text-muted); display: block; margin-bottom: 5px;">Idioma das Traduções (Para Concepticon)</span>
+                <span style="color: var(--text-muted); display: block; margin-bottom: 5px;" data-i18n>Idioma das Traduções (Para Concepticon)</span>
                 <select id="cldfGlossLang" class="form-input" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-primary); color: var(--text-main);">
-                    <option value="pt">Português</option>
-                    <option value="en">Inglês</option>
-                    <option value="es">Espanhol</option>
+                    <option value="pt" data-i18n>Português</option>
+                    <option value="en" data-i18n>Inglês</option>
+                    <option value="es" data-i18n>Espanhol</option>
                 </select>
             </label>
-            <button class="btn btn-primary" onclick="iniciarExportacaoCldf()" style="width: 100%; padding: 10px; border-radius: 5px; font-weight: bold;">
+            <button class="btn btn-primary" onclick="iniciarExportacaoCldf()" style="width: 100%; padding: 10px; border-radius: 5px; font-weight: bold;" data-i18n="html">
                 <i class="fas fa-file-export"></i> Iniciar Exportação
             </button>
         </div>
@@ -3250,21 +3250,22 @@
     // LeitorCLDF: { [coluna]: { dest, prefix, suffix, usePrefix, order, semanticRole } }.
     // `amostras` (opcional): { [coluna]: { exemplo, preenchidas } }.
     const CLDF_DESTINOS = [
-        ['desc_entrada', 'Mostrar junto à entrada', 'Aparece na informação da entrada, para todos os significados.'],
-        ['desc_significado', 'Mostrar junto ao significado', 'Aparece na informação do significado correspondente.'],
-        ['ignorar', 'Não mostrar no dicionário', 'A coluna é guardada e volta na exportação CLDF.']
+        ['desc_entrada', () => _t('Mostrar junto à entrada'), () => _t('Aparece na informação da entrada, para todos os significados.')],
+        ['desc_significado', () => _t('Mostrar junto ao significado'), () => _t('Aparece na informação do significado correspondente.')],
+        ['ignorar', () => _t('Não mostrar no dicionário'), () => _t('A coluna é guardada e volta na exportação CLDF.')]
     ];
-    const CLDF_TABELAS = { Entrada: 'Tabela de entradas', Significado: 'Tabela de significados', Forma: 'Tabela de formas' };
+    const CLDF_TABELAS = { Entrada: () => _t('Tabela de entradas'), Significado: () => _t('Tabela de significados'), Forma: () => _t('Tabela de formas') };
+    const nomeTabelaCldf = (origem) => CLDF_TABELAS[origem] ? CLDF_TABELAS[origem]() : origem;
     const CLDF_NIVEIS = [
-        { id: 'CAMPO_SEMANTICO', label: 'Campo principal' },
-        { id: 'SUB_CAMPO_SEMANTICO_1', label: 'Subcampo nível 1' },
-        { id: 'SUB_CAMPO_SEMANTICO_2', label: 'Subcampo nível 2' },
-        { id: 'SUB_CAMPO_SEMANTICO_3', label: 'Subcampo nível 3' },
-        { id: 'SUB_CAMPO_SEMANTICO_4', label: 'Subcampo nível 4' },
-        { id: 'SUB_CAMPO_SEMANTICO_5', label: 'Subcampo nível 5' },
-        { id: 'SUB_CAMPO_SEMANTICO_6', label: 'Subcampo nível 6' },
-        { id: 'TRANSCRICAO_FONEMICA', label: 'Transcrição fonêmica' },
-        { id: 'TRANSCRICAO_FONETICA', label: 'Transcrição fonética' }
+        { id: 'CAMPO_SEMANTICO', label: () => _t('Campo principal') },
+        { id: 'SUB_CAMPO_SEMANTICO_1', label: () => _t('Subcampo nível 1') },
+        { id: 'SUB_CAMPO_SEMANTICO_2', label: () => _t('Subcampo nível 2') },
+        { id: 'SUB_CAMPO_SEMANTICO_3', label: () => _t('Subcampo nível 3') },
+        { id: 'SUB_CAMPO_SEMANTICO_4', label: () => _t('Subcampo nível 4') },
+        { id: 'SUB_CAMPO_SEMANTICO_5', label: () => _t('Subcampo nível 5') },
+        { id: 'SUB_CAMPO_SEMANTICO_6', label: () => _t('Subcampo nível 6') },
+        { id: 'TRANSCRICAO_FONEMICA', label: () => _t('Transcrição fonêmica') },
+        { id: 'TRANSCRICAO_FONETICA', label: () => _t('Transcrição fonética') }
     ];
 
     window.pedirMapeamentoCldf = function(extraCols, allCols, amostras = {}) {
@@ -3279,8 +3280,8 @@
 
             const n = extraCols.length;
             document.getElementById('cldfExtrasDescricao').textContent = n
-                ? `${n === 1 ? 'Esta coluna não tem' : `Estas ${n} colunas não têm`} um lugar padrão no dicionário. Escolha onde ${n === 1 ? 'ela deve' : 'cada uma deve'} aparecer.`
-                : 'Nenhuma coluna extra. Se quiser, ligue colunas à hierarquia semântica abaixo.';
+                ? _tn('Esta coluna não tem um lugar padrão no dicionário. Escolha onde ela deve aparecer.', 'Estas {n} colunas não têm um lugar padrão no dicionário. Escolha onde cada uma deve aparecer.', n)
+                : _t('Nenhuma coluna extra. Se quiser, ligue colunas à hierarquia semântica abaixo.');
 
             // Uma caixa por coluna extra; os ids dos campos (sel_dest_, prefix_, suffix_) são os de antes
             const caixas = extraCols.map((col, i) => {
@@ -3295,7 +3296,7 @@
                 nome.textContent = col.id;
                 const tabela = document.createElement('span');
                 tabela.className = 'modelo-selo';
-                tabela.textContent = CLDF_TABELAS[col.origem] || col.origem;
+                tabela.textContent = nomeTabelaCldf(col.origem);
                 legenda.append(nome, tabela);
 
                 const topo = document.createElement('div');
@@ -3303,15 +3304,15 @@
                 const info = document.createElement('span');
                 info.className = 'campo-ajuda';
                 info.textContent = amostra.exemplo
-                    ? `Exemplo de valor: “${amostra.exemplo}” · preenchida em ${amostra.preenchidas.toLocaleString('pt-BR')} ${amostra.preenchidas === 1 ? 'linha' : 'linhas'}`
-                    : 'Sem valores preenchidos nesta tabela.';
+                    ? _t('Exemplo de valor: “{exemplo}” · preenchida em {linhas}', { exemplo: amostra.exemplo, linhas: _tn('{n} linha', '{n} linhas', amostra.preenchidas) })
+                    : _t('Sem valores preenchidos nesta tabela.');
                 const ordem = document.createElement('div');
                 ordem.className = 'cldf-coluna-ordem';
-                [['Subir', -1, ICONE_SETA_CIMA], ['Descer', 1, ICONE_SETA_BAIXO]].forEach(([rotulo, direcao, icone]) => {
+                [[_t('Subir {coluna} na ordem de exibição', { coluna: col.id }), -1, ICONE_SETA_CIMA], [_t('Descer {coluna} na ordem de exibição', { coluna: col.id }), 1, ICONE_SETA_BAIXO]].forEach(([rotulo, direcao, icone]) => {
                     const b = document.createElement('button');
                     b.type = 'button';
                     b.className = 'btn-icone';
-                    b.setAttribute('aria-label', `${rotulo} ${col.id} na ordem de exibição`);
+                    b.setAttribute('aria-label', rotulo);
                     b.innerHTML = icone;
                     b.addEventListener('click', () => {
                         if (direcao < 0 && caixa.previousElementSibling) container.insertBefore(caixa, caixa.previousElementSibling);
@@ -3326,7 +3327,7 @@
                 const opcoes = document.createElement('div');
                 opcoes.className = 'cldf-opcoes';
                 opcoes.setAttribute('role', 'radiogroup');
-                opcoes.setAttribute('aria-label', `Onde mostrar ${col.id}`);
+                opcoes.setAttribute('aria-label', _t('Onde mostrar {coluna}', { coluna: col.id }));
                 // <select> oculto com o id antigo: guarda o destino e é usado pelo salvar/carregar
                 const sel = document.createElement('select');
                 sel.id = `sel_dest_${col.id}`;
@@ -3344,8 +3345,8 @@
                     radio.addEventListener('change', () => { sel.value = valor; sel.dispatchEvent(new Event('change')); });
                     const texto = document.createElement('span');
                     const forte = document.createElement('strong');
-                    forte.textContent = titulo;
-                    texto.append(forte, desc);
+                    forte.textContent = titulo();
+                    texto.append(forte, desc());
                     label.append(radio, texto);
                     opcoes.append(label);
                 });
@@ -3355,7 +3356,7 @@
                 rotulos.id = `prefix_container_${col.id}`;
                 const campoPrefixo = document.createElement('label');
                 campoPrefixo.className = 'campo';
-                campoPrefixo.innerHTML = '<span class="campo-rotulo">Rótulo antes do valor</span>';
+                campoPrefixo.innerHTML = `<span class="campo-rotulo">${_t('Rótulo antes do valor')}</span>`;
                 const prefixo = document.createElement('input');
                 prefixo.type = 'text';
                 prefixo.id = `prefix_${col.id}`;
@@ -3364,7 +3365,7 @@
                 campoPrefixo.append(prefixo);
                 const campoSufixo = document.createElement('label');
                 campoSufixo.className = 'campo cldf-sufixo';
-                campoSufixo.innerHTML = '<span class="campo-rotulo">Final</span>';
+                campoSufixo.innerHTML = `<span class="campo-rotulo">${_t('Final')}</span>`;
                 const sufixo = document.createElement('input');
                 sufixo.type = 'text';
                 sufixo.id = `suffix_${col.id}`;
@@ -3373,7 +3374,7 @@
                 campoSufixo.append(sufixo);
                 const previa = document.createElement('div');
                 previa.className = 'campo cldf-previa';
-                previa.innerHTML = '<span class="campo-rotulo">Como vai aparecer</span><span class="cldf-previa-texto"></span>';
+                previa.innerHTML = `<span class="campo-rotulo">${_t('Como vai aparecer')}</span><span class="cldf-previa-texto"></span>`;
                 const atualizarPrevia = () => {
                     const alvo = previa.querySelector('.cldf-previa-texto');
                     alvo.replaceChildren();
@@ -3405,12 +3406,12 @@
             CLDF_NIVEIS.forEach(lvl => {
                 const label = document.createElement('label');
                 label.className = 'campo';
-                label.innerHTML = `<span class="campo-rotulo">${lvl.label}</span>`;
+                label.innerHTML = `<span class="campo-rotulo">${lvl.label()}</span>`;
                 const sel = document.createElement('select');
                 sel.id = `sel_sem_${lvl.id}`;
                 sel.className = 'campo-entrada';
-                sel.append(new Option('Nenhuma coluna', ''));
-                colunasHierarquia.forEach(c => sel.append(new Option(`${c.id} (${(CLDF_TABELAS[c.origem] || c.origem).toLowerCase()})`, c.id)));
+                sel.append(new Option(_t('Nenhuma coluna'), ''));
+                colunasHierarquia.forEach(c => sel.append(new Option(`${c.id} (${nomeTabelaCldf(c.origem).toLowerCase()})`, c.id)));
                 label.append(sel);
                 semContainer.append(label);
             });
@@ -3449,7 +3450,7 @@
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-                status.textContent = 'Escolhas salvas em cldf-mapeamento-extras.json.';
+                status.textContent = _t('Escolhas salvas em cldf-mapeamento-extras.json.');
             };
 
             const fileCarregar = document.getElementById('fileCarregarMapeamentoCldf');
@@ -3479,16 +3480,16 @@
                         const s = map[colId] && map[colId].semanticRole && document.getElementById(`sel_sem_${map[colId].semanticRole}`);
                         if (s) s.value = colId;
                     });
-                    status.textContent = 'Escolhas salvas aplicadas.';
+                    status.textContent = _t('Escolhas salvas aplicadas.');
                 } catch (err) {
-                    status.textContent = 'Não foi possível ler este arquivo de escolhas.';
+                    status.textContent = _t('Não foi possível ler este arquivo de escolhas.');
                 }
                 e.target.value = '';
             };
 
             const cancelar = () => {
                 modal.close();
-                reject(new Error('Importação CLDF cancelada pelo usuário.'));
+                reject(new Error(_t('Importação CLDF cancelada pelo usuário.')));
             };
             document.getElementById('btnCancelarCldfExtras').onclick = cancelar;
             // O "cancel" do seletor de arquivo (Usar escolhas salvas) sobe até o diálogo: só Esc no próprio diálogo cancela
@@ -3501,7 +3502,7 @@
             document.getElementById('btnConfirmarCldfExtras').onclick = async () => {
                 const map = montarMapa();
                 modal.close();
-                if (window.mostrarLoader) window.mostrarLoader('Processando Projeto', 'Finalizando importação CLDF...');
+                if (window.mostrarLoader) window.mostrarLoader(_t('Processando Projeto'), _t('Finalizando importação CLDF...'));
                 // Permite que o navegador renderize a animação do loader antes de travar a thread com o processamento do CLDF
                 await new Promise(r => setTimeout(r, 60));
                 resolve(map);
