@@ -806,14 +806,13 @@
                         <div class="etapa-cabecalho">
                             <span class="etapa-contador">Etapa 1 de 6</span>
                             <h2 class="etapa-titulo">Fonte de Dados</h2>
-                            <p class="etapa-descricao importar-vazio">Escolha a pasta do seu dicionário. Aceitamos projetos em CSV ou CLDF, e o formato é reconhecido automaticamente.</p>
-                            <p class="etapa-descricao importar-carregado">Projeto carregado. Confira se é a pasta certa antes de continuar.</p>
+                            <p class="etapa-descricao">Escolha a pasta do seu dicionário. Aceitamos projetos em CSV ou CLDF, e o formato é reconhecido automaticamente.</p>
                         </div>
 
                         <input type="file" id="filePastaProjeto" webkitdirectory multiple hidden>
 
-                        <!-- Estado vazio: área de importação + o que a pasta precisa ter -->
-                        <div class="importar-vazio importar-bloco">
+                        <!-- Área de importação + o que a pasta precisa ter -->
+                        <div class="importar-bloco">
                             <div class="importar-zona" id="pastaProjetoDropZone" role="button" tabindex="0" aria-label="Selecionar pasta do projeto ou arrastar a pasta para esta área">
                                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><path d="M12 10v6M9 13l3-3 3 3"></path></svg>
                                 <span class="importar-zona-botao">Selecionar pasta do projeto</span>
@@ -861,39 +860,10 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Estado carregado: resumo da pasta importada -->
-                        <div class="importar-carregado importar-resumo">
-                            <span class="importar-resumo-icone" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg></span>
-                            <div class="importar-resumo-info">
-                                <span class="importar-resumo-pasta" id="nomePastaProjeto">Projeto carregado</span>
-                                <div class="mini-stats importar-chips">
-                                    <span id="formatoDetectado" class="formato-detectado" style="display:none"></span>
-                                    <span id="csvLinhas">0 entradas</span>
-                                    <span id="csvColunas">0 colunas</span>
-                                    <span id="csvCategorias">0 categorias</span>
-                                    <span id="csvMidias">0 mídias</span>
-                                </div>
-                            </div>
-                            <button type="button" class="btn-secundario" id="btnTrocarPasta">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"></path><path d="M21 3v5h-5"></path></svg>
-                                Trocar pasta
-                            </button>
-                        </div>
-
-                        <!-- Aviso da validação automática (preenchido por atualizarValidacaoEtapa2) -->
-                        <div class="importar-alerta" id="importarAlerta" role="status" hidden>
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path><path d="M12 9v4M12 17h.01"></path></svg>
-                            <div class="importar-alerta-texto">
-                                <strong id="importarAlertaTitulo"></strong>
-                                <span>Você pode revisar tudo na próxima etapa.</span>
-                            </div>
-                            <button type="button" class="btn-secundario importar-alerta-botao" onclick="window.irParaPasso(2)">Ver detalhes</button>
-                        </div>
                     </div>
 
                     <!-- PASSO 2 -->
-                    <div class="wizard-step" id="step2">
+                    <div class="wizard-step etapa-conferir" id="step2">
                         <span id="badgeMidias" class="step-badge" hidden>Pendente</span>
                         <div class="etapa-cabecalho">
                             <span class="etapa-contador">Etapa 2 de 6</span>
@@ -902,28 +872,36 @@
                         </div>
 
                         <div class="conferir-conteudo">
-                            <!-- Resultado da validação: preenchido por atualizarValidacaoEtapa2() -->
-                            <section class="validacao-painel" aria-labelledby="validacaoTitulo">
-                                <div class="validacao-topo">
-                                    <div class="validacao-resumo">
-                                        <h3 id="validacaoTitulo">Resultado da validação</h3>
-                                        <span class="selo selo-erro" id="validacaoSeloErros" hidden></span>
-                                        <span class="selo selo-aviso" id="validacaoSeloAvisos" hidden></span>
-                                        <span class="selo selo-ok" id="validacaoSeloOk" hidden>Nenhum problema</span>
-                                        <span class="validacao-hora" id="validacaoHora"></span>
+                            <!-- Pasta importada e resultado da validação (preenchido por atualizarValidacaoEtapa2) -->
+                            <section class="projeto-status" aria-label="Projeto importado">
+                                <div class="importar-resumo">
+                                    <span class="importar-resumo-icone" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg></span>
+                                    <div class="importar-resumo-info">
+                                        <span class="importar-resumo-pasta" id="nomePastaProjeto">Projeto carregado</span>
+                                        <div class="mini-stats importar-chips">
+                                            <span id="formatoDetectado" class="formato-detectado" style="display:none"></span>
+                                            <span id="csvLinhas">0 entradas</span>
+                                            <span id="csvColunas">0 colunas</span>
+                                            <span id="csvCategorias">0 categorias</span>
+                                            <span id="csvMidias">0 mídias</span>
+                                        </div>
                                     </div>
-                                    <div class="validacao-acoes">
-                                        <button type="button" class="btn-secundario" onclick="window.atualizarValidacaoEtapa2()">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"></path><path d="M21 3v5h-5"></path></svg>
-                                            Validar novamente
-                                        </button>
-                                        <button type="button" class="btn-secundario" onclick="validarTudo()">Relatório completo</button>
-                                    </div>
+                                    <button type="button" class="btn-secundario" id="btnTrocarPasta">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"></path><path d="M21 3v5h-5"></path></svg>
+                                        Trocar pasta
+                                    </button>
                                 </div>
-                                <ul class="validacao-lista" id="validacaoLista" aria-live="polite">
-                                    <li class="validacao-vazia">Importe um projeto na etapa 1 para ver a validação.</li>
-                                </ul>
+                                <div class="importar-alerta" id="importarAlerta" role="status" hidden>
+                                    <svg class="importar-alerta-icone-aviso" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path><path d="M12 9v4M12 17h.01"></path></svg>
+                                    <svg class="importar-alerta-icone-ok" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="m8.5 12 2.5 2.5 4.5-5"></path></svg>
+                                    <div class="importar-alerta-texto">
+                                        <strong id="importarAlertaTitulo"></strong>
+                                        <span id="importarAlertaHora"></span>
+                                    </div>
+                                    <button type="button" class="btn-secundario importar-alerta-botao" onclick="window.validarTudo()">Ver detalhes</button>
+                                </div>
                             </section>
+                            <p class="validacao-vazia conferir-sem-projeto">Importe um projeto na etapa 1 para ver a validação.</p>
 
                             <!-- Sugestão do programa de preparação quando as mídias passam de LIMITE_MIDIAS_SUGESTAO -->
                             <aside class="sugestao-preparacao" id="sugestaoPreparacao" aria-label="Sugestão" hidden>
@@ -986,7 +964,7 @@
                                 <legend>Identificação</legend>
                                 <label class="campo campo-largo">
                                     <span class="campo-rotulo">Título do dicionário</span>
-                                    <input type="text" id="metaHtml" class="campo-entrada" value="Meu Dicionário Interativo" placeholder="Ex.: Dicionário Karitiana–Português">
+                                    <input type="text" id="metaHtml" class="campo-entrada" value="Meu Dicionário Multimídia" placeholder="Ex.: Dicionário Karitiana–Português">
                                     <span class="campo-ajuda">Usado no site, no aplicativo e nos demais formatos.</span>
                                 </label>
                                 <label class="campo-opcao campo-largo">
@@ -1079,8 +1057,8 @@
                                     <span class="campo-ajuda">Texto de apresentação, exibido na página inicial e no início do PDF.</span>
                                 </div>
                                 <div class="info-introducao-acoes">
-                                    <button type="button" class="btn-secundario btn-compacto" onclick="document.getElementById('inputIntroArquivo').click()">Importar .md ou .html</button>
-                                    <input type="file" id="inputIntroArquivo" accept=".md,.markdown,.txt,.html,.htm" hidden onchange="window.importarIntroArquivo(this.files[0])">
+                                    <button type="button" class="btn-secundario btn-compacto" onclick="document.getElementById('inputIntroArquivo').click()">Importar .md ou .txt</button>
+                                    <input type="file" id="inputIntroArquivo" accept=".md,.markdown,.txt" hidden onchange="window.importarIntroArquivo(this.files[0])">
                                     <div class="segmentado-botoes intro-modos" role="group" aria-label="Modo de edição">
                                         <button type="button" data-modo="wysiwyg" aria-pressed="true" onclick="window.mudarModoIntro('wysiwyg')">Visual</button>
                                         <button type="button" data-modo="markdown" aria-pressed="false" onclick="window.mudarModoIntro('markdown')">Markdown</button>
@@ -1280,8 +1258,8 @@
                 
                 <!-- Footer Actions -->
                 <div class="wizard-footer">
-                    <button type="button" id="btnPrev" class="btn-secundario btn-rodape" onclick="window.passoAnterior()" disabled>← Anterior</button>
-                    <button type="button" id="btnNext" class="btn-principal btn-rodape" onclick="window.proximoPasso()">Próximo Passo →</button>
+                    <button type="button" id="btnPrev" class="btn-secundario btn-rodape" onclick="window.passoAnterior()" disabled><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg><span id="btnPrevTexto">Anterior</span></button>
+                    <button type="button" id="btnNext" class="btn-principal btn-rodape" onclick="window.proximoPasso()"><span id="btnNextTexto">Próximo Passo</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></button>
                 </div>
             </div>
             
@@ -1389,7 +1367,7 @@
 <dialog id="dialogoRecursos" class="dialogo dialogo-recursos" aria-labelledby="recursosTitulo">
     <div class="dialogo-topo dialogo-topo-separado">
         <div>
-            <button type="button" class="btn-link recursos-voltar" id="recursosVoltar" hidden onclick="window.mostrarTelaRecursos('inicio')">← Recursos</button>
+            <button type="button" class="btn-link recursos-voltar" id="recursosVoltar" hidden onclick="window.mostrarTelaRecursos('inicio')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg>Recursos</button>
             <h2 id="recursosTitulo">Recursos</h2>
             <p id="recursosDescricao">Modelos, ferramentas e documentação para preparar o seu dicionário.</p>
         </div>
@@ -2561,130 +2539,53 @@
     });
 
     // ==========================================
-    // VALIDAÇÃO AUTOMÁTICA (etapa 2 e aviso da etapa 1)
+    // VALIDAÇÃO AUTOMÁTICA (linha de resultado da etapa 2)
     // Erros = linhas do CSV com problema; avisos = mídias citadas e não encontradas
-    // ou carregadas e não usadas. Roda ao entrar na etapa 2 e em "Validar novamente".
+    // ou carregadas e não usadas. Roda ao entrar na etapa 2 e ao adicionar mídias.
     // ==========================================
-    const VALIDACAO_MAX_LINHAS = 5;
-    const VALIDACAO_MAX_ARQUIVOS = 4;
     const NOMES_TIPO_MIDIA = {
-        audio: { faltando: 'Áudios citados no CSV que não estão na pasta', sobrando: 'Áudios da pasta que nenhuma entrada usa', acaoFaltando: 'Adicionar áudios', acaoSobrando: 'Ver áudios' },
-        imagem: { faltando: 'Imagens citadas no CSV que não estão na pasta', sobrando: 'Imagens da pasta que nenhuma entrada usa', acaoFaltando: 'Adicionar imagens', acaoSobrando: 'Ver imagens' },
-        video: { faltando: 'Vídeos citados no CSV que não estão na pasta', sobrando: 'Vídeos da pasta que nenhuma entrada usa', acaoFaltando: 'Adicionar vídeos', acaoSobrando: 'Ver vídeos' }
+        audio: { faltando: 'Áudios citados no CSV que não estão na pasta', sobrando: 'Áudios da pasta que nenhuma entrada usa' },
+        imagem: { faltando: 'Imagens citadas no CSV que não estão na pasta', sobrando: 'Imagens da pasta que nenhuma entrada usa' },
+        video: { faltando: 'Vídeos citados no CSV que não estão na pasta', sobrando: 'Vídeos da pasta que nenhuma entrada usa' }
     };
     const plural = (n, um, varios) => `${n.toLocaleString('pt-BR')} ${n === 1 ? um : varios}`;
-    const listaArquivos = arquivos => arquivos.slice(0, VALIDACAO_MAX_ARQUIVOS).join(' · ') +
-        (arquivos.length > VALIDACAO_MAX_ARQUIVOS ? ` · e mais ${arquivos.length - VALIDACAO_MAX_ARQUIVOS}` : '');
-
-    function criarItemValidacao(tipo, titulo, detalhe, detalheMono, acao) {
-        const li = document.createElement('li');
-        li.className = 'validacao-item';
-        const selo = document.createElement('span');
-        selo.className = `selo-tipo selo-tipo-${tipo}`;
-        selo.textContent = tipo === 'erro' ? 'Erro' : 'Aviso';
-        const texto = document.createElement('div');
-        texto.className = 'validacao-item-texto';
-        const forte = document.createElement('strong');
-        forte.textContent = titulo;
-        const sub = document.createElement('span');
-        sub.className = detalheMono ? 'validacao-item-detalhe mono' : 'validacao-item-detalhe';
-        sub.textContent = detalhe;
-        texto.append(forte, sub);
-        li.append(selo, texto);
-        if (acao) {
-            const botao = document.createElement('button');
-            botao.type = 'button';
-            botao.className = 'btn-secundario';
-            botao.textContent = acao.rotulo;
-            botao.addEventListener('click', acao.executar);
-            li.append(botao);
-        }
-        return li;
-    }
 
     window.atualizarValidacaoEtapa2 = function() {
-        const lista = document.getElementById('validacaoLista');
-        const seloErros = document.getElementById('validacaoSeloErros');
-        const seloAvisos = document.getElementById('validacaoSeloAvisos');
-        const seloOk = document.getElementById('validacaoSeloOk');
-        const hora = document.getElementById('validacaoHora');
         const alerta = document.getElementById('importarAlerta');
-        if (!lista || !window.validador) return;
+        if (!alerta || !window.validador) return;
+
+        // Mesma condição do polling do assistente, para a etapa 2 já abrir no estado certo
+        const stats = window.sistema ? window.sistema.obterEstatisticas() : null;
+        document.getElementById('step2').classList.toggle('projeto-carregado', !!(stats && stats.disponivel));
 
         const diag = window.validador.diagnosticar();
-        lista.replaceChildren();
         window._pendenciasValidacao = 0;
         window._resumoValidacao = { carregado: false, erros: 0, avisos: 0 };
 
         if (!diag.sucesso) {
-            const vazio = document.createElement('li');
-            vazio.className = 'validacao-vazia';
-            vazio.textContent = 'Importe um projeto na etapa 1 para ver a validação.';
-            lista.append(vazio);
-            seloErros.hidden = seloAvisos.hidden = seloOk.hidden = true;
-            hora.textContent = '';
-            if (alerta) alerta.hidden = true;
+            alerta.hidden = true;
             atualizarDetalhesMidias(null);
             if (typeof atualizarStepper === 'function') atualizarStepper(window.passoAtual);
             return;
         }
 
-        const itens = [];
-        const linhasComErro = Object.keys(diag.errosValidacao);
-        linhasComErro.slice(0, VALIDACAO_MAX_LINHAS).forEach(linha => {
-            itens.push(criarItemValidacao('erro', `Linha ${linha} do dicionário`,
-                diag.errosValidacao[linha].join(' · '), false));
-        });
-        if (linhasComErro.length > VALIDACAO_MAX_LINHAS) {
-            const resto = linhasComErro.length - VALIDACAO_MAX_LINHAS;
-            itens.push(criarItemValidacao('erro', `E mais ${plural(resto, 'linha', 'linhas')} com erro`,
-                'Veja todas no relatório completo.', false, { rotulo: 'Relatório completo', executar: () => window.validarTudo() }));
-        }
-
+        const erros = Object.keys(diag.errosValidacao).length;
         let avisos = 0, tiposFaltando = 0;
         Object.keys(NOMES_TIPO_MIDIA).forEach(tipo => {
-            const nomes = NOMES_TIPO_MIDIA[tipo];
-            const faltando = diag.midiasFaltando[tipo];
-            if (faltando.length) {
-                avisos++; tiposFaltando++;
-                itens.push(criarItemValidacao('aviso', `${nomes.faltando}: ${faltando.length.toLocaleString('pt-BR')}`,
-                    listaArquivos(faltando), true, { rotulo: nomes.acaoFaltando, executar: () => window.abrirExploradorMidias(tipo) }));
-            }
-        });
-        Object.keys(NOMES_TIPO_MIDIA).forEach(tipo => {
-            const nomes = NOMES_TIPO_MIDIA[tipo];
-            const sobrando = diag.midiasNaoUsadas[tipo];
-            if (sobrando.length) {
-                avisos++;
-                itens.push(criarItemValidacao('aviso', `${nomes.sobrando}: ${sobrando.length.toLocaleString('pt-BR')}`,
-                    listaArquivos(sobrando), true, { rotulo: nomes.acaoSobrando, executar: () => window.abrirExploradorMidias(tipo) }));
-            }
+            if (diag.midiasFaltando[tipo].length) { avisos++; tiposFaltando++; }
+            if (diag.midiasNaoUsadas[tipo].length) avisos++;
         });
 
-        if (itens.length === 0) {
-            const ok = document.createElement('li');
-            ok.className = 'validacao-vazia validacao-tudo-ok';
-            ok.textContent = 'Nenhum problema encontrado. Todas as mídias citadas estão na pasta e as linhas do dicionário estão completas.';
-            lista.append(ok);
-        } else {
-            lista.append(...itens);
-        }
-
-        const erros = linhasComErro.length;
-        seloErros.hidden = erros === 0;
-        seloErros.textContent = plural(erros, 'erro', 'erros');
-        seloAvisos.hidden = avisos === 0;
-        seloAvisos.textContent = plural(avisos, 'aviso', 'avisos');
-        seloOk.hidden = erros + avisos > 0;
-        hora.textContent = `Verificado às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
-
-        if (alerta) {
-            alerta.hidden = erros + avisos === 0;
-            const partes = [];
-            if (erros) partes.push(plural(erros, 'erro', 'erros'));
-            if (avisos) partes.push(plural(avisos, 'aviso', 'avisos'));
-            document.getElementById('importarAlertaTitulo').textContent = `A validação automática encontrou ${partes.join(' e ')}`;
-        }
+        const partes = [];
+        if (erros) partes.push(plural(erros, 'erro', 'erros'));
+        if (avisos) partes.push(plural(avisos, 'aviso', 'avisos'));
+        alerta.hidden = false;
+        alerta.classList.toggle('sem-pendencias', partes.length === 0);
+        document.getElementById('importarAlertaTitulo').textContent = partes.length
+            ? `A validação automática encontrou ${partes.join(' e ')}`
+            : 'Nenhum problema encontrado';
+        document.getElementById('importarAlertaHora').textContent =
+            `Verificado às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
 
         atualizarDetalhesMidias(diag);
         window._pendenciasValidacao = erros + tiposFaltando;
@@ -2816,7 +2717,7 @@
         marcarModoIntro(modo);
     };
 
-    // Importa um arquivo para a introdução: .html é convertido para Markdown pelo editor
+    // Importa um arquivo .md ou .txt para a introdução
     window.importarIntroArquivo = async function(arquivo) {
         if (!arquivo) return;
         const texto = await arquivo.text();
@@ -2827,8 +2728,7 @@
             status.textContent = 'O editor ainda não está pronto. Tente de novo.';
             return;
         }
-        if (/\.html?$/i.test(arquivo.name)) window._introEditor.setHTML(texto);
-        else window._introEditor.setMarkdown(texto);
+        window._introEditor.setMarkdown(texto);
         status.textContent = `Introdução importada de ${arquivo.name}.`;
     };
 
@@ -3561,7 +3461,12 @@
                 reject(new Error('Importação CLDF cancelada pelo usuário.'));
             };
             document.getElementById('btnCancelarCldfExtras').onclick = cancelar;
-            modal.oncancel = (e) => { e.preventDefault(); cancelar(); }; // tecla Esc
+            // O "cancel" do seletor de arquivo (Usar escolhas salvas) sobe até o diálogo: só Esc no próprio diálogo cancela
+            modal.oncancel = (e) => {
+                if (e.target !== modal) return;
+                e.preventDefault();
+                cancelar();
+            };
 
             document.getElementById('btnConfirmarCldfExtras').onclick = async () => {
                 const map = montarMapa();
@@ -4274,22 +4179,20 @@
         }
 
         // Configura áreas de mídia para aceitarem drop
-        setupDropZone(document.getElementById('panelAudio'), files => {
-            window.sistema.carregarPastaVirtual('audio', Array.from(files));
-        });
-        setupDropZone(document.getElementById('panelImagem'), files => {
-            window.sistema.carregarPastaVirtual('imagem', Array.from(files));
-        });
-        setupDropZone(document.getElementById('panelVideo'), files => {
-            window.sistema.carregarPastaVirtual('video', Array.from(files));
-        });
-        
+        const soltarMidias = tipo => async files => {
+            await window.sistema.carregarPastaVirtual(tipo, Array.from(files));
+            window.atualizarValidacaoEtapa2();
+        };
+        setupDropZone(document.getElementById('panelAudio'), soltarMidias('audio'));
+        setupDropZone(document.getElementById('panelImagem'), soltarMidias('imagem'));
+        setupDropZone(document.getElementById('panelVideo'), soltarMidias('video'));
+
         // Atualizador de interface do Wizard (Polling)
         setInterval(() => {
             const stats = window.sistema.obterEstatisticas();
             if (!stats) return;
             
-            document.getElementById('step1').classList.toggle('projeto-carregado', !!stats.disponivel);
+            document.getElementById('step2').classList.toggle('projeto-carregado', !!stats.disponivel);
             if (stats.disponivel) {
                 const qtd = (n, um, varios) => `${(n || 0).toLocaleString('pt-BR')} ${n === 1 ? um : varios}`;
                 document.getElementById('countEntradas').textContent = (stats.entradas || 0).toLocaleString('pt-BR');
@@ -6057,14 +5960,14 @@
         const btnPrev = document.getElementById('btnPrev');
         btnPrev.disabled = (passo === 1);
         btnPrev.style.display = passo === 1 ? 'none' : '';
-        if (passo > 1) btnPrev.textContent = `← Voltar: ${nomeEtapa(passo - 1)}`;
+        if (passo > 1) document.getElementById('btnPrevTexto').textContent = `Voltar: ${nomeEtapa(passo - 1)}`;
 
         const btnNext = document.getElementById('btnNext');
         if (passo === totalPassos) {
             btnNext.style.display = 'none';
         } else {
             btnNext.style.display = '';
-            btnNext.textContent = `Próximo: ${nomeEtapa(passo + 1)} →`;
+            document.getElementById('btnNextTexto').textContent = `Próximo: ${nomeEtapa(passo + 1)}`;
         }
 
         window.passoAtual = passo;
@@ -6080,7 +5983,7 @@
     // ===================================================================
     const TELAS_RECURSOS = {
         inicio: { titulo: 'Recursos', descricao: 'Modelos, ferramentas e documentação para preparar o seu dicionário.' },
-        preparacao: { titulo: 'Programa de preparação', descricao: 'Trata as mídias e os dados no seu computador antes da importação. Assim o dicionário fica mais leve e com menos erros.' }
+        preparacao: { titulo: 'Programa para Tratamento de Mídias', descricao: 'Trata as mídias e os dados no seu computador antes da importação. Assim o dicionário fica mais leve e com menos erros.' }
     };
 
     function detectarSistema() {

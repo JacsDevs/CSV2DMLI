@@ -173,7 +173,8 @@ function garantirListeners() {
     });
     btnCancelar.addEventListener('click', () => finalizar(null));
     btnFechar.addEventListener('click', () => finalizar(null));
-    dialog.addEventListener('cancel', () => finalizar(null)); // tecla Esc
+    // Só Esc no próprio diálogo: o "cancel" do seletor de "Trocar imagem" também sobe até aqui
+    dialog.addEventListener('cancel', (e) => { if (e.target === dialog) finalizar(null); });
 
     btnTrocar.addEventListener('click', () => inputTroca.click());
     inputTroca.addEventListener('change', async () => {
