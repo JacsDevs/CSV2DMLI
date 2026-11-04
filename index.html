@@ -4007,7 +4007,7 @@
 
                 if (window.adicionarLogAoTerminal) {
                     const stats = window.sistema ? window.sistema.obterEstatisticas() : null;
-                    const numRegistros = stats ? stats.totalBases : 0;
+                    const numRegistros = stats ? stats.entradas : 0;
                     const sufixoFormato = nomeFormato ? ` — ${nomeFormato}` : '';
                     window.adicionarLogAoTerminal(_t('✅ Passo 1 Concluído! Pasta processada ({arquivos} arquivos, {registros} registros){formato}.', { arquivos: String(numArquivos), registros: String(numRegistros), formato: sufixoFormato }), 'info');
                 }
