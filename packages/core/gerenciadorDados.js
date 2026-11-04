@@ -28,7 +28,6 @@ export default class GerenciadorDados {
         this.introPdf = '';
         this.referencia = '';
         this.alfabetoCustomizado = '';
-        this.configuracaoTextoLocal = {};
         // Ícone do app (launcher Android e ficha da Play Store): quadrado, 512×512
         this.icone = { dataUrl: null, bytes: null, nome: null };
         // Logo do projeto (cabeçalho do HTML e dos apps): proporção livre
@@ -294,7 +293,6 @@ export default class GerenciadorDados {
     setIntroPdf(conteudo) { this.introPdf = conteudo; }
     setReferencia(conteudo) { this.referencia = conteudo; }
     setAlfabetoCustomizado(conteudo) { this.alfabetoCustomizado = conteudo; }
-    setConfiguracaoTextoLocal(config) { this.configuracaoTextoLocal = config; }
     setMetadados(metadados) {
         if(this.configurador && this.configurador.mesclarConfigLocal) {
             this.configurador.mesclarConfigLocal({ metadados });
@@ -397,7 +395,7 @@ export default class GerenciadorDados {
         if (projeto.introPdf) this.introPdf = projeto.introPdf;
         if (projeto.referencia) this.referencia = projeto.referencia;
         if (projeto.alfabetoCustomizado) this.alfabetoCustomizado = projeto.alfabetoCustomizado;
-        if (projeto.configuracaoTextoLocal) this.configuracaoTextoLocal = projeto.configuracaoTextoLocal;
+        if (projeto.citacao) this.configurador.mesclarConfigLocal({ metadados: { citacao: projeto.citacao } });
         this._reconstruirBanco();
         console.log('📦 Projeto restaurado de projeto.json');
     }
@@ -421,6 +419,8 @@ export default class GerenciadorDados {
         this._bancoConstruido = null;
         this.icone = { dataUrl: null, bytes: null, nome: null };
         this.logo = { dataUrl: null, bytes: null, nome: null, original: null, recorte: null };
+        this.referencia = '';
+        this.alfabetoCustomizado = '';
         this.vfs.limpar();
         console.log('🧹 Dados limpos com sucesso.');
     }
@@ -473,7 +473,7 @@ export default class GerenciadorDados {
                 introPdf: this.introPdf,
                 referencia: this.referencia,
                 alfabetoCustomizado: this.alfabetoCustomizado,
-                configuracaoTextoLocal: this.configuracaoTextoLocal,
+                citacao: this.configurador.getConfig().metadados?.citacao,
                 geradoEm: new Date().toISOString()
             };
             return JSON.stringify(projeto, null, 2);
@@ -592,35 +592,55 @@ export default class GerenciadorDados {
                     i += match.length;
                 } else {
                     const char = limpa[i];
-                    arr.push(alfabetoMap.has(char) ? alfabetoMap.get(char) : 9999);
+                    // Letras fora da lista vêm depois das listadas, em ordem alfabética entre si
+                    arr.push(alfabetoMap.has(char) ? alfabetoMap.get(char) : alfabetoMap.size + char.codePointAt(0));
                     i++;
                 }
             }
             return arr;
         };
         
-        Object.keys(arvore).forEach(cat => {
-            if (categoriasAlfabetico.has(cat)) {
-                arvore[cat]._entradas.sort((a, b) => {
+        const compararTermos = (a, b) => {
                     const termoA = (a._TERMO_PRINCIPAL || a.TERMO_PARENT || '').trim();
                     const termoB = (b._TERMO_PRINCIPAL || b.TERMO_PARENT || '').trim();
-                    
+
                     if (alfabetoMap) {
                         const arrA = getCustomOrderArray(termoA);
                         const arrB = getCustomOrderArray(termoB);
-                        
+
                         for (let i = 0; i < Math.min(arrA.length, arrB.length); i++) {
                             if (arrA[i] !== arrB[i]) return arrA[i] - arrB[i];
                         }
                         return arrA.length - arrB.length;
-                    } else {
-                        return termoA.toLowerCase().localeCompare(termoB.toLowerCase(), 'pt-BR');
-                    }
-                });
             }
+                        return termoA.toLowerCase().localeCompare(termoB.toLowerCase(), 'pt-BR');
+        };
+        // A escolha vale para a categoria inteira, inclusive as entradas dos subcampos
+        const ordenarNo = (no) => {
+            no._entradas.sort(compararTermos);
+            Object.keys(no).filter(k => k !== '_entradas').forEach(filho => ordenarNo(no[filho]));
+        };
+        Object.keys(arvore).forEach(cat => {
+            if (categoriasAlfabetico.has(cat)) ordenarNo(arvore[cat]);
         });
-        
+
         return { arvore, categoriasRaizes: ordemCategorias };
+    }
+
+    /**
+     * Ordem definida na etapa Estrutura, para os formatos que reordenam ao exibir (site e app):
+     * as categorias e a posição de cada entrada no percurso da árvore.
+     * @returns {{ categorias: string[], posicoes: Map<object, number> }}
+     */
+    obterOrdemDicionario() {
+        const { arvore, categoriasRaizes } = this.obterArvoreOrdenada();
+        const posicoes = new Map();
+        const percorrer = (no) => {
+            no._entradas.forEach(entrada => posicoes.set(entrada, posicoes.size));
+            Object.keys(no).filter(k => k !== '_entradas').forEach(filho => percorrer(no[filho]));
+        };
+        categoriasRaizes.forEach(cat => percorrer(arvore[cat]));
+        return { categorias: categoriasRaizes, posicoes };
     }
 
     buscarPorTermo(termo, opcoes = { fuzzy: true, global: true }) {

@@ -52,6 +52,8 @@ function converterEntrada(e, indice) {
     while (subcategorias.length && !subcategorias[subcategorias.length - 1]) subcategorias.pop();
     return {
         id: texto(e.ID) || String(indice + 1),
+        // Posição definida na etapa Estrutura (ordem das entradas e alfabeto da língua)
+        ordem: e._ORDEM ?? indice,
         termo: texto(e.TERMO),
         classe: texto(e.CLASSE),
         categoria: texto(e.CAMPO_SEMANTICO),
@@ -89,8 +91,6 @@ export function montarDadosApp(entradas) {
         e.id = id;
         vistos.add(id);
     }
-    // Ordem alfabética do termo, como a lista do app
-    convertidas.sort((a, b) => a.termo.localeCompare(b.termo, 'pt-BR', { sensitivity: 'base' }));
     return { versao: VERSAO_DADOS_APP, entradas: convertidas };
 }
 
@@ -125,15 +125,37 @@ function converterCores(vars) {
 }
 
 /**
+ * Citação do próprio dicionário, separada em partes para o título poder ser destacado no HTML:
+ * "AUTORES. Título. Versão X. Local: Editor, Ano. Disponível em: link". Trechos vazios são omitidos.
+ * Sem "Citacao-autores" no configuracao.txt, usa os autores dos metadados.
+ * @returns {{ autores: string, titulo: string, complemento: string }}
+ */
+export function montarPartesCitacao(meta = {}) {
+    const citacao = meta.citacao || {};
+    const local = texto(citacao.local);
+    const editor = texto(citacao.editor);
+    const link = texto(citacao.link);
+    const versao = texto(meta.versao);
+    const publicacao = [[local, editor].filter(Boolean).join(': '), texto(meta.ano)].filter(Boolean).join(', ');
+    return {
+        autores: (texto(citacao.autores) || texto(meta.autor)).replace(/\.+$/, ''),
+        titulo: texto(meta.tituloHtml) || 'Dicionário',
+        complemento: [versao && `Versão ${versao}.`, publicacao && `${publicacao}.`, link && `Disponível em: ${link}`]
+            .filter(Boolean).join(' '),
+    };
+}
+
+/**
  * @param {{ tituloHtml?: string, autor?: string, versao?: string, ano?: string, introHtml?: string,
- *           referencia?: string, tema?: { light?: object, dark?: object } }} meta - coletarMetadadosExportacao()
+ *           referencia?: string, citacao?: { autores?: string, local?: string, editor?: string, link?: string },
+ *           tema?: { light?: object, dark?: object } }} meta - coletarMetadadosExportacao()
  */
 export function montarConfigApp(meta = {}) {
     const nome = texto(meta.tituloHtml) || 'Dicionário';
     const autor = texto(meta.autor);
     const versaoApp = texto(meta.versao);
     const ano = texto(meta.ano);
-    const versaoCitacao = [versaoApp && `Versão ${versaoApp}`, ano].filter(Boolean).join(', ');
+    const { autores, titulo, complemento } = montarPartesCitacao(meta);
     return {
         versao: VERSAO_DADOS_APP,
         nome,
@@ -142,7 +164,8 @@ export function montarConfigApp(meta = {}) {
         ano,
         introducao: texto(meta.introHtml),
         referencias: texto(meta.referencia).split(/\r?\n/).map(l => l.trim()).filter(Boolean),
-        citacao: [autor && `${autor}.`, `${nome}.`, versaoCitacao && `${versaoCitacao}.`].filter(Boolean).join(' '),
+        citacao: [autores && `${autores}.`, `${titulo}.`, complemento].filter(Boolean).join(' '),
+        ordemCategorias: lista(meta.ordemCategorias).map(texto).filter(Boolean),
         tema: {
             claro: converterCores(meta.tema && meta.tema.light),
             escuro: converterCores(meta.tema && meta.tema.dark),

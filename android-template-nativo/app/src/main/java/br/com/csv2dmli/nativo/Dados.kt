@@ -45,6 +45,8 @@ data class Entrada(
     val pronuncias: List<Pronuncia>,
     val relacionados: String,
     val acepcoes: List<Acepcao>,
+    /** Posição definida no gerador (ordem das entradas e alfabeto da língua); -1 nas invertidas. */
+    val ordem: Int = -1,
 ) {
     val primeiraImagem: String? = acepcoes.firstNotNullOfOrNull { a -> a.imagens.firstOrNull()?.arquivo }
     /** Campos em que a busca procura, como aplicarFiltrosEBusca() do HTML: termo, classe, campo e
@@ -82,11 +84,14 @@ data class Config(
     val citacao: String,
     val claro: Cores,
     val escuro: Cores,
+    /** Ordem das categorias definida no gerador; vazia em dados antigos. */
+    val ordemCategorias: List<String> = emptyList(),
 )
 
 data class Dicionario(val config: Config, val entradas: List<Entrada>) {
     /** Opções dos filtros de Ajustes (inicializarFiltros do HTML). */
-    val campos: List<String> = entradas.map { it.categoria }.filter { it.isNotBlank() }.distinct().sortedWith(colador)
+    val campos: List<String> = entradas.map { it.categoria }.filter { it.isNotBlank() }.distinct()
+        .sortedWith(comparadorCampos(config.ordemCategorias))
     val classes: List<String> = entradas.map { it.classe }.filter { it.isNotBlank() }.distinct().sortedWith(colador)
 }
 
@@ -115,7 +120,7 @@ fun inverter(entradas: List<Entrada>): List<Entrada> {
             id = PREFIXO_INVERTIDA + chave, termo = g.termo, classe = "",
             categoria = g.base.categoria, subcategoria = g.base.subcategoria, subcategorias = g.base.subcategorias,
             fonemica = "", fonetica = "", pronuncias = emptyList(), relacionados = "",
-            acepcoes = g.acepcoes.sortedWith { x, y -> colador.compare(x.traducao, y.traducao) },
+            acepcoes = g.acepcoes, // Já na ordem definida no gerador, como o HTML
         )
     }
 }
@@ -133,6 +138,7 @@ object LeitorDados {
 
     private fun lerEntrada(o: JSONObject) = Entrada(
         id = o.optString("id"),
+        ordem = o.optInt("ordem", -1),
         termo = o.optString("termo"),
         classe = o.optString("classe"),
         categoria = o.optString("categoria"),
@@ -178,6 +184,7 @@ object LeitorDados {
             introducao = o.optString("introducao"),
             referencias = o.optJSONArray("referencias").textos(),
             citacao = o.optString("citacao"),
+            ordemCategorias = o.optJSONArray("ordemCategorias").textos(),
             claro = lerCores(tema.optJSONObject("claro")),
             escuro = lerCores(tema.optJSONObject("escuro")),
         )

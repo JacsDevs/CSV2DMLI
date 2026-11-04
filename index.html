@@ -1033,18 +1033,19 @@
                                 <input type="file" id="inputMetaIcone" accept="image/png,image/jpeg,image/webp" hidden onchange="metaLogoSelecionar(this.files[0])">
                             </div>
 
-                            <div class="info-cartao">
-                                <h3>Referências bibliográficas <span class="campo-opcional">(opcional)</span></h3>
-                                <span class="campo-ajuda">Lista exibida ao final do dicionário, uma referência por linha. Detectada automaticamente se houver <code>referencia.txt</code> na raiz da pasta.</span>
+                            <!-- Bloqueado até a importação de referências em .bib ser implementada -->
+                            <div class="info-cartao info-cartao-bloqueado">
+                                <h3>Referências bibliográficas <span class="info-cartao-selo">Em breve</span></h3>
+                                <span class="campo-ajuda">Ainda será implementado: a lista de referências virá de um arquivo <code>.bib</code>.</span>
                                 <span class="info-cartao-status" id="metaReferenciaStatus">Nenhuma referência importada</span>
-                                <div class="info-cartao-acoes">
-                                    <button type="button" class="btn-secundario" onclick="document.getElementById('inputMetaReferencia').click()">
+                                <div class="info-cartao-acoes" inert>
+                                    <button type="button" class="btn-secundario" disabled onclick="document.getElementById('inputMetaReferencia').click()">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"></path><path d="M4 20h16"></path></svg>
                                         Importar arquivo
                                     </button>
-                                    <button type="button" class="btn-secundario" id="btnMetaReferenciaRemover" hidden onclick="metaReferenciaRemover()">Remover</button>
+                                    <button type="button" class="btn-secundario" id="btnMetaReferenciaRemover" hidden disabled onclick="metaReferenciaRemover()">Remover</button>
                                 </div>
-                                <input type="file" id="inputMetaReferencia" accept=".txt,.md,text/plain" hidden onchange="metaReferenciaSelecionar(this.files[0])">
+                                <input type="file" id="inputMetaReferencia" accept=".txt,.md,text/plain" hidden disabled onchange="metaReferenciaSelecionar(this.files[0])">
                             </div>
                             </div>
                         </div>
@@ -2784,8 +2785,7 @@
         const texto = String((window.sistema && window.sistema.referencia) || '');
         const linhas = texto.split(/\r?\n/).filter(l => l.trim()).length;
         const status = document.getElementById('metaReferenciaStatus');
-        const origem = window._referenciaArquivo
-            || (window.carregadorPasta && window.carregadorPasta.arquivosEncontrados?.textosExtra?.referencia?.name);
+        const origem = window._referenciaArquivo;
         if (linhas === 0) {
             status.textContent = 'Nenhuma referência importada';
         } else {
@@ -3202,6 +3202,7 @@
             autor:      document.getElementById('metaAutor')?.value.trim() || existente.autor || '',
             ano:        document.getElementById('metaAno')?.value.trim()   || existente.ano  || '',
             versao:     existente.versao || '1.0',
+            citacao:    existente.citacao || null,
             introHtml: introHtml,
             introPdf: introPdf,
             introMd: introMd,
@@ -3989,6 +3990,7 @@
             try {
                 await window.carregadorPasta.carregarPasta(arquivos);
                 if(window.preencherUIComMetadados) window.preencherUIComMetadados();
+                if(window.aplicarConfiguracaoProjeto) window.aplicarConfiguracaoProjeto();
                 if(window.atualizarUILogo) window.atualizarUILogo();
 
                 const nomeFormato = NOMES_FORMATO[window.carregadorPasta.formatoDetectado];
@@ -6313,6 +6315,48 @@
         if (atual) document.getElementById('alfabetoLetras').value = atual;
         document.getElementById(atual ? 'alfabetoLingua' : 'alfabetoPadrao').checked = true;
         document.getElementById('alfabetoLetrasCampo').hidden = !atual;
+    };
+
+    // Aplica as escolhas do configuracao.txt ao carregar um projeto. Sem as chaves, valem os
+    // padrões (nada é herdado do projeto anterior): tudo em ordem alfabética e site em arquivo único.
+    window.aplicarConfiguracaoProjeto = function() {
+        const config = window.configurador ? window.configurador.getConfig() : {};
+        const { ordemCategorias, entradasAlfabeticas } = config.organizacao || {};
+        const normalizar = (nome) => String(nome).normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+
+        const swMidia = document.getElementById('swMidia');
+        if (swMidia) swMidia.checked = config.publicacao?.embutirMidias !== false;
+
+        categoriasEstrutura = []; // Recria as listas mesmo que o novo projeto tenha as mesmas categorias
+        popularEstrutura();
+        if (categoriasEstrutura.length === 0) return;
+
+        const conhecidas = new Set(categoriasEstrutura.map(normalizar));
+        const avisarDesconhecidas = (nomes, chave) => {
+            const desconhecidas = nomes.filter(n => !conhecidas.has(normalizar(n)));
+            if (desconhecidas.length > 0) console.warn(`⚠️ configuracao.txt: "${chave}" cita categorias que não existem no projeto: ${desconhecidas.join(', ')}.`);
+        };
+
+        window.restaurarOrdemCategorias();
+        if (ordemCategorias) {
+            avisarDesconhecidas(ordemCategorias, 'Ordem das categorias');
+            const lista = document.getElementById('gridSemantic');
+            const itens = new Map([...lista.querySelectorAll('.sortable-item')].map(item => [normalizar(item.dataset.category), item]));
+            // As categorias não citadas continuam depois das citadas, em ordem alfabética
+            [...ordemCategorias].reverse().forEach(nome => {
+                const item = itens.get(normalizar(nome));
+                if (item) lista.prepend(item);
+            });
+            marcarOrdemCategoriasPersonalizada();
+        }
+
+        if (entradasAlfabeticas) avisarDesconhecidas(entradasAlfabeticas, 'Entradas em ordem alfabética');
+        const alfabeticas = entradasAlfabeticas && new Set(entradasAlfabeticas.map(normalizar));
+        document.querySelectorAll('#gridAlpha .estrutura-item').forEach(li => {
+            const radios = li.querySelectorAll('input');
+            radios[!alfabeticas || alfabeticas.has(normalizar(li.dataset.category)) ? 0 : 1].checked = true;
+        });
+        atualizarSwAlpha();
     };
 
     function getDragAfterElement(container, y) {
