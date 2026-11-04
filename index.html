@@ -1277,23 +1277,23 @@
     <!-- Histórico de atividades: eventos guardados em `historicoEventos` e desenhados por adicionarLogAoTerminal -->
     <aside class="terminal-panel" id="terminalPanel" aria-labelledby="historicoTitulo">
         <div class="historico-topo">
-            <h2 id="historicoTitulo">Histórico de atividades</h2>
-            <button type="button" class="btn-icone" aria-label="Fechar histórico" onclick="window.toggleTerminal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+            <h2 id="historicoTitulo" data-i18n>Histórico de atividades</h2>
+            <button type="button" class="btn-icone" aria-label="Fechar histórico" onclick="window.toggleTerminal()" data-i18n-attr="aria-label"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
         </div>
         <div class="historico-filtros">
-            <div class="segmentado historico-segmentado" role="radiogroup" aria-label="Mostrar">
-                <label><input type="radio" name="historicoFiltro" value="todos" checked onchange="window.renderizarHistorico()">Tudo</label>
-                <label><input type="radio" name="historicoFiltro" value="problemas" onchange="window.renderizarHistorico()"><span id="historicoRotuloProblemas">Só avisos e erros</span></label>
+            <div class="segmentado historico-segmentado" role="radiogroup" aria-label="Mostrar" data-i18n-attr="aria-label">
+                <label data-i18n><input type="radio" name="historicoFiltro" value="todos" checked onchange="window.renderizarHistorico()">Tudo</label>
+                <label><input type="radio" name="historicoFiltro" value="problemas" onchange="window.renderizarHistorico()"><span id="historicoRotuloProblemas" data-i18n>Só avisos e erros</span></label>
             </div>
-            <label class="campo-opcao historico-tecnico">
+            <label class="campo-opcao historico-tecnico" data-i18n>
                 <input type="checkbox" id="historicoTecnico" onchange="window.renderizarHistorico()">
                 Mostrar mensagens técnicas
             </label>
         </div>
         <ol class="historico-lista" id="terminal" aria-live="polite"></ol>
         <div class="historico-rodape">
-            <button type="button" class="btn-secundario" id="btnCopiarHistorico" onclick="copiarTerminal()">Copiar histórico</button>
-            <button type="button" class="btn-link" onclick="limparTerminal()">Limpar</button>
+            <button type="button" class="btn-secundario" id="btnCopiarHistorico" onclick="copiarTerminal()" data-i18n>Copiar histórico</button>
+            <button type="button" class="btn-link" onclick="limparTerminal()" data-i18n>Limpar</button>
         </div>
     </aside>
 </div>
@@ -2160,8 +2160,8 @@
         <div class="carregando-topo">
             <span class="carregando-giro" aria-hidden="true"></span>
             <div>
-                <h2 class="carregando-titulo" id="loaderTitle">Carregando...</h2>
-                <p class="carregando-texto" id="loaderDesc">Aguarde um momento.</p>
+                <h2 class="carregando-titulo" id="loaderTitle" data-i18n>Carregando...</h2>
+                <p class="carregando-texto" id="loaderDesc" data-i18n>Aguarde um momento.</p>
             </div>
         </div>
         <div class="carregando-progresso" id="loaderProgresso" hidden>
@@ -2178,7 +2178,7 @@
 
 <!-- Logger do Terminal -->
 <script>
-    window.mostrarLoader = function(titulo = 'Processando...', descricao = 'Por favor, aguarde.') {
+    window.mostrarLoader = function(titulo = _t('Processando...'), descricao = _t('Por favor, aguarde.')) {
         const loader = document.getElementById('globalLoader');
         if (loader) {
             document.getElementById('loaderTitle').textContent = titulo;
@@ -2195,7 +2195,7 @@
         document.getElementById('loaderProgresso').hidden = false;
         document.getElementById('loaderBarra').setAttribute('aria-valuenow', String(percentual));
         document.getElementById('loaderBarraPreenchida').style.width = `${percentual}%`;
-        document.getElementById('loaderContagem').textContent = `${atual.toLocaleString('pt-BR')} de ${total.toLocaleString('pt-BR')}`;
+        document.getElementById('loaderContagem').textContent = _t('{atual} de {total}', { atual, total });
         document.getElementById('loaderPercentual').textContent = `${percentual}%`;
     };
 
@@ -2216,7 +2216,7 @@
     // Histórico de atividades. Cada evento: { tipo: 'erro'|'aviso'|'ok'|'info', hora, titulo, detalhe }.
     // A 1ª linha da mensagem vira o título; o resto (ex.: pilha de erro) é detalhe técnico.
     const historicoEventos = [];
-    const HISTORICO_ROTULOS = { erro: 'Erro', aviso: 'Aviso', ok: 'Concluído', info: 'Informação' };
+    const HISTORICO_ROTULOS = { erro: () => _t('Erro'), aviso: () => _t('Aviso'), ok: () => _t('Concluído'), info: () => _t('Informação') };
     const EMOJI_INICIAL = /^[\p{Extended_Pictographic}️‍\s]+/u;
 
     function criarEventoHistorico(msg, tipo) {
@@ -2225,7 +2225,7 @@
         const linhas = texto.replace(EMOJI_INICIAL, '').split('\n');
         return {
             tipo: tipo === 'error' ? 'erro' : tipo === 'warn' ? 'aviso' : (tipo === 'success' || sucesso) ? 'ok' : 'info',
-            hora: new Date().toLocaleTimeString('pt-BR'),
+            hora: I18N.hora(new Date()),
             titulo: linhas[0].trim() || texto.trim(),
             detalhe: linhas.slice(1).join('\n').trim()
         };
@@ -2237,7 +2237,7 @@
         const marca = document.createElement('span');
         marca.className = 'historico-marca';
         marca.setAttribute('role', 'img');
-        marca.setAttribute('aria-label', HISTORICO_ROTULOS[evento.tipo]);
+        marca.setAttribute('aria-label', HISTORICO_ROTULOS[evento.tipo]());
         const corpo = document.createElement('div');
         corpo.className = 'historico-item-corpo';
         const linha = document.createElement('div');
@@ -2264,7 +2264,7 @@
 
     function atualizarContagemProblemas() {
         const n = historicoEventos.filter(e => e.tipo === 'erro' || e.tipo === 'aviso').length;
-        document.getElementById('historicoRotuloProblemas').textContent = n ? `Só avisos e erros · ${n}` : 'Só avisos e erros';
+        document.getElementById('historicoRotuloProblemas').textContent = n ? `${_t('Só avisos e erros')} · ${I18N.numero(n)}` : _t('Só avisos e erros');
     }
 
     window.renderizarHistorico = function() {
@@ -2275,7 +2275,7 @@
         if (!lista.children.length) {
             const vazio = document.createElement('li');
             vazio.className = 'historico-vazio';
-            vazio.textContent = soProblemas ? 'Nenhum aviso ou erro até agora.' : 'Nada registrado ainda.';
+            vazio.textContent = soProblemas ? _t('Nenhum aviso ou erro até agora.') : _t('Nada registrado ainda.');
             lista.append(vazio);
         }
         lista.scrollTop = lista.scrollHeight;
@@ -2321,12 +2321,12 @@
     });
 
     window.addEventListener('error', (evento) => {
-        adicionarLogAoTerminal(`Erro não tratado: ${evento.message} (${evento.filename}:${evento.lineno})`, 'error');
+        adicionarLogAoTerminal(_t('Erro não tratado: {erro} ({arquivo}:{linha})', { erro: evento.message, arquivo: evento.filename, linha: String(evento.lineno) }), 'error');
     });
 
     window.addEventListener('unhandledrejection', (evento) => {
         const motivo = evento.reason instanceof Error ? evento.reason : formatarMensagem(evento.reason);
-        adicionarLogAoTerminal(`Promise rejeitada sem tratamento: ${formatarMensagem(motivo)}`, 'error');
+        adicionarLogAoTerminal(_t('Promise rejeitada sem tratamento: {erro}', { erro: formatarMensagem(motivo) }), 'error');
     });
 
     window.toggleTerminal = function() {
@@ -2357,17 +2357,21 @@
     // Copia tudo (com detalhes técnicos), independentemente do filtro em tela
     window.copiarTerminal = async function() {
         const texto = historicoEventos.map(e =>
-            `[${e.hora}] ${HISTORICO_ROTULOS[e.tipo].toUpperCase()}: ${e.titulo}${e.detalhe ? '\n' + e.detalhe : ''}`).join('\n');
+            `[${e.hora}] ${HISTORICO_ROTULOS[e.tipo]().toUpperCase()}: ${e.titulo}${e.detalhe ? '\n' + e.detalhe : ''}`).join('\n');
         const botao = document.getElementById('btnCopiarHistorico');
         try {
             await navigator.clipboard.writeText(texto);
-            botao.textContent = 'Copiado';
+            botao.textContent = _t('Copiado');
         } catch (e) {
-            botao.textContent = 'Não foi possível copiar';
+            botao.textContent = _t('Não foi possível copiar');
         }
-        setTimeout(() => { botao.textContent = 'Copiar histórico'; }, 2000);
+        setTimeout(() => { botao.textContent = _t('Copiar histórico'); }, 2000);
     };
     window.renderizarHistorico();
+    document.addEventListener('idioma-alterado', () => {
+        atualizarContagemProblemas();
+        window.renderizarHistorico();
+    });
 </script>
 
 <!-- Dependências Externas (vendorizadas) -->
@@ -2404,11 +2408,11 @@
     window.baixarArquivoPadrao = async function(url, nomeSalvo) {
         try {
             const res = await fetch(url);
-            if (!res.ok) throw new Error('Arquivo não encontrado no servidor local.');
+            if (!res.ok) throw new Error(_t('Arquivo não encontrado no servidor local.'));
             const blob = await res.blob();
             await platform.salvarArquivo(nomeSalvo, blob);
         } catch(e) {
-            alert('Não foi possível baixar o template: ' + e.message);
+            alert(_t('Não foi possível baixar o template: {erro}', { erro: e.message }));
         }
     };
     
