@@ -21,6 +21,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Verificar traduções da interface
+        run: node scripts/verificar-i18n.mjs
+
       - name: Preparar arquivos web
         run: |
           mkdir -p dist

@@ -1,5 +1,8 @@
 // const CACHE = 'csv2dmli-v2'; // versão anterior (antes do Toast UI Editor) - reverter para esta linha se abandonar o editor
-const CACHE = 'csv2dmli-v8';
+const CACHE = 'csv2dmli-v9';
+
+// Lista de idiomas da interface: mantém todos os dicionários disponíveis offline.
+importScripts('packages/i18n/idiomas.js');
 
 // Deriva o base path do próprio URL do SW.
 // Em GitHub Pages: '/CSV2DMLI'  |  Em localhost: ''
@@ -17,6 +20,11 @@ const PRE_CACHE = [
   BASE + '/vendor/toastui-editor.min.css',
   BASE + '/vendor/fonts/fonts.css',
   BASE + '/vendor/font-awesome/css/all.min.css',
+  BASE + '/packages/i18n/idiomas.js',
+  BASE + '/packages/i18n/nucleo.js',
+  ...I18N_IDIOMAS
+    .filter(i => i.codigo !== I18N_IDIOMA_PADRAO)
+    .map(i => BASE + '/packages/i18n/locales/' + i.codigo + '.js'),
 ];
 
 
@@ -69,7 +77,7 @@ self.addEventListener('activate', e => {
     caches.keys().then(keys =>
       Promise.all(
         keys
-          .filter(k => k !== CACHE && k !== ANDROID_CACHE)
+          .filter(k => k !== CACHE && k !== CLDF_CACHE && k !== ANDROID_CACHE)
           .map(k => {
             console.log('[SW] Deletando cache antigo:', k);
             return caches.delete(k);
