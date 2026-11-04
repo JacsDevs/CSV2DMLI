@@ -1196,63 +1196,63 @@
                     <!-- PASSO 6 -->
                     <div class="wizard-step" id="step6">
                         <div class="etapa-cabecalho">
-                            <span class="etapa-contador">Etapa 6 de 6</span>
-                            <h2 class="etapa-titulo">Exportar</h2>
-                            <p class="etapa-descricao">Escolha como o dicionário vai chegar às pessoas. Você pode gerar quantos formatos quiser.</p>
+                            <span class="etapa-contador" data-i18n>Etapa 6 de 6</span>
+                            <h2 class="etapa-titulo" data-i18n>Exportar</h2>
+                            <p class="etapa-descricao" data-i18n>Escolha como o dicionário vai chegar às pessoas. Você pode gerar quantos formatos quiser.</p>
                         </div>
 
                         <div class="publicar-conteudo">
                             <section class="publicar-resumo" aria-labelledby="resumoTitulo">
-                                <h3 id="resumoTitulo">Resumo do projeto</h3>
+                                <h3 id="resumoTitulo" data-i18n>Resumo do projeto</h3>
                                 <ul id="publicarResumo"></ul>
                             </section>
 
                             <section class="publicar-secao" aria-labelledby="publicoTitulo">
-                                <h3 id="publicoTitulo">Para o público</h3>
+                                <h3 id="publicoTitulo" data-i18n>Para o público</h3>
                                 <div class="publicar-cartoes">
                                     <div class="publicar-cartao destaque">
                                         <span class="publicar-cartao-icone" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"></rect><path d="M11 18h2"></path></svg></span>
-                                        <strong>Aplicativo Android</strong>
-                                        <span class="publicar-cartao-texto">Para instalar no celular. Funciona sem internet, com áudios e imagens.</span>
-                                        <button type="button" class="btn-principal" onclick="abrirModalAndroid()">Gerar aplicativo</button>
+                                        <strong data-i18n>Aplicativo Android</strong>
+                                        <span class="publicar-cartao-texto" data-i18n>Para instalar no celular. Funciona sem internet, com áudios e imagens.</span>
+                                        <button type="button" class="btn-principal" onclick="abrirModalAndroid()" data-i18n>Gerar aplicativo</button>
                                     </div>
                                     <div class="publicar-cartao">
                                         <span class="publicar-cartao-icone" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"></path></svg></span>
-                                        <strong>Site</strong>
-                                        <span class="publicar-cartao-texto">Para abrir no navegador ou publicar na internet.</span>
+                                        <strong data-i18n>Site</strong>
+                                        <span class="publicar-cartao-texto" data-i18n>Para abrir no navegador ou publicar na internet.</span>
                                         <label class="publicar-opcao">
                                             <input type="checkbox" id="swMidia" checked>
-                                            <span><strong>Arquivo único</strong>Mídias embutidas no HTML: é só enviar um arquivo, mas ele fica maior.</span>
+                                            <span data-i18n="html"><strong>Arquivo único</strong>Mídias embutidas no HTML: é só enviar um arquivo, mas ele fica maior.</span>
                                         </label>
-                                        <button type="button" class="btn-contorno" onclick="gerarExportacao('html')">Gerar site</button>
+                                        <button type="button" class="btn-contorno" onclick="gerarExportacao('html')" data-i18n>Gerar site</button>
                                     </div>
                                     <div class="publicar-cartao">
                                         <span class="publicar-cartao-icone" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6M8 13h8M8 17h5"></path></svg></span>
-                                        <strong>PDF</strong>
-                                        <span class="publicar-cartao-texto">Para imprimir ou distribuir como livro.</span>
-                                        <button type="button" class="btn-contorno" onclick="gerarExportacao('pdf')">Gerar PDF</button>
+                                        <strong data-i18n>PDF</strong>
+                                        <span class="publicar-cartao-texto" data-i18n>Para imprimir ou distribuir como livro.</span>
+                                        <button type="button" class="btn-contorno" onclick="gerarExportacao('pdf')" data-i18n>Gerar PDF</button>
                                     </div>
                                 </div>
                             </section>
 
                             <details class="publicar-tecnicos" open>
-                                <summary>
+                                <summary data-i18n>
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
                                     Formatos técnicos e arquivamento
-                                    <span class="campo-ajuda">Para pesquisadores e edição avançada</span>
+                                    <span class="campo-ajuda" data-i18n>Para pesquisadores e edição avançada</span>
                                 </summary>
                                 <ul>
                                     <li>
-                                        <div><strong>CLDF</strong> <span class="campo-ajuda">· ZIP</span><span class="publicar-tecnico-texto">Padrão aberto para arquivamento e pesquisa linguística.</span></div>
-                                        <button type="button" class="btn-secundario" onclick="document.getElementById('modalCldf').style.display='flex'">Gerar CLDF</button>
+                                        <div><strong data-i18n>CLDF</strong> <span class="campo-ajuda" data-i18n>· ZIP</span><span class="publicar-tecnico-texto" data-i18n>Padrão aberto para arquivamento e pesquisa linguística.</span></div>
+                                        <button type="button" class="btn-secundario" onclick="document.getElementById('modalCldf').style.display='flex'" data-i18n>Gerar CLDF</button>
                                     </li>
                                     <li>
-                                        <div><strong>Typst</strong> <span class="campo-ajuda">· código-fonte do PDF</span><span class="publicar-tecnico-texto">Para ajustar a diagramação do PDF à mão.</span></div>
-                                        <button type="button" class="btn-secundario" onclick="gerarExportacao('typst')">Gerar Typst</button>
+                                        <div><strong data-i18n>Typst</strong> <span class="campo-ajuda" data-i18n>· código-fonte do PDF</span><span class="publicar-tecnico-texto" data-i18n>Para ajustar a diagramação do PDF à mão.</span></div>
+                                        <button type="button" class="btn-secundario" onclick="gerarExportacao('typst')" data-i18n>Gerar Typst</button>
                                     </li>
                                     <li>
-                                        <div><strong>LaTeX</strong> <span class="campo-ajuda">· ZIP</span><span class="publicar-tecnico-texto">Para editoras e revistas que trabalham com LaTeX.</span></div>
-                                        <button type="button" class="btn-secundario" onclick="gerarExportacao('latex')">Gerar LaTeX</button>
+                                        <div><strong data-i18n>LaTeX</strong> <span class="campo-ajuda" data-i18n>· ZIP</span><span class="publicar-tecnico-texto" data-i18n>Para editoras e revistas que trabalham com LaTeX.</span></div>
+                                        <button type="button" class="btn-secundario" onclick="gerarExportacao('latex')" data-i18n>Gerar LaTeX</button>
                                     </li>
                                 </ul>
                             </details>
@@ -3514,7 +3514,7 @@
     };
 
     window.gerarExportacao = async function(tipo) {
-        if (!window.exportador) return alert('Exportador não inicializado!');
+        if (!window.exportador) return alert(_t('Exportador não inicializado!'));
 
         let modalTitle = '';
         let previewContentHtml = '';
@@ -3527,7 +3527,7 @@
             const swMidia = document.getElementById('swMidia');
             const embutir = swMidia ? swMidia.checked : false;
 
-            window.mostrarLoader('Gerando HTML', 'Construindo páginas e processando mídias...');
+            window.mostrarLoader(_t('Gerando HTML'), _t('Construindo páginas e processando mídias...'));
             try {
                 let htmlGerado;
                 const metadadosExport = coletarMetadadosExportacao();
@@ -3544,7 +3544,7 @@
                 let htmlPreview = htmlGerado;
 
                 if (!embutir) {
-                    if (typeof JSZip === 'undefined') throw new Error("Biblioteca JSZip não encontrada!");
+                    if (typeof JSZip === 'undefined') throw new Error(_t("Biblioteca JSZip não encontrada!"));
                     const zip = new JSZip();
                     zip.file('dicionario-cards.html', htmlGerado);
                     
@@ -3636,7 +3636,7 @@
                     doc.body.appendChild(injecaoScript);
                     
                     htmlPreview = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
-                    modalTitle = 'Pré-visualização do Site HTML';
+                    modalTitle = _t('Pré-visualização do Site HTML');
                     const previewBlob = new Blob([htmlPreview], { type: 'text/html;charset=utf-8' });
                     const previewUrl = URL.createObjectURL(previewBlob);
                     previewContentHtml = `<iframe style="width: 100%; height: 100%; border: none; background: white;" src="${previewUrl}"></iframe>`;
@@ -3650,7 +3650,7 @@
                     opcoesDestino = { emMemoria: bytesMidias < LIMITE_HTML_EMBUTIDO_EM_MEMORIA };
                     console.log(`ℹ️ HTML embutido: ${(bytesMidias / 1024 / 1024).toFixed(1)} MB de mídias locais — gravação ${opcoesDestino.emMemoria ? 'em memória' : 'via temporário (OPFS)'}`);
                     mimeType = 'text/html;charset=utf-8';
-                    modalTitle = 'Pré-visualização do Site HTML';
+                    modalTitle = _t('Pré-visualização do Site HTML');
                     const previewBlob = new Blob([htmlPreview], { type: 'text/html;charset=utf-8' });
                     const previewUrl = URL.createObjectURL(previewBlob);
                     urlsPreview.push(previewUrl);
@@ -3660,27 +3660,27 @@
                 window._urlsPreviewExportacao = urlsPreview;
             } catch (e) {
                 console.error(e);
-                alert('Erro ao gerar HTML: ' + e.message);
+                alert(_t('Erro ao gerar HTML: {erro}', { erro: e.message }));
                 return;
             } finally {
                 window.ocultarLoader();
             }
         } else if (tipo === 'typst') {
-            window.mostrarLoader('Gerando Typst', 'Escrevendo código fonte...');
+            window.mostrarLoader(_t('Gerando Typst'), _t('Escrevendo código fonte...'));
             try {
                 conteudoParaBaixar = await window.exportador.exportarTypst({ metadados: coletarMetadadosExportacao() });
                 nomeArquivo = 'dicionario.typ';
-                modalTitle = 'Código Typst Gerado';
+                modalTitle = _t('Código Typst Gerado');
                 previewContentHtml = `<textarea style="width: 100%; height: 100%; padding: 15px; font-family: monospace; border: none; background: var(--bg-secondary); color: var(--text-color); resize: none;" readonly>${conteudoParaBaixar}</textarea>`;
             } catch (e) {
                 console.error(e);
-                alert('Erro ao gerar Typst: ' + e.message);
+                alert(_t('Erro ao gerar Typst: {erro}', { erro: e.message }));
                 return;
             } finally {
                 window.ocultarLoader();
             }
         } else if (tipo === 'latex') {
-            window.mostrarLoader('Gerando Projeto LaTeX', 'Compactando arquivos e mídias...');
+            window.mostrarLoader(_t('Gerando Projeto LaTeX'), _t('Compactando arquivos e mídias...'));
             try {
                 await window.exportador.exportarLatexZip({ metadados: coletarMetadadosExportacao() }, 'projeto_latex.zip');
                 // Como salva o arquivo diretamente via ZipBlob, não precisamos preencher conteúdo no modal de preview
@@ -3688,34 +3688,34 @@
                 return;
             } catch (e) {
                 console.error(e);
-                alert('Erro ao gerar Projeto LaTeX: ' + e.message);
+                alert(_t('Erro ao gerar Projeto LaTeX: {erro}', { erro: e.message }));
                 window.ocultarLoader();
                 return;
             }
         } else if (tipo === 'cldf') {
-            window.mostrarLoader('Gerando CLDF', 'Convertendo modelo e compactando tabelas...');
+            window.mostrarLoader(_t('Gerando CLDF'), _t('Convertendo modelo e compactando tabelas...'));
             try {
                 await window.exportador.exportarCldfZip({ metadados: coletarMetadadosExportacao() }, 'projeto_cldf.zip');
                 window.ocultarLoader();
                 return;
             } catch (e) {
                 console.error(e);
-                alert('Erro ao gerar CLDF: ' + e.message);
+                alert(_t('Erro ao gerar CLDF: {erro}', { erro: e.message }));
                 window.ocultarLoader();
                 return;
             }
         } else if (tipo === 'pdf') {
-            window.mostrarLoader('Gerando PDF', 'Compilando via WebAssembly (isso pode demorar um pouco)...');
+            window.mostrarLoader(_t('Gerando PDF'), _t('Compilando via WebAssembly (isso pode demorar um pouco)...'));
             try {
                 const pdfBlob = await window.exportador.gerarPdfBlob({ metadados: coletarMetadadosExportacao() });
                 conteudoParaBaixar = pdfBlob;
                 nomeArquivo = 'dicionario.pdf';
-                modalTitle = 'PDF Gerado';
+                modalTitle = _t('PDF Gerado');
                 const pdfUrl = URL.createObjectURL(pdfBlob);
                 previewContentHtml = `<object data="${pdfUrl}#toolbar=0&view=FitH" type="application/pdf" style="width: 100%; height: 100%; border: none;"></object>`;
             } catch (e) {
                 console.error(e);
-                alert('Erro ao compilar PDF: ' + e.message);
+                alert(_t('Erro ao compilar PDF: {erro}', { erro: e.message }));
                 return;
             } finally {
                 window.ocultarLoader();
@@ -3737,8 +3737,8 @@
                     ${previewContentHtml}
                 </div>
                 <div style="flex-shrink: 0; margin-top: 15px; display: flex; justify-content: flex-end; gap: 10px;">
-                    <button class="btn btn-outline" onclick="window.fecharModalGenerico()">Cancelar</button>
-                    <button class="btn btn-primary" onclick="window.baixarArquivoGerado()"><span style="margin-right: 8px;">📥</span> Baixar ${nomeArquivo}</button>
+                    <button class="btn btn-outline" onclick="window.fecharModalGenerico()">${_t('Cancelar')}</button>
+                    <button class="btn btn-primary" onclick="window.baixarArquivoGerado()"><span style="margin-right: 8px;">📥</span> ${_t('Baixar {arquivo}', { arquivo: nomeArquivo })}</button>
                 </div>
             `;
             document.getElementById('modalOverlay').style.display = 'flex';
@@ -3755,27 +3755,27 @@
         if (typeof conteudo === 'function') {
             const destino = await window.exportador.abrirDestinoArquivo(nomeArquivo, mimeType, opcoesDestino);
             if (!destino) return; // cancelado pelo usuário
-            window.mostrarLoader('Gerando HTML', 'Preparando os dados do dicionário...');
+            window.mostrarLoader(_t('Gerando HTML'), _t('Preparando os dados do dicionário...'));
             let finalizando = false;
             try {
                 await conteudo(destino);
                 finalizando = true;
                 // Ao fechar, o navegador move o arquivo temporário para o destino e pode
                 // verificá-lo inteiro (segurança/antivírus): com arquivos grandes, demora
-                window.mostrarLoader('Finalizando arquivo', 'O navegador está concluindo a gravação e pode verificar o arquivo. Com arquivos grandes isso pode levar alguns minutos.');
+                window.mostrarLoader(_t('Finalizando arquivo'), _t('O navegador está concluindo a gravação e pode verificar o arquivo. Com arquivos grandes isso pode levar alguns minutos.'));
                 const inicioFechar = performance.now();
                 console.log('⏳ HTML embutido: finalizando o arquivo...');
                 const resultado = await destino.fechar();
                 console.log(`✅ HTML embutido: arquivo finalizado em ${((performance.now() - inicioFechar) / 1000).toFixed(1)}s`);
                 if (resultado && resultado.erroLocalEscolhido) {
-                    alert(`O navegador não conseguiu concluir a gravação no local escolhido, então o arquivo "${nomeArquivo}" foi entregue pelo gerenciador de downloads do navegador (normalmente a pasta Downloads). Acompanhe o download pela barra/lista de downloads.\n\nDetalhe técnico: ${resultado.erroLocalEscolhido.message}`);
+                    alert(_t('O navegador não conseguiu concluir a gravação no local escolhido, então o arquivo "{arquivo}" foi entregue pelo gerenciador de downloads do navegador (normalmente a pasta Downloads). Acompanhe o download pela barra/lista de downloads.\n\nDetalhe técnico: {erro}', { arquivo: nomeArquivo, erro: resultado.erroLocalEscolhido.message }));
                 }
             } catch (e) {
                 console.error(e);
                 try { await destino.abortar(); } catch (_) { /* destino já inválido */ }
                 alert(finalizando
-                    ? 'Erro ao finalizar o arquivo HTML (o conteúdo foi gerado, mas o navegador não conseguiu concluir a gravação no local escolhido): ' + e.message
-                    : 'Erro ao gerar HTML: ' + e.message);
+                    ? _t('Erro ao finalizar o arquivo HTML (o conteúdo foi gerado, mas o navegador não conseguiu concluir a gravação no local escolhido): {erro}', { erro: e.message })
+                    : _t('Erro ao gerar HTML: {erro}', { erro: e.message }));
                 return;
             } finally {
                 window.ocultarLoader();
@@ -3900,7 +3900,7 @@
                 const item = varItem ? varItem : (linha.camposBasicos?.ITEM_LEXICAL || linha.ITEM_LEXICAL || '');
                 return {
                     indice: idx,
-                    itemLexical: item ? item.split('|')[0].trim() : `Linha ${idx + 1}`
+                    itemLexical: item ? item.split('|')[0].trim() : _t('Linha {linha}', { linha: String(idx + 1) })
                 };
             });
         };
@@ -5306,7 +5306,7 @@
     }
 
     window.abrirModalAndroid = async function() {
-        if (!window.exportador) return alert('Exportador não inicializado!');
+        if (!window.exportador) return alert(_t('Exportador não inicializado!'));
 
         // Pré-carrega o ícone do app já definido (icone.png da pasta importada ou escolhido
         // antes neste modal). O logo do projeto não entra aqui: só é sugerido (apkIconeUsarLogo).
@@ -6009,6 +6009,7 @@
     }
 
     document.addEventListener('idioma-alterado', () => {
+        if (window.passoAtual === totalPassos) atualizarResumoExportar();
         if (window.atualizarValidacaoEtapa2) window.atualizarValidacaoEtapa2();
         if (window.atualizarUILogo) window.atualizarUILogo();
         if (window.atualizarUIReferencia) window.atualizarUIReferencia();
@@ -6079,9 +6080,9 @@
     const ICONE_RESUMO_AVISO = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path><path d="M12 9v4M12 17h.01"></path></svg>';
     function descreverPendencias(erros, avisos) {
         const partes = [];
-        if (erros) partes.push(`${erros} ${erros === 1 ? 'erro' : 'erros'}`);
-        if (avisos) partes.push(`${avisos} ${avisos === 1 ? 'aviso' : 'avisos'}`);
-        return `${partes.join(' e ')} na validação`;
+        if (erros) partes.push(_tn('{n} erro', '{n} erros', erros));
+        if (avisos) partes.push(_tn('{n} aviso', '{n} avisos', avisos));
+        return _t('{pendencias} na validação', { pendencias: I18N.lista(partes) });
     }
 
     function atualizarResumoExportar() {
@@ -6094,16 +6095,16 @@
         const itens = [];
         if (validacao.carregado && stats) {
             const pasta = document.getElementById('nomePastaProjeto').textContent.replace(/\/$/, '');
-            itens.push({ ok: true, rotulo: 'Projeto', texto: `${pasta} · ${(stats.entradas || 0).toLocaleString('pt-BR')} ${stats.entradas === 1 ? 'entrada' : 'entradas'}` });
+            itens.push({ ok: true, rotulo: _t('Projeto'), texto: `${pasta} · ${_tn('{n} entrada', '{n} entradas', stats.entradas || 0)}` });
             const pendentes = validacao.erros + validacao.avisos;
             itens.push(pendentes === 0
-                ? { ok: true, rotulo: 'Dados', texto: 'nenhuma pendência na validação' }
-                : { ok: false, rotulo: 'Dados', texto: descreverPendencias(validacao.erros, validacao.avisos), passo: 2, acao: 'Revisar' });
+                ? { ok: true, rotulo: _t('Dados'), texto: _t('nenhuma pendência na validação') }
+                : { ok: false, rotulo: _t('Dados'), texto: descreverPendencias(validacao.erros, validacao.avisos), passo: 2, acao: _t('Revisar') });
         } else {
-            itens.push({ ok: false, rotulo: 'Projeto', texto: 'nenhum projeto importado', passo: 1, acao: 'Importar' });
+            itens.push({ ok: false, rotulo: _t('Projeto'), texto: _t('nenhum projeto importado'), passo: 1, acao: _t('Importar') });
         }
-        itens.push({ ok: true, rotulo: 'Título', texto: document.getElementById('metaHtml').value.trim() || 'sem título' });
-        itens.push({ ok: true, rotulo: 'Aparência', texto: window.nomeTemaAtual ? window.nomeTemaAtual() : 'padrão' });
+        itens.push({ ok: true, rotulo: _t('Título'), texto: document.getElementById('metaHtml').value.trim() || _t('sem título') });
+        itens.push({ ok: true, rotulo: _t('Aparência'), texto: window.nomeTemaAtual ? window.nomeTemaAtual() : _t('padrão') });
 
         lista.replaceChildren(...itens.map(item => {
             const li = document.createElement('li');
