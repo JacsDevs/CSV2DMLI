@@ -57,16 +57,31 @@ private fun caminho(vals: List<String>, ate: Int) = vals.take(ate + 1).filter { 
 
 val colador: Collator = Collator.getInstance(Locale.forLanguageTag("pt-BR"))
 
-/** Mesma ordem do HTML: campo, subcampos (posição a posição) e termo. */
-fun ordenarPorCategoria(entradas: List<Entrada>): List<Entrada> {
+/** Campos na ordem definida no gerador; os que não constam vão para o fim, em ordem alfabética. */
+fun comparadorCampos(ordem: List<String>): Comparator<String> {
+    val posicoes = ordem.withIndex().associate { (i, campo) -> campo to i }
+    return Comparator { a, b ->
+        val pa = posicoes[a] ?: ordem.size
+        val pb = posicoes[b] ?: ordem.size
+        if (pa != pb) pa - pb else colador.compare(a, b)
+    }
+}
+
+/**
+ * Mesma ordem do HTML: campo, subcampos (posição a posição) e a posição definida no gerador.
+ * Entradas invertidas não têm posição: ficam na ordem alfabética do termo.
+ */
+fun ordenarPorCategoria(entradas: List<Entrada>, ordemCategorias: List<String>): List<Entrada> {
     val chaves = entradas.associateWith(::valores)
+    val campos = comparadorCampos(ordemCategorias)
     return entradas.sortedWith { a, b ->
         val va = chaves.getValue(a)
         val vb = chaves.getValue(b)
-        for (i in 0 until NIVEIS) {
+        if (va[0] != vb[0]) return@sortedWith campos.compare(va[0], vb[0])
+        for (i in 1 until NIVEIS) {
             if (va[i] != vb[i]) return@sortedWith colador.compare(va[i], vb[i])
         }
-        colador.compare(a.termo, b.termo)
+        if (a.ordem >= 0 && b.ordem >= 0) a.ordem - b.ordem else colador.compare(a.termo, b.termo)
     }
 }
 

@@ -1014,6 +1014,20 @@ body {
 .info-cartao h3,
 .info-introducao h3 { margin: 0; padding: 0; border: 0; font-size: 16px; font-weight: 700; color: var(--text-main); }
 .info-cartao-acoes { display: flex; flex-wrap: wrap; gap: 8px; }
+.info-cartao-bloqueado { background: var(--bg-secondary); cursor: not-allowed; }
+.info-cartao-bloqueado h3,
+.info-cartao-bloqueado .info-cartao-status { color: var(--text-muted); }
+.info-cartao-bloqueado .info-cartao-acoes { opacity: 0.55; filter: grayscale(1); pointer-events: none; }
+.info-cartao-selo {
+    margin-left: 6px;
+    padding: 2px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
 
 .logo-previa {
     display: flex;

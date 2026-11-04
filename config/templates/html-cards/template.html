@@ -3827,7 +3827,8 @@
                         
                         // Injetar a palavra indígena no lugar da tradução para o card reverso
                         sigReverso.TRADUCAO = item.TERMO;
-                        
+                        sigReverso._ORDEM = item._ORDEM;
+
                         // Passar a classe e a pronúncia como tags distintas
                         sigReverso.CLASSE_REVERSO = item.CLASSE || '';
                         sigReverso.FONEMICA_REVERSO = item.FONEMICA || '';
@@ -3854,7 +3855,7 @@
                 // Ordenar as palavras indígenas dentro de cada significado alfabeticamente
                 resultados.forEach(res => {
                     if (res.SIGNIFICADOS) {
-                        res.SIGNIFICADOS.sort((a, b) => (a.TRADUCAO || '').localeCompare(b.TRADUCAO || '', 'pt-BR'));
+                        res.SIGNIFICADOS.sort((a, b) => a._ORDEM - b._ORDEM);
                     }
                 });
                 
@@ -3869,7 +3870,7 @@
                     for (let i = 0; i < chavesSemanticas.length; i++) {
                         const valA = a[chavesSemanticas[i]] || (i === 0 ? 'Outros' : '');
                         const valB = b[chavesSemanticas[i]] || (i === 0 ? 'Outros' : '');
-                        if (valA !== valB) return valA.localeCompare(valB, 'pt-BR');
+                        if (valA !== valB) return i === 0 ? compararCampos(valA, valB) : valA.localeCompare(valB, 'pt-BR');
                     }
                     return a._ordem.localeCompare(b._ordem, 'pt-BR');
                 });
@@ -3884,11 +3885,10 @@
                     for (let i = 0; i < chavesSemanticas.length; i++) {
                         const valA = a[chavesSemanticas[i]] || (i === 0 ? 'Outros' : '');
                         const valB = b[chavesSemanticas[i]] || (i === 0 ? 'Outros' : '');
-                        if (valA !== valB) return valA.localeCompare(valB, 'pt-BR');
+                        if (valA !== valB) return i === 0 ? compararCampos(valA, valB) : valA.localeCompare(valB, 'pt-BR');
                     }
-                    const termA = a.TERMO || '';
-                    const termB = b.TERMO || '';
-                    return termA.localeCompare(termB, 'pt-BR');
+                    // Posição definida ao gerar o dicionário (ordem das entradas e alfabeto da língua)
+                    return a._ORDEM - b._ORDEM;
                 });
             }
 
@@ -3911,9 +3911,16 @@
             }
         }
 
+        // Ordem das categorias definida ao gerar o dicionário; as que não constam vão para o fim, em ordem alfabética
+        function compararCampos(a, b) {
+            const ordem = window.ordemCategoriasDicionario || [];
+            const posicao = (campo) => { const i = ordem.indexOf(campo); return i < 0 ? ordem.length : i; };
+            return (posicao(a) - posicao(b)) || a.localeCompare(b, 'pt-BR');
+        }
+
         function inicializarFiltros() {
             const dicio = window.dadosDicionarioLexical || [];
-            const semanticos = [...new Set(dicio.map(i => i.CAMPO_SEMANTICO).filter(Boolean))].sort();
+            const semanticos = [...new Set(dicio.map(i => i.CAMPO_SEMANTICO).filter(Boolean))].sort(compararCampos);
             const classes = [...new Set(dicio.map(i => i.CLASSE).filter(Boolean))].sort();
             
             filtroSemantico.innerHTML = '<option value="">Todos os campos semânticos</option>';
@@ -4356,7 +4363,7 @@
             let menuHtml = `<a href="#app-bar-header" onclick="fecharMenu()" style="border-bottom: 1px solid rgba(255,255,255,0.2); font-weight: bold;">Início</a>`;
 
             function percorrerArvore(nodo, depth, caminhoAnterior = '') {
-                const chaves = Object.keys(nodo).sort((a, b) => a.localeCompare(b));
+                const chaves = Object.keys(nodo).sort(depth === 0 ? compararCampos : (a, b) => a.localeCompare(b));
                 chaves.forEach(c => {
                     const caminhoAtual = caminhoAnterior ? `${caminhoAnterior}|${c}` : c;
                     const escapedAttr = c.replace(/"/g, '&quot;');
