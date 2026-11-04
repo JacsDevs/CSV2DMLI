@@ -1145,47 +1145,47 @@
                     <!-- PASSO 5 -->
                     <div class="wizard-step" id="step5">
                         <div class="etapa-cabecalho">
-                            <span class="etapa-contador">Etapa 5 de 6 <span class="etapa-selo">Opcional</span></span>
-                            <h2 class="etapa-titulo">Aparência</h2>
-                            <p class="etapa-descricao">Escolha as cores do dicionário gerado (site e aplicativo), nos modos claro e escuro. Isso não muda a aparência deste assistente.</p>
+                            <span class="etapa-contador" data-i18n>Etapa 5 de 6 <span class="etapa-selo" data-i18n>Opcional</span></span>
+                            <h2 class="etapa-titulo" data-i18n>Aparência</h2>
+                            <p class="etapa-descricao" data-i18n>Escolha as cores do dicionário gerado (site e aplicativo), nos modos claro e escuro. Isso não muda a aparência deste assistente.</p>
                         </div>
 
                         <!-- Tema do HTML exportado: lógica em PALETAS_TEMA / renderizarPaletasTema (mesmos ids da antiga aba "Tema") -->
                         <div class="aparencia-grade">
                             <fieldset class="aparencia-paletas">
-                                <legend>Paleta de cores</legend>
-                                <div class="aparencia-lista" id="temaPaletasGrid" role="radiogroup" aria-label="Paleta de cores"></div>
+                                <legend data-i18n>Paleta de cores</legend>
+                                <div class="aparencia-lista" id="temaPaletasGrid" role="radiogroup" aria-label="Paleta de cores" data-i18n-attr="aria-label"></div>
 
                                 <div class="aparencia-custom" id="temaCustomPainel" style="display: none;">
                                     <label class="campo">
-                                        <span class="campo-rotulo">Fundo</span>
+                                        <span class="campo-rotulo" data-i18n>Fundo</span>
                                         <input type="color" id="temaCustomFundo" value="#f5ead8" oninput="window.atualizarTemaCustom()">
                                     </label>
                                     <label class="campo">
-                                        <span class="campo-rotulo">Superfície (cartões)</span>
+                                        <span class="campo-rotulo" data-i18n>Superfície (cartões)</span>
                                         <input type="color" id="temaCustomSuperficie" value="#fffbf2" oninput="window.atualizarTemaCustom()">
                                     </label>
                                     <label class="campo">
-                                        <span class="campo-rotulo">Principal</span>
+                                        <span class="campo-rotulo" data-i18n>Principal</span>
                                         <input type="color" id="temaCustomPrimaria" value="#5c6b41" oninput="window.atualizarTemaCustom()">
                                     </label>
                                     <label class="campo">
-                                        <span class="campo-rotulo">Destaque</span>
+                                        <span class="campo-rotulo" data-i18n>Destaque</span>
                                         <input type="color" id="temaCustomAcento" value="#c67139" oninput="window.atualizarTemaCustom()">
                                     </label>
-                                    <p class="campo-ajuda aparencia-custom-nota">As demais tonalidades (hover, bordas, contraste e o modo escuro) são geradas a partir destas 4 cores.</p>
+                                    <p class="campo-ajuda aparencia-custom-nota" data-i18n>As demais tonalidades (hover, bordas, contraste e o modo escuro) são geradas a partir destas 4 cores.</p>
                                 </div>
                             </fieldset>
 
                             <div class="aparencia-previa">
-                                <h3>Pré-visualização</h3>
+                                <h3 data-i18n>Pré-visualização</h3>
                                 <div class="aparencia-previa-grade">
                                     <div>
-                                        <span class="aparencia-previa-rotulo">Modo claro</span>
+                                        <span class="aparencia-previa-rotulo" data-i18n>Modo claro</span>
                                         <div id="temaPreviewClaro"></div>
                                     </div>
                                     <div>
-                                        <span class="aparencia-previa-rotulo">Modo escuro</span>
+                                        <span class="aparencia-previa-rotulo" data-i18n>Modo escuro</span>
                                         <div id="temaPreviewEscuro"></div>
                                     </div>
                                 </div>
@@ -6393,22 +6393,22 @@
 
     const PALETAS_TEMA = [
         {
-            id: 'salvia', nome: 'Sálvia & Terracota', amostra: ['#f5ead8', '#5c6b41', '#c67139'],
+            id: 'salvia', nome: () => _t('Sálvia & Terracota'), amostra: ['#f5ead8', '#5c6b41', '#c67139'],
             light: { '--cor-fundo': '#f5ead8', '--cor-fundo-2': '#efe1c9', '--cor-superficie': '#fffbf2', '--cor-superficie-2': '#f7eeda', '--cor-texto': '#201e1d', '--cor-texto-secundario': '#6d6459', '--cor-borda': 'rgba(32,30,29,0.10)', '--cor-borda-forte': 'rgba(32,30,29,0.18)', '--cor-primaria': '#5c6b41', '--cor-primaria-hover': '#47542f', '--cor-primaria-light': '#e6e9d8', '--cor-primaria-contraste': '#fffbf2', '--cor-acento': '#c67139', '--cor-acento-forte': '#9d5324', '--cor-acento-light': '#f7e2ce', '--cor-perigo': '#a9452c' },
             dark: { '--cor-fundo': '#1a1816', '--cor-fundo-2': '#14120f', '--cor-superficie': '#262220', '--cor-superficie-2': '#302b28', '--cor-texto': '#f2e9db', '--cor-texto-secundario': '#ada190', '--cor-borda': 'rgba(242,233,219,0.12)', '--cor-borda-forte': 'rgba(242,233,219,0.22)', '--cor-primaria': '#a9bd83', '--cor-primaria-hover': '#c0d199', '--cor-primaria-light': '#333a29', '--cor-primaria-contraste': '#1a1816', '--cor-acento': '#e0904f', '--cor-acento-forte': '#f0a869', '--cor-acento-light': '#3d2c1e', '--cor-perigo': '#e58a72' }
         },
         {
-            id: 'oceano', nome: 'Oceano', amostra: ['#eaf2f4', '#1f6f78', '#e0703f'],
+            id: 'oceano', nome: () => _t('Oceano'), amostra: ['#eaf2f4', '#1f6f78', '#e0703f'],
             light: { '--cor-fundo': '#eaf2f4', '--cor-fundo-2': '#dfeaed', '--cor-superficie': '#ffffff', '--cor-superficie-2': '#f2f7f8', '--cor-texto': '#17232a', '--cor-texto-secundario': '#56727c', '--cor-borda': 'rgba(23,35,42,0.10)', '--cor-borda-forte': 'rgba(23,35,42,0.18)', '--cor-primaria': '#1f6f78', '--cor-primaria-hover': '#17565d', '--cor-primaria-light': '#d9edf0', '--cor-primaria-contraste': '#ffffff', '--cor-acento': '#e0703f', '--cor-acento-forte': '#b6532a', '--cor-acento-light': '#fbe2d3', '--cor-perigo': '#b3402a' },
             dark: { '--cor-fundo': '#10181b', '--cor-fundo-2': '#0c1214', '--cor-superficie': '#1a2529', '--cor-superficie-2': '#212f34', '--cor-texto': '#e6f1f3', '--cor-texto-secundario': '#9db3ba', '--cor-borda': 'rgba(230,241,243,0.12)', '--cor-borda-forte': 'rgba(230,241,243,0.22)', '--cor-primaria': '#5fb8c2', '--cor-primaria-hover': '#82c9d1', '--cor-primaria-light': '#1f3a3d', '--cor-primaria-contraste': '#0c1214', '--cor-acento': '#f0925f', '--cor-acento-forte': '#f5ab80', '--cor-acento-light': '#3d2418', '--cor-perigo': '#e58768' }
         },
         {
-            id: 'ametista', nome: 'Ametista', amostra: ['#f3eef8', '#6b4c9a', '#c99a2e'],
+            id: 'ametista', nome: () => _t('Ametista'), amostra: ['#f3eef8', '#6b4c9a', '#c99a2e'],
             light: { '--cor-fundo': '#f3eef8', '--cor-fundo-2': '#eae1f2', '--cor-superficie': '#fffdff', '--cor-superficie-2': '#f7f1fb', '--cor-texto': '#241b2e', '--cor-texto-secundario': '#6f6079', '--cor-borda': 'rgba(36,27,46,0.10)', '--cor-borda-forte': 'rgba(36,27,46,0.18)', '--cor-primaria': '#6b4c9a', '--cor-primaria-hover': '#543a7c', '--cor-primaria-light': '#e8e0f4', '--cor-primaria-contraste': '#ffffff', '--cor-acento': '#c99a2e', '--cor-acento-forte': '#a17c1f', '--cor-acento-light': '#f6ead0', '--cor-perigo': '#a9412e' },
             dark: { '--cor-fundo': '#191420', '--cor-fundo-2': '#130f18', '--cor-superficie': '#241d2d', '--cor-superficie-2': '#2e2537', '--cor-texto': '#ede7f2', '--cor-texto-secundario': '#ab9db8', '--cor-borda': 'rgba(237,231,242,0.12)', '--cor-borda-forte': 'rgba(237,231,242,0.22)', '--cor-primaria': '#b399e0', '--cor-primaria-hover': '#c6b1e8', '--cor-primaria-light': '#3a2f4a', '--cor-primaria-contraste': '#191420', '--cor-acento': '#e0b95c', '--cor-acento-forte': '#edc97e', '--cor-acento-light': '#3d331b', '--cor-perigo': '#e58a76' }
         },
         {
-            id: 'ardosia', nome: 'Ardósia', amostra: ['#eef0f2', '#3a4a5c', '#2f7fe0'],
+            id: 'ardosia', nome: () => _t('Ardósia'), amostra: ['#eef0f2', '#3a4a5c', '#2f7fe0'],
             light: { '--cor-fundo': '#eef0f2', '--cor-fundo-2': '#e2e6e9', '--cor-superficie': '#ffffff', '--cor-superficie-2': '#f5f6f8', '--cor-texto': '#1c2126', '--cor-texto-secundario': '#5b6570', '--cor-borda': 'rgba(28,33,38,0.10)', '--cor-borda-forte': 'rgba(28,33,38,0.18)', '--cor-primaria': '#3a4a5c', '--cor-primaria-hover': '#2b3947', '--cor-primaria-light': '#dde3e8', '--cor-primaria-contraste': '#ffffff', '--cor-acento': '#2f7fe0', '--cor-acento-forte': '#1f60b3', '--cor-acento-light': '#d9e8fb', '--cor-perigo': '#b3402a' },
             dark: { '--cor-fundo': '#14171a', '--cor-fundo-2': '#101214', '--cor-superficie': '#1e2226', '--cor-superficie-2': '#262b30', '--cor-texto': '#e8ebed', '--cor-texto-secundario': '#99a3ac', '--cor-borda': 'rgba(232,235,237,0.12)', '--cor-borda-forte': 'rgba(232,235,237,0.22)', '--cor-primaria': '#8fa3b5', '--cor-primaria-hover': '#a7b8c6', '--cor-primaria-light': '#2a333b', '--cor-primaria-contraste': '#14171a', '--cor-acento': '#5fa3f0', '--cor-acento-forte': '#7fb6f5', '--cor-acento-light': '#1c2e42', '--cor-perigo': '#e58768' }
         }
@@ -6543,8 +6543,8 @@
     // as chamadas a exportarHtmlCards() (site, preview do APK e app Android).
     window.coletarTemaExportacao = function() { return resolverTemaAtual(); };
     window.nomeTemaAtual = function() {
-        if (temaSelecionado.tipo === 'custom') return 'Personalizada';
-        return (PALETAS_TEMA.find(p => p.id === temaSelecionado.paletaId) || PALETAS_TEMA[0]).nome;
+        if (temaSelecionado.tipo === 'custom') return _t('Personalizada');
+        return (PALETAS_TEMA.find(p => p.id === temaSelecionado.paletaId) || PALETAS_TEMA[0]).nome();
     };
 
     function preencherCamposCustom() {
@@ -6572,12 +6572,12 @@
         PALETAS_TEMA.forEach(p => {
             const ativo = temaSelecionado.tipo === 'paleta' && temaSelecionado.paletaId === p.id;
             const amostras = `<span class="aparencia-amostras" aria-hidden="true">${p.amostra.map(cor => `<span style="background:${cor};"></span>`).join('')}</span>`;
-            criarOpcao(p.id, ativo, amostras, p.nome);
+            criarOpcao(p.id, ativo, amostras, p.nome());
         });
 
         const customAtivo = temaSelecionado.tipo === 'custom';
         const iconePaleta = '<svg class="aparencia-icone-custom" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13.5" cy="6.5" r="1.5"></circle><circle cx="17.5" cy="10.5" r="1.5"></circle><circle cx="8.5" cy="7.5" r="1.5"></circle><circle cx="6.5" cy="12.5" r="1.5"></circle><path d="M12 2a10 10 0 0 0 0 20c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1.1.9-2 2-2h2.4A5.6 5.6 0 0 0 22 10c0-4.4-4.5-8-10-8z"></path></svg>';
-        criarOpcao('custom', customAtivo, iconePaleta, 'Personalizada');
+        criarOpcao('custom', customAtivo, iconePaleta, _t('Personalizada'));
 
         const painelCustom = document.getElementById('temaCustomPainel');
         if (painelCustom) painelCustom.style.display = customAtivo ? 'grid' : 'none';
@@ -6619,10 +6619,10 @@
             <div style="border-radius:12px; padding:16px; background:${vars['--cor-fundo']}; border:1px solid ${vars['--cor-borda-forte']};">
                 <div style="font-size:14px; font-weight:700; color:${vars['--cor-primaria']}; margin-bottom:12px;">${rotulo}</div>
                 <div style="background:${vars['--cor-superficie']}; border:1px solid ${vars['--cor-borda']}; border-radius:10px; padding:12px; display:flex; flex-direction:column; gap:6px;">
-                    <strong style="color:${vars['--cor-primaria']}; font-size:1.05em;">Palavra</strong>
-                    <span style="color:${vars['--cor-texto']}; font-size:0.88em;">tradução de exemplo</span>
-                    <span style="display:inline-block; align-self:flex-start; margin-top:4px; padding:3px 10px; border-radius:999px; font-size:0.75em; font-weight:600; background:${vars['--cor-primaria-light']}; color:${vars['--cor-primaria']};">substantivo</span>
-                    <span style="display:inline-block; align-self:flex-start; padding:3px 10px; border-radius:999px; font-size:0.75em; font-weight:600; background:${vars['--cor-acento-light']}; color:${vars['--cor-acento-forte']};">destaque</span>
+                    <strong style="color:${vars['--cor-primaria']}; font-size:1.05em;">${_t('Palavra')}</strong>
+                    <span style="color:${vars['--cor-texto']}; font-size:0.88em;">${_t('tradução de exemplo')}</span>
+                    <span style="display:inline-block; align-self:flex-start; margin-top:4px; padding:3px 10px; border-radius:999px; font-size:0.75em; font-weight:600; background:${vars['--cor-primaria-light']}; color:${vars['--cor-primaria']};">${_t('substantivo')}</span>
+                    <span style="display:inline-block; align-self:flex-start; padding:3px 10px; border-radius:999px; font-size:0.75em; font-weight:600; background:${vars['--cor-acento-light']}; color:${vars['--cor-acento-forte']};">${_t('destaque')}</span>
                 </div>
             </div>
         `;
@@ -6630,9 +6630,14 @@
 
     function atualizarPreviewTema() {
         const tema = resolverTemaAtual();
-        renderizarPreviewCardTema(document.getElementById('temaPreviewClaro'), tema.light, 'Dicionário');
-        renderizarPreviewCardTema(document.getElementById('temaPreviewEscuro'), tema.dark, 'Dicionário');
+        renderizarPreviewCardTema(document.getElementById('temaPreviewClaro'), tema.light, _t('Dicionário'));
+        renderizarPreviewCardTema(document.getElementById('temaPreviewEscuro'), tema.dark, _t('Dicionário'));
     }
+
+    document.addEventListener('idioma-alterado', () => {
+        renderizarPaletasTema();
+        atualizarPreviewTema();
+    });
 
     function iniciarTemaWizard() {
         carregarTemaPersistido();
