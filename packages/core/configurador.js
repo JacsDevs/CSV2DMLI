@@ -15,7 +15,7 @@ class Configurador {
             return this.config;
         } catch (erro) {
             console.error('❌ Erro ao carregar configurações:', erro);
-            throw new Error(`Não foi possível carregar o arquivo de configuração: ${caminho}`);
+            throw new Error(_t('Não foi possível carregar o arquivo de configuração: {arquivo}', { arquivo: caminho }));
         }
     }
 

@@ -30,7 +30,7 @@ export default class CompiladorPdf {
                 const module = await import(this._resolverCaminho('assets/typst/typst_wrapper.js'));
                 $typst = module.$typst;
             } catch (err) {
-                throw new Error('Arquivo Javascript (typst_wrapper.js) ausente. Verifique se ele está na pasta assets/typst/.');
+                throw new Error(_t('Arquivo Javascript (typst_wrapper.js) ausente. Verifique se ele está na pasta assets/typst/.'));
             }
 
             // 2. Inicializa os WASMs apontando para os binários locais
@@ -44,7 +44,7 @@ export default class CompiladorPdf {
             console.log('✅ Motor Typst WASM inicializado com sucesso.');
         } catch (erro) {
             console.error('❌ Erro ao inicializar compilador PDF:', erro);
-            throw new Error('Falha ao inicializar o motor de PDF. Verifique os caminhos dos arquivos WASM.');
+            throw new Error(_t('Falha ao inicializar o motor de PDF. Verifique os caminhos dos arquivos WASM.'));
         }
     }
 
@@ -166,7 +166,7 @@ export default class CompiladorPdf {
             return new Blob([pdfDados], { type: 'application/pdf' });
         } catch (erro) {
             console.error("Erro profundo na compilação do Typst:", erro);
-            throw new Error(`O compilador Typst falhou: ${erro.message || erro}`);
+            throw new Error(_t('O compilador Typst falhou: {erro}', { erro: erro.message || erro }));
         }
     }
 }

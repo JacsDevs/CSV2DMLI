@@ -35,7 +35,7 @@ export class ExportadorCLDF extends ExportadorBase {
             console.log("Baixando dicionarios Concepticon para o cache offline...");
             // Usar fetch. O Service Worker interceptar e ir armazenar/buscar no cache
             const respConc = await fetch('concepticon-cldf/concepticon.csv');
-            if (!respConc.ok) throw new Error("concepticon.csv no encontrado");
+            if (!respConc.ok) throw new Error(_t("concepticon.csv não encontrado"));
             const textConc = await respConc.text();
             
             const id2Gloss = {};
@@ -50,7 +50,7 @@ export class ExportadorCLDF extends ExportadorBase {
             }
 
             const respGloss = await fetch('concepticon-cldf/glosses.csv');
-            if (!respGloss.ok) throw new Error("glosses.csv no encontrado");
+            if (!respGloss.ok) throw new Error(_t("glosses.csv não encontrado"));
             const textGloss = await respGloss.text();
 
             const pt2Ids = {};

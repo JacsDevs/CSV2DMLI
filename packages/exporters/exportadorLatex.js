@@ -143,8 +143,8 @@ class ExportadorLatex extends ExportadorBase {
     }
 
     exportar(opcoes = {}) {
-        if (!this.db.bancoDados) throw new Error('Banco de dados não gerado');
-        if (!this.templatePrincipal) throw new Error('Template principal LaTeX não carregado');
+        if (!this.db.bancoDados) throw new Error(_t('Banco de dados não gerado'));
+        if (!this.templatePrincipal) throw new Error(_t('Template principal LaTeX não carregado'));
 
         this.imagensUtilizadas.clear();
 

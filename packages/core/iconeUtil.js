@@ -291,24 +291,21 @@ export async function analisarImagem(file) {
     const avisos = [];
     if (maiorLado < ICONE_RESOLUCAO_MINIMA_RECOMENDADA) {
         avisos.push(
-            `Resolução baixa (${largura}×${altura}px) — o recomendado é pelo menos ` +
-            `${ICONE_RESOLUCAO_MINIMA_RECOMENDADA}×${ICONE_RESOLUCAO_MINIMA_RECOMENDADA}px. ` +
-            `O ícone pode ficar borrado, principalmente em telas de alta densidade (xxxhdpi).`
+            _t('Resolução baixa ({largura}×{altura}px) — o recomendado é pelo menos {minimo}×{minimo}px. O ícone pode ficar borrado, principalmente em telas de alta densidade (xxxhdpi).', { largura: String(largura), altura: String(altura), minimo: String(ICONE_RESOLUCAO_MINIMA_RECOMENDADA) })
         );
     } else if (menorLado < ICONE_RESOLUCAO_MINIMA_RECOMENDADA) {
         // Encaixada inteira, o lado maior ocupa os 512px; ao preencher, o lado menor é ampliado
         avisos.push(
-            `Resolução de ${largura}×${altura}px: encaixada inteira fica nítida, mas ao ` +
-            `preencher o quadrado (zoom 100% ou mais) pode ficar borrada.`
+            _t('Resolução de {largura}×{altura}px: encaixada inteira fica nítida, mas ao preencher o quadrado (zoom 100% ou mais) pode ficar borrada.', { largura: String(largura), altura: String(altura) })
         );
     }
     if (Math.abs(proporcao - 1) > 0.01) {
-        avisos.push('A imagem não é quadrada — ajuste o zoom e a posição; as sobras ficam com a cor de fundo.');
+        avisos.push(_t('A imagem não é quadrada — ajuste o zoom e a posição; as sobras ficam com a cor de fundo.'));
     }
 
     const formato = (file.type || '').replace('image/', '').toUpperCase() || 'DESCONHECIDO';
     if (file.type && file.type !== 'image/png') {
-        avisos.push(`Formato ${formato} detectado — PNG é recomendado para ícones (suporta transparência).`);
+        avisos.push(_t('Formato {formato} detectado — PNG é recomendado para ícones (suporta transparência).', { formato }));
     }
 
     bitmap.close?.();

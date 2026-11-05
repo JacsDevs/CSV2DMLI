@@ -45,7 +45,7 @@ export default class ModuloExportacao {
         
         // Precisamos do JSZip
         if (!window.JSZip) {
-            throw new Error('JSZip não carregado.');
+            throw new Error(_t('JSZip não carregado.'));
         }
         
         const zip = new window.JSZip();

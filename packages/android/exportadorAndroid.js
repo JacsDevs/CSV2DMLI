@@ -134,7 +134,7 @@ export class ExportadorAndroid {
             sinal,
         } = opcoes;
 
-        onProgress(5, somenteApk ? 'Carregando template (APK)…' : 'Carregando templates (AAB e APK)…');
+        onProgress(5, somenteApk ? _t('Carregando template (APK)…') : _t('Carregando templates (AAB e APK)…'));
         const nomeTemplate = modelo === 'nativo' ? 'template-nativo' : 'template';
         const templateUrlAab = new URL(`../../vendor/android/${nomeTemplate}.aab`, import.meta.url).href;
         const templateUrlApk = new URL(`../../vendor/android/${nomeTemplate}.apk`, import.meta.url).href;
@@ -145,9 +145,9 @@ export class ExportadorAndroid {
         ]);
 
         if ((templateRespAab && !templateRespAab.ok) || !templateRespApk.ok) {
-            throw new Error(
-                `Template AAB ou APK não encontrado (${nomeTemplate}). Execute "npm run build:android-${nomeTemplate}" para gerar os templates.`
-            );
+            throw Object.assign(new Error(
+                _t('Template AAB ou APK não encontrado ({modelo}). Execute "npm run build:android-{modelo}" para gerar os templates.', { modelo: nomeTemplate })
+            ), { codigo: 'TEMPLATE_AUSENTE' });
         }
 
         const { unzipSync } = await import(new URL('../../vendor/fflate.min.js', import.meta.url).href);
@@ -156,7 +156,7 @@ export class ExportadorAndroid {
         const entradasTemplateApk = unzipSync(new Uint8Array(await templateRespApk.arrayBuffer()));
         verificarCancelamento(sinal);
 
-        onProgress(15, chaveTemporaria ? 'Gerando chave de assinatura temporária…' : 'Carregando chave de assinatura…');
+        onProgress(15, chaveTemporaria ? _t('Gerando chave de assinatura temporária…') : _t('Carregando chave de assinatura…'));
         const { privateKeyPkcs8, certPem, certDer, alias } = chaveTemporaria
             ? await this.gerenteChave.gerarChaveTemporaria({ cn: nomeResponsavel, org: organizacao, pais })
             : await this.gerenteChave.carregarChave(senha);
@@ -195,7 +195,7 @@ export class ExportadorAndroid {
                 const pct = Math.floor(inicio + (fim - inicio) * frac);
                 if (pct === ultimoPct && feito < total) return;
                 ultimoPct = pct;
-                onProgress(pct, `${rotulo} — ${formatarTamanho(Math.min(feito, total))} de ${formatarTamanho(total)}`);
+                onProgress(pct, _t('{etapa} — {feito} de {total}', { etapa: rotulo, feito: formatarTamanho(Math.min(feito, total)), total: formatarTamanho(total) }));
             };
         };
         const cache = new CacheHashes();
@@ -213,9 +213,9 @@ export class ExportadorAndroid {
         let aab = null;
         if (!somenteApk) {
             onProgress(20, usarPacoteMidia
-                ? 'Montando AAB (mídias no pacote de recursos da Play)…'
-                : 'Montando AAB…');
-            const progAab = progressoFaixa(20, 50, 'Gerando e assinando AAB', 2 * conteudoTotal);
+                ? _t('Montando AAB (mídias no pacote de recursos da Play)…')
+                : _t('Montando AAB…'));
+            const progAab = progressoFaixa(20, 50, _t('Gerando e assinando AAB'), 2 * conteudoTotal);
             aab = await montarPacoteAssinado({
                 ...assinatura,
                 entradas: await injector.prepararEntradas(entradasTemplateAab, appInfo, metaInfo, false, { plano, iconesProntos }),
@@ -227,10 +227,10 @@ export class ExportadorAndroid {
 
         // ---- Processar APK ---- (hashes das mídias já estão no cache)
         // Só APK: hash e assinatura são feitos aqui, por isso a faixa é maior
-        onProgress(somenteApk ? 20 : 50, 'Montando APK…');
+        onProgress(somenteApk ? 20 : 50, _t('Montando APK…'));
         const progApk = somenteApk
-            ? progressoFaixa(20, 95, 'Gerando e assinando APK', 2 * conteudoTotal)
-            : progressoFaixa(50, 80, 'Gerando e assinando APK', conteudoTotal);
+            ? progressoFaixa(20, 95, _t('Gerando e assinando APK'), 2 * conteudoTotal)
+            : progressoFaixa(50, 80, _t('Gerando e assinando APK'), conteudoTotal);
         const apk = await montarPacoteAssinado({
             ...assinatura,
             entradas: await injector.prepararEntradas(entradasTemplateApk, appInfo, metaInfo, true, { iconesProntos }),
@@ -242,11 +242,11 @@ export class ExportadorAndroid {
         verificarCancelamento(sinal);
 
         if (somenteApk) {
-            onProgress(100, 'Concluído!');
+            onProgress(100, _t('Concluído!'));
             return { somenteApk: true, apk: nomeApk, blob: apk.blob, tamanhos: { apk: apk.tamanho } };
         }
 
-        onProgress(85, 'Empacotando arquivos…');
+        onProgress(85, _t('Empacotando arquivos…'));
 
         // Backup .p12 da chave própria (a chave temporária é descartável e não é incluída)
         const nomeP12 = chaveTemporaria ? null : nomeArquivoP12(alias);
@@ -290,7 +290,7 @@ export class ExportadorAndroid {
         const blobZip = await montarZipStored(arquivosZip, { sinal });
         verificarCancelamento(sinal);
 
-        onProgress(100, 'Concluído!');
+        onProgress(100, _t('Concluído!'));
         return {
             zip: nomeZip, aab: nomeAab, apk: nomeApk, p12: nomeP12,
             capturas: nomesCapturas, iconeLoja: iconeLoja ? iconeLoja.nome : null,

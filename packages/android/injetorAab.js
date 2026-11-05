@@ -74,8 +74,7 @@ export class InjetorAab {
 
         if (pacotes.length > 0 && !templateTemPacoteMidia(arquivos)) {
             throw new Error(
-                'As mídias precisam de pacotes de recursos da Google Play, mas o template AAB não tem o ' +
-                'pacote-modelo (midia_pack). Atualize vendor/android/template.aab com "npm run build:android-template".'
+                _t('As mídias precisam de pacotes de recursos da Google Play, mas o template AAB não tem o pacote-modelo (midia_pack). Atualize vendor/android/template.aab com "npm run build:android-template".')
             );
         }
         const modeloManifesto = arquivos[MANIFESTO_PACOTE];

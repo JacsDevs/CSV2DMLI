@@ -5289,14 +5289,14 @@
                 tecnico,
             };
         }
-        if (/senha incorreta|invalid password|mac could not be verified/i.test(msg)) {
+        if ((err && err.codigo === 'SENHA_INCORRETA') || /invalid password|mac could not be verified/i.test(msg)) {
             return {
                 explicacao: _t('A senha da chave de assinatura está incorreta.'),
                 acao: _t('Volte ao formulário e digite a senha novamente.'),
                 tecnico,
             };
         }
-        if (/template .* não encontrado/i.test(msg)) {
+        if (err && err.codigo === 'TEMPLATE_AUSENTE') {
             return {
                 explicacao: _t('Os arquivos-base do aplicativo não foram encontrados nesta instalação.'),
                 acao: _t('Atualize ou reinstale o programa. Se o problema continuar, envie os detalhes técnicos ao suporte.'),
@@ -5589,7 +5589,8 @@
             await exp.importarP12(_apkP12Selecionado, senha);
         } catch (e) {
             console.warn('Erro ao importar .p12:', e);
-            const senhaErrada = /password|senha|mac/i.test(e && e.message || '');
+            // Sem código, o erro vem da biblioteca de certificados, sempre em inglês
+            const senhaErrada = e && (e.codigo ? e.codigo === 'SENHA_INCORRETA' || e.codigo === 'SENHA_CURTA' : /password|mac/i.test(e.message || ''));
             if (senhaErrada) apkMarcarCampo('apkFieldKsImportSenha', true, apkMsgSenhaIncorreta());
             else apkMarcarCampo('apkFieldKsArquivo', true, _t('Não foi possível ler a chave: {erro}', { erro: e && e.message ? e.message : e }));
             return;
