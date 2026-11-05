@@ -172,7 +172,7 @@ fun TelaPrincipal(
 
     // Mesma sequência de aplicarFiltrosEBusca() do HTML: salvos, campo, classe e busca sobre as
     // entradas originais; depois, se "Ordenar por tradução", o dicionário invertido
-    val ordenadas = remember(dic) { ordenarPorCategoria(dic.entradas) }
+    val ordenadas = remember(dic) { ordenarPorCategoria(dic.entradas, dic.config.ordemCategorias) }
     val filtradas = remember(ordenadas, estado.aba, estado.busca, salvos.toList(), estado.filtroCampo, estado.filtroClasse, estado.ordenarTraducao) {
         val chave = normalizar(estado.busca.trim())
         val base = ordenadas.filter { e ->
@@ -181,7 +181,7 @@ fun TelaPrincipal(
                 (estado.filtroClasse.isEmpty() || e.classe == estado.filtroClasse) &&
                 (chave.isEmpty() || e.chaveBusca.contains(chave))
         }
-        if (estado.ordenarTraducao) ordenarPorCategoria(inverter(base)) else base
+        if (estado.ordenarTraducao) ordenarPorCategoria(inverter(base), dic.config.ordemCategorias) else base
     }
     SideEffect { estado.sequencia = filtradas }
     val colunas = if (estado.aba == Aba.LISTA) 1 else estado.colunas
@@ -956,8 +956,8 @@ private fun CartaoMidia(modifier: Modifier, conteudo: @Composable () -> Unit) {
 
 // ─── Categorias (.tela-categorias do HTML) ─────────────────────────────────────
 
-/** Árvore de campos e subcampos ("Geral" e vazios não entram), em ordem alfabética por nível. */
-private fun arvoreCategorias(entradas: List<Entrada>): List<Pair<String, Int>> {
+/** Árvore de campos e subcampos ("Geral" e vazios não entram): campos na ordem do gerador, subcampos em ordem alfabética. */
+private fun arvoreCategorias(entradas: List<Entrada>, ordemCategorias: List<String>): List<Pair<String, Int>> {
     class No { val filhos = HashMap<String, No>() }
     val raiz = No()
     entradas.forEach { e ->
@@ -968,7 +968,8 @@ private fun arvoreCategorias(entradas: List<Entrada>): List<Pair<String, Int>> {
     }
     val linhas = ArrayList<Pair<String, Int>>()
     fun percorrer(no: No, nivel: Int) {
-        no.filhos.keys.sortedWith(colador).forEach { nome ->
+        val comparador: Comparator<in String> = if (nivel == 0) comparadorCampos(ordemCategorias) else colador
+        no.filhos.keys.sortedWith(comparador).forEach { nome ->
             linhas.add(nome to nivel)
             percorrer(no.filhos.getValue(nome), nivel + 1)
         }
@@ -980,7 +981,7 @@ private fun arvoreCategorias(entradas: List<Entrada>): List<Pair<String, Int>> {
 @Composable
 private fun TelaCategorias(dic: Dicionario, atual: String, fechar: () -> Unit, escolher: (String) -> Unit) {
     val p = LocalPaleta.current
-    val linhas = remember(dic) { arvoreCategorias(dic.entradas) }
+    val linhas = remember(dic) { arvoreCategorias(dic.entradas, dic.config.ordemCategorias) }
     Column(Modifier.fillMaxSize().background(p.fundo)) {
         Row(
             Modifier.fillMaxWidth().background(p.superficie)

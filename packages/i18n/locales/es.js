@@ -112,7 +112,6 @@ I18N.registrar('es', {
     "Remover": "Quitar",
     "Aparece no cabeçalho, antes do título, em qualquer proporção. Detectado automaticamente se houver <code>logo.png</code> na raiz da pasta; sem ele, usa o <code>icone.png</code>.": "Aparece en el encabezado, antes del título, en cualquier proporción. Se detecta automáticamente si hay un <code>logo.png</code> en la raíz de la carpeta; si no, se usa <code>icone.png</code>.",
     "Referências bibliográficas": "Referencias bibliográficas",
-    "Lista exibida ao final do dicionário, uma referência por linha. Detectada automaticamente se houver <code>referencia.txt</code> na raiz da pasta.": "Lista que se muestra al final del diccionario, una referencia por línea. Se detecta automáticamente si hay un <code>referencia.txt</code> en la raíz de la carpeta.",
     "Nenhuma referência importada": "Ninguna referencia importada",
     "Importar arquivo": "Importar archivo",
     "Introdução": "Introducción",
@@ -980,4 +979,6 @@ I18N.registrar('es', {
     "Versão: {versao}": "Versión: {versao}",
     "Modelo: App nativo (experimental, Android 6 ou mais novo)": "Modelo: Aplicación nativa (experimental, Android 6 o posterior)",
     "Gerado em: {data}": "Generado el: {data}",
+    "Em breve": "Próximamente",
+    "Ainda será implementado: a lista de referências virá de um arquivo <code>.bib</code>.": "Aún no implementado: la lista de referencias vendrá de un archivo <code>.bib</code>.",
 });

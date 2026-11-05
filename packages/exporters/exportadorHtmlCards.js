@@ -1,4 +1,5 @@
 import ExportadorBase from './exportadorBase.js';
+import { montarPartesCitacao } from './dadosApp.js';
 
 class ExportadorHtmlCards extends ExportadorBase {
     constructor(gerenciadorDados) {
@@ -179,7 +180,10 @@ class ExportadorHtmlCards extends ExportadorBase {
         const te = new TextEncoder();
         return new Map([
             ['dados.json', te.encode(JSON.stringify(montarDadosApp(entradas)))],
-            ['config.json', te.encode(JSON.stringify(montarConfigApp(opcoes.metadados || {})))],
+            ['config.json', te.encode(JSON.stringify(montarConfigApp({
+                ...opcoes.metadados,
+                ordemCategorias: this.db.obterOrdemDicionario().categorias,
+            })))],
         ]);
     }
 
@@ -320,13 +324,12 @@ class ExportadorHtmlCards extends ExportadorBase {
             ? `<strong>Autoria e colaboração:</strong> ${meta.autor || ''}<br>\n                   ${versaoAnoLabelHtml}`
             : `<strong>Autoria e colaboração:</strong> ${meta.autor || ''}`;
 
-        const versaoAnoCitacaoHtml = versao && ano
-            ? `Versão ${versao}, ${ano}.`
-            : versao
-                ? `Versão ${versao}.`
-                : ano
-                    ? `${ano}.`
-                    : '';
+        const partesCitacao = montarPartesCitacao(meta);
+        const citacaoHtml = [
+            partesCitacao.autores && `${this.escaparHTML(partesCitacao.autores)}.`,
+            `<strong>${this.escaparHTML(partesCitacao.titulo)}</strong>.`,
+            this.escaparHTML(partesCitacao.complemento)
+        ].filter(Boolean).join(' ');
 
         const linhasReferencias = String(meta.referencia || '').split(/\r?\n/).map(l => l.trim()).filter(Boolean);
         const referenciasHtml = linhasReferencias.length
@@ -338,13 +341,14 @@ class ExportadorHtmlCards extends ExportadorBase {
         const temaOverrideEscuro = this.gerarBlocoTemaCSS(tema && tema.dark, 'html[data-tema="escuro"]');
 
         let html = this.templatePrincipal
+            // A citação vem primeiro: as trocas seguintes consumiriam os marcadores que ela usa
+            .replace(/\{\{\s*metadados\.autor\s*\}\}\.\s*<strong>\{\{\s*metadados\.html\s*\}\}<\/strong>\.\s*Vers[aã]o\s*\{\{\s*metadados\.versao\s*\}\},\s*\{\{\s*metadados\.ano\s*\}\}\./gi, () => citacaoHtml)
             .replace(/\{\{\s*metadados\.html\s*\}\}/gi, meta.tituloHtml || 'Dicionário')
             .replace(/\{\{\s*metadados\.icone_html\s*(\|\s*safe)?\s*\}\}/gi, iconeHtml)
             .replace(/\{\{\s*metadados\.pdf\s*\}\}/gi, meta.tituloPdf || 'Dicionário')
             .replace(/\{\{\s*metadados\.autor\s*\}\}\s*&bull;\s*Vers[aã]o\s*\{\{\s*metadados\.versao\s*\}\}\s*\(\{\{\s*metadados\.ano\s*\}\}\)/gi, subtitleComAutorHtml)
             .replace(/Vers[aã]o\s*\{\{\s*metadados\.versao\s*\}\}\s*\(\{\{\s*metadados\.ano\s*\}\}\)/gi, versaoAnoHtml)
             .replace(/<strong>Autoria e colabora[cç][aã]o:<\/strong>\s*\{\{\s*metadados\.autor\s*\}\}<br>\s*<strong>Vers[aã]o:<\/strong>\s*\{\{\s*metadados\.versao\s*\}\}\s*&bull;\s*<strong>Ano:<\/strong>\s*\{\{\s*metadados\.ano\s*\}\}/gi, autorLinhaHtml)
-            .replace(/Vers[aã]o\s*\{\{\s*metadados\.versao\s*\}\},\s*\{\{\s*metadados\.ano\s*\}\}\./gi, versaoAnoCitacaoHtml)
             .replace(/\{\{\s*metadados\.autor\s*\}\}/gi, meta.autor || '')
             .replace(/\{\{\s*metadados\.versao\s*\}\}/gi, versao)
             .replace(/\{\{\s*metadados\.ano\s*\}\}/gi, ano)

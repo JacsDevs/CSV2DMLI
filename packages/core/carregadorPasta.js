@@ -1,5 +1,54 @@
 import { LeitorCLDF } from './leitorCLDF.js';
 import { processarLogo } from './iconeUtil.js';
+
+const normalizarChave = (texto) => texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+const separarNomes = (valor) => valor.split(',').map(n => n.trim()).filter(Boolean);
+
+/**
+ * Interpreta o configuracao.txt ("Chave=valor", com "#" nas linhas de comentário).
+ * Maiúsculas e acentos nos nomes das chaves não importam; chaves desconhecidas são ignoradas.
+ * Só funções puras: sem DOM, para poder ser testado em Node.
+ */
+export function interpretarConfiguracaoTxt(conteudo) {
+    const config = { metadados: {}, organizacao: {}, publicacao: {} };
+    const citacao = {};
+    const definir = {
+        'titulo-html': v => { config.metadados.html = v; },
+        'titulo-pdf': v => { config.metadados.pdf = v; },
+        'autor(es)': v => { config.metadados.autor = v; },
+        'ano': v => { config.metadados.ano = v; },
+        'versao': v => { config.metadados.versao = v; },
+        'citacao-autores': v => { citacao.autores = v; },
+        'citacao-local': v => { citacao.local = v; },
+        'citacao-editor': v => { citacao.editor = v; },
+        'citacao-link': v => { citacao.link = v; },
+        // Sem lista (vazio ou "padrao"), vale a ordem alfabética das categorias
+        'ordem das categorias': v => {
+            if (v && normalizarChave(v) !== 'padrao') config.organizacao.ordemCategorias = separarNomes(v);
+        },
+        // Sem lista (vazio ou "todas"), todas as categorias ficam em ordem alfabética
+        'entradas em ordem alfabetica': v => {
+            if (v && normalizarChave(v) !== 'todas') config.organizacao.entradasAlfabeticas = separarNomes(v);
+        },
+        'alfabeto': v => { if (v) config.organizacao.alfabeto = v; },
+        'embutir midias no html': v => {
+            const opcao = normalizarChave(v);
+            if (opcao === 'sim' || opcao === 'nao') config.publicacao.embutirMidias = opcao === 'sim';
+            else if (opcao) console.warn(`⚠️ configuracao.txt: "Embutir midias no HTML" deve ser "sim" ou "nao" (recebido: "${v}").`);
+        },
+    };
+
+    conteudo.split('\n').forEach(linha => {
+        const linhaTrim = linha.trim();
+        const idx = linhaTrim.indexOf('=');
+        if (linhaTrim.startsWith('#') || idx < 0) return;
+        definir[normalizarChave(linhaTrim.substring(0, idx))]?.(linhaTrim.substring(idx + 1).trim());
+    });
+
+    if (Object.keys(citacao).length > 0) config.metadados.citacao = citacao;
+    return config;
+}
+
 // ============================================
 // CARREGADOR DE PASTA
 // LÊ UMA PASTA DE TRABALHO COMPLETA
@@ -29,9 +78,7 @@ class CarregadorPasta {
             textosExtra: {
                 introHtml: null,
                 introPdf: null,
-                referencia: null,
-                alfabeto: null,
-                configTxt: null
+                alfabeto: null
             },
             audio: [],
             imagem: [],
@@ -127,22 +174,15 @@ class CarregadorPasta {
             this.arquivosEncontrados.textosExtra.introPdf = organizados.textosExtra.introPdf;
             this._atualizarUI('introPdfDropZone');
         }
-        if (organizados.textosExtra.referencia) {
-            await this._carregarTextoGenerico(organizados.textosExtra.referencia, conteudo => this.gerenciador.setReferencia(conteudo));
-            this.arquivosEncontrados.textosExtra.referencia = organizados.textosExtra.referencia;
-            this._atualizarUI('referenciaDropZone');
-        }
         if (organizados.textosExtra.alfabeto) {
             await this._carregarTextoGenerico(organizados.textosExtra.alfabeto, conteudo => this.gerenciador.setAlfabetoCustomizado(conteudo));
             this.arquivosEncontrados.textosExtra.alfabeto = organizados.textosExtra.alfabeto;
             this._atualizarUI('alfabetoDropZone');
         }
-        if (organizados.textosExtra.configTxt) {
-            await this._carregarConfiguracaoTXT(organizados.textosExtra.configTxt);
-            this.arquivosEncontrados.textosExtra.configTxt = organizados.textosExtra.configTxt;
-            this._atualizarUI('configFullDropZone');
-        }
-        
+        // A chave "Alfabeto" do configuracao.txt prevalece sobre o alfabeto.txt
+        const alfabetoDaConfig = organizados.configuracao && this.configurador.getConfig().organizacao?.alfabeto;
+        if (alfabetoDaConfig) this.gerenciador.setAlfabetoCustomizado(alfabetoDaConfig);
+
         // 5. Carregar mídias (áudio, imagem, video)
         const todasMidias = [
             ...organizados.audio,
@@ -191,9 +231,7 @@ class CarregadorPasta {
             textosExtra: {
                 introHtml: null,
                 introPdf: null,
-                referencia: null,
-                alfabeto: null,
-                configTxt: null
+                alfabeto: null
             },
             audio: [],
             imagem: [],
@@ -325,10 +363,6 @@ class CarregadorPasta {
                 resultado.textosExtra.introHtml = arquivo;
                 console.log(`📄 Arquivo com texto de introdução (Markdown) encontrado: ${nomeArquivo}`);
             }
-            else if (estaNaRaiz && nomeArquivo.toLowerCase() === 'referencia.txt') {
-                resultado.textosExtra.referencia = arquivo;
-                console.log(`📄 Arquivo de referência bibliográfica encontrado: ${nomeArquivo}`);
-            }
             else if (estaNaRaiz && nomeArquivo.toLowerCase() === 'alfabeto.txt') {
                 resultado.textosExtra.alfabeto = arquivo;
                 console.log(`📄 Arquivo de alfabeto encontrado: ${nomeArquivo}`);
@@ -386,31 +420,9 @@ class CarregadorPasta {
     async _carregarConfiguracaoLocal(arquivo) {
         try {
             const conteudo = await this._lerArquivoComoTexto(arquivo);
-            let configLocal = {};
-
-            // Verifica se é o formato TXT antigo ou JSON novo
-            if (arquivo.name.toLowerCase().endsWith('.txt')) {
-                console.log('🔄 Lendo arquivo de configuração (.txt)...');
-                configLocal.metadados = {};
-                
-                const linhas = conteudo.split('\n');
-                linhas.forEach(linha => {
-                    const linhaTrim = linha.trim();
-                    if (!linhaTrim.startsWith('#') && linhaTrim.includes('=')) {
-                        const idx = linhaTrim.indexOf('=');
-                        const chave = linhaTrim.substring(0, idx).trim();
-                        const valor = linhaTrim.substring(idx + 1).trim();
-                        
-                        if (chave === 'Titulo-html') configLocal.metadados.html = valor;
-                        if (chave === 'Titulo-pdf') configLocal.metadados.pdf = valor;
-                        if (chave === 'Autor(es)') configLocal.metadados.autor = valor;
-                        if (chave === 'Ano') configLocal.metadados.ano = valor;
-                        if (chave === 'Versão') configLocal.metadados.versao = valor;
-                    }
-                });
-            } else {
-                configLocal = JSON.parse(conteudo);
-            }
+            const configLocal = arquivo.name.toLowerCase().endsWith('.txt')
+                ? interpretarConfiguracaoTxt(conteudo)
+                : JSON.parse(conteudo);
 
             if (this.configurador.mesclarConfigLocal) {
                 this.configurador.mesclarConfigLocal(configLocal);
@@ -441,41 +453,6 @@ class CarregadorPasta {
             callback(texto);
         } catch (erro) {
             console.error(`❌ Erro ao ler ${arquivo.name}:`, erro);
-        }
-    }
-
-    async _carregarConfiguracaoTXT(arquivo) {
-        try {
-            const texto = await this._lerArquivoComoTexto(arquivo);
-            const linhas = texto.split('\n');
-            const mapConfig = {};
-            
-            linhas.forEach(linha => {
-                const parts = linha.split('=');
-                if (parts.length >= 2) {
-                    const chave = parts[0].trim();
-                    const valor = parts.slice(1).join('=').trim();
-                    mapConfig[chave] = valor;
-                    
-                    // Simular comportamento de UI antigo, se aplicável
-                    if (chave === 'Midias_inclusas') {
-                        const el = document.getElementById('swMidia');
-                        if (el) el.checked = (valor === '1');
-                    }
-                    if (chave === 'Alterar ordem dos campos') {
-                        const el = document.getElementById('swSemantic');
-                        if (el) el.checked = (valor === '1');
-                    }
-                    if (chave === 'Manter a ordem alfabética') {
-                        const el = document.getElementById('swAlpha');
-                        if (el) el.checked = (valor === '2');
-                    }
-                }
-            });
-            this.gerenciador.setConfiguracaoTextoLocal(mapConfig);
-            console.log('⚙️ Configuracao.txt lido com sucesso.');
-        } catch (erro) {
-            console.error('❌ Erro ao ler configuracao.txt:', erro);
         }
     }
 
