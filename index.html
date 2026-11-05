@@ -1122,7 +1122,7 @@
                                     </label>
                                     <div class="campo estrutura-alfabeto-letras" id="alfabetoLetrasCampo" hidden>
                                         <label class="campo-rotulo" for="alfabetoLetras" data-i18n>Letras, em ordem, separadas por vírgula</label>
-                                        <textarea id="alfabetoLetras" class="campo-entrada mono" rows="3" placeholder="Ex.: a, b, ch, d, e, …" oninput="window.aplicarAlfabeto()"></textarea>
+                                        <textarea id="alfabetoLetras" class="campo-entrada mono" rows="3" data-i18n-attr="placeholder" placeholder="Ex.: a, b, ch, d, e, …" oninput="window.aplicarAlfabeto()"></textarea>
                                         <button type="button" class="btn-secundario btn-compacto" onclick="document.getElementById('inputAlfabeto').click()" data-i18n>Importar de arquivo</button>
                                         <input type="file" id="inputAlfabeto" accept=".txt,text/plain" hidden onchange="window.importarAlfabeto(this.files[0])">
                                     </div>
@@ -1728,10 +1728,10 @@
     <!-- Cabeçalho -->
     <div class="apk-wizard-header">
       <div>
-        <h2 id="apkTituloModal">Gerar aplicativo Android</h2>
-        <div class="apk-wizard-subtitulo">Transforme seu dicionário em um app para celular.</div>
+        <h2 id="apkTituloModal" data-i18n>Gerar aplicativo Android</h2>
+        <div class="apk-wizard-subtitulo" data-i18n>Transforme seu dicionário em um app para celular.</div>
       </div>
-      <button type="button" class="apk-btn-icone" onclick="fecharModalAndroid()" aria-label="Fechar">
+      <button type="button" class="apk-btn-icone" onclick="fecharModalAndroid()" aria-label="Fechar" data-i18n-attr="aria-label">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
       </button>
     </div>
@@ -1741,52 +1741,52 @@
 
       <!-- Coluna esquerda: formulário -->
       <div class="apk-form-col" id="apkFormCol">
-        <button type="button" class="btn apk-preview-toggle-btn" onclick="apkTogglePreviewMobile(true)">Visualizar prévia</button>
+        <button type="button" class="btn apk-preview-toggle-btn" onclick="apkTogglePreviewMobile(true)" data-i18n>Visualizar prévia</button>
 
         <div id="apkFormulario" class="apk-formulario">
 
           <!-- Objetivo: testar no celular (só APK, chave temporária) ou publicar (AAB + APK, chave própria) -->
           <fieldset class="apk-fieldset">
-            <legend class="apk-legend-grande">O que você quer fazer?</legend>
+            <legend class="apk-legend-grande" data-i18n>O que você quer fazer?</legend>
             <div class="apk-opcoes-2">
               <label class="apk-opcao">
                 <input type="radio" name="apkObjetivo" value="testar" onchange="apkAtualizarObjetivo()">
-                <span><b>Testar no meu celular</b><span class="apk-opcao-desc">Gera um arquivo para instalar direto no aparelho. Não precisa de chave de assinatura.</span></span>
+                <span><b data-i18n>Testar no meu celular</b><span class="apk-opcao-desc" data-i18n>Gera um arquivo para instalar direto no aparelho. Não precisa de chave de assinatura.</span></span>
               </label>
               <label class="apk-opcao">
                 <input type="radio" name="apkObjetivo" value="publicar" checked onchange="apkAtualizarObjetivo()">
-                <span><b>Publicar na Google Play</b><span class="apk-opcao-desc">Gera os arquivos para a loja e para instalação direta. Exige uma chave de assinatura.</span></span>
+                <span><b data-i18n>Publicar na Google Play</b><span class="apk-opcao-desc" data-i18n>Gera os arquivos para a loja e para instalação direta. Exige uma chave de assinatura.</span></span>
               </label>
             </div>
           </fieldset>
 
           <!-- Seção: Seu aplicativo -->
           <section class="apk-form-section">
-            <h3 class="apk-secao-titulo"><span class="apk-secao-num">1</span>Seu aplicativo</h3>
+            <h3 class="apk-secao-titulo" data-i18n><span class="apk-secao-num">1</span>Seu aplicativo</h3>
             <div class="apk-app-grid">
               <div class="apk-field">
-                <span class="apk-label" id="apkIconeRotulo">Ícone do app</span>
+                <span class="apk-label" id="apkIconeRotulo" data-i18n>Ícone do app</span>
                 <button type="button" class="apk-icon-picker" id="apkIconPicker" onclick="apkEscolherIcone()" aria-labelledby="apkIconeRotulo apkIconeDica">
                   <img id="apkIconPreview" alt="" style="display:none;">
-                  <span id="apkIconPlaceholder" class="apk-icon-placeholder">
+                  <span id="apkIconPlaceholder" class="apk-icon-placeholder" data-i18n>
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"></rect><circle cx="9" cy="9" r="2"></circle><path d="M21 15l-5-5L5 21"></path></svg>Escolher
                   </span>
                 </button>
-                <small id="apkIconeDica">Quadrado, 512×512. Celular e Play Store (o logo do cabeçalho fica nos Metadados)</small>
-                <button type="button" class="apk-btn-link" id="apkIconeUsarLogo" style="display:none" onclick="apkIconeUsarLogo()">Usar o logo do projeto</button>
+                <small id="apkIconeDica" data-i18n>Quadrado, 512×512. Celular e Play Store (o logo do cabeçalho fica nos Metadados)</small>
+                <button type="button" class="apk-btn-link" id="apkIconeUsarLogo" style="display:none" onclick="apkIconeUsarLogo()" data-i18n>Usar o logo do projeto</button>
                 <input type="file" id="apkIconeInput" accept="image/*" style="display:none" onchange="apkPreviewIcone(this)">
               </div>
               <div class="apk-campos">
                 <div class="apk-field" id="apkFieldNomeApp">
-                  <label for="apkNomeApp">Nome do aplicativo</label>
-                  <input id="apkNomeApp" type="text" placeholder="Ex: Dicionário Mebêngôkre" aria-describedby="apkNomeAppDica" oninput="apkAtualizarPackageName(); apkAgendarPreviewLeve(); apkLimparErroCampo(this)">
-                  <small id="apkNomeAppDica">É o nome que aparece embaixo do ícone no celular e na loja.</small>
-                  <div class="apk-field-error" role="alert">Informe o nome do aplicativo.</div>
+                  <label for="apkNomeApp" data-i18n>Nome do aplicativo</label>
+                  <input id="apkNomeApp" type="text" placeholder="Ex: Dicionário Mebêngôkre" aria-describedby="apkNomeAppDica" oninput="apkAtualizarPackageName(); apkAgendarPreviewLeve(); apkLimparErroCampo(this)" data-i18n-attr="placeholder">
+                  <small id="apkNomeAppDica" data-i18n>É o nome que aparece embaixo do ícone no celular e na loja.</small>
+                  <div class="apk-field-error" role="alert" data-i18n>Informe o nome do aplicativo.</div>
                 </div>
                 <div class="apk-field apk-field-curto">
-                  <label for="apkVersao">Versão</label>
+                  <label for="apkVersao" data-i18n>Versão</label>
                   <input id="apkVersao" type="text" value="1.0.0" placeholder="1.0.0" aria-describedby="apkVersaoDica">
-                  <small id="apkVersaoDica">Aumente a cada atualização enviada à loja.</small>
+                  <small id="apkVersaoDica" data-i18n>Aumente a cada atualização enviada à loja.</small>
                 </div>
               </div>
             </div>
@@ -1794,17 +1794,17 @@
 
           <!-- Seção: Conteúdo -->
           <section class="apk-form-section">
-            <h3 class="apk-secao-titulo"><span class="apk-secao-num">2</span>Conteúdo</h3>
+            <h3 class="apk-secao-titulo" data-i18n><span class="apk-secao-num">2</span>Conteúdo</h3>
             <fieldset class="apk-fieldset">
-              <legend>De onde vem o dicionário?</legend>
-              <label class="apk-radio-linha"><input type="radio" name="apkOrigem" id="apkSwUsarProjeto" value="projeto" checked onchange="apkAtualizarFonteHtml()">Do projeto aberto agora <span class="apk-texto-suave" id="apkOrigemProjetoDetalhe"></span></label>
-              <label class="apk-radio-linha"><input type="radio" name="apkOrigem" id="apkOrigemPronto" value="pronto" onchange="apkAtualizarFonteHtml()">De um HTML ou pasta já exportados</label>
+              <legend data-i18n>De onde vem o dicionário?</legend>
+              <label class="apk-radio-linha" data-i18n><input type="radio" name="apkOrigem" id="apkSwUsarProjeto" value="projeto" checked onchange="apkAtualizarFonteHtml()">Do projeto aberto agora <span class="apk-texto-suave" id="apkOrigemProjetoDetalhe"></span></label>
+              <label class="apk-radio-linha" data-i18n><input type="radio" name="apkOrigem" id="apkOrigemPronto" value="pronto" onchange="apkAtualizarFonteHtml()">De um HTML ou pasta já exportados</label>
             </fieldset>
 
             <div id="apkHtmlProntoFields" class="apk-field" style="display:none;">
               <div class="apk-dropzone" id="apkHtmlProntoPicker">
                 <div id="apkHtmlProntoPlaceholder" class="apk-dropzone-texto">
-                  <span>Arraste um arquivo <b>.html</b> ou uma <b>pasta</b> com o html e as mídias<br><small>O html pode ter as mídias embutidas, ou vir junto com pastas audio/imagem/video</small></span>
+                  <span data-i18n="html">Arraste um arquivo <b>.html</b> ou uma <b>pasta</b> com o html e as mídias<br><small>O html pode ter as mídias embutidas, ou vir junto com pastas audio/imagem/video</small></span>
                 </div>
                 <div id="apkHtmlProntoSelecionado" class="apk-dropzone-selecionado" style="display:none;">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--apk-sucesso)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><path d="M14 3v6h6M9 15l2 2 4-4"></path></svg>
@@ -1814,25 +1814,25 @@
                   </div>
                 </div>
                 <div class="apk-acoes">
-                  <button type="button" class="apk-btn apk-btn-secundario apk-btn-pequeno" onclick="document.getElementById('apkHtmlProntoInputArquivo').click()">Selecionar arquivo .html</button>
-                  <button type="button" class="apk-btn apk-btn-secundario apk-btn-pequeno" onclick="document.getElementById('apkHtmlProntoInputPasta').click()">Selecionar pasta</button>
+                  <button type="button" class="apk-btn apk-btn-secundario apk-btn-pequeno" onclick="document.getElementById('apkHtmlProntoInputArquivo').click()" data-i18n>Selecionar arquivo .html</button>
+                  <button type="button" class="apk-btn apk-btn-secundario apk-btn-pequeno" onclick="document.getElementById('apkHtmlProntoInputPasta').click()" data-i18n>Selecionar pasta</button>
                 </div>
               </div>
-              <div class="apk-field-error" role="alert">Selecione um arquivo .html ou uma pasta com o conteúdo pronto.</div>
+              <div class="apk-field-error" role="alert" data-i18n>Selecione um arquivo .html ou uma pasta com o conteúdo pronto.</div>
               <input type="file" id="apkHtmlProntoInputArquivo" accept=".html" style="display:none" onchange="apkProcessarArquivosHtmlPronto(this.files)">
               <input type="file" id="apkHtmlProntoInputPasta" webkitdirectory style="display:none" onchange="apkProcessarArquivosHtmlPronto(this.files)">
             </div>
 
             <fieldset class="apk-fieldset">
-              <legend>Tipo de aplicativo</legend>
+              <legend data-i18n>Tipo de aplicativo</legend>
               <div class="apk-opcoes-2">
                 <label class="apk-opcao apk-opcao-compacta">
                   <input type="radio" name="apkModelo" value="html" checked onchange="apkAtualizarModelo()">
-                  <span><b>Padrão <span class="apk-selo">Recomendado</span></b><span class="apk-opcao-desc">Igual ao dicionário exportado. Funciona com seus templates.</span></span>
+                  <span><b data-i18n>Padrão <span class="apk-selo" data-i18n>Recomendado</span></b><span class="apk-opcao-desc" data-i18n>Igual ao dicionário exportado. Funciona com seus templates.</span></span>
                 </label>
                 <label class="apk-opcao apk-opcao-compacta">
                   <input type="radio" name="apkModelo" value="nativo" onchange="apkAtualizarModelo()">
-                  <span><b>Nativo <span class="apk-selo apk-selo-teste">Em teste</span></b><span class="apk-opcao-desc">Telas próprias do Android (6 ou mais novo). Só com o projeto aberto, sem templates.</span></span>
+                  <span><b data-i18n>Nativo <span class="apk-selo apk-selo-teste" data-i18n>Em teste</span></b><span class="apk-opcao-desc" data-i18n>Telas próprias do Android (6 ou mais novo). Só com o projeto aberto, sem templates.</span></span>
                 </label>
               </div>
             </fieldset>
@@ -1843,7 +1843,7 @@
 
           <!-- Seção: Chave de assinatura (só ao publicar) -->
           <section class="apk-form-section" id="apkKsBrowserSection">
-            <h3 class="apk-secao-titulo"><span class="apk-secao-num">3</span>Chave de assinatura</h3>
+            <h3 class="apk-secao-titulo" data-i18n><span class="apk-secao-num">3</span>Chave de assinatura</h3>
 
             <!-- Estado: chave salva neste computador -->
             <div id="apkKsBrHasKey" class="apk-campos" style="display:none;">
@@ -1855,33 +1855,33 @@
                 </div>
               </div>
               <div class="apk-field" id="apkFieldKsSenha">
-                <label for="apkKsBrSenha">Senha da chave</label>
+                <label for="apkKsBrSenha" data-i18n>Senha da chave</label>
                 <input id="apkKsBrSenha" type="password" autocomplete="current-password" aria-describedby="apkKsBrSenhaDica" oninput="apkLimparErroCampo(this)">
-                <small id="apkKsBrSenhaDica">A senha que você criou junto com a chave.</small>
-                <div class="apk-field-error" role="alert">Informe a senha da chave.</div>
+                <small id="apkKsBrSenhaDica" data-i18n>A senha que você criou junto com a chave.</small>
+                <div class="apk-field-error" role="alert" data-i18n>Informe a senha da chave.</div>
               </div>
               <div class="apk-acoes">
-                <button type="button" class="apk-btn apk-btn-secundario" id="apkBtnBackupChave" onclick="apkKsBrBaixarBackup()">
+                <button type="button" class="apk-btn apk-btn-secundario" id="apkBtnBackupChave" onclick="apkKsBrBaixarBackup()" data-i18n>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg>Baixar cópia de segurança
                 </button>
-                <button type="button" class="apk-btn-link" onclick="apkKsBrAbrirTroca()">Usar outra chave…</button>
+                <button type="button" class="apk-btn-link" onclick="apkKsBrAbrirTroca()" data-i18n>Usar outra chave…</button>
               </div>
               <div class="apk-texto-suave" id="apkBackupStatus" role="status"></div>
             </div>
 
             <!-- Estado: nenhuma chave salva -->
             <div id="apkKsBrNoKey" class="apk-campos">
-              <p class="apk-secao-desc">A chave prova à Google Play que o app é seu. Use sempre a mesma: é ela que permite publicar atualizações.</p>
+              <p class="apk-secao-desc" data-i18n>A chave prova à Google Play que o app é seu. Use sempre a mesma: é ela que permite publicar atualizações.</p>
               <fieldset class="apk-fieldset">
-                <legend>Este app já foi publicado antes?</legend>
+                <legend data-i18n>Este app já foi publicado antes?</legend>
                 <div class="apk-opcoes-2">
                   <label class="apk-opcao apk-opcao-compacta">
                     <input type="radio" name="apkKsOrigem" value="nova" checked onchange="apkKsBrAtualizarOrigem()">
-                    <span><b>Não, é a primeira vez</b><span class="apk-opcao-desc">Vamos criar uma chave nova.</span></span>
+                    <span><b data-i18n>Não, é a primeira vez</b><span class="apk-opcao-desc" data-i18n>Vamos criar uma chave nova.</span></span>
                   </label>
                   <label class="apk-opcao apk-opcao-compacta">
                     <input type="radio" name="apkKsOrigem" value="importar" onchange="apkKsBrAtualizarOrigem()">
-                    <span><b>Sim, já tenho uma chave</b><span class="apk-opcao-desc">Importe o arquivo .p12 usado antes.</span></span>
+                    <span><b data-i18n>Sim, já tenho uma chave</b><span class="apk-opcao-desc" data-i18n>Importe o arquivo .p12 usado antes.</span></span>
                   </label>
                 </div>
               </fieldset>
@@ -1890,96 +1890,96 @@
               <div id="apkKsBrFormCriar" class="apk-painel">
                 <div class="apk-grid-2">
                   <div class="apk-field" id="apkFieldNomeResponsavel">
-                    <label for="apkNomeResponsavel">Nome do responsável</label>
-                    <input id="apkNomeResponsavel" type="text" placeholder="Ex: Maria Souza" autocomplete="name" oninput="apkLimparErroCampo(this)">
-                    <div class="apk-field-error" role="alert">Informe o nome do responsável.</div>
+                    <label for="apkNomeResponsavel" data-i18n>Nome do responsável</label>
+                    <input id="apkNomeResponsavel" type="text" placeholder="Ex: Maria Souza" autocomplete="name" oninput="apkLimparErroCampo(this)" data-i18n-attr="placeholder">
+                    <div class="apk-field-error" role="alert" data-i18n>Informe o nome do responsável.</div>
                   </div>
                   <div class="apk-field" id="apkFieldOrganizacao">
-                    <label for="apkOrganizacao">Organização</label>
-                    <input id="apkOrganizacao" type="text" placeholder="Ex: Museu Goeldi" autocomplete="organization" oninput="apkAtualizarPackageName(); apkLimparErroCampo(this)">
-                    <div class="apk-field-error" role="alert">Informe a organização.</div>
+                    <label for="apkOrganizacao" data-i18n>Organização</label>
+                    <input id="apkOrganizacao" type="text" placeholder="Ex: Museu Goeldi" autocomplete="organization" oninput="apkAtualizarPackageName(); apkLimparErroCampo(this)" data-i18n-attr="placeholder">
+                    <div class="apk-field-error" role="alert" data-i18n>Informe a organização.</div>
                   </div>
                 </div>
                 <div class="apk-grid-local">
                   <div class="apk-field">
-                    <label for="apkCidade">Cidade <span class="apk-opcional">(opcional)</span></label>
-                    <input id="apkCidade" type="text" placeholder="Ex: Belém" autocomplete="address-level2">
+                    <label for="apkCidade" data-i18n>Cidade <span class="apk-opcional" data-i18n>(opcional)</span></label>
+                    <input id="apkCidade" type="text" placeholder="Ex: Belém" autocomplete="address-level2" data-i18n-attr="placeholder">
                   </div>
                   <div class="apk-field">
-                    <label for="apkEstado">Estado <span class="apk-opcional">(opc.)</span></label>
-                    <input id="apkEstado" type="text" placeholder="PA" autocomplete="address-level1">
+                    <label for="apkEstado" data-i18n>Estado <span class="apk-opcional" data-i18n>(opc.)</span></label>
+                    <input id="apkEstado" type="text" placeholder="PA" autocomplete="address-level1" data-i18n-attr="placeholder">
                   </div>
                   <div class="apk-field">
-                    <label for="apkPais">País</label>
+                    <label for="apkPais" data-i18n>País</label>
                     <select id="apkPais" autocomplete="country">
-                      <option value="BR" selected>Brasil</option>
-                      <option value="PT">Portugal</option>
-                      <option value="AO">Angola</option>
-                      <option value="MZ">Moçambique</option>
-                      <option value="CV">Cabo Verde</option>
-                      <option value="GW">Guiné-Bissau</option>
-                      <option value="ST">São Tomé e Príncipe</option>
-                      <option value="TL">Timor-Leste</option>
-                      <option value="AR">Argentina</option>
-                      <option value="BO">Bolívia</option>
-                      <option value="CL">Chile</option>
-                      <option value="CO">Colômbia</option>
-                      <option value="EC">Equador</option>
-                      <option value="GF">Guiana Francesa</option>
-                      <option value="GY">Guiana</option>
-                      <option value="MX">México</option>
-                      <option value="PY">Paraguai</option>
-                      <option value="PE">Peru</option>
-                      <option value="SR">Suriname</option>
-                      <option value="UY">Uruguai</option>
-                      <option value="VE">Venezuela</option>
-                      <option value="US">Estados Unidos</option>
-                      <option value="CA">Canadá</option>
-                      <option value="ES">Espanha</option>
-                      <option value="FR">França</option>
-                      <option value="DE">Alemanha</option>
-                      <option value="NL">Países Baixos</option>
-                      <option value="GB">Reino Unido</option>
+                      <option value="BR" selected data-i18n>Brasil</option>
+                      <option value="PT" data-i18n>Portugal</option>
+                      <option value="AO" data-i18n>Angola</option>
+                      <option value="MZ" data-i18n>Moçambique</option>
+                      <option value="CV" data-i18n>Cabo Verde</option>
+                      <option value="GW" data-i18n>Guiné-Bissau</option>
+                      <option value="ST" data-i18n>São Tomé e Príncipe</option>
+                      <option value="TL" data-i18n>Timor-Leste</option>
+                      <option value="AR" data-i18n>Argentina</option>
+                      <option value="BO" data-i18n>Bolívia</option>
+                      <option value="CL" data-i18n>Chile</option>
+                      <option value="CO" data-i18n>Colômbia</option>
+                      <option value="EC" data-i18n>Equador</option>
+                      <option value="GF" data-i18n>Guiana Francesa</option>
+                      <option value="GY" data-i18n>Guiana</option>
+                      <option value="MX" data-i18n>México</option>
+                      <option value="PY" data-i18n>Paraguai</option>
+                      <option value="PE" data-i18n>Peru</option>
+                      <option value="SR" data-i18n>Suriname</option>
+                      <option value="UY" data-i18n>Uruguai</option>
+                      <option value="VE" data-i18n>Venezuela</option>
+                      <option value="US" data-i18n>Estados Unidos</option>
+                      <option value="CA" data-i18n>Canadá</option>
+                      <option value="ES" data-i18n>Espanha</option>
+                      <option value="FR" data-i18n>França</option>
+                      <option value="DE" data-i18n>Alemanha</option>
+                      <option value="NL" data-i18n>Países Baixos</option>
+                      <option value="GB" data-i18n>Reino Unido</option>
                     </select>
                   </div>
                 </div>
                 <div class="apk-grid-2">
                   <div class="apk-field" id="apkFieldKsNovaSenha">
-                    <label for="apkKsBrNovaSenha">Crie uma senha</label>
+                    <label for="apkKsBrNovaSenha" data-i18n>Crie uma senha</label>
                     <input id="apkKsBrNovaSenha" type="password" autocomplete="new-password" aria-describedby="apkKsBrNovaSenhaDica" oninput="apkLimparErroCampo(this)">
-                    <small id="apkKsBrNovaSenhaDica">Mínimo de 6 caracteres. Anote em local seguro.</small>
-                    <div class="apk-field-error" role="alert">A senha precisa ter pelo menos 6 caracteres.</div>
+                    <small id="apkKsBrNovaSenhaDica" data-i18n>Mínimo de 6 caracteres. Anote em local seguro.</small>
+                    <div class="apk-field-error" role="alert" data-i18n>A senha precisa ter pelo menos 6 caracteres.</div>
                   </div>
                   <div class="apk-field" id="apkFieldKsNovaSenhaConfirm">
-                    <label for="apkKsBrNovaSenhaConfirm">Repita a senha</label>
+                    <label for="apkKsBrNovaSenhaConfirm" data-i18n>Repita a senha</label>
                     <input id="apkKsBrNovaSenhaConfirm" type="password" autocomplete="new-password" oninput="apkLimparErroCampo(this)">
-                    <div class="apk-field-error" role="alert">As senhas não são iguais.</div>
+                    <div class="apk-field-error" role="alert" data-i18n>As senhas não são iguais.</div>
                   </div>
                 </div>
                 <div class="apk-aviso apk-aviso-atencao">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l10 18H2z"></path><path d="M12 10v5M12 18v.5"></path></svg>
-                  <span><b>Guarde a chave e a senha.</b> Uma cópia da chave vai junto no zip gerado. Se ela for perdida, não será possível atualizar o app na Google Play.</span>
+                  <span data-i18n="html"><b>Guarde a chave e a senha.</b> Uma cópia da chave vai junto no zip gerado. Se ela for perdida, não será possível atualizar o app na Google Play.</span>
                 </div>
               </div>
 
               <!-- Importar chave existente (.p12) -->
               <div id="apkKsBrFormImportar" class="apk-painel" style="display:none;">
-                <p class="apk-secao-desc">Use o mesmo arquivo de chave da primeira publicação. Ele veio no .zip gerado, com o nome <b>chave_upload.p12</b>.</p>
+                <p class="apk-secao-desc" data-i18n="html">Use o mesmo arquivo de chave da primeira publicação. Ele veio no .zip gerado, com o nome <b>chave_upload.p12</b>.</p>
                 <div class="apk-field" id="apkFieldKsArquivo">
                   <button type="button" class="apk-dropzone apk-dropzone-botao" id="apkKsBrP12Picker" onclick="document.getElementById('apkKsBrP12Input').click()">
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"></path></svg>
-                    <span><b id="apkKsBrP12Nome">Escolher arquivo da chave</b><span class="apk-texto-suave" id="apkKsBrP12Dica">ou arraste aqui · arquivo .p12</span></span>
+                    <span><b id="apkKsBrP12Nome" data-i18n>Escolher arquivo da chave</b><span class="apk-texto-suave" id="apkKsBrP12Dica" data-i18n>ou arraste aqui · arquivo .p12</span></span>
                   </button>
-                  <div class="apk-field-error" role="alert">Escolha o arquivo .p12 da chave.</div>
+                  <div class="apk-field-error" role="alert" data-i18n>Escolha o arquivo .p12 da chave.</div>
                   <input type="file" id="apkKsBrP12Input" accept=".p12,.pfx" style="display:none" onchange="apkKsBrSelecionarP12(this.files)">
                 </div>
                 <div class="apk-field" id="apkFieldKsImportSenha">
-                  <label for="apkKsBrImportSenha">Senha da chave</label>
+                  <label for="apkKsBrImportSenha" data-i18n>Senha da chave</label>
                   <input id="apkKsBrImportSenha" type="password" autocomplete="current-password" oninput="apkLimparErroCampo(this)">
-                  <div class="apk-field-error" role="alert">Informe a senha da chave.</div>
+                  <div class="apk-field-error" role="alert" data-i18n>Informe a senha da chave.</div>
                 </div>
                 <div class="apk-acoes apk-acoes-fim">
-                  <button type="button" class="apk-btn apk-btn-primario" id="apkBtnImportarChave" onclick="apkKsBrImportar()">Importar chave</button>
+                  <button type="button" class="apk-btn apk-btn-primario" id="apkBtnImportarChave" onclick="apkKsBrImportar()" data-i18n>Importar chave</button>
                 </div>
               </div>
             </div>
@@ -1987,29 +1987,29 @@
 
           <!-- Opções avançadas -->
           <details class="apk-avancado" id="apkAvancado">
-            <summary><b>Opções avançadas</b> <span class="apk-texto-suave">— identificador, capturas de tela, entrega de mídias</span></summary>
+            <summary><b data-i18n>Opções avançadas</b> <span class="apk-texto-suave" data-i18n>— identificador, capturas de tela, entrega de mídias</span></summary>
             <div class="apk-avancado-corpo">
               <div class="apk-field">
-                <label for="apkPackageName">Identificador do app</label>
-                <input id="apkPackageName" type="text" class="apk-input-mono" placeholder="com.organizacao.meu_dicionario" spellcheck="false" aria-describedby="apkPackageNameDica" oninput="apkMarcarPackageEditado()">
-                <small id="apkPackageNameDica">Criado a partir da organização e do nome. <b>Não pode mudar depois da primeira publicação</b> — só altere se souber o que está fazendo.</small>
+                <label for="apkPackageName" data-i18n>Identificador do app</label>
+                <input id="apkPackageName" type="text" class="apk-input-mono" placeholder="com.organizacao.meu_dicionario" spellcheck="false" aria-describedby="apkPackageNameDica" oninput="apkMarcarPackageEditado()" data-i18n-attr="placeholder">
+                <small id="apkPackageNameDica" data-i18n="html">Criado a partir da organização e do nome. <b>Não pode mudar depois da primeira publicação</b> — só altere se souber o que está fazendo.</small>
               </div>
               <label class="apk-check" id="apkLinhaCapturas">
                 <input type="checkbox" id="apkSwCapturas" checked>
-                <span><b>Gerar capturas de tela para a loja</b><span class="apk-opcao-desc">2 de celular (1080×1920) e 1 de tablet (1920×1080), feitas a partir da prévia.</span></span>
+                <span><b data-i18n>Gerar capturas de tela para a loja</b><span class="apk-opcao-desc" data-i18n>2 de celular (1080×1920) e 1 de tablet (1920×1080), feitas a partir da prévia.</span></span>
               </label>
               <div id="apkEntregaEtapasCampos">
                 <label class="apk-check">
                   <input type="checkbox" id="apkSwEntregaEtapas" onchange="apkAtualizarEntregaEtapas()">
-                  <span><b>Baixar mídias depois da instalação <span class="apk-selo apk-selo-teste">Em teste</span></b><span class="apk-opcao-desc">Para apps grandes: o app instala menor e baixa o restante das mídias depois, pelo próprio app (Ajustes › Mídias offline). Exige um passo extra no Play Console (veja o LEIA-ME).</span></span>
+                  <span><b data-i18n>Baixar mídias depois da instalação <span class="apk-selo apk-selo-teste" data-i18n>Em teste</span></b><span class="apk-opcao-desc" data-i18n>Para apps grandes: o app instala menor e baixa o restante das mídias depois, pelo próprio app (Ajustes › Mídias offline). Exige um passo extra no Play Console (veja o LEIA-ME).</span></span>
                 </label>
                 <div class="apk-field apk-field-curto apk-recuo" id="apkCampoOrcamento" style="display:none;">
-                  <label for="apkOrcamentoInstalacao">Mídias na instalação (até)</label>
+                  <label for="apkOrcamentoInstalacao" data-i18n>Mídias na instalação (até)</label>
                   <div class="apk-input-unidade">
                     <input type="number" id="apkOrcamentoInstalacao" value="200" min="10" max="4000" step="10" onchange="apkAtualizarResumoTamanho()">
-                    <span>MB</span>
+                    <span data-i18n>MB</span>
                   </div>
-                  <small>Imagens e áudios entram na instalação até esse limite; o resto é baixado depois.</small>
+                  <small data-i18n>Imagens e áudios entram na instalação até esse limite; o resto é baixado depois.</small>
                 </div>
               </div>
             </div>
@@ -2022,12 +2022,12 @@
           <!-- Estado: gerando -->
           <div id="apkProcessando" class="apk-status-cartao">
             <div>
-              <h2 class="apk-status-titulo">Gerando seu aplicativo</h2>
-              <p class="apk-texto-suave">Isso pode levar alguns minutos, conforme o tamanho das mídias.</p>
+              <h2 class="apk-status-titulo" data-i18n>Gerando seu aplicativo</h2>
+              <p class="apk-texto-suave" data-i18n>Isso pode levar alguns minutos, conforme o tamanho das mídias.</p>
             </div>
             <ol id="apkProgressSteps" class="apk-etapas" aria-live="polite"></ol>
             <div class="apk-acoes apk-acoes-fim">
-              <button type="button" id="apkBtnCancelar" class="apk-btn apk-btn-secundario" onclick="apkCancelarGeracao()">Cancelar geração</button>
+              <button type="button" id="apkBtnCancelar" class="apk-btn apk-btn-secundario" onclick="apkCancelarGeracao()" data-i18n>Cancelar geração</button>
             </div>
           </div>
 
@@ -2036,7 +2036,7 @@
             <div class="apk-status-cabecalho">
               <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--apk-sucesso)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M7.5 12.5l3 3 6-6"></path></svg>
               <div>
-                <h2 class="apk-status-titulo" id="apkSucessoTitulo">Seu aplicativo está pronto</h2>
+                <h2 class="apk-status-titulo" id="apkSucessoTitulo" data-i18n>Seu aplicativo está pronto</h2>
                 <p class="apk-texto-suave" id="apkSucessoDesc"></p>
               </div>
             </div>
@@ -2044,8 +2044,8 @@
             <div class="apk-acoes apk-acoes-entre">
               <div class="apk-texto-suave" id="apkSalvarStatus" role="status"></div>
               <div class="apk-acoes">
-                <button type="button" class="apk-btn apk-btn-secundario" onclick="fecharModalAndroid()">Fechar</button>
-                <button type="button" id="apkBtnSalvar" class="apk-btn apk-btn-primario" onclick="apkSalvarZip()">Salvar</button>
+                <button type="button" class="apk-btn apk-btn-secundario" onclick="fecharModalAndroid()" data-i18n>Fechar</button>
+                <button type="button" id="apkBtnSalvar" class="apk-btn apk-btn-primario" onclick="apkSalvarZip()" data-i18n>Salvar</button>
               </div>
             </div>
           </div>
@@ -2055,26 +2055,26 @@
             <div class="apk-status-cabecalho">
               <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--apk-erro)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 7v6M12 16.5v.5"></path></svg>
               <div>
-                <h2 class="apk-status-titulo">Não foi possível gerar o app</h2>
+                <h2 class="apk-status-titulo" data-i18n>Não foi possível gerar o app</h2>
                 <p class="apk-texto-suave" id="apkErroExplicacao"></p>
               </div>
             </div>
             <div class="apk-painel" id="apkErroAcaoBox">
-              <b>O que fazer</b>
+              <b data-i18n>O que fazer</b>
               <span id="apkErroAcao"></span>
             </div>
             <details class="apk-avancado">
-              <summary><b>Detalhes técnicos</b></summary>
+              <summary><b data-i18n>Detalhes técnicos</b></summary>
               <div class="apk-avancado-corpo">
                 <pre id="apkErroMsg" class="apk-erro-tecnico"></pre>
                 <div class="apk-acoes">
-                  <button type="button" class="apk-btn apk-btn-secundario apk-btn-pequeno" onclick="apkCopiarDetalhesErro(this)">Copiar detalhes para enviar ao suporte</button>
+                  <button type="button" class="apk-btn apk-btn-secundario apk-btn-pequeno" onclick="apkCopiarDetalhesErro(this)" data-i18n>Copiar detalhes para enviar ao suporte</button>
                 </div>
               </div>
             </details>
             <div class="apk-acoes apk-acoes-fim">
-              <button type="button" class="apk-btn apk-btn-secundario" onclick="apkVoltarFormulario()">Voltar ao formulário</button>
-              <button type="button" class="apk-btn apk-btn-primario" onclick="apkGerarAplicativo()">Tentar novamente</button>
+              <button type="button" class="apk-btn apk-btn-secundario" onclick="apkVoltarFormulario()" data-i18n>Voltar ao formulário</button>
+              <button type="button" class="apk-btn apk-btn-primario" onclick="apkGerarAplicativo()" data-i18n>Tentar novamente</button>
             </div>
           </div>
 
@@ -2083,24 +2083,24 @@
 
       <!-- Coluna direita: prévia -->
       <div class="apk-preview-col" id="apkPreviewCol">
-        <button type="button" class="apk-preview-close-btn" onclick="apkTogglePreviewMobile(false)" aria-label="Fechar prévia">
+        <button type="button" class="apk-preview-close-btn" onclick="apkTogglePreviewMobile(false)" aria-label="Fechar prévia" data-i18n-attr="aria-label">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
         </button>
-        <div class="apk-preview-hint">Prévia</div>
+        <div class="apk-preview-hint" data-i18n>Prévia</div>
         <div class="apk-phone-mockup">
           <div class="apk-phone-screen">
-            <iframe id="apkPreviewFrame" title="Prévia do aplicativo" style="display:none;"></iframe>
+            <iframe id="apkPreviewFrame" title="Prévia do aplicativo" style="display:none;" data-i18n-attr="title"></iframe>
             <div id="apkPreviewLoader" class="apk-preview-loader">
               <div class="apk-preview-loader-spinner"></div>
-              <span>Carregando prévia…</span>
+              <span data-i18n>Carregando prévia…</span>
             </div>
-            <div id="apkPreviewEmpty" class="apk-phone-empty">A prévia aparece aqui enquanto você preenche.</div>
+            <div id="apkPreviewEmpty" class="apk-phone-empty" data-i18n>A prévia aparece aqui enquanto você preenche.</div>
           </div>
         </div>
         <div class="apk-preview-icone">
           <img id="apkPreviewIconeMini" alt="" style="display:none;">
           <span id="apkPreviewIconeVazio" class="apk-preview-icone-vazio" aria-hidden="true"></span>
-          <span>Como o ícone fica<br>na tela do celular</span>
+          <span data-i18n="html">Como o ícone fica<br>na tela do celular</span>
         </div>
       </div>
 
@@ -2110,10 +2110,10 @@
     <div class="apk-rodape" id="apkFormActions">
       <div class="apk-pendencias" id="apkPendencias" aria-live="polite"></div>
       <div class="apk-acoes">
-        <button type="button" class="apk-btn apk-btn-secundario apk-btn-grande" onclick="fecharModalAndroid()">Cancelar</button>
+        <button type="button" class="apk-btn apk-btn-secundario apk-btn-grande" onclick="fecharModalAndroid()" data-i18n>Cancelar</button>
         <button type="button" id="apkBtnGerar" class="apk-btn apk-btn-primario apk-btn-grande apk-generate-btn" onclick="apkGerarAplicativo()">
           <span class="apk-btn-spinner" aria-hidden="true"></span>
-          <span id="apkBtnGerarLabel">Gerar para a Google Play</span>
+          <span id="apkBtnGerarLabel" data-i18n>Gerar para a Google Play</span>
         </button>
       </div>
     </div>
@@ -2127,19 +2127,19 @@
     <div class="apk-status-cabecalho">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--apk-atencao)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l10 18H2z"></path><path d="M12 10v5M12 18v.5"></path></svg>
       <div>
-        <h3 id="apkTrocarChaveTitulo">Trocar a chave de assinatura?</h3>
-        <p id="apkTrocarChaveTexto">Se este app já está na Google Play, <b>uma chave diferente impede que você publique atualizações</b>. Só troque se o app ainda não foi publicado.</p>
+        <h3 id="apkTrocarChaveTitulo" data-i18n>Trocar a chave de assinatura?</h3>
+        <p id="apkTrocarChaveTexto" data-i18n="html">Se este app já está na Google Play, <b>uma chave diferente impede que você publique atualizações</b>. Só troque se o app ainda não foi publicado.</p>
       </div>
     </div>
-    <label class="apk-radio-linha"><input type="checkbox" id="apkTrocarChaveBackup" checked>Baixar uma cópia da chave atual antes de trocar</label>
+    <label class="apk-radio-linha" data-i18n><input type="checkbox" id="apkTrocarChaveBackup" checked>Baixar uma cópia da chave atual antes de trocar</label>
     <div class="apk-field" id="apkFieldTrocarSenha">
-      <label for="apkTrocarChaveSenha">Senha da chave atual</label>
+      <label for="apkTrocarChaveSenha" data-i18n>Senha da chave atual</label>
       <input id="apkTrocarChaveSenha" type="password" autocomplete="current-password" oninput="apkLimparErroCampo(this)">
-      <div class="apk-field-error" role="alert">Informe a senha da chave.</div>
+      <div class="apk-field-error" role="alert" data-i18n>Informe a senha da chave.</div>
     </div>
     <div class="apk-acoes apk-acoes-fim">
-      <button type="button" class="apk-btn apk-btn-primario" id="apkBtnManterChave" onclick="apkKsBrFecharTroca()">Manter a chave atual</button>
-      <button type="button" class="apk-btn apk-btn-perigo" onclick="apkKsBrConfirmarTroca()">Trocar mesmo assim</button>
+      <button type="button" class="apk-btn apk-btn-primario" id="apkBtnManterChave" onclick="apkKsBrFecharTroca()" data-i18n>Manter a chave atual</button>
+      <button type="button" class="apk-btn apk-btn-perigo" onclick="apkKsBrConfirmarTroca()" data-i18n>Trocar mesmo assim</button>
     </div>
   </div>
 </div>
@@ -4314,7 +4314,7 @@
         }
         swCapturas.disabled = nativo;
         const dica = document.querySelector('.apk-preview-hint');
-        if (dica) dica.textContent = nativo ? 'Prévia aproximada (HTML): o app nativo tem telas próprias' : 'Prévia';
+        if (dica) dica.textContent = nativo ? _t('Prévia aproximada (HTML): o app nativo tem telas próprias') : _t('Prévia');
     };
 
     // Testar: sem chave, sem itens da loja e sem entrega em etapas (que só existe no AAB)
@@ -4324,7 +4324,7 @@
         document.getElementById('apkKsBrowserSection').style.display = publicar ? '' : 'none';
         document.getElementById('apkLinhaCapturas').style.display = publicar ? '' : 'none';
         document.getElementById('apkEntregaEtapasCampos').style.display = publicar && usarProjeto ? '' : 'none';
-        document.getElementById('apkBtnGerarLabel').textContent = publicar ? 'Gerar para a Google Play' : 'Gerar para testar';
+        document.getElementById('apkBtnGerarLabel').textContent = publicar ? _t('Gerar para a Google Play') : _t('Gerar para testar');
         apkAtualizarResumoTamanho();
         apkAtualizarPendencias();
     };
@@ -4475,20 +4475,20 @@
     function apkMontarTabelaPlano(plano, formatarTamanho) {
         if (!plano || (!plano.etapas && plano.pacotes.length === 0)) return '';
         const colunas = [
-            ['install-time', 'Na instalação'],
-            ['fast-follow', 'Baixa em seguida'],
-            ['on-demand', 'Sob demanda'],
+            ['install-time', _t('Na instalação')],
+            ['fast-follow', _t('Baixa em seguida')],
+            ['on-demand', _t('Sob demanda')],
         ];
         const celulas = colunas.map(([entrega]) => {
             const n = plano.pacotes.filter(p => p.entrega === entrega).length;
             const detalhe = entrega === 'install-time'
-                ? (n > 0 ? `módulo base + ${n} pacote(s)` : 'módulo base')
-                : `${n} pacote(s)`;
+                ? (n > 0 ? _t('módulo base + {n} pacote(s)', { n }) : _t('módulo base'))
+                : _t('{n} pacote(s)', { n });
             return `<td><b>${formatarTamanho(plano.totais[entrega])}</b><br><small>${detalhe}</small></td>`;
         }).join('');
         const nomesEntrega = Object.fromEntries(colunas);
         const pacotes = plano.pacotes.length === 0 ? '' :
-            `<details><summary>Pacotes de recursos (${plano.pacotes.length})</summary><ol>${
+            `<details><summary>${_t('Pacotes de recursos ({n})', { n: plano.pacotes.length })}</summary><ol>${
                 plano.pacotes.map(p => `<li><code>${p.nome}</code> — ${apkEscaparHtml(p.rotulo)} — <b>${formatarTamanho(p.tamanho)}</b> · ${nomesEntrega[p.entrega]}</li>`).join('')
             }</ol></details>`;
         return `
@@ -4510,7 +4510,7 @@
             if (a.totalMidias === 0) { el.style.display = 'none'; return; }
 
             const publicar = apkObjetivo() === 'publicar';
-            const tipos = [['foto', 'imagens'], ['audio', 'áudios'], ['video', 'vídeos'], ['outros', 'outros']]
+            const tipos = [['foto', _t('imagens')], ['audio', _t('áudios')], ['video', _t('vídeos')], ['outros', _t('outros')]]
                 .filter(([t]) => a.quantidade[t] > 0)
                 .map(([t, rotulo]) => `${rotulo} ${formatarTamanho(a.porTipo[t])}`)
                 .join(' · ');
@@ -4519,24 +4519,24 @@
                 .join('');
             const plano = publicar ? apkMontarTabelaPlano(a.plano, formatarTamanho) : '';
             const maiores = a.maiores.length > 1
-                ? `<div>Maiores arquivos (comprimi-los reduz o app com menos esforço):<ol>${
+                ? `<div>${_t('Maiores arquivos (comprimi-los reduz o app com menos esforço):')}<ol>${
                     a.maiores.map(m => `<li>${apkEscaparHtml(m.caminho)} — <b>${formatarTamanho(m.tamanho)}</b></li>`).join('')
                   }</ol></div>`
                 : '';
             const estimativas = publicar
                 ? `<span>AAB ≈ <b>${formatarTamanho(a.estimativas.aab)}</b></span>
                    <span>APK ≈ <b>${formatarTamanho(a.estimativas.apk)}</b></span>
-                   <span>Zip final ≈ <b>${formatarTamanho(a.estimativas.zip)}</b></span>`
+                   <span>${_t('Zip final')} ≈ <b>${formatarTamanho(a.estimativas.zip)}</b></span>`
                 : `<span>APK ≈ <b>${formatarTamanho(a.estimativas.apk)}</b></span>`;
 
             el.innerHTML = `
                 <div class="apk-resumo-linha">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5M12 8v.5"></path></svg>
-                    <span>Tamanho estimado do app: <b>${formatarTamanho(publicar ? a.estimativas.aab : a.estimativas.apk)}</b> (${tipos})</span>
+                    <span>${_t('Tamanho estimado do app: <b>{tamanho}</b> ({tipos})', { tamanho: formatarTamanho(publicar ? a.estimativas.aab : a.estimativas.apk), tipos })}</span>
                 </div>
                 ${avisos}
                 <details>
-                    <summary>Ver detalhes do tamanho</summary>
+                    <summary>${_t('Ver detalhes do tamanho')}</summary>
                     <div class="apk-resumo-grid">${estimativas}</div>
                     ${plano}${maiores}
                 </details>`;
@@ -4560,12 +4560,12 @@
             // Um único arquivo solto — precisa ser um .html
             const arq = arquivos[0];
             if (arquivos.length > 1 || !/\.html?$/i.test(arq.name)) {
-                alert('Selecione um único arquivo .html, ou arraste uma pasta contendo o html e as mídias.');
+                alert(_t('Selecione um único arquivo .html, ou arraste uma pasta contendo o html e as mídias.'));
                 return;
             }
             _apkHtmlProntoArquivo = arq;
             _apkHtmlProntoMidias = new Map();
-            apkExibirArquivoHtmlProntoSelecionado(arq.name, 'Arquivo HTML único (mídias embutidas)');
+            apkExibirArquivoHtmlProntoSelecionado(arq.name, _t('Arquivo HTML único (mídias embutidas)'));
             apkPreviewDeArquivoPronto(arq);
             apkAtualizarResumoTamanho();
             return;
@@ -4574,7 +4574,7 @@
         // Pasta: localizar o .html e classificar o resto em audio/imagem/video
         const arquivoHtml = arquivos.find(a => /\.html?$/i.test(a.name));
         if (!arquivoHtml) {
-            alert('Nenhum arquivo .html foi encontrado na pasta selecionada.');
+            alert(_t('Nenhum arquivo .html foi encontrado na pasta selecionada.'));
             return;
         }
 
@@ -4598,7 +4598,7 @@
 
         apkExibirArquivoHtmlProntoSelecionado(
             arquivoHtml.name,
-            midias.size > 0 ? `Pasta com ${midias.size} arquivo(s) de mídia` : 'Pasta sem mídias detectadas nas subpastas audio/imagem/video'
+            midias.size > 0 ? _t('Pasta com {n} arquivo(s) de mídia', { n: String(midias.size) }) : _t('Pasta sem mídias detectadas nas subpastas audio/imagem/video')
         );
         apkPreviewDeArquivoPronto(arquivoHtml);
         apkAtualizarResumoTamanho();
@@ -4615,22 +4615,22 @@
     function apkListarPendencias() {
         const valor = (id) => document.getElementById(id).value.trim();
         const pendencias = [];
-        if (!valor('apkNomeApp')) pendencias.push(['nome do aplicativo', 'apkNomeApp']);
+        if (!valor('apkNomeApp')) pendencias.push([_t('nome do aplicativo'), 'apkNomeApp']);
         if (!document.getElementById('apkSwUsarProjeto').checked && !_apkHtmlProntoArquivo) {
-            pendencias.push(['arquivo .html', 'apkHtmlProntoPicker']);
+            pendencias.push([_t('arquivo .html'), 'apkHtmlProntoPicker']);
         }
         if (apkObjetivo() === 'publicar') {
             if (_apkInfoChave) {
-                if (!document.getElementById('apkKsBrSenha').value) pendencias.push(['senha da chave', 'apkKsBrSenha']);
+                if (!document.getElementById('apkKsBrSenha').value) pendencias.push([_t('senha da chave'), 'apkKsBrSenha']);
             } else if (apkKsBrOrigem() === 'importar') {
-                if (!_apkP12Selecionado) pendencias.push(['arquivo da chave', 'apkKsBrP12Picker']);
-                if (!document.getElementById('apkKsBrImportSenha').value) pendencias.push(['senha da chave', 'apkKsBrImportSenha']);
+                if (!_apkP12Selecionado) pendencias.push([_t('arquivo da chave'), 'apkKsBrP12Picker']);
+                if (!document.getElementById('apkKsBrImportSenha').value) pendencias.push([_t('senha da chave'), 'apkKsBrImportSenha']);
             } else {
-                if (!valor('apkNomeResponsavel')) pendencias.push(['nome do responsável', 'apkNomeResponsavel']);
-                if (!valor('apkOrganizacao')) pendencias.push(['organização', 'apkOrganizacao']);
-                if (document.getElementById('apkKsBrNovaSenha').value.length < 6) pendencias.push(['senha da chave', 'apkKsBrNovaSenha']);
+                if (!valor('apkNomeResponsavel')) pendencias.push([_t('nome do responsável'), 'apkNomeResponsavel']);
+                if (!valor('apkOrganizacao')) pendencias.push([_t('organização'), 'apkOrganizacao']);
+                if (document.getElementById('apkKsBrNovaSenha').value.length < 6) pendencias.push([_t('senha da chave'), 'apkKsBrNovaSenha']);
                 else if (document.getElementById('apkKsBrNovaSenhaConfirm').value !== document.getElementById('apkKsBrNovaSenha').value) {
-                    pendencias.push(['confirmação da senha', 'apkKsBrNovaSenhaConfirm']);
+                    pendencias.push([_t('confirmação da senha'), 'apkKsBrNovaSenhaConfirm']);
                 }
             }
         }
@@ -4643,10 +4643,10 @@
         const pendencias = apkListarPendencias();
         el.textContent = '';
         if (pendencias.length === 0) {
-            el.innerHTML = '<span class="apk-pendencias-ok">Tudo pronto para gerar.</span>';
+            el.innerHTML = `<span class="apk-pendencias-ok">${_t('Tudo pronto para gerar.')}</span>`;
             return;
         }
-        el.append('Falta preencher: ');
+        el.append(_t('Falta preencher:') + ' ');
         pendencias.forEach(([rotulo, alvoId], i) => {
             if (i > 0) el.append(' · ');
             const link = document.createElement('button');
@@ -4790,15 +4790,15 @@
         if (r.totalEntradas === null) cortou = apkLimitarEntradasPreviewDoc(doc, limiteEntradas);
 
         const avisos = [];
-        if (cortou) avisos.push(`Exibindo apenas as ${limiteEntradas} primeiras entradas.`);
-        if (r.videosRemovidos > 0) avisos.push('Vídeos omitidos na prévia.');
-        if (r.midiasGrandesRemovidas > 0) avisos.push('Mídias muito grandes omitidas na prévia.');
+        if (cortou) avisos.push(_t('Exibindo apenas as {n} primeiras entradas.', { n: String(limiteEntradas) }));
+        if (r.videosRemovidos > 0) avisos.push(_t('Vídeos omitidos na prévia.'));
+        if (r.midiasGrandesRemovidas > 0) avisos.push(_t('Mídias muito grandes omitidas na prévia.'));
         if (comAviso && avisos.length > 0 && doc.body) {
             const aviso = doc.createElement('div');
             aviso.className = 'preview-limite-aviso';
             aviso.style.cssText = 'position:fixed; left:0; right:0; bottom:0; z-index:2147483647; padding:6px 10px;'
                 + ' background:rgba(0,0,0,0.72); color:#fff; font:italic 12px/1.4 sans-serif; text-align:center; pointer-events:none;';
-            aviso.textContent = avisos.join(' ') + ' O app final terá o conteúdo completo.';
+            aviso.textContent = avisos.join(' ') + ' ' + _t('O app final terá o conteúdo completo.');
             doc.body.appendChild(aviso);
         }
         return { html: '<!DOCTYPE html>\n' + doc.documentElement.outerHTML, lote };
@@ -5097,7 +5097,7 @@
         done:    '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>',
         error:   '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v6M12 16.5v.5"></path></svg>',
     };
-    const APK_ESTADO_ETAPA = { pending: 'pendente', running: 'em andamento', done: 'concluído', error: 'com erro' };
+    const APK_ESTADO_ETAPA = { pending: () => _t('pendente'), running: () => _t('em andamento'), done: () => _t('concluído'), error: () => _t('com erro') };
 
     // Etapa da geração: rótulo fixo + detalhe à direita (progresso em bytes, contagem…)
     function apkSetProg(id, estado, detalhe = '') {
@@ -5106,8 +5106,8 @@
         el.className = `apk-prog-step ${estado}`;
         el.innerHTML = `${APK_ICONES_ETAPA[estado] || APK_ICONES_ETAPA.pending}<span></span><span class="apk-prog-detalhe"></span>`;
         el.children[1].textContent = el.dataset.rotulo;
-        el.children[2].textContent = detalhe || (estado === 'running' ? 'em andamento' : '');
-        el.setAttribute('aria-label', `${el.dataset.rotulo}: ${APK_ESTADO_ETAPA[estado] || ''}`);
+        el.children[2].textContent = detalhe || (estado === 'running' ? _t('em andamento') : '');
+        el.setAttribute('aria-label', `${el.dataset.rotulo}: ${APK_ESTADO_ETAPA[estado] ? APK_ESTADO_ETAPA[estado]() : ''}`);
     }
 
     function apkMarcarCampo(fieldId, invalido, mensagem) {
@@ -5121,7 +5121,11 @@
         }
     }
 
-    const APK_MSG_SENHA_INCORRETA = 'Senha incorreta. Confira letras maiúsculas e minúsculas.';
+    document.addEventListener('idioma-alterado', () => {
+        document.querySelectorAll('.apk-field:not(.invalid) .apk-field-error').forEach(erro => { delete erro.dataset.padrao; });
+    });
+
+    const apkMsgSenhaIncorreta = () => _t('Senha incorreta. Confira letras maiúsculas e minúsculas.');
 
     // Valida tudo antes de gerar, inclusive a senha da chave (o erro aparece no campo, e
     // não depois de minutos de geração). Ao publicar sem chave salva, cria ou importa a
@@ -5162,7 +5166,7 @@
             const exp = await _getExportador();
             if (_apkInfoChave) {
                 if (!(await exp.verificarSenha(document.getElementById('apkKsBrSenha').value))) {
-                    marcar('apkFieldKsSenha', true, APK_MSG_SENHA_INCORRETA);
+                    marcar('apkFieldKsSenha', true, apkMsgSenhaIncorreta());
                 }
             } else if (apkKsBrOrigem() === 'importar') {
                 await apkKsBrImportar();
@@ -5200,7 +5204,7 @@
         try {
             if (!(await apkValidarFormulario())) return;
         } catch (err) {
-            alert('Não foi possível preparar a chave de assinatura: ' + (err && err.message ? err.message : err));
+            alert(_t('Não foi possível preparar a chave de assinatura: {erro}', { erro: err && err.message ? err.message : err }));
             return;
         } finally {
             btn.classList.remove('loading');
@@ -5217,19 +5221,19 @@
         const btnCancelar = document.getElementById('apkBtnCancelar');
         btnCancelar.style.display = '';
         btnCancelar.disabled = false;
-        btnCancelar.textContent = 'Cancelar geração';
+        btnCancelar.textContent = _t('Cancelar geração');
 
         _apkControleGeracao = new AbortController();
         try {
             await _apkGerarBrowser();
         } catch (err) {
             if (err && err.name === 'AbortError') {
-                adicionarLogAoTerminal('Geração do aplicativo cancelada.', 'warn');
+                adicionarLogAoTerminal(_t('Geração do aplicativo cancelada.'), 'warn');
                 apkVoltarFormulario();
                 return;
             }
             const erro = apkExplicarErro(err);
-            adicionarLogAoTerminal('Erro ao gerar APK: ' + erro.tecnico, 'error');
+            adicionarLogAoTerminal(_t('Erro ao gerar APK: {erro}', { erro: erro.tecnico }), 'error');
             document.getElementById('apkErroExplicacao').textContent = erro.explicacao;
             document.getElementById('apkErroAcao').textContent       = erro.acao;
             document.getElementById('apkErroMsg').textContent        = erro.tecnico;
@@ -5245,11 +5249,11 @@
         const texto = document.getElementById('apkErroMsg').textContent;
         try {
             await navigator.clipboard.writeText(texto);
-            btn.textContent = 'Detalhes copiados';
+            btn.textContent = _t('Detalhes copiados');
         } catch (e) {
-            btn.textContent = 'Não foi possível copiar: selecione o texto acima';
+            btn.textContent = _t('Não foi possível copiar: selecione o texto acima');
         }
-        setTimeout(() => { btn.textContent = 'Copiar detalhes para enviar ao suporte'; }, 2500);
+        setTimeout(() => { btn.textContent = _t('Copiar detalhes para enviar ao suporte'); }, 2500);
     };
 
     // ---- Cancelamento e erros da geração do app ----
@@ -5260,11 +5264,11 @@
         _apkControleGeracao.abort();
         const btn = document.getElementById('apkBtnCancelar');
         btn.disabled = true;
-        btn.textContent = 'Cancelando…';
+        btn.textContent = _t('Cancelando…');
     };
 
     function apkErroCancelamento() {
-        const e = new Error('Geração cancelada pelo usuário.');
+        const e = new Error(_t('Geração cancelada pelo usuário.'));
         e.name = 'AbortError';
         return e;
     }
@@ -5280,28 +5284,28 @@
         const tecnico = err && err.stack ? String(err.stack) : msg;
         if ((err && err.name === 'RangeError') || /allocation failed|out of memory|array buffer|memória insuficiente/i.test(msg)) {
             return {
-                explicacao: 'O computador ficou sem memória para montar o aplicativo.',
-                acao: 'Feche outras abas e programas, use o app desktop ou reduza/comprima as mídias maiores (a lista aparece em "Ver detalhes do tamanho", na seção Conteúdo).',
+                explicacao: _t('O computador ficou sem memória para montar o aplicativo.'),
+                acao: _t('Feche outras abas e programas, use o app desktop ou reduza/comprima as mídias maiores (a lista aparece em "Ver detalhes do tamanho", na seção Conteúdo).'),
                 tecnico,
             };
         }
         if (/senha incorreta|invalid password|mac could not be verified/i.test(msg)) {
             return {
-                explicacao: 'A senha da chave de assinatura está incorreta.',
-                acao: 'Volte ao formulário e digite a senha novamente.',
+                explicacao: _t('A senha da chave de assinatura está incorreta.'),
+                acao: _t('Volte ao formulário e digite a senha novamente.'),
                 tecnico,
             };
         }
         if (/template .* não encontrado/i.test(msg)) {
             return {
-                explicacao: 'Os arquivos-base do aplicativo não foram encontrados nesta instalação.',
-                acao: 'Atualize ou reinstale o programa. Se o problema continuar, envie os detalhes técnicos ao suporte.',
+                explicacao: _t('Os arquivos-base do aplicativo não foram encontrados nesta instalação.'),
+                acao: _t('Atualize ou reinstale o programa. Se o problema continuar, envie os detalhes técnicos ao suporte.'),
                 tecnico,
             };
         }
         return {
             explicacao: msg,
-            acao: 'Tente gerar novamente. Se o erro se repetir, copie os detalhes técnicos e envie ao suporte.',
+            acao: _t('Tente gerar novamente. Se o erro se repetir, copie os detalhes técnicos e envie ao suporte.'),
             tecnico,
         };
     }
@@ -5344,7 +5348,7 @@
         document.getElementById('apkHtmlProntoFields').style.display = 'none';
         const stats = window.sistema && window.sistema.obterEstatisticas && window.sistema.obterEstatisticas();
         document.getElementById('apkOrigemProjetoDetalhe').textContent =
-            stats && stats.entradas ? `— ${stats.entradas} entrada(s)` : '';
+            stats && stats.entradas ? _t('— {n} entrada(s)', { n: String(stats.entradas) }) : '';
         apkAtualizarModelo();
         apkLimparSelecaoHtmlPronto();
         apkAtualizarEntregaEtapas();
@@ -5404,8 +5408,8 @@
         const pacote = document.getElementById('apkPackageName').value.trim();
         const ultima = pacote ? apkLerArmazenado(APK_PREFIXO_ULTIMA_VERSAO + pacote) : null;
         document.getElementById('apkVersaoDica').textContent = ultima
-            ? `Última gerada: ${ultima}. Aumente a cada atualização.`
-            : 'Aumente a cada atualização enviada à loja.';
+            ? _t('Última gerada: {versao}. Aumente a cada atualização.', { versao: ultima })
+            : _t('Aumente a cada atualização enviada à loja.');
     }
 
     // ---- Salvamento do arquivo gerado (botão "Salvar" da tela de conclusão) ----
@@ -5416,7 +5420,7 @@
         _apkZipGerado = nome && blob ? { nome, blob, salvo: false } : null;
         const btn = document.getElementById('apkBtnSalvar');
         btn.disabled = !_apkZipGerado;
-        btn.textContent = _apkZipGerado && /\.apk$/i.test(nome) ? 'Salvar arquivo .apk' : 'Salvar arquivo .zip';
+        btn.textContent = _apkZipGerado && /\.apk$/i.test(nome) ? _t('Salvar arquivo .apk') : _t('Salvar arquivo .zip');
         btn.className = 'apk-btn apk-btn-primario';
         const status = document.getElementById('apkSalvarStatus');
         status.style.color = '';
@@ -5430,30 +5434,30 @@
         const status = document.getElementById('apkSalvarStatus');
         const { formatarTamanho } = await apkCarregarLimitesTamanho();
         btn.disabled = true;
-        btn.textContent = 'Salvando…';
+        btn.textContent = _t('Salvando…');
         try {
             const salvo = await platform.salvarArquivo(nome, blob, {
                 onProgress: (gravado, total) => {
                     status.style.color = '';
-                    status.textContent = `Salvando ${nome} — ${formatarTamanho(gravado)} de ${formatarTamanho(total)}`;
+                    status.textContent = _t('Salvando {arquivo} — {gravado} de {total}', { arquivo: nome, gravado: formatarTamanho(gravado), total: formatarTamanho(total) });
                 },
             });
             if (salvo === false) {
                 status.style.color = '';
-                status.textContent = 'Salvamento cancelado. Clique em "Salvar…" para escolher a pasta.';
-                btn.textContent = 'Salvar…';
+                status.textContent = _t('Salvamento cancelado. Clique em "Salvar…" para escolher a pasta.');
+                btn.textContent = _t('Salvar…');
                 return;
             }
             _apkZipGerado.salvo = true;
             status.style.color = 'var(--apk-sucesso)';
-            status.textContent = `${nome} salvo. Você pode salvar outra cópia, se quiser.`;
-            btn.textContent = 'Salvar outra cópia…';
+            status.textContent = _t('{arquivo} salvo. Você pode salvar outra cópia, se quiser.', { arquivo: nome });
+            btn.textContent = _t('Salvar outra cópia…');
             btn.className = 'apk-btn apk-btn-secundario';
         } catch (e) {
             console.error('Erro ao salvar o arquivo do aplicativo:', e);
             status.style.color = 'var(--apk-erro)';
-            status.textContent = `Não foi possível salvar: ${e && e.message ? e.message : e}`;
-            btn.textContent = 'Tentar salvar novamente…';
+            status.textContent = _t('Não foi possível salvar: {erro}', { erro: e && e.message ? e.message : e });
+            btn.textContent = _t('Tentar salvar novamente…');
         } finally {
             btn.disabled = false;
         }
@@ -5461,7 +5465,7 @@
 
     window.fecharModalAndroid = function() {
         if (_apkZipGerado && !_apkZipGerado.salvo
-            && !confirm('O aplicativo gerado ainda não foi salvo e será descartado. Fechar mesmo assim?')) {
+            && !confirm(_t('O aplicativo gerado ainda não foi salvo e será descartado. Fechar mesmo assim?'))) {
             return;
         }
         if (_apkControleGeracao) apkCancelarGeracao();
@@ -5506,12 +5510,12 @@
         document.getElementById('apkKsBrHasKey').style.display = info ? '' : 'none';
         if (info) {
             document.getElementById('apkKsBrAliasLabel').textContent =
-                info.org ? `Chave de ${info.org}` : `Chave "${info.alias}"`;
-            const criado = info.criadoEm ? new Date(info.criadoEm).toLocaleDateString('pt-BR') : '—';
+                info.org ? _t('Chave de {organizacao}', { organizacao: info.org }) : _t('Chave "{apelido}"', { apelido: info.alias });
+            const criado = info.criadoEm ? I18N.data(info.criadoEm) : '—';
             const partes = [];
-            if (info.cn) partes.push(`Responsável: ${info.cn}`);
-            partes.push(`criada em ${criado}`);
-            if (info.expiraEm) partes.push(`válida até ${new Date(info.expiraEm).getFullYear()}`);
+            if (info.cn) partes.push(_t('Responsável: {nome}', { nome: info.cn }));
+            partes.push(_t('criada em {data}', { data: criado }));
+            if (info.expiraEm) partes.push(_t('válida até {ano}', { ano: String(new Date(info.expiraEm).getFullYear()) }));
             document.getElementById('apkKsBrInfoLabel').textContent = partes.join(' · ');
         } else {
             document.querySelector('input[name="apkKsOrigem"][value="nova"]').checked = true;
@@ -5532,7 +5536,7 @@
     async function apkKsBrCriarChave() {
         const senha = document.getElementById('apkKsBrNovaSenha').value;
         const exp = await _getExportador();
-        window.mostrarLoader('Criando chave de assinatura…', 'Gerando par RSA-2048 e certificado X.509…');
+        window.mostrarLoader(_t('Criando chave de assinatura…'), _t('Gerando par RSA-2048 e certificado X.509…'));
         try {
             await exp.gerarNovaChave(senha, {
                 alias: 'upload',
@@ -5552,8 +5556,8 @@
     function apkKsBrLimparP12() {
         _apkP12Selecionado = null;
         document.getElementById('apkKsBrP12Input').value = '';
-        document.getElementById('apkKsBrP12Nome').textContent = 'Escolher arquivo da chave';
-        document.getElementById('apkKsBrP12Dica').textContent = 'ou arraste aqui · arquivo .p12';
+        document.getElementById('apkKsBrP12Nome').textContent = _t('Escolher arquivo da chave');
+        document.getElementById('apkKsBrP12Dica').textContent = _t('ou arraste aqui · arquivo .p12');
         document.getElementById('apkKsBrImportSenha').value = '';
     }
 
@@ -5561,12 +5565,12 @@
         const arquivo = Array.from(fileList || [])[0];
         if (!arquivo) return;
         if (!/\.(p12|pfx)$/i.test(arquivo.name)) {
-            apkMarcarCampo('apkFieldKsArquivo', true, 'Escolha um arquivo .p12 (ou .pfx).');
+            apkMarcarCampo('apkFieldKsArquivo', true, _t('Escolha um arquivo .p12 (ou .pfx).'));
             return;
         }
         _apkP12Selecionado = arquivo;
         document.getElementById('apkKsBrP12Nome').textContent = arquivo.name;
-        document.getElementById('apkKsBrP12Dica').textContent = 'Clique para escolher outro arquivo';
+        document.getElementById('apkKsBrP12Dica').textContent = _t('Clique para escolher outro arquivo');
         apkMarcarCampo('apkFieldKsArquivo', false);
         apkAtualizarPendencias();
     };
@@ -5579,19 +5583,19 @@
         if (!_apkP12Selecionado || !senha) return;
         const btn = document.getElementById('apkBtnImportarChave');
         btn.disabled = true;
-        btn.textContent = 'Importando…';
+        btn.textContent = _t('Importando…');
         try {
             const exp = await _getExportador();
             await exp.importarP12(_apkP12Selecionado, senha);
         } catch (e) {
             console.warn('Erro ao importar .p12:', e);
             const senhaErrada = /password|senha|mac/i.test(e && e.message || '');
-            if (senhaErrada) apkMarcarCampo('apkFieldKsImportSenha', true, APK_MSG_SENHA_INCORRETA);
-            else apkMarcarCampo('apkFieldKsArquivo', true, `Não foi possível ler a chave: ${e && e.message ? e.message : e}`);
+            if (senhaErrada) apkMarcarCampo('apkFieldKsImportSenha', true, apkMsgSenhaIncorreta());
+            else apkMarcarCampo('apkFieldKsArquivo', true, _t('Não foi possível ler a chave: {erro}', { erro: e && e.message ? e.message : e }));
             return;
         } finally {
             btn.disabled = false;
-            btn.textContent = 'Importar chave';
+            btn.textContent = _t('Importar chave');
         }
         document.getElementById('apkKsBrSenha').value = senha;
         await apkKsBrAtualizarEstado();
@@ -5602,7 +5606,7 @@
     async function apkBaixarBackupChave(senha, campoSenhaId) {
         const exp = await _getExportador();
         if (!(await exp.verificarSenha(senha))) {
-            apkMarcarCampo(campoSenhaId, true, senha ? APK_MSG_SENHA_INCORRETA : undefined);
+            apkMarcarCampo(campoSenhaId, true, senha ? apkMsgSenhaIncorreta() : undefined);
             return false;
         }
         const { nome, bytes } = await exp.exportarBackupP12(senha);
@@ -5617,9 +5621,9 @@
         status.textContent = '';
         try {
             const nome = await apkBaixarBackupChave(document.getElementById('apkKsBrSenha').value, 'apkFieldKsSenha');
-            if (nome) status.textContent = `Cópia salva: ${nome}. Guarde-a junto com a senha.`;
+            if (nome) status.textContent = _t('Cópia salva: {arquivo}. Guarde-a junto com a senha.', { arquivo: nome });
         } catch (e) {
-            status.textContent = `Não foi possível salvar a cópia: ${e && e.message ? e.message : e}`;
+            status.textContent = _t('Não foi possível salvar a cópia: {erro}', { erro: e && e.message ? e.message : e });
         } finally {
             btn.disabled = false;
         }
@@ -5649,7 +5653,7 @@
             const exp = await _getExportador();
             await exp.deletarChave();
         } catch (e) {
-            alert('Não foi possível trocar a chave: ' + (e && e.message ? e.message : e));
+            alert(_t('Não foi possível trocar a chave: {erro}', { erro: e && e.message ? e.message : e }));
             return;
         }
         apkKsBrFecharTroca();
@@ -5677,7 +5681,7 @@
         const nativo = apkModeloNativo();
         const gerarCapturas = !somenteApk && !nativo && document.getElementById('apkSwCapturas').checked;
         const usarProjeto = nativo || document.getElementById('apkSwUsarProjeto').checked;
-        if (!usarProjeto && !_apkHtmlProntoArquivo) throw new Error('HTML pronto não selecionado');
+        if (!usarProjeto && !_apkHtmlProntoArquivo) throw new Error(_t('HTML pronto não selecionado'));
 
         // Dados do responsável: os do formulário, senão os gravados na chave
         const responsavel = {
@@ -5694,15 +5698,15 @@
         if (bloqueios.length > 0) throw new Error(bloqueios.map(a => a.texto).join('\n\n'));
         const recusasPlay = somenteApk ? [] : analise.avisos.filter(a => a.recusaPlay);
         if (recusasPlay.length > 0 && !confirm(
-            recusasPlay.map(a => a.texto).join('\n\n') + '\n\nDeseja gerar mesmo assim?')) {
+            recusasPlay.map(a => a.texto).join('\n\n') + '\n\n' + _t('Deseja gerar mesmo assim?'))) {
             throw apkErroCancelamento();
         }
 
         const etapas = [
-            ['apkPS1', 'Preparando o conteúdo'],
-            ...(gerarCapturas ? [['apkPSCapturas', 'Criando as capturas de tela']] : []),
-            ['apkPS2', 'Montando e assinando o app'],
-            ...(somenteApk ? [] : [['apkPS5', 'Juntando tudo em um arquivo .zip']]),
+            ['apkPS1', _t('Preparando o conteúdo')],
+            ...(gerarCapturas ? [['apkPSCapturas', _t('Criando as capturas de tela')]] : []),
+            ['apkPS2', _t('Montando e assinando o app')],
+            ...(somenteApk ? [] : [['apkPS5', _t('Juntando tudo em um arquivo .zip')]]),
         ];
         const progEl = document.getElementById('apkProgressSteps');
         progEl.innerHTML = '';
@@ -5747,7 +5751,7 @@
                 const { gerarCapturasPlayStore } = await import('./packages/android/geradorCapturas.js');
                 ({ capturas, avisos: avisosCapturas } = await gerarCapturasPlayStore(htmlCapturas, {
                     onProgress: (atual, total) => {
-                        if (atual < total) apkSetProg('apkPSCapturas', 'running', `${atual + 1} de ${total}`);
+                        if (atual < total) apkSetProg('apkPSCapturas', 'running', _t('{atual} de {total}', { atual: atual + 1, total }));
                     },
                 }));
             } catch (e) {
@@ -5756,9 +5760,9 @@
             } finally {
                 apkRevogarLote(loteCapturas);
             }
-            avisosCapturas.forEach(a => adicionarLogAoTerminal('Captura de tela: ' + a, 'warn'));
+            avisosCapturas.forEach(a => adicionarLogAoTerminal(_t('Captura de tela: {aviso}', { aviso: a }), 'warn'));
             apkSetProg('apkPSCapturas', capturas.size > 0 ? 'done' : 'error',
-                capturas.size > 0 ? `${capturas.size} imagem(ns)` : 'não foi possível criar');
+                capturas.size > 0 ? _t('{n} imagem(ns)', { n: String(capturas.size) }) : _t('não foi possível criar'));
         }
 
         apkVerificarCancelamento();
@@ -5817,16 +5821,16 @@
         const conteudo = document.getElementById('apkSucessoConteudo');
 
         if (somenteApk) {
-            document.getElementById('apkSucessoTitulo').textContent = 'Pronto para testar';
+            document.getElementById('apkSucessoTitulo').textContent = _t('Pronto para testar');
             document.getElementById('apkSucessoDesc').innerHTML =
-                `Salve o arquivo <b>${esc(arquivosGerados.apk)}</b> (${formatarTamanho(t.apk)}) e instale no celular:`;
+                _t('Salve o arquivo <b>{arquivo}</b> ({tamanho}) e instale no celular:', { arquivo: esc(arquivosGerados.apk), tamanho: formatarTamanho(t.apk) });
             conteudo.innerHTML = `
                 <ol class="apk-passos">
-                    <li>Copie o arquivo para o celular (cabo, e-mail ou WhatsApp).</li>
-                    <li>Toque no arquivo e permita instalar de fontes desconhecidas.</li>
-                    <li>Abra o app pelo ícone na tela inicial.</li>
+                    <li>${_t('Copie o arquivo para o celular (cabo, e-mail ou WhatsApp).')}</li>
+                    <li>${_t('Toque no arquivo e permita instalar de fontes desconhecidas.')}</li>
+                    <li>${_t('Abra o app pelo ícone na tela inicial.')}</li>
                 </ol>
-                <div class="apk-nota">Esta versão é só para teste e não pode ser enviada à Google Play.</div>`;
+                <div class="apk-nota">${_t('Esta versão é só para teste e não pode ser enviada à Google Play.')}</div>`;
             apkDefinirZipGerado(arquivosGerados.apk, arquivosGerados.blob);
         } else {
             const pastas = arquivosGerados.pastas;
@@ -5834,18 +5838,20 @@
             const planoGerado = arquivosGerados.plano;
             const pacotesEtapas = planoGerado ? planoGerado.pacotes.filter(p => p.entrega !== 'install-time').length : 0;
             const notaPacoteMidia = !arquivosGerados.usarPacoteMidia ? '' : pacotesEtapas > 0
-                ? `As mídias do AAB foram divididas em ${planoGerado.pacotes.length} pacote(s) de recursos da Play, ${pacotesEtapas} deles baixado(s) depois da instalação, pelo próprio app. Veja no ${arquivosGerados.leiaMe} a declaração necessária no Play Console.`
-                : `As mídias passam de 500 MB e foram colocadas em ${planoGerado.pacotes.length > 1 ? `${planoGerado.pacotes.length} pacotes` : 'um pacote'} de recursos da Play, entregue(s) na instalação. Nenhuma ação necessária.`;
+                ? _t('As mídias do AAB foram divididas em {pacotes} pacote(s) de recursos da Play, {etapas} deles baixado(s) depois da instalação, pelo próprio app. Veja no {leiaMe} a declaração necessária no Play Console.', { pacotes: String(planoGerado.pacotes.length), etapas: String(pacotesEtapas), leiaMe: arquivosGerados.leiaMe })
+                : planoGerado.pacotes.length > 1
+                    ? _t('As mídias passam de 500 MB e foram colocadas em {n} pacotes de recursos da Play, entregue(s) na instalação. Nenhuma ação necessária.', { n: String(planoGerado.pacotes.length) })
+                    : _t('As mídias passam de 500 MB e foram colocadas em um pacote de recursos da Play, entregue(s) na instalação. Nenhuma ação necessária.');
 
-            document.getElementById('apkSucessoTitulo').textContent = 'Seu aplicativo está pronto';
-            document.getElementById('apkSucessoDesc').textContent = 'Salve o arquivo .zip no seu computador. Dentro dele estão:';
+            document.getElementById('apkSucessoTitulo').textContent = _t('Seu aplicativo está pronto');
+            document.getElementById('apkSucessoDesc').textContent = _t('Salve o arquivo .zip no seu computador. Dentro dele estão:');
             conteudo.innerHTML = `
                 <ul class="apk-lista-arquivos">
-                    <li><span><b>${esc(pastas.publicar)}/${esc(arquivosGerados.aab)}</b><span class="apk-texto-suave">Envie este para a Google Play</span></span><span class="apk-texto-suave">${formatarTamanho(t.aab)}</span></li>
-                    <li><span><b>${esc(pastas.instalar)}/${esc(arquivosGerados.apk)}</b><span class="apk-texto-suave">Para instalar direto em um celular</span></span><span class="apk-texto-suave">${formatarTamanho(t.apk)}</span></li>
-                    ${itensLoja > 0 ? `<li><span><b>${esc(pastas.loja)}/</b><span class="apk-texto-suave">${itensLoja} imagem(ns) para a página da loja (ícone e capturas de tela)</span></span></li>` : ''}
-                    <li><span><b>${esc(arquivosGerados.leiaMe)}</b><span class="apk-texto-suave">O passo a passo para publicar e os dados do app</span></span></li>
-                    ${arquivosGerados.p12 ? `<li class="apk-item-chave"><span><b>${esc(pastas.publicar)}/${esc(arquivosGerados.p12)}</b><span>Cópia da chave de assinatura. Guarde em local seguro: sem ela não dá para atualizar o app. Não compartilhe este zip, ele tem a chave e a senha.</span></span></li>` : ''}
+                    <li><span><b>${esc(pastas.publicar)}/${esc(arquivosGerados.aab)}</b><span class="apk-texto-suave">${_t('Envie este para a Google Play')}</span></span><span class="apk-texto-suave">${formatarTamanho(t.aab)}</span></li>
+                    <li><span><b>${esc(pastas.instalar)}/${esc(arquivosGerados.apk)}</b><span class="apk-texto-suave">${_t('Para instalar direto em um celular')}</span></span><span class="apk-texto-suave">${formatarTamanho(t.apk)}</span></li>
+                    ${itensLoja > 0 ? `<li><span><b>${esc(pastas.loja)}/</b><span class="apk-texto-suave">${_t('{n} imagem(ns) para a página da loja (ícone e capturas de tela)', { n: String(itensLoja) })}</span></span></li>` : ''}
+                    <li><span><b>${esc(arquivosGerados.leiaMe)}</b><span class="apk-texto-suave">${_t('O passo a passo para publicar e os dados do app')}</span></span></li>
+                    ${arquivosGerados.p12 ? `<li class="apk-item-chave"><span><b>${esc(pastas.publicar)}/${esc(arquivosGerados.p12)}</b><span>${_t('Cópia da chave de assinatura. Guarde em local seguro: sem ela não dá para atualizar o app. Não compartilhe este zip, ele tem a chave e a senha.')}</span></span></li>` : ''}
                 </ul>
                 ${notaPacoteMidia ? `<div class="apk-nota">${esc(notaPacoteMidia)}</div>` : ''}`;
             apkDefinirZipGerado(arquivosGerados.zip, arquivosGerados.blob);
