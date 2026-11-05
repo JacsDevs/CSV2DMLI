@@ -244,13 +244,17 @@ function marcarCorFundo() {
 
 // "Como vai aparecer": o ícone nos formatos que os launchers usam; o formato vem do CSS
 // (border-radius de .icone-forma-*), como fazem os próprios aparelhos.
-const FORMAS_LAUNCHER = [['circulo', 'Círculo'], ['arredondado', 'Arredondado'], ['gota', 'Gota']];
+const FORMAS_LAUNCHER = [
+    ['circulo', () => _t('Círculo'), () => _t('Ícone no formato círculo')],
+    ['arredondado', () => _t('Arredondado'), () => _t('Ícone no formato arredondado')],
+    ['gota', () => _t('Gota'), () => _t('Ícone no formato gota')],
+];
 const FORMA_TAMANHO = 128;
 
 function atualizarFormas() {
     const { formas } = els();
     if (!formas || !_bitmap || !_enq) return;
-    formas.replaceChildren(...FORMAS_LAUNCHER.map(([classe, nome]) => {
+    formas.replaceChildren(...FORMAS_LAUNCHER.map(([classe, nome, descricao]) => {
         const item = document.createElement('div');
         item.className = 'icone-forma';
         const canvasEl = document.createElement('canvas');
@@ -258,14 +262,14 @@ function atualizarFormas() {
         canvasEl.height = FORMA_TAMANHO;
         canvasEl.className = `icone-forma-${classe}`;
         canvasEl.setAttribute('role', 'img');
-        canvasEl.setAttribute('aria-label', `Ícone no formato ${nome.toLowerCase()}`);
+        canvasEl.setAttribute('aria-label', descricao());
         desenharEnquadrado(canvasEl.getContext('2d'), FORMA_TAMANHO, _bitmap, _enq, _corFundo);
         const app = document.createElement('span');
         app.className = 'icone-forma-app';
-        app.textContent = 'Dicionário';
+        app.textContent = _t('Dicionário');
         const rotulo = document.createElement('span');
         rotulo.className = 'icone-forma-nome';
-        rotulo.textContent = nome;
+        rotulo.textContent = nome();
         item.append(canvasEl, app, rotulo);
         return item;
     }));
@@ -351,11 +355,11 @@ async function atualizarInfo(file) {
 
     info.innerHTML = `
         <ul class="icone-verificacao">
-            <li class="ok">${OK}<span>Dimensões: ${analise.largura} × ${analise.altura} px</span></li>
-            <li class="ok">${OK}<span>Formato ${escapeHtml(analise.formato)} · ${tamanhoKb} KB</span></li>
+            <li class="ok">${OK}<span>${_t('Dimensões: {largura} × {altura} px', { largura: String(analise.largura), altura: String(analise.altura) })}</span></li>
+            <li class="ok">${OK}<span>${_t('Formato {formato} · {tamanho} KB', { formato: escapeHtml(analise.formato), tamanho: String(tamanhoKb) })}</span></li>
             ${analise.avisos.length
                 ? analise.avisos.map((a) => `<li class="aviso">${AVISO}<span>${escapeHtml(a)}</span></li>`).join('')
-                : `<li class="ok">${OK}<span>Nenhum problema detectado</span></li>`}
+                : `<li class="ok">${OK}<span>${_t('Nenhum problema detectado')}</span></li>`}
         </ul>
     `;
 }

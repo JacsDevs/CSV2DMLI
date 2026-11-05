@@ -1601,60 +1601,60 @@
 <dialog id="modalRecorteIcone" class="dialogo dialogo-icone" aria-labelledby="iconeEditorTitulo">
     <div class="dialogo-topo dialogo-topo-separado">
         <div>
-            <h2 id="iconeEditorTitulo">Ícone do aplicativo</h2>
-            <p>É a imagem que aparece na tela inicial do celular. Cada aparelho recorta o ícone num formato diferente.</p>
+            <h2 id="iconeEditorTitulo" data-i18n>Ícone do aplicativo</h2>
+            <p data-i18n>É a imagem que aparece na tela inicial do celular. Cada aparelho recorta o ícone num formato diferente.</p>
         </div>
-        <button type="button" class="btn-icone" id="btnFecharEditorIcone" aria-label="Fechar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+        <button type="button" class="btn-icone" id="btnFecharEditorIcone" aria-label="Fechar" data-i18n-attr="aria-label"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
     </div>
     <div class="dialogo-corpo editor-icone-corpo">
         <div class="editor-icone-coluna">
             <div class="editor-icone-area">
-                <canvas id="iconeCropCanvas" width="360" height="360" aria-label="Enquadramento do ícone: arraste para posicionar"></canvas>
-                <span class="editor-icone-legenda">Dentro do círculo: sempre visível</span>
+                <canvas id="iconeCropCanvas" width="360" height="360" aria-label="Enquadramento do ícone: arraste para posicionar" data-i18n-attr="aria-label"></canvas>
+                <span class="editor-icone-legenda" data-i18n>Dentro do círculo: sempre visível</span>
             </div>
             <div class="editor-icone-zoom">
-                <button type="button" class="btn-secundario btn-quadrado" id="btnIconeZoomMenos" aria-label="Diminuir zoom">−</button>
-                <label for="iconeCropZoom">Zoom</label>
+                <button type="button" class="btn-secundario btn-quadrado" id="btnIconeZoomMenos" aria-label="Diminuir zoom" data-i18n-attr="aria-label">−</button>
+                <label for="iconeCropZoom" data-i18n>Zoom</label>
                 <input type="range" id="iconeCropZoom" min="10" max="400" value="100">
-                <button type="button" class="btn-secundario btn-quadrado" id="btnIconeZoomMais" aria-label="Aumentar zoom">+</button>
+                <button type="button" class="btn-secundario btn-quadrado" id="btnIconeZoomMais" aria-label="Aumentar zoom" data-i18n-attr="aria-label">+</button>
                 <span id="iconeCropZoomValor" class="icone-crop-zoom-valor">100%</span>
             </div>
-            <div class="segmentado-botoes" role="group" aria-label="Enquadramento">
-                <button type="button" id="btnIconeEncaixar" title="Mostra a imagem inteira; as sobras ficam com a cor de fundo">Mostrar imagem inteira</button>
-                <button type="button" id="btnIconePreencher" title="Cobre todo o quadrado, cortando o que sobrar">Preencher o ícone</button>
+            <div class="segmentado-botoes" role="group" aria-label="Enquadramento" data-i18n-attr="aria-label">
+                <button type="button" id="btnIconeEncaixar" title="Mostra a imagem inteira; as sobras ficam com a cor de fundo" data-i18n data-i18n-attr="title">Mostrar imagem inteira</button>
+                <button type="button" id="btnIconePreencher" title="Cobre todo o quadrado, cortando o que sobrar" data-i18n data-i18n-attr="title">Preencher o ícone</button>
             </div>
-            <div class="editor-icone-fundo" role="group" aria-label="Cor de fundo">
-                <span class="campo-rotulo">Cor de fundo</span>
-                <button type="button" class="cor-pronta" data-cor-fundo="#FFFFFF" aria-label="Fundo branco" style="background:#FFFFFF"></button>
-                <button type="button" class="cor-pronta" data-cor-fundo="#F5EAD8" aria-label="Fundo creme" style="background:#F5EAD8"></button>
-                <button type="button" class="cor-pronta" data-cor-fundo="#4E4285" aria-label="Fundo roxo" style="background:#4E4285"></button>
-                <button type="button" class="cor-pronta" data-cor-fundo="#5C6B41" aria-label="Fundo verde" style="background:#5C6B41"></button>
-                <button type="button" class="cor-pronta" data-cor-fundo="#0F172A" aria-label="Fundo preto" style="background:#0F172A"></button>
-                <label class="editor-icone-outra">Outra <input type="color" id="iconeCropBgColor" value="#FFFFFF"></label>
+            <div class="editor-icone-fundo" role="group" aria-label="Cor de fundo" data-i18n-attr="aria-label">
+                <span class="campo-rotulo" data-i18n>Cor de fundo</span>
+                <button type="button" class="cor-pronta" data-cor-fundo="#FFFFFF" aria-label="Fundo branco" style="background:#FFFFFF" data-i18n-attr="aria-label"></button>
+                <button type="button" class="cor-pronta" data-cor-fundo="#F5EAD8" aria-label="Fundo creme" style="background:#F5EAD8" data-i18n-attr="aria-label"></button>
+                <button type="button" class="cor-pronta" data-cor-fundo="#4E4285" aria-label="Fundo roxo" style="background:#4E4285" data-i18n-attr="aria-label"></button>
+                <button type="button" class="cor-pronta" data-cor-fundo="#5C6B41" aria-label="Fundo verde" style="background:#5C6B41" data-i18n-attr="aria-label"></button>
+                <button type="button" class="cor-pronta" data-cor-fundo="#0F172A" aria-label="Fundo preto" style="background:#0F172A" data-i18n-attr="aria-label"></button>
+                <label class="editor-icone-outra" data-i18n>Outra <input type="color" id="iconeCropBgColor" value="#FFFFFF"></label>
             </div>
-            <span class="campo-ajuda">Arraste a imagem para posicionar e role o mouse para dar zoom. Partes fora do círculo podem ser cortadas em alguns aparelhos.</span>
+            <span class="campo-ajuda" data-i18n>Arraste a imagem para posicionar e role o mouse para dar zoom. Partes fora do círculo podem ser cortadas em alguns aparelhos.</span>
         </div>
         <div class="editor-icone-coluna">
             <section class="editor-icone-secao">
-                <h3>Como vai aparecer</h3>
+                <h3 data-i18n>Como vai aparecer</h3>
                 <div class="icone-formas" id="iconeFormas"></div>
             </section>
             <section class="editor-icone-secao editor-icone-caixa">
-                <h3>Verificação da imagem</h3>
+                <h3 data-i18n>Verificação da imagem</h3>
                 <div id="iconeInfoPanel"></div>
             </section>
             <details class="editor-icone-detalhes">
-                <summary>Detalhes técnicos: tamanhos gerados</summary>
+                <summary data-i18n>Detalhes técnicos: tamanhos gerados</summary>
                 <div id="iconeDensityGrid" class="icone-density-grid"></div>
             </details>
         </div>
     </div>
     <div class="dialogo-rodape">
-        <button type="button" class="btn-secundario" id="btnIconeTrocarImagem">Trocar imagem</button>
+        <button type="button" class="btn-secundario" id="btnIconeTrocarImagem" data-i18n>Trocar imagem</button>
         <input type="file" id="inputIconeTrocarImagem" accept="image/png,image/jpeg,image/webp" hidden>
         <div class="dialogo-rodape-acoes">
-            <button type="button" class="btn-link btn-cancelar" id="btnCancelarEditorIcone">Cancelar</button>
-            <button type="button" class="btn-principal btn-rodape" id="btnAplicarEditorIcone">Usar este ícone</button>
+            <button type="button" class="btn-link btn-cancelar" id="btnCancelarEditorIcone" data-i18n>Cancelar</button>
+            <button type="button" class="btn-principal btn-rodape" id="btnAplicarEditorIcone" data-i18n>Usar este ícone</button>
         </div>
     </div>
 </dialog>
@@ -1665,56 +1665,56 @@
 <dialog id="modalRecorteLogo" class="dialogo dialogo-logo" aria-labelledby="logoEditorTitulo">
     <div class="dialogo-topo dialogo-topo-separado">
         <div>
-            <h2 id="logoEditorTitulo">Logo do projeto</h2>
-            <p>Recorte a área do logo que vai aparecer no cabeçalho do dicionário.</p>
+            <h2 id="logoEditorTitulo" data-i18n>Logo do projeto</h2>
+            <p data-i18n>Recorte a área do logo que vai aparecer no cabeçalho do dicionário.</p>
         </div>
-        <button type="button" class="btn-icone" id="btnFecharEditorLogo" aria-label="Fechar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+        <button type="button" class="btn-icone" id="btnFecharEditorLogo" aria-label="Fechar" data-i18n-attr="aria-label"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
     </div>
     <div class="dialogo-corpo editor-logo-corpo">
         <div class="logo-crop-area">
-            <canvas id="logoCropCanvas" width="560" height="340" aria-label="Recorte do logo: arraste a caixa para mover e as alças para redimensionar"></canvas>
+            <canvas id="logoCropCanvas" width="560" height="340" aria-label="Recorte do logo: arraste a caixa para mover e as alças para redimensionar" data-i18n-attr="aria-label"></canvas>
         </div>
-        <span class="campo-ajuda">Arraste a caixa para mover e as alças para redimensionar. <span id="logoRecorteInfo"></span></span>
+        <span class="campo-ajuda" data-i18n>Arraste a caixa para mover e as alças para redimensionar. <span id="logoRecorteInfo"></span></span>
         <div class="editor-logo-controles">
             <div class="editor-logo-proporcao">
-                <span class="campo-rotulo">Proporção</span>
-                <div class="segmentado-botoes" id="logoProporcoes" role="group" aria-label="Proporção do recorte">
-                    <button type="button" data-proporcao="livre" aria-pressed="true">Livre</button>
+                <span class="campo-rotulo" data-i18n>Proporção</span>
+                <div class="segmentado-botoes" id="logoProporcoes" role="group" aria-label="Proporção do recorte" data-i18n-attr="aria-label">
+                    <button type="button" data-proporcao="livre" aria-pressed="true" data-i18n>Livre</button>
                     <button type="button" data-proporcao="1">1:1</button>
                     <button type="button" data-proporcao="2">2:1</button>
                     <button type="button" data-proporcao="3">3:1</button>
                 </div>
             </div>
             <div class="editor-logo-acoes">
-                <button type="button" id="btnLogoAparar" class="btn-secundario" title="Remove bordas transparentes ou da cor de fundo">Remover bordas vazias</button>
-                <button type="button" id="btnLogoRestaurar" class="btn-link" title="Volta para a imagem inteira">Desfazer recorte</button>
+                <button type="button" id="btnLogoAparar" class="btn-secundario" title="Remove bordas transparentes ou da cor de fundo" data-i18n data-i18n-attr="title">Remover bordas vazias</button>
+                <button type="button" id="btnLogoRestaurar" class="btn-link" title="Volta para a imagem inteira" data-i18n data-i18n-attr="title">Desfazer recorte</button>
             </div>
         </div>
         <section class="editor-icone-secao">
-            <h3>Prévia no cabeçalho</h3>
+            <h3 data-i18n>Prévia no cabeçalho</h3>
             <div class="logo-previas">
                 <div>
-                    <span class="aparencia-previa-rotulo">Modo claro</span>
+                    <span class="aparencia-previa-rotulo" data-i18n>Modo claro</span>
                     <div class="logo-previa-cabecalho" id="logoPreviaClara">
                         <canvas id="logoPreviaCanvas" width="84" height="84" aria-hidden="true"></canvas>
-                        <span id="logoPreviaTitulo">Dicionário</span>
+                        <span id="logoPreviaTitulo" data-i18n>Dicionário</span>
                     </div>
                 </div>
                 <div>
-                    <span class="aparencia-previa-rotulo">Modo escuro</span>
+                    <span class="aparencia-previa-rotulo" data-i18n>Modo escuro</span>
                     <div class="logo-previa-cabecalho escuro" id="logoPreviaEscura">
                         <canvas id="logoPreviaCanvasEscuro" width="84" height="84" aria-hidden="true"></canvas>
-                        <span id="logoPreviaTituloEscuro">Dicionário</span>
+                        <span id="logoPreviaTituloEscuro" data-i18n>Dicionário</span>
                     </div>
                 </div>
             </div>
-            <span class="campo-ajuda">Se o logo sumir no modo escuro, prefira uma versão com fundo transparente e cores claras, ou um PNG com contorno.</span>
+            <span class="campo-ajuda" data-i18n>Se o logo sumir no modo escuro, prefira uma versão com fundo transparente e cores claras, ou um PNG com contorno.</span>
         </section>
     </div>
     <div class="dialogo-rodape">
         <div class="dialogo-rodape-acoes">
-            <button type="button" class="btn-link btn-cancelar" id="btnCancelarEditorLogo">Cancelar</button>
-            <button type="button" class="btn-principal btn-rodape" id="btnAplicarEditorLogo">Usar este logo</button>
+            <button type="button" class="btn-link btn-cancelar" id="btnCancelarEditorLogo" data-i18n>Cancelar</button>
+            <button type="button" class="btn-principal btn-rodape" id="btnAplicarEditorLogo" data-i18n>Usar este logo</button>
         </div>
     </div>
 </dialog>
