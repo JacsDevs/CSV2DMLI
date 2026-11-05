@@ -11,7 +11,7 @@ import { GerenteChave } from './gerenteChave.js';
 import { InjetorAab, gerarIconesDensidades } from './injetorAab.js';
 import { montarPacoteAssinado, CacheHashes } from './montadorPacote.js';
 import { montarZipStored, verificarCancelamento, somarTamanhos } from './zipUtil.js';
-import { planejarEntrega, planoTemEtapas, formatarTamanho, ENTREGA } from './limitesTamanho.js';
+import { planejarEntrega, planoTemEtapas, formatarTamanho, rotuloExibicao, ENTREGA } from './limitesTamanho.js';
 import { redimensionarParaPng, redimensionarLogo } from '../core/iconeUtil.js';
 
 // Ícone da ficha da Play Store: PNG 512×512, até 1 MB (o Google aplica a máscara)
@@ -28,7 +28,9 @@ const LOGO_APP_NATIVO_LARGURA = 768;
 //   LEIA-ME.txt
 //   publicar-na-play/   ← AAB, backup .p12 da chave e play-store/ (ícone e capturas)
 //   instalar-direto/    ← APK
-const ARQUIVO_LEIA_ME = 'LEIA-ME.txt';
+const arquivoLeiaMe = () => _t('LEIA-ME.txt');
+// Título de seção do LEIA-ME, sublinhado no tamanho do texto já traduzido
+const secaoLeiaMe = (titulo) => [titulo, '-'.repeat(titulo.length)];
 const PASTA_PUBLICAR = 'publicar-na-play';
 const PASTA_LOJA = `${PASTA_PUBLICAR}/play-store`;
 const PASTA_INSTALAR = 'instalar-direto';
@@ -273,7 +275,7 @@ export class ExportadorAndroid {
         // Zip final sem compressão (STORED), montado em partes: AAB e APK entram como
         // Blobs, com o CRC32 já calculado na assinatura — nada é relido nem copiado.
         const arquivosZip = [
-            { nome: ARQUIVO_LEIA_ME, dados: new TextEncoder().encode(infoTexto) },
+            { nome: arquivoLeiaMe(), dados: new TextEncoder().encode(infoTexto) },
             { nome: `${PASTA_PUBLICAR}/${nomeAab}`, dados: aab.blob, crc: aab.crc },
         ];
         if (nomeP12) {
@@ -294,7 +296,7 @@ export class ExportadorAndroid {
         return {
             zip: nomeZip, aab: nomeAab, apk: nomeApk, p12: nomeP12,
             capturas: nomesCapturas, iconeLoja: iconeLoja ? iconeLoja.nome : null,
-            leiaMe: ARQUIVO_LEIA_ME,
+            leiaMe: arquivoLeiaMe(),
             pastas: { publicar: PASTA_PUBLICAR, loja: PASTA_LOJA, instalar: PASTA_INSTALAR },
             // O zip não é salvo aqui: a tela de conclusão oferece o botão "Salvar"
             blob: blobZip,
@@ -307,41 +309,35 @@ export class ExportadorAndroid {
     // Bloco do LEIA-ME com a divisão das mídias entre a instalação e os pacotes de recursos
     #montarBlocoEntrega(plano) {
         const MODOS = {
-            [ENTREGA.INSTALACAO]: 'na instalação',
-            [ENTREGA.SEGUIDA]: 'baixa logo após a instalação (fast-follow)',
-            [ENTREGA.DEMANDA]: 'sob demanda (on-demand)',
+            [ENTREGA.INSTALACAO]: _t('na instalação'),
+            [ENTREGA.SEGUIDA]: _t('baixa logo após a instalação (fast-follow)'),
+            [ENTREGA.DEMANDA]: _t('sob demanda (on-demand)'),
         };
         const linhas = [
-            'Pacotes de mídias (Play Asset Delivery)',
-            '---------------------------------------',
-            `Na instalação (módulo base, HTML e app incluídos): ${formatarTamanho(plano.totais[ENTREGA.INSTALACAO])}`,
-            ...plano.pacotes.map(p => `- ${p.nome}: ${p.rotulo}, ${formatarTamanho(p.tamanho)}, ${MODOS[p.entrega]}`),
+            ...secaoLeiaMe(_t('Pacotes de mídias (Play Asset Delivery)')),
+            _t('Na instalação (módulo base, HTML e app incluídos): {tamanho}', { tamanho: formatarTamanho(plano.totais[ENTREGA.INSTALACAO]) }),
+            ...plano.pacotes.map(p => `- ${p.nome}: ${rotuloExibicao(p)}, ${formatarTamanho(p.tamanho)}, ${MODOS[p.entrega]}`),
         ];
         if (planoTemEtapas(plano)) {
             linhas.push(
                 '',
-                'Os pacotes fast-follow são baixados automaticamente logo após a instalação; os',
-                'on-demand, quando o usuário pede (Ajustes > Mídias offline, ou ao abrir uma mídia).',
-                'O arquivo midias-index.json (no módulo base) lista o pacote de cada uma dessas mídias.',
+                _t('Os pacotes fast-follow são baixados automaticamente logo após a instalação; os\non-demand, quando o usuário pede (Ajustes > Mídias offline, ou ao abrir uma mídia).\nO arquivo midias-index.json (no módulo base) lista o pacote de cada uma dessas mídias.'),
                 '',
-                'Declaração no Play Console (obrigatória para este AAB):',
-                'A biblioteca de download de pacotes da Google Play usa um serviço em primeiro plano',
-                'para instalar as mídias baixadas. Em Política > Conteúdo do app > "Permissões de',
-                'serviço em primeiro plano", declare o tipo "Sincronização de dados" (dataSync),',
-                'descrevendo o uso como "download e instalação de pacotes de mídia do dicionário",',
-                'e informe o link de um vídeo curto mostrando o download em Mídias offline.',
+                _t('Declaração no Play Console (obrigatória para este AAB):'),
+                _t('A biblioteca de download de pacotes da Google Play usa um serviço em primeiro plano\npara instalar as mídias baixadas. Em Política > Conteúdo do app > "Permissões de\nserviço em primeiro plano", declare o tipo "Sincronização de dados" (dataSync),\ndescrevendo o uso como "download e instalação de pacotes de mídia do dicionário",\ne informe o link de um vídeo curto mostrando o download em Mídias offline.'),
                 '',
-                'O APK (pasta instalar-direto/) contém todas as mídias em um único arquivo.',
+                _t('O APK (pasta {pasta}/) contém todas as mídias em um único arquivo.', { pasta: PASTA_INSTALAR }),
                 '',
             );
         } else {
-            linhas.push('Nenhuma ação é necessária no Play Console. O APK contém tudo em um único arquivo.', '');
+            linhas.push(_t('Nenhuma ação é necessária no Play Console. O APK contém tudo em um único arquivo.'), '');
         }
         return linhas;
     }
 
     #montarLeiaMe({ nomeResponsavel, organizacao, cidade, estado, pais, appName, packageName, versionName, senha, chaveTemporaria = false, alias, nomeAab, nomeApk, nomeP12, nomesCapturas = [], iconeLoja = null, plano = null, modelo = 'html', tamanhoAab = 0, tamanhoApk = 0 }) {
-        const local = [cidade, estado, pais].filter(Boolean).join(' - ') || '(não informado)';
+        const naoInformado = _t('(não informado)');
+        const local = [cidade, estado, pais].filter(Boolean).join(' - ') || naoInformado;
 
         // Mapa do conteúdo do zip, na mesma ordem das pastas
         const itensLoja = [
@@ -349,12 +345,11 @@ export class ExportadorAndroid {
             ...nomesCapturas,
         ];
         const blocoConteudo = [
-            'Conteúdo deste zip',
-            '------------------',
-            `${ARQUIVO_LEIA_ME}  (este arquivo)`,
+            ...secaoLeiaMe(_t('Conteúdo deste zip')),
+            _t('{arquivo}  (este arquivo)', { arquivo: arquivoLeiaMe() }),
             `${PASTA_PUBLICAR}/`,
             `    ${nomeAab}  (${formatarTamanho(tamanhoAab)})`,
-            ...(nomeP12 ? [`    ${nomeP12}  (backup da chave de assinatura)`] : []),
+            ...(nomeP12 ? [`    ${_t('{arquivo}  (backup da chave de assinatura)', { arquivo: nomeP12 })}`] : []),
             ...(itensLoja.length > 0 ? ['    play-store/', ...itensLoja.map(n => `        ${n}`)] : []),
             `${PASTA_INSTALAR}/`,
             `    ${nomeApk}  (${formatarTamanho(tamanhoApk)})`,
@@ -363,87 +358,78 @@ export class ExportadorAndroid {
 
         // Instruções por público: quem publica na loja e quem só quer instalar
         const blocoComoUsar = [
-            'Como usar',
-            '---------',
-            `▶ Para publicar na Google Play (pasta ${PASTA_PUBLICAR}/):`,
+            ...secaoLeiaMe(_t('Como usar')),
+            `▶ ${_t('Para publicar na Google Play (pasta {pasta}/):', { pasta: PASTA_PUBLICAR })}`,
             ...(chaveTemporaria
-                ? ['  Não é possível publicar este pacote: ele foi assinado com uma chave temporária.',
-                   '  Crie ou importe uma chave de assinatura própria e gere o app novamente.']
-                : [`  1. No Google Play Console, crie uma versão e envie o arquivo ${nomeAab}.`,
+                ? [`  ${_t('Não é possível publicar este pacote: ele foi assinado com uma chave temporária.')}`,
+                   `  ${_t('Crie ou importe uma chave de assinatura própria e gere o app novamente.')}`]
+                : [`  1. ${_t('No Google Play Console, crie uma versão e envie o arquivo {arquivo}.', { arquivo: nomeAab })}`,
                    ...(itensLoja.length > 0
-                       ? ['  2. Na ficha da loja, use os arquivos da pasta play-store/ (ícone e/ou capturas de tela).']
+                       ? [`  2. ${_t('Na ficha da loja, use os arquivos da pasta play-store/ (ícone e/ou capturas de tela).')}`]
                        : []),
-                   `  ${itensLoja.length > 0 ? 3 : 2}. Guarde o ${nomeP12} e a senha: sem eles não é possível enviar atualizações.`]),
+                   `  ${itensLoja.length > 0 ? 3 : 2}. ${_t('Guarde o {arquivo} e a senha: sem eles não é possível enviar atualizações.', { arquivo: nomeP12 })}`]),
             '',
-            `▶ Para instalar direto em um celular Android (pasta ${PASTA_INSTALAR}/):`,
-            `  1. Copie o ${nomeApk} para o celular (cabo USB, e-mail, Drive…).`,
-            '  2. Abra o arquivo no celular e permita a instalação de "fontes desconhecidas" se pedido.',
-            '  O APK não precisa da Google Play e já contém todas as mídias.',
+            `▶ ${_t('Para instalar direto em um celular Android (pasta {pasta}/):', { pasta: PASTA_INSTALAR })}`,
+            `  1. ${_t('Copie o {arquivo} para o celular (cabo USB, e-mail, Drive…).', { arquivo: nomeApk })}`,
+            `  2. ${_t('Abra o arquivo no celular e permita a instalação de "fontes desconhecidas" se pedido.')}`,
+            `  ${_t('O APK não precisa da Google Play e já contém todas as mídias.')}`,
             '',
         ];
         const blocoAssinatura = chaveTemporaria
             ? [
-                'Assinatura',
-                '----------',
-                'Chave temporária (descartável) — NÃO foi salva.',
-                'Este pacote NÃO pode ser publicado ou atualizado na Google Play com esta assinatura.',
-                'Crie/importe uma chave de assinatura própria e gere o app novamente antes de publicar.',
+                ...secaoLeiaMe(_t('Assinatura')),
+                _t('Chave temporária (descartável) — NÃO foi salva.'),
+                _t('Este pacote NÃO pode ser publicado ou atualizado na Google Play com esta assinatura.'),
+                _t('Crie/importe uma chave de assinatura própria e gere o app novamente antes de publicar.'),
               ]
             : [
-                'Assinatura',
-                '----------',
-                `Alias da chave: ${alias || 'upload'}`,
-                `Senha da chave: ${senha}`,
-                `Backup da chave: ${nomeP12} (protegido pela mesma senha)`,
-                `(o .p12 está na pasta ${PASTA_PUBLICAR}/)`,
-                'Guarde o arquivo .p12 em local seguro: ele é necessário para enviar',
-                'atualizações do app ao Google Play. Quem tiver este zip poderá assinar',
-                'versões do app em seu nome — não compartilhe.',
+                ...secaoLeiaMe(_t('Assinatura')),
+                _t('Alias da chave: {alias}', { alias: alias || 'upload' }),
+                _t('Senha da chave: {senha}', { senha }),
+                _t('Backup da chave: {arquivo} (protegido pela mesma senha)', { arquivo: nomeP12 }),
+                _t('(o .p12 está na pasta {pasta}/)', { pasta: PASTA_PUBLICAR }),
+                _t('Guarde o arquivo .p12 em local seguro: ele é necessário para enviar\natualizações do app ao Google Play. Quem tiver este zip poderá assinar\nversões do app em seu nome — não compartilhe.'),
               ];
         const blocoCapturas = nomesCapturas.length === 0 ? [] : [
-            `Capturas de tela (pasta ${PASTA_LOJA}/)`,
-            '-'.repeat(`Capturas de tela (pasta ${PASTA_LOJA}/)`.length),
+            ...secaoLeiaMe(_t('Capturas de tela (pasta {pasta}/)', { pasta: PASTA_LOJA })),
             ...nomesCapturas.map(n => `- ${n}`),
-            'Geradas a partir da prévia do app, no formato exigido pelo Play Console:',
-            'telefone-*.jpg (1080x1920, 9:16) em "Capturas de tela do telefone" e',
-            'tablet-*.jpg (1920x1080, 16:9) em "Capturas de tela de tablet de 7 e 10 polegadas".',
-            'São sugestões: podem ser substituídas por capturas feitas no próprio aparelho.',
+            _t('Geradas a partir da prévia do app, no formato exigido pelo Play Console:\ntelefone-*.jpg (1080x1920, 9:16) em "Capturas de tela do telefone" e\ntablet-*.jpg (1920x1080, 16:9) em "Capturas de tela de tablet de 7 e 10 polegadas".'),
+            _t('São sugestões: podem ser substituídas por capturas feitas no próprio aparelho.'),
             '',
         ];
         const blocoIconeLoja = !iconeLoja ? [] : [
-            `Ícone da Play Store (pasta ${PASTA_LOJA}/)`,
-            '-'.repeat(`Ícone da Play Store (pasta ${PASTA_LOJA}/)`.length),
-            `- ${iconeLoja.nome}: PNG 512x512, para o campo "Ícone do app" da ficha da loja.`,
-            'É o mesmo ícone do aplicativo; o Google Play aplica o arredondamento automaticamente.',
+            ...secaoLeiaMe(_t('Ícone da Play Store (pasta {pasta}/)', { pasta: PASTA_LOJA })),
+            `- ${_t('{arquivo}: PNG 512x512, para o campo "Ícone do app" da ficha da loja.', { arquivo: iconeLoja.nome })}`,
+            _t('É o mesmo ícone do aplicativo; o Google Play aplica o arredondamento automaticamente.'),
             ...(iconeLoja.excedeLimite
-                ? ['ATENÇÃO: o arquivo passou de 1 MB, limite do Play Console. Reduza-o antes de enviar.']
+                ? [_t('ATENÇÃO: o arquivo passou de 1 MB, limite do Play Console. Reduza-o antes de enviar.')]
                 : []),
             '',
         ];
         const blocoPacoteMidia = (!plano || plano.pacotes.length === 0) ? [] : this.#montarBlocoEntrega(plano);
+        const tituloLeiaMe = _t('LEIA-ME — {app}', { app: appName });
         return [
-            `LEIA-ME — ${appName}`,
-            '='.repeat(`LEIA-ME — ${appName}`.length),
+            tituloLeiaMe,
+            '='.repeat(tituloLeiaMe.length),
             '',
             ...blocoConteudo,
             ...blocoComoUsar,
-            'Informações do Aplicativo',
-            '-------------------------',
-            `Responsável: ${nomeResponsavel || '(não informado)'}`,
-            `Organização: ${organizacao || '(não informado)'}`,
-            `Local: ${local}`,
+            ...secaoLeiaMe(_t('Informações do Aplicativo')),
+            _t('Responsável: {nome}', { nome: nomeResponsavel || naoInformado }),
+            _t('Organização: {nome}', { nome: organizacao || naoInformado }),
+            _t('Local: {local}', { local }),
             '',
-            `Nome do App: ${appName}`,
-            `Pacote: ${packageName}`,
-            `Versão: ${versionName}`,
-            ...(modelo === 'nativo' ? ['Modelo: App nativo (experimental, Android 6 ou mais novo)'] : []),
+            _t('Nome do App: {nome}', { nome: appName }),
+            _t('Pacote: {pacote}', { pacote: packageName }),
+            _t('Versão: {versao}', { versao: String(versionName) }),
+            ...(modelo === 'nativo' ? [_t('Modelo: App nativo (experimental, Android 6 ou mais novo)')] : []),
             '',
             ...blocoPacoteMidia,
             ...blocoAssinatura,
             '',
             ...blocoCapturas,
             ...blocoIconeLoja,
-            `Gerado em: ${new Date().toLocaleString('pt-BR')}`,
+            _t('Gerado em: {data}', { data: new Date().toLocaleString(I18N.idioma) }),
             '',
         ].join('\n');
     }

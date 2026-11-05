@@ -4516,7 +4516,7 @@
         const nomesEntrega = Object.fromEntries(colunas);
         const pacotes = plano.pacotes.length === 0 ? '' :
             `<details><summary>${_t('Pacotes de recursos ({n})', { n: plano.pacotes.length })}</summary><ol>${
-                plano.pacotes.map(p => `<li><code>${p.nome}</code> — ${apkEscaparHtml(p.rotulo)} — <b>${formatarTamanho(p.tamanho)}</b> · ${nomesEntrega[p.entrega]}</li>`).join('')
+                plano.pacotes.map(p => `<li><code>${p.nome}</code> — ${apkEscaparHtml(_apkLimitesTamanho.rotuloExibicao(p))} — <b>${formatarTamanho(p.tamanho)}</b> · ${nomesEntrega[p.entrega]}</li>`).join('')
             }</ol></details>`;
         return `
             <table class="apk-resumo-plano">

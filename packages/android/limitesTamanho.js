@@ -138,6 +138,29 @@ function rotuloCategorias(base, categorias) {
 }
 
 /**
+ * Rótulo do pacote no idioma da interface. O campo `rotulo` não muda de idioma porque é
+ * gravado no midias-index.json, dentro do app exportado.
+ */
+export function rotuloExibicao(pacote) {
+    const NOMES = {
+        'Áudios de exemplos': () => _t('Áudios de exemplos'),
+        'Áudios': () => _t('Áudios'),
+        'Vídeos': () => _t('Vídeos'),
+        'Mídias da instalação': () => _t('Mídias da instalação'),
+    };
+    const base = pacote.rotuloBase || pacote.rotulo.replace(/ \(parte \d+ de \d+\)$/, '');
+    const nomes = pacote.rotuloBase ? pacote.categorias.filter(Boolean) : [];
+    let texto = NOMES[base] ? NOMES[base]() : base;
+    if (nomes.length > 0) {
+        const exibidos = nomes.length > 3
+            ? _t('{lista} e mais {n}', { lista: nomes.slice(0, 3).join(', '), n: nomes.length - 3 })
+            : nomes.join(', ');
+        texto = `${texto} — ${exibidos}`;
+    }
+    return pacote.partes ? _t('{rotulo} (parte {parte} de {partes})', { rotulo: texto, parte: pacote.parte, partes: pacote.partes }) : texto;
+}
+
+/**
  * Divide as mídias entre o módulo base e os pacotes de recursos do AAB (Play Asset Delivery).
  *
  * Sem `etapas`, todas as mídias são entregues na instalação: ficam no módulo base enquanto
@@ -254,6 +277,7 @@ export function planejarEntrega({ midias, tamanhoHtml = 0, etapas = false, orcam
         nome: `midia_od_${i + 1}`,
         entrega: ENTREGA.DEMANDA,
         rotulo: rotuloCategorias(p.rotulo, p.categorias),
+        rotuloBase: p.rotulo,
         categorias: p.categorias,
         itens: p.itens,
     }));
@@ -266,7 +290,9 @@ export function planejarEntrega({ midias, tamanhoHtml = 0, etapas = false, orcam
         const n = porRotulo.get(p.rotulo);
         if (n > 1) {
             vistos.set(p.rotulo, (vistos.get(p.rotulo) || 0) + 1);
-            p.rotulo = `${p.rotulo} (parte ${vistos.get(p.rotulo)} de ${n})`;
+            p.parte = vistos.get(p.rotulo);
+            p.partes = n;
+            p.rotulo = `${p.rotulo} (parte ${p.parte} de ${n})`;
         }
     }
 
