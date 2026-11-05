@@ -129,8 +129,8 @@ class ExportadorTypst extends ExportadorBase {
     }
 
     exportar(opcoes = {}) {
-        if (!this.db.bancoDados) throw new Error('Banco de dados não gerado');
-        if (!this.templatePrincipal) throw new Error('Template principal Typst não carregado');
+        if (!this.db.bancoDados) throw new Error(_t('Banco de dados não gerado'));
+        if (!this.templatePrincipal) throw new Error(_t('Template principal Typst não carregado'));
 
         const { arvore, categoriasRaizes } = this.db.obterArvoreOrdenada();
         const manterSet = new Set((opcoes.categoriasManterOriginal || []).map(c => c.toLowerCase()));

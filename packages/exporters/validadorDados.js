@@ -20,7 +20,7 @@ class ValidadorDados {
         const todasIguais = contagensNaoZero.every(c => c === primeiraContagem);
         
         if (!todasIguais) {
-            const detalhes = campos.map((campo, i) => `${campo}: ${contagens[i]} itens`).join(', ');
+            const detalhes = campos.map((campo, i) => _t('{campo}: {n} itens', { campo, n: String(contagens[i]) })).join(', ');
             return [false, detalhes];
         }
         return [true, ''];
@@ -33,14 +33,14 @@ class ValidadorDados {
         const variacoes = dadosEditados.variacoes || [];
         if (variacoes.length === 0 || !variacoes[0].item || variacoes[0].item.trim() === '') {
             if (this.CAMPOS_OBRIGATORIOS.includes("ITEM_LEXICAL")) {
-                erros.push("ITEM_LEXICAL principal é obrigatório.");
+                erros.push(_t("ITEM_LEXICAL principal é obrigatório."));
             }
         }
         
         this.CAMPOS_OBRIGATORIOS.forEach(campo => {
             if (campo === "ITEM_LEXICAL") return;
             if (!dadosEditados.camposBasicos[campo] || String(dadosEditados.camposBasicos[campo]).trim() === '') {
-                erros.push(`${campo} é obrigatório.`);
+                erros.push(_t('{campo} é obrigatório.', { campo }));
             }
         });
 
@@ -48,14 +48,14 @@ class ValidadorDados {
         const verificarMidia = (tipo, nome, contexto) => {
             const nomeLimpo = String(nome || '').trim();
             if (nomeLimpo && this.db.vfs && !this.db.vfs.obterArquivo(tipo, nomeLimpo)) {
-                erros.push(`Aviso: Arquivo de ${contexto} '${nomeLimpo}' não está carregado no sistema.`);
+                erros.push(_t("Aviso: Arquivo de {contexto} '{arquivo}' não está carregado no sistema.", { contexto, arquivo: nomeLimpo }));
             }
         };
 
-        variacoes.forEach((v, idx) => verificarMidia(detectarTipoMidia(v.audio, this.db.configurador), v.audio, `Pronúncia da Variação ${idx + 1}`));
-        (dadosEditados.exemplos || []).forEach((e, idx) => verificarMidia('audio', e.audio, `Áudio do Exemplo ${idx + 1}`));
-        (dadosEditados.imagens || []).forEach((i, idx) => verificarMidia('imagem', i.img, `Imagem ${idx + 1}`));
-        verificarMidia('video', dadosEditados.camposBasicos.ARQUIVO_VIDEO, 'Vídeo');
+        variacoes.forEach((v, idx) => verificarMidia(detectarTipoMidia(v.audio, this.db.configurador), v.audio, _t('Pronúncia da Variação {n}', { n: String(idx + 1) })));
+        (dadosEditados.exemplos || []).forEach((e, idx) => verificarMidia('audio', e.audio, _t('Áudio do Exemplo {n}', { n: String(idx + 1) })));
+        (dadosEditados.imagens || []).forEach((i, idx) => verificarMidia('imagem', i.img, _t('Imagem {n}', { n: String(idx + 1) })));
+        verificarMidia('video', dadosEditados.camposBasicos.ARQUIVO_VIDEO, _t('Vídeo'));
 
         return erros;
     }
@@ -63,7 +63,7 @@ class ValidadorDados {
     diagnosticar() {
         const dadosPlanilha = this.db.dadosPlanilha || [];
         if (dadosPlanilha.length === 0) {
-            return { sucesso: false, mensagem: 'Nenhum dado carregado para validar.' };
+            return { sucesso: false, mensagem: _t('Nenhum dado carregado para validar.') };
         }
         
         const dados = dadosPlanilha.map(item => {
@@ -110,17 +110,17 @@ class ValidadorDados {
 
             // Verifica Campos Obrigatórios
             const camposNaoPreenchidos = this.CAMPOS_OBRIGATORIOS.filter(campo => !dic[campo] || String(dic[campo]).trim() === '');
-            if (camposNaoPreenchidos.length > 0) errosLinha.push(`Campos não preenchidos: ${camposNaoPreenchidos.join(', ')}`);
+            if (camposNaoPreenchidos.length > 0) errosLinha.push(_t('Campos não preenchidos: {campos}', { campos: camposNaoPreenchidos.join(', ') }));
 
             // Validação de Barras (|)
             const resConj1 = this.verificarBarras(dic, ['ITEM_LEXICAL', 'ARQUIVO_ENTRADA', 'TRANSCRICAO_FONEMICA', 'TRANSCRICAO_FONETICA']);
-            if (!resConj1[0]) errosLinha.push(`Erro no uso de barras (item lexical): ${resConj1[1]}`);
+            if (!resConj1[0]) errosLinha.push(_t('Erro no uso de barras (item lexical): {detalhes}', { detalhes: resConj1[1] }));
 
             const resConj2 = this.verificarBarras(dic, ['ARQUIVO_SONORO_EXEMPLO', 'TRANSCRICAO_EXEMPLO', 'TRADUCAO_EXEMPLO']);
-            if (!resConj2[0]) errosLinha.push(`Erro no uso de barras (exemplos): ${resConj2[1]}`);
+            if (!resConj2[0]) errosLinha.push(_t('Erro no uso de barras (exemplos): {detalhes}', { detalhes: resConj2[1] }));
 
             const resConj3 = this.verificarBarras(dic, ['IMAGEM', 'LEGENDA_IMAGEM']);
-            if (!resConj3[0]) errosLinha.push(`Erro no uso de barras (imagens): ${resConj3[1]}`);
+            if (!resConj3[0]) errosLinha.push(_t('Erro no uso de barras (imagens): {detalhes}', { detalhes: resConj3[1] }));
 
             if (errosLinha.length > 0) erros[numeroLinha] = errosLinha;
 
@@ -237,55 +237,55 @@ class ValidadorDados {
     }
 
     gerarRelatorioTexto(diagnostico) {
-        if (!diagnostico.sucesso) return `ERRO GERAL: ${diagnostico.mensagem}\n`;
+        if (!diagnostico.sucesso) return `${_t('ERRO GERAL: {mensagem}', { mensagem: diagnostico.mensagem })}\n`;
         
         const { estatisticas, errosValidacao, midiasFaltando, midiasNaoUsadas, totalProblemas } = diagnostico;
         
         let txt = `====================================================\n`;
-        txt += `RELATÓRIO DE VALIDAÇÃO DO DICIONÁRIO\n`;
+        txt += `${_t('RELATÓRIO DE VALIDAÇÃO DO DICIONÁRIO')}\n`;
         txt += `====================================================\n\n`;
         
-        txt += `[ ESTATÍSTICAS GERAIS ]\n`;
-        txt += `- Total de entradas: ${estatisticas.totalEntradas}\n`;
-        txt += `- Áudios referenciados: ${estatisticas.audiosRef}\n`;
-        txt += `- Imagens referenciadas: ${estatisticas.imagensRef}\n`;
-        txt += `- Vídeos referenciados: ${estatisticas.videosRef}\n\n`;
+        txt += `${_t('[ ESTATÍSTICAS GERAIS ]')}\n`;
+        txt += `- ${_t('Total de entradas: {n}', { n: String(estatisticas.totalEntradas) })}\n`;
+        txt += `- ${_t('Áudios referenciados: {n}', { n: String(estatisticas.audiosRef) })}\n`;
+        txt += `- ${_t('Imagens referenciadas: {n}', { n: String(estatisticas.imagensRef) })}\n`;
+        txt += `- ${_t('Vídeos referenciados: {n}', { n: String(estatisticas.videosRef) })}\n\n`;
         
-        txt += `- Entradas sem áudio: ${estatisticas.entradasSemAudio}\n`;
-        txt += `- Entradas sem imagem: ${estatisticas.entradasSemImagem}\n`;
-        txt += `- Entradas sem vídeo: ${estatisticas.entradasSemVideo}\n\n`;
+        txt += `- ${_t('Entradas sem áudio: {n}', { n: String(estatisticas.entradasSemAudio) })}\n`;
+        txt += `- ${_t('Entradas sem imagem: {n}', { n: String(estatisticas.entradasSemImagem) })}\n`;
+        txt += `- ${_t('Entradas sem vídeo: {n}', { n: String(estatisticas.entradasSemVideo) })}\n\n`;
         
         txt += `----------------------------------------------------\n`;
-        txt += `[ CRUZAMENTO DE MÍDIAS ]\n`;
+        txt += `${_t('[ CRUZAMENTO DE MÍDIAS ]')}\n`;
         const totalFaltando = midiasFaltando.audio.length + midiasFaltando.imagem.length + midiasFaltando.video.length;
         if (totalFaltando === 0) {
-            txt += `✅ Todas as mídias referenciadas foram encontradas!\n\n`;
+            txt += `${_t('✅ Todas as mídias referenciadas foram encontradas!')}\n\n`;
         } else {
-            txt += `⚠️ ${totalFaltando} mídia(s) referenciada(s) não encontrada(s):\n`;
-            if (midiasFaltando.audio.length > 0) txt += `  - ÁUDIO: ${midiasFaltando.audio.join(', ')}\n`;
-            if (midiasFaltando.imagem.length > 0) txt += `  - IMAGEM: ${midiasFaltando.imagem.join(', ')}\n`;
-            if (midiasFaltando.video.length > 0) txt += `  - VÍDEO: ${midiasFaltando.video.join(', ')}\n`;
+            txt += `${_t('⚠️ {n} mídia(s) referenciada(s) não encontrada(s):', { n: String(totalFaltando) })}\n`;
+            if (midiasFaltando.audio.length > 0) txt += `  - ${_t('ÁUDIO')}: ${midiasFaltando.audio.join(', ')}\n`;
+            if (midiasFaltando.imagem.length > 0) txt += `  - ${_t('IMAGEM')}: ${midiasFaltando.imagem.join(', ')}\n`;
+            if (midiasFaltando.video.length > 0) txt += `  - ${_t('VÍDEO')}: ${midiasFaltando.video.join(', ')}\n`;
             txt += `\n`;
         }
         
         const totalNaoUsadas = midiasNaoUsadas.audio.length + midiasNaoUsadas.imagem.length + midiasNaoUsadas.video.length;
         if (totalNaoUsadas > 0) {
-            txt += `💡 ${totalNaoUsadas} mídia(s) carregada(s) mas não referenciada(s) na planilha:\n`;
-            if (midiasNaoUsadas.audio.length > 0) txt += `  - ÁUDIO: ${midiasNaoUsadas.audio.join(', ')}\n`;
-            if (midiasNaoUsadas.imagem.length > 0) txt += `  - IMAGEM: ${midiasNaoUsadas.imagem.join(', ')}\n`;
-            if (midiasNaoUsadas.video.length > 0) txt += `  - VÍDEO: ${midiasNaoUsadas.video.join(', ')}\n`;
+            txt += `${_t('💡 {n} mídia(s) carregada(s) mas não referenciada(s) na planilha:', { n: String(totalNaoUsadas) })}\n`;
+            if (midiasNaoUsadas.audio.length > 0) txt += `  - ${_t('ÁUDIO')}: ${midiasNaoUsadas.audio.join(', ')}\n`;
+            if (midiasNaoUsadas.imagem.length > 0) txt += `  - ${_t('IMAGEM')}: ${midiasNaoUsadas.imagem.join(', ')}\n`;
+            if (midiasNaoUsadas.video.length > 0) txt += `  - ${_t('VÍDEO')}: ${midiasNaoUsadas.video.join(', ')}\n`;
             txt += `\n`;
         }
         
         txt += `----------------------------------------------------\n`;
-        txt += `[ VALIDAÇÃO DE ESTRUTURA E CAMPOS ]\n`;
+        txt += `${_t('[ VALIDAÇÃO DE ESTRUTURA E CAMPOS ]')}\n`;
         const linhasComErro = Object.keys(errosValidacao);
         if (linhasComErro.length === 0) {
-            txt += `✅ Nenhum erro de preenchimento obrigatório ou estrutura encontrado!\n\n`;
+            txt += `${_t('✅ Nenhum erro de preenchimento obrigatório ou estrutura encontrado!')}\n\n`;
         } else {
-            txt += `⚠️ ${linhasComErro.length} linha(s) com erro(s):\n`;
+            txt += `${_t('⚠️ {n} linha(s) com erro(s):', { n: String(linhasComErro.length) })}\n`;
             linhasComErro.forEach(linha => {
-                txt += `  - LINHA ${linha}:\n`;
+                txt += `  - ${_t('LINHA {linha}:', { linha })}\n`;
                 errosValidacao[linha].forEach(erro => txt += `      -> ${erro}\n`);
             });
             txt += `\n`;
@@ -293,10 +293,10 @@ class ValidadorDados {
         
         txt += `====================================================\n`;
         if (totalProblemas === 0) {
-            txt += `RESULTADO: ✅ TUDO OK! Nenhuma pendência.\n`;
+            txt += `${_t('RESULTADO: ✅ TUDO OK! Nenhuma pendência.')}\n`;
         } else {
-            txt += `RESULTADO: ⚠️ PENDÊNCIAS ENCONTRADAS.\n`;
-            txt += `Total de problemas: ${totalProblemas} (${linhasComErro.length} linhas com erro + ${totalFaltando} mídias faltando)\n`;
+            txt += `${_t('RESULTADO: ⚠️ PENDÊNCIAS ENCONTRADAS.')}\n`;
+            txt += `${_t('Total de problemas: {total} ({linhas} linhas com erro + {midias} mídias faltando)', { total: String(totalProblemas), linhas: String(linhasComErro.length), midias: String(totalFaltando) })}\n`;
         }
         
         return txt;

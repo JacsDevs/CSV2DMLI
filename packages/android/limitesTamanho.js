@@ -55,8 +55,8 @@ function tipoDaMidia(caminho) {
 }
 
 export function formatarTamanho(bytes) {
-    if (bytes >= GB) return `${(bytes / GB).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} GB`;
-    if (bytes >= MB) return `${(bytes / MB).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} MB`;
+    if (bytes >= GB) return `${I18N.numero(bytes / GB, { maximumFractionDigits: 2 })} GB`;
+    if (bytes >= MB) return `${I18N.numero(bytes / MB, { maximumFractionDigits: 1 })} MB`;
     if (bytes >= 1000) return `${Math.round(bytes / 1000)} KB`;
     return `${bytes} B`;
 }
@@ -138,6 +138,29 @@ function rotuloCategorias(base, categorias) {
 }
 
 /**
+ * Rótulo do pacote no idioma da interface. O campo `rotulo` não muda de idioma porque é
+ * gravado no midias-index.json, dentro do app exportado.
+ */
+export function rotuloExibicao(pacote) {
+    const NOMES = {
+        'Áudios de exemplos': () => _t('Áudios de exemplos'),
+        'Áudios': () => _t('Áudios'),
+        'Vídeos': () => _t('Vídeos'),
+        'Mídias da instalação': () => _t('Mídias da instalação'),
+    };
+    const base = pacote.rotuloBase || pacote.rotulo.replace(/ \(parte \d+ de \d+\)$/, '');
+    const nomes = pacote.rotuloBase ? pacote.categorias.filter(Boolean) : [];
+    let texto = NOMES[base] ? NOMES[base]() : base;
+    if (nomes.length > 0) {
+        const exibidos = nomes.length > 3
+            ? _t('{lista} e mais {n}', { lista: nomes.slice(0, 3).join(', '), n: nomes.length - 3 })
+            : nomes.join(', ');
+        texto = `${texto} — ${exibidos}`;
+    }
+    return pacote.partes ? _t('{rotulo} (parte {parte} de {partes})', { rotulo: texto, parte: pacote.parte, partes: pacote.partes }) : texto;
+}
+
+/**
  * Divide as mídias entre o módulo base e os pacotes de recursos do AAB (Play Asset Delivery).
  *
  * Sem `etapas`, todas as mídias são entregues na instalação: ficam no módulo base enquanto
@@ -182,8 +205,7 @@ export function planejarEntrega({ midias, tamanhoHtml = 0, etapas = false, orcam
         let resta = orcamento - tamanhoHtml - somar(imagens);
         if (resta < 0) {
             avisos.push({ nivel: 'atencao', texto:
-                `As imagens somam ${formatarTamanho(somar(imagens))}, acima do orçamento de instalação ` +
-                `(${formatarTamanho(orcamento)}). Elas continuam na instalação; reduza-as para diminuir o download inicial.` });
+                _t('As imagens somam {total}, acima do orçamento de instalação ({orcamento}). Elas continuam na instalação; reduza-as para diminuir o download inicial.', { total: formatarTamanho(somar(imagens)), orcamento: formatarTamanho(orcamento) }) });
             resta = 0;
         }
 
@@ -255,6 +277,7 @@ export function planejarEntrega({ midias, tamanhoHtml = 0, etapas = false, orcam
         nome: `midia_od_${i + 1}`,
         entrega: ENTREGA.DEMANDA,
         rotulo: rotuloCategorias(p.rotulo, p.categorias),
+        rotuloBase: p.rotulo,
         categorias: p.categorias,
         itens: p.itens,
     }));
@@ -267,21 +290,21 @@ export function planejarEntrega({ midias, tamanhoHtml = 0, etapas = false, orcam
         const n = porRotulo.get(p.rotulo);
         if (n > 1) {
             vistos.set(p.rotulo, (vistos.get(p.rotulo) || 0) + 1);
-            p.rotulo = `${p.rotulo} (parte ${vistos.get(p.rotulo)} de ${n})`;
+            p.parte = vistos.get(p.rotulo);
+            p.partes = n;
+            p.rotulo = `${p.rotulo} (parte ${p.parte} de ${n})`;
         }
     }
 
     // Limites rígidos
     if (pacotes.length > LIMITES.pacotesMax) {
         avisos.push({ nivel: 'atencao', recusaPlay: true, texto:
-            `O plano precisa de ${pacotes.length} pacotes de recursos, acima do limite de ${LIMITES.pacotesMax} da Google Play. ` +
-            'O AAB será recusado pelo Play Console; reduza as mídias.' });
+            _t('O plano precisa de {pacotes} pacotes de recursos, acima do limite de {limite} da Google Play. O AAB será recusado pelo Play Console; reduza as mídias.', { pacotes: String(pacotes.length), limite: String(LIMITES.pacotesMax) }) });
     }
     for (const item of itens) {
         if (item.tamanho > LIMITES.pacoteRecursos) {
             avisos.push({ nivel: 'atencao', recusaPlay: true, texto:
-                `O arquivo "${item.caminho}" tem ${formatarTamanho(item.tamanho)} e não cabe em um pacote de recursos (1,5 GB). ` +
-                'O AAB será recusado pelo Play Console; comprima-o antes de gerar.' });
+                _t('O arquivo "{arquivo}" tem {tamanho} e não cabe em um pacote de recursos (1,5 GB). O AAB será recusado pelo Play Console; comprima-o antes de gerar.', { arquivo: item.caminho, tamanho: formatarTamanho(item.tamanho) }) });
         }
     }
     const totais = {
@@ -295,8 +318,7 @@ export function planejarEntrega({ midias, tamanhoHtml = 0, etapas = false, orcam
     }
     if (totais[ENTREGA.INSTALACAO] > LIMITES.instalacaoTotal) {
         avisos.push({ nivel: 'atencao', recusaPlay: true, texto:
-            `As mídias entregues na instalação somam ${formatarTamanho(totais[ENTREGA.INSTALACAO])}, acima de 4 GB ` +
-            '(limite da Google Play). O APK de instalação direta funciona, mas o AAB será recusado pelo Play Console.' });
+            _t('As mídias entregues na instalação somam {total}, acima de 4 GB (limite da Google Play). O APK de instalação direta funciona, mas o AAB será recusado pelo Play Console.', { total: formatarTamanho(totais[ENTREGA.INSTALACAO]) }) });
     }
 
     const destinos = new Map();
@@ -379,8 +401,7 @@ export function analisarTamanhoProjeto({ tamanhoHtml = 0, midias, entrega = {} }
     if (zip > LIMITES.zip) {
         elevar('bloqueio');
         avisos.push({ nivel: 'bloqueio', texto:
-            `O zip final (AAB + APK) ficaria com cerca de ${formatarTamanho(zip)}, acima do limite de 4 GB do formato ZIP. ` +
-            'Reduza ou comprima as mídias antes de gerar.' });
+            _t('O zip final (AAB + APK) ficaria com cerca de {tamanho}, acima do limite de 4 GB do formato ZIP. Reduza ou comprima as mídias antes de gerar.', { tamanho: formatarTamanho(zip) }) });
     }
     for (const aviso of plano.avisos) {
         elevar(aviso.nivel);
@@ -390,39 +411,35 @@ export function analisarTamanhoProjeto({ tamanhoHtml = 0, midias, entrega = {} }
     if (pacotesInstalacao > 0) {
         elevar('info');
         avisos.push({ nivel: 'info', texto:
-            'As mídias da instalação passam do limite do módulo base da Google Play (500 MB) e serão entregues em ' +
-            (pacotesInstalacao > 1 ? `${pacotesInstalacao} pacotes de recursos` : 'um pacote de recursos') +
-            ' (Play Asset Delivery, na instalação). Nenhuma ação necessária.' });
+            (pacotesInstalacao > 1
+                ? _t('As mídias da instalação passam do limite do módulo base da Google Play (500 MB) e serão entregues em {n} pacotes de recursos (Play Asset Delivery, na instalação). Nenhuma ação necessária.', { n: String(pacotesInstalacao) })
+                : _t('As mídias da instalação passam do limite do módulo base da Google Play (500 MB) e serão entregues em um pacote de recursos (Play Asset Delivery, na instalação). Nenhuma ação necessária.')) });
     }
     if (planoTemEtapas(plano)) {
         elevar('info');
         avisos.push({ nivel: 'info', texto:
-            'Entrega em etapas: parte das mídias fica em pacotes baixados depois da instalação, pelo próprio app ' +
-            '(Ajustes › Mídias offline). Só na versão da Google Play; o APK de instalação direta continua com tudo. ' +
-            'Ao publicar, o Play Console pede a declaração de "serviço em primeiro plano" (veja o LEIA-ME).' });
+            _t('Entrega em etapas: parte das mídias fica em pacotes baixados depois da instalação, pelo próprio app (Ajustes › Mídias offline). Só na versão da Google Play; o APK de instalação direta continua com tudo. Ao publicar, o Play Console pede a declaração de "serviço em primeiro plano" (veja o LEIA-ME).') });
     }
     const downloadInstalacao = plano.totais[ENTREGA.INSTALACAO];
     if (downloadInstalacao > LIMITES.avisoDadosMoveis && zip <= LIMITES.zip) {
         elevar('info');
         avisos.push({ nivel: 'info', texto:
-            `Download de ~${formatarTamanho(downloadInstalacao)} na instalação: a Google Play avisa quem for instalar por dados móveis (acima de 200 MB).` });
+            _t('Download de ~{tamanho} na instalação: a Google Play avisa quem for instalar por dados móveis (acima de 200 MB).', { tamanho: formatarTamanho(downloadInstalacao) }) });
     }
     if (conteudo > LIMITES.geracaoPesada) {
         elevar('atencao');
         avisos.push({ nivel: 'atencao', texto:
-            'Projeto grande: a geração pode levar alguns minutos. Feche outras abas e programas pesados; ' +
-            'se o navegador travar, use o app desktop.' });
+            _t('Projeto grande: a geração pode levar alguns minutos. Feche outras abas e programas pesados; se o navegador travar, use o app desktop.') });
     }
     const maior = lista[0];
     if (maior && maior.tamanho > LIMITES.arquivoGrande) {
         elevar('atencao');
         avisos.push({ nivel: 'atencao', texto:
-            `O arquivo "${maior.caminho}" tem ${formatarTamanho(maior.tamanho)} e precisa caber inteiro na memória durante a assinatura. ` +
-            'Considere comprimi-lo antes de gerar.' });
+            _t('O arquivo "{arquivo}" tem {tamanho} e precisa caber inteiro na memória durante a assinatura. Considere comprimi-lo antes de gerar.', { arquivo: maior.caminho, tamanho: formatarTamanho(maior.tamanho) }) });
     }
     if (conteudo > 50 * MB) {
         avisos.push({ nivel: 'info', texto:
-            `Espaço em disco: reserve pelo menos ${formatarTamanho(zip)} livres para salvar o zip (ele contém o AAB e o APK).` });
+            _t('Espaço em disco: reserve pelo menos {tamanho} livres para salvar o zip (ele contém o AAB e o APK).', { tamanho: formatarTamanho(zip) }) });
     }
 
     return {

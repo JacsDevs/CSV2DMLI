@@ -5,7 +5,7 @@ class ExportadorZip {
 
     async exportar() {
         if (typeof JSZip === 'undefined') {
-            throw new Error('Biblioteca JSZip não está disponível. Por favor, inclua-a no HTML.');
+            throw new Error(_t('Biblioteca JSZip não está disponível. Por favor, inclua-a no HTML.'));
         }
         
         const zip = new JSZip();

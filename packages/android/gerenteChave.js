@@ -63,7 +63,7 @@ export class GerenteChave {
         try {
             return await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, wrapKey, cifrado);
         } catch {
-            throw new Error('Senha incorreta ou arquivo corrompido.');
+            throw Object.assign(new Error(_t('Senha incorreta ou arquivo corrompido.')), { codigo: 'SENHA_INCORRETA' });
         }
     }
 
@@ -158,7 +158,7 @@ export class GerenteChave {
     }
 
     async gerarNovaChave(senha, { alias = 'upload', cn, org, pais = 'BR', validadeDias = 10000 } = {}) {
-        if (!senha || senha.length < 6) throw new Error('A senha deve ter pelo menos 6 caracteres.');
+        if (!senha || senha.length < 6) throw Object.assign(new Error(_t('A senha deve ter pelo menos 6 caracteres.')), { codigo: 'SENHA_CURTA' });
 
         const { forge, privKeyBuf, cert } = await this.#gerarParChaveECert({ alias, cn, org, pais, validadeDias });
 
@@ -203,7 +203,7 @@ export class GerenteChave {
 
     async carregarChave(senha) {
         const dados = await this.#carregarIdb();
-        if (!dados) throw new Error('Nenhuma chave encontrada. Crie ou importe uma chave primeiro.');
+        if (!dados) throw new Error(_t('Nenhuma chave encontrada. Crie ou importe uma chave primeiro.'));
 
         const privKeyBuf = await this.#descriptografarChave(dados, senha);
         const { default: forge } = await import(new URL('../../vendor/node-forge.min.js', import.meta.url).href);
@@ -252,11 +252,11 @@ export class GerenteChave {
 
         const keyBags = p12.getBags({ bagType: forge.pki.oids.pkcs8ShroudedKeyBag });
         const keyBag  = keyBags[forge.pki.oids.pkcs8ShroudedKeyBag]?.[0];
-        if (!keyBag) throw new Error('Nenhuma chave privada encontrada no arquivo .p12.');
+        if (!keyBag) throw new Error(_t('Nenhuma chave privada encontrada no arquivo .p12.'));
 
         const certBags = p12.getBags({ bagType: forge.pki.oids.certBag });
         const certBag  = certBags[forge.pki.oids.certBag]?.[0];
-        if (!certBag) throw new Error('Nenhum certificado encontrado no arquivo .p12.');
+        if (!certBag) throw new Error(_t('Nenhum certificado encontrado no arquivo .p12.'));
 
         const privForge = keyBag.key;
         const cert      = certBag.cert;

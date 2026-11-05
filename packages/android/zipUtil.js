@@ -51,7 +51,7 @@ export function ceder() {
 
 export function verificarCancelamento(sinal) {
     if (sinal && sinal.aborted) {
-        const e = new Error('Geração cancelada pelo usuário.');
+        const e = new Error(_t('Geração cancelada pelo usuário.'));
         e.name = 'AbortError';
         throw e;
     }
@@ -174,7 +174,7 @@ export class EscritorZip {
         }
 
         if (offsetLfh > LIMITE_ZIP32 || tamanhoComprimido > LIMITE_ZIP32 || tamanhoOriginal > LIMITE_ZIP32) {
-            throw new Error('O pacote ultrapassou 4 GB, o limite do formato ZIP usado. Reduza o tamanho das mídias.');
+            throw new Error(_t('O pacote ultrapassou 4 GB, o limite do formato ZIP usado. Reduza o tamanho das mídias.'));
         }
 
         const lfh = new Uint8Array(30 + nomeBytes.length + padding);
@@ -197,7 +197,7 @@ export class EscritorZip {
 
         this.registrosCd.push({ nomeBytes, flags, metodo, crc: crc >>> 0, tamanhoComprimido, tamanhoOriginal, offsetLfh });
         if (this.registrosCd.length > LIMITE_ENTRADAS) {
-            throw new Error(`O pacote tem mais de ${LIMITE_ENTRADAS} arquivos, o limite do formato ZIP usado.`);
+            throw new Error(_t('O pacote tem mais de {limite} arquivos, o limite do formato ZIP usado.', { limite: String(LIMITE_ENTRADAS) }));
         }
     }
 
@@ -227,7 +227,7 @@ export class EscritorZip {
 
         const offsetCd = this.offset;
         if (offsetCd + tamanhoCd > LIMITE_ZIP32) {
-            throw new Error('O pacote ultrapassou 4 GB, o limite do formato ZIP usado. Reduza o tamanho das mídias.');
+            throw new Error(_t('O pacote ultrapassou 4 GB, o limite do formato ZIP usado. Reduza o tamanho das mídias.'));
         }
         const eocd = new Uint8Array(22);
         const ev = new DataView(eocd.buffer);

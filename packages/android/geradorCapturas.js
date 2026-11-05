@@ -54,7 +54,7 @@ export async function gerarCapturasPlayStore(htmlStr, { onProgress = () => {} } 
         try {
             const bytes = await capturarPerfil(domToCanvas, htmlLimpo, perfil);
             if (bytes) capturas.set(perfil.arquivo, bytes);
-            else avisos.push(`${perfil.arquivo}: nenhum verbete encontrado para abrir a tela de detalhes.`);
+            else avisos.push(_t('{arquivo}: nenhum verbete encontrado para abrir a tela de detalhes.', { arquivo: perfil.arquivo }));
         } catch (e) {
             console.error(`Erro ao gerar captura ${perfil.arquivo}:`, e);
             avisos.push(`${perfil.arquivo}: ${e.message || e}`);
@@ -97,7 +97,7 @@ async function capturarPerfil(domToCanvas, htmlStr, perfil) {
         return await comTimeout(
             fotografarIframe(domToCanvas, iframe, perfil),
             TIMEOUT_CAPTURA_MS,
-            'Tempo esgotado ao gerar a captura.'
+            _t('Tempo esgotado ao gerar a captura.')
         );
     } finally {
         iframe.remove();
@@ -160,7 +160,7 @@ function criarIframe(htmlStr, largura, altura) {
         const timer = setTimeout(() => {
             iframe.remove();
             URL.revokeObjectURL(url);
-            reject(new Error('Tempo esgotado ao carregar o app para captura.'));
+            reject(new Error(_t('Tempo esgotado ao carregar o app para captura.')));
         }, TIMEOUT_CARGA_MS);
 
         iframe.onload = () => { clearTimeout(timer); resolve({ iframe, url }); };
@@ -230,7 +230,7 @@ async function canvasParaJpeg(origem, largura, altura) {
     ctx.fillRect(0, 0, largura, altura);
     ctx.drawImage(origem, 0, 0, largura, altura);
     const blob = await new Promise((resolve, reject) => {
-        destino.toBlob(b => b ? resolve(b) : reject(new Error('Falha ao codificar JPEG.')), 'image/jpeg', QUALIDADE_JPEG);
+        destino.toBlob(b => b ? resolve(b) : reject(new Error(_t('Falha ao codificar JPEG.'))), 'image/jpeg', QUALIDADE_JPEG);
     });
     return new Uint8Array(await blob.arrayBuffer());
 }

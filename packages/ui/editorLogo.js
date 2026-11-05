@@ -61,7 +61,7 @@ export async function abrirEditorLogo(original, recorte = null, titulo = '') {
     canvas.width = Math.max(1, Math.round(_bitmap.width * escala));
     canvas.height = Math.max(1, Math.round(_bitmap.height * escala));
 
-    document.querySelectorAll('#logoPreviaTitulo, #logoPreviaTituloEscuro').forEach((el) => { el.textContent = titulo || 'Dicionário'; });
+    document.querySelectorAll('#logoPreviaTitulo, #logoPreviaTituloEscuro').forEach((el) => { el.textContent = titulo || _t('Dicionário'); });
     aplicarCoresTema();
     dialog.showModal();
     redesenhar();   // depois de abrir: as alças dependem do tamanho exibido do canvas
@@ -328,7 +328,7 @@ function redesenhar() {
     ctx.restore();
 
     const final = arredondar(_recorte);
-    els().info.textContent = `Recorte: ${final.largura}×${final.altura}px (original ${_bitmap.width}×${_bitmap.height}px)`;
+    els().info.textContent = _t('Recorte: {largura}×{altura}px (original {origLargura}×{origAltura}px)', { largura: String(final.largura), altura: String(final.altura), origLargura: String(_bitmap.width), origAltura: String(_bitmap.height) });
     desenharPrevia(final);
 }
 

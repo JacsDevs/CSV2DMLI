@@ -169,7 +169,7 @@ class ExportadorHtmlCards extends ExportadorBase {
      * @returns {Promise<Map<string, Uint8Array>>} nome do arquivo em assets/ → conteúdo
      */
     async exportarArquivosApp(opcoes = {}) {
-        if (!this.db.bancoDados) throw new Error('Banco de dados não gerado');
+        if (!this.db.bancoDados) throw new Error(_t('Banco de dados não gerado'));
         const { montarDadosApp, montarConfigApp } = await import('./dadosApp.js');
         let entradas;
         try {
@@ -261,7 +261,7 @@ class ExportadorHtmlCards extends ExportadorBase {
         }
 
         if (limiteAtingido) {
-            corpoHtml += `<p class="preview-limite-aviso" style="padding:14px; text-align:center; color:#888; font-size:0.85em; font-style:italic;">Exibindo apenas as ${limitePreview} primeiras entradas na prévia...</p>\n`;
+            corpoHtml += `<p class="preview-limite-aviso" style="padding:14px; text-align:center; color:#888; font-size:0.85em; font-style:italic;">${_t('Exibindo apenas as {n} primeiras entradas na prévia...', { n: String(limitePreview) })}</p>\n`;
         }
 
         return { scriptsDados, corpoHtml };
@@ -277,8 +277,8 @@ class ExportadorHtmlCards extends ExportadorBase {
     // - midiasPorMarcador: { prefixo, mapa }: mídias embutidas viram marcadores em vez de
     //   Base64 (ver gerarScriptsDadosEmLotes e gravarEmbutido).
     async exportar(opcoes = {}) {
-        if (!this.db.bancoDados) throw new Error('Banco de dados não gerado');
-        if (!this.templatePrincipal) throw new Error('Template principal HTML não carregado');
+        if (!this.db.bancoDados) throw new Error(_t('Banco de dados não gerado'));
+        if (!this.templatePrincipal) throw new Error(_t('Template principal HTML não carregado'));
 
         const limitePreview = opcoes.limitePreview;
         const cache = opcoes.cachePrevia || null;
@@ -464,8 +464,8 @@ class ExportadorHtmlCards extends ExportadorBase {
             const reader = new FileReader();
             reader.onload = () => resolve(reader.result.slice(reader.result.indexOf(',') + 1));
             reader.onerror = () => {
-                const nome = arquivo.webkitRelativePath || arquivo.name || 'mídia sem nome';
-                const erro = new Error(`Não foi possível ler o arquivo "${nome}". Ele provavelmente foi alterado, substituído ou movido no disco depois de ser carregado no projeto. Recarregue a pasta do projeto (ou as mídias) e gere o HTML novamente.\n\nDetalhe técnico: ${reader.error && reader.error.message}`);
+                const nome = arquivo.webkitRelativePath || arquivo.name || _t('mídia sem nome');
+                const erro = new Error(_t('Não foi possível ler o arquivo "{arquivo}". Ele provavelmente foi alterado, substituído ou movido no disco depois de ser carregado no projeto. Recarregue a pasta do projeto (ou as mídias) e gere o HTML novamente.\n\nDetalhe técnico: {erro}', { arquivo: nome, erro: String(reader.error && reader.error.message) }));
                 erro.cause = reader.error;
                 reject(erro);
             };
@@ -491,7 +491,7 @@ class ExportadorHtmlCards extends ExportadorBase {
             const pct = totalBytes ? Math.min(100, Math.round(bytesGravados / totalBytes * 100)) : 100;
             window.dispatchEvent(new CustomEvent('exportacaoProgresso', { detail: {
                 progresso: bytesGravados, total: totalBytes,
-                mensagem: `${fase}: ${(bytesGravados / MB).toFixed(0)} de ${(totalBytes / MB).toFixed(0)} MB (${pct}%)`
+                mensagem: _t('{fase}: {gravado} de {total} MB ({pct}%)', { fase, gravado: (bytesGravados / MB).toFixed(0), total: (totalBytes / MB).toFixed(0), pct: String(pct) })
             } }));
         };
         console.log(`⏳ HTML embutido: dados prontos em ${segundos()}s; gravando ${mapa.size} mídias e ${videos.size} vídeos (${(totalBytes / MB).toFixed(0)} MB)...`);
@@ -535,7 +535,7 @@ class ExportadorHtmlCards extends ExportadorBase {
         const gravarMidia = async (marcador, arquivo) => {
             // Mesmo prefixo que o FileReader.readAsDataURL usaria para o arquivo inteiro
             await escrever(`data:${arquivo.type || 'application/octet-stream'};base64,`);
-            await gravarBase64(marcador, arquivo, 'Gravando áudios e imagens');
+            await gravarBase64(marcador, arquivo, _t('Gravando áudios e imagens'));
         };
         // Um bloco por pedaço (~8 MB de texto): a página decodifica um de cada vez
         const gravarBlocosVideos = async () => {
@@ -545,7 +545,7 @@ class ExportadorHtmlCards extends ExportadorBase {
                 const numero = id.slice('midia:'.length);
                 const tipo = this.escaparHTML(arquivo.type || 'application/octet-stream');
                 console.log(`⏳ HTML embutido: vídeo ${k}/${videos.size} "${arquivo.name || id}" (${(arquivo.size / MB).toFixed(0)} MB) — ${segundos()}s`);
-                await gravarBase64(id, arquivo, `Gravando vídeo ${k} de ${videos.size}`,
+                await gravarBase64(id, arquivo, _t('Gravando vídeo {atual} de {total}', { atual: String(k), total: String(videos.size) }),
                     `<script type="application/octet-stream" data-midia="${numero}" data-tipo="${tipo}">`, '</script>\n');
             }
         };

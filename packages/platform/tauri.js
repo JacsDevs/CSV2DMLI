@@ -59,7 +59,7 @@ export class TauriPlatform {
         const ext = nomeArquivo.split('.').pop();
         return core.invoke('plugin:dialog|save', {
             options: {
-                title: 'Salvar Arquivo',
+                title: _t('Salvar Arquivo'),
                 defaultPath: nomeArquivo,
                 filters: [{ name: ext.toUpperCase(), extensions: [ext] }]
             }
@@ -104,9 +104,7 @@ export class TauriPlatform {
         } catch (err) {
             console.error('Erro ao salvar no Desktop, usando fallback web:', err);
             alert(
-                `Não foi possível salvar em "${nomeArquivo}" no local escolhido.\n` +
-                `Será usado o salvamento do navegador como alternativa.\n\n` +
-                `Detalhe técnico: ${err && err.message ? err.message : err}`
+                _t('Não foi possível salvar em "{arquivo}" no local escolhido.\nSerá usado o salvamento do navegador como alternativa.\n\nDetalhe técnico: {erro}', { arquivo: nomeArquivo, erro: err && err.message ? err.message : err })
             );
             return new BrowserPlatform().salvarArquivo(nomeArquivo, blob);
         }
