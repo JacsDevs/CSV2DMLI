@@ -2873,7 +2873,7 @@
         const loader = document.getElementById('globalLoader');
 
         if (loader && loader.style.display !== 'none' && loaderDesc) {
-            loaderDesc.textContent = mensagem || 'Preparando as mídias';
+            loaderDesc.textContent = mensagem || _t('Preparando as mídias');
             window.atualizarProgressoLoader(progresso, total);
         }
     });
@@ -3179,7 +3179,7 @@
             // A mensagem customizada geralmente é ignorada pelos navegadores modernos,
             // mas o preventDefault() e o returnValue ativam a janela de confirmação padrão do navegador.
             e.preventDefault();
-            e.returnValue = 'Você tem dados carregados que não foram exportados. Tem certeza que deseja sair e perder as alterações?';
+            e.returnValue = _t('Você tem dados carregados que não foram exportados. Tem certeza que deseja sair e perder as alterações?');
         }
     });
 
@@ -5864,7 +5864,7 @@
 
     iniciar().then(() => {
         if (window.adicionarLogAoTerminal) {
-            window.adicionarLogAoTerminal('✅ Módulos do sistema inicializados com sucesso! Aguardando seleção de arquivos (Passo 1).', 'info');
+            window.adicionarLogAoTerminal(_t('✅ Módulos do sistema inicializados com sucesso! Aguardando seleção de arquivos (Passo 1).'), 'info');
         }
     });
 </script>
