@@ -2503,8 +2503,8 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     .progresso-celular-barra span.atual { background: var(--primary); }
     .progresso-celular-barra span.pendencias { background: #d97706; }
     .progresso-celular-seguinte { display: flex; justify-content: space-between; margin-top: 6px; font-size: 12px; color: var(--text-muted); }
-    .progresso-celular-seguinte::after { content: 'Ver etapas ▾'; font-weight: 600; color: var(--primary); }
-    .progresso-celular[open] .progresso-celular-seguinte::after { content: 'Fechar ▴'; }
+    .progresso-celular-seguinte::after { content: attr(data-ver-etapas) ' ▾'; font-weight: 600; color: var(--primary); }
+    .progresso-celular[open] .progresso-celular-seguinte::after { content: attr(data-fechar) ' ▴'; }
 
     .progresso-celular-lista { margin: 0; padding: 0 8px 12px; list-style: none; display: flex; flex-direction: column; gap: 2px; }
     .progresso-celular-item {

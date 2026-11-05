@@ -9,6 +9,22 @@
     <script src="packages/i18n/nucleo.js"></script>
     <script src="packages/i18n/locales/en.js"></script>
     <script src="packages/i18n/locales/es.js"></script>
+    <style>
+        html.i18n-carregando body { visibility: hidden; }
+        .idioma-interface {
+            flex: 0 0 auto;
+            width: auto;
+            margin: 0;
+            min-height: var(--control-min-height);
+            padding: 0 8px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-control);
+            background: var(--bg-card);
+            color: var(--text-strong);
+            font: inherit;
+            cursor: pointer;
+        }
+    </style>
     <!-- Papa Parse -->
     <script src="vendor/papaparse.min.js"></script>
     <!-- JSZip -->
@@ -751,6 +767,7 @@
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
                 <nav class="header-actions" id="ferramentasCabecalho" data-i18n-attr="aria-label" aria-label="Ferramentas">
+                    <select class="idioma-interface" id="seletorIdioma" translate="no" data-i18n-attr="aria-label title" aria-label="Idioma da interface" title="Idioma da interface"></select>
                     <div class="tamanho-interface" role="group" data-i18n-attr="aria-label" aria-label="Tamanho da interface">
                         <button type="button" class="tamanho-btn" data-i18n-attr="aria-label title" aria-label="Diminuir tamanho da interface" title="Diminuir tamanho da interface" onclick="ajustarZoom(-0.1)">A−</button>
                         <button type="button" class="tamanho-btn tamanho-valor" id="zoomLevel" data-i18n-attr="aria-label title" aria-label="Restaurar tamanho padrão" title="Restaurar tamanho padrão" onclick="resetZoom()">100%</button>
@@ -797,7 +814,7 @@
                             <span class="progresso-celular-contador" id="progressoCelularContador" data-i18n>Etapa 1 de 6</span>
                         </span>
                         <span class="progresso-celular-barra" id="progressoCelularBarra" aria-hidden="true"></span>
-                        <span class="progresso-celular-seguinte" id="progressoCelularSeguinte" data-i18n>A seguir: Mídias e Validação</span>
+                        <span class="progresso-celular-seguinte" id="progressoCelularSeguinte" data-i18n data-i18n-attr="data-ver-etapas data-fechar" data-ver-etapas="Ver etapas" data-fechar="Fechar">A seguir: Mídias e Validação</span>
                     </summary>
                     <ol class="progresso-celular-lista" id="progressoCelularLista" data-i18n-attr="aria-label" aria-label="Etapas"></ol>
                 </details>
@@ -2177,7 +2194,17 @@
 </div>
 
 <!-- Logger do Terminal -->
+<script>I18N.aplicarInicial();</script>
 <script>
+    // Seletor de idioma do cabeçalho
+    (function () {
+        const seletor = document.getElementById('seletorIdioma');
+        I18N.idiomas.forEach(({ codigo, nome }) => seletor.append(new Option(nome, codigo)));
+        seletor.value = I18N.idioma;
+        seletor.addEventListener('change', () => I18N.definirIdioma(seletor.value));
+        document.addEventListener('idioma-alterado', () => { seletor.value = I18N.idioma; });
+    })();
+
     window.mostrarLoader = function(titulo = _t('Processando...'), descricao = _t('Por favor, aguarde.')) {
         const loader = document.getElementById('globalLoader');
         if (loader) {
@@ -5968,7 +5995,7 @@
         const menu = document.getElementById('ferramentasCabecalho');
         if (!menu.classList.contains('aberto')) return;
         // Fecha ao tocar fora ou ao escolher uma ferramenta (os botões de tamanho mantêm o menu aberto)
-        if (e.target.closest('#btnMenuCelular') || e.target.closest('.tamanho-interface')) return;
+        if (e.target.closest('#btnMenuCelular') || e.target.closest('.tamanho-interface') || e.target.closest('#seletorIdioma')) return;
         window.alternarMenuCelular(false);
     });
     document.addEventListener('keydown', e => {

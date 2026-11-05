@@ -42,7 +42,23 @@
         }
     }
 
-    let idiomaAtivo = lerIdiomaSalvo() || PADRAO;
+    // Primeiro acesso: o primeiro idioma do navegador que o sistema suporta, comparando também
+    // só a língua (pt-PT usa pt-BR, es-AR usa es). Sem nenhum suportado, fica no padrão.
+    function detectarIdioma() {
+        const navegador = global.navigator;
+        const preferidos = navegador ? (navegador.languages && navegador.languages.length ? navegador.languages : [navegador.language]) : [];
+        const lingua = (codigo) => String(codigo).toLowerCase().split('-')[0];
+        for (const preferido of preferidos) {
+            if (!preferido) continue;
+            const exato = IDIOMAS.find(i => i.codigo.toLowerCase() === preferido.toLowerCase());
+            if (exato) return exato.codigo;
+            const mesmaLingua = IDIOMAS.find(i => lingua(i.codigo) === lingua(preferido));
+            if (mesmaLingua) return mesmaLingua.codigo;
+        }
+        return PADRAO;
+    }
+
+    let idiomaAtivo = lerIdiomaSalvo() || detectarIdioma();
 
     const normalizar = (texto) => texto.replace(/\s+/g, ' ').trim();
 
@@ -170,6 +186,14 @@
         registrar(codigo, dicionario) { dicionarios[codigo] = dicionario; },
         definirIdioma,
         aplicar,
+        aplicarInicial() {
+            if (idiomaAtivo === PADRAO) return;
+            try {
+                aplicar();
+            } finally {
+                document.documentElement.classList.remove('i18n-carregando');
+            }
+        },
         numero,
         lista: (itens) => new Intl.ListFormat(idiomaAtivo, { style: 'long', type: 'conjunction' }).format(itens),
         data: (valor, opcoes) => new Date(valor).toLocaleDateString(idiomaAtivo, opcoes),
@@ -179,11 +203,11 @@
     global._tn = _tn;
 
     // Em PT-BR o HTML já está correto, então nada é tocado na inicialização.
+    // Nos outros idiomas, a página fica oculta até I18N.aplicarInicial(), no fim do <body>,
+    // para o português não aparecer de relance.
     if (typeof document !== 'undefined' && idiomaAtivo !== PADRAO) {
         document.documentElement.lang = idiomaAtivo;
-        document.addEventListener('DOMContentLoaded', () => {
-            aplicar();
-            avisarTelas();
-        });
+        document.documentElement.classList.add('i18n-carregando');
+        document.addEventListener('DOMContentLoaded', avisarTelas);
     }
 })(globalThis);
