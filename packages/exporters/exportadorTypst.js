@@ -51,6 +51,46 @@ class ExportadorTypst extends ExportadorBase {
         return resultado;
     }
 
+    /**
+     * Índice "nome do arquivo em minúsculas" -> nome real, das imagens do VFS.
+     * O CompiladorPdf injeta cada imagem em /foto/<nome real>, então este é o
+     * único caminho que o Typst consegue ler.
+     */
+    montarIndiceImagens() {
+        const indice = new Map();
+        const imagens = this.db.vfs && this.db.vfs.imagem;
+        if (imagens) {
+            for (const chave of imagens.keys()) {
+                const nome = chave.split('/').pop().split('\\').pop();
+                const nomeMinusculo = nome.toLowerCase();
+                if (!indice.has(nomeMinusculo)) indice.set(nomeMinusculo, nome);
+            }
+        }
+        return indice;
+    }
+
+    /**
+     * Mantém só as imagens presentes no VFS, apontando para o caminho em que o
+     * compilador as injeta. O Typst aborta a compilação inteira ao não achar um
+     * arquivo de #image, então as ausentes são omitidas do PDF.
+     */
+    filtrarImagensDisponiveis(imagens, termo) {
+        if (!imagens || imagens.length === 0) return [];
+        if (!this.indiceImagens) this.indiceImagens = this.montarIndiceImagens();
+
+        const disponiveis = [];
+        for (const img of imagens) {
+            const nome = String(img.ARQUIVO || '').split('/').pop().split('\\').pop();
+            const nomeReal = nome ? this.indiceImagens.get(nome.toLowerCase()) : null;
+            if (nomeReal) {
+                disponiveis.push({ ...img, ARQUIVO: `foto/${nomeReal}` });
+            } else {
+                console.warn(`⚠️ Imagem "${img.ARQUIVO}" (entrada "${termo}") não encontrada; omitida do PDF.`);
+            }
+        }
+        return disponiveis;
+    }
+
     gerarEntradaTypst(entrada) {
         const dados = this.extrairDadosEntrada(entrada);
         dados.TERMO = this.escaparTypst(dados.TERMO);
@@ -62,10 +102,11 @@ class ExportadorTypst extends ExportadorBase {
         dados.ITENS_RELACIONADOS = this.escaparTypst(dados.ITENS_RELACIONADOS);
         
         dados.SIGNIFICADOS = dados.SIGNIFICADOS.map(s => ({
-            ...s, 
-            TRADUCAO: this.escaparTypst(s.TRADUCAO), 
+            ...s,
+            TRADUCAO: this.escaparTypst(s.TRADUCAO),
             DESCRICAO: this.escaparTypst(s.DESCRICAO),
-            EXEMPLOS: s.EXEMPLOS.map(e => ({ TRANS: this.escaparTypst(e.TRANS), TRAD: this.escaparTypst(e.TRAD) }))
+            EXEMPLOS: s.EXEMPLOS.map(e => ({ TRANS: this.escaparTypst(e.TRANS), TRAD: this.escaparTypst(e.TRAD) })),
+            IMAGENS: this.filtrarImagensDisponiveis(s.IMAGENS, dados.TERMO_PARENT)
         }));
         
         // Garante a compatibilidade com a chave {{#TEXTOS}} usada no HTML e nos templates
@@ -131,6 +172,9 @@ class ExportadorTypst extends ExportadorBase {
     exportar(opcoes = {}) {
         if (!this.db.bancoDados) throw new Error(_t('Banco de dados não gerado'));
         if (!this.templatePrincipal) throw new Error(_t('Template principal Typst não carregado'));
+
+        // Reconstrói o índice a cada exportação: o VFS pode ter mudado desde a última
+        this.indiceImagens = this.montarIndiceImagens();
 
         const { arvore, categoriasRaizes } = this.db.obterArvoreOrdenada();
         const manterSet = new Set((opcoes.categoriasManterOriginal || []).map(c => c.toLowerCase()));
