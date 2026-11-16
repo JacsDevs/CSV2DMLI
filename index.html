@@ -997,7 +997,7 @@
                                     <span class="campo-rotulo" data-i18n>Título do PDF / livro</span>
                                     <input type="text" id="metaPdf" class="campo-entrada" value="Meu Dicionário">
                                 </label>
-                                <label class="campo">
+                                <label class="campo campo-largo">
                                     <span class="campo-rotulo" data-i18n>Autoria</span>
                                     <input type="text" id="metaAutor" class="campo-entrada" placeholder="Nomes separados por vírgula" data-i18n-attr="placeholder">
                                 </label>
@@ -1005,6 +1005,40 @@
                                     <span class="campo-rotulo" data-i18n>Ano de publicação</span>
                                     <input type="text" id="metaAno" class="campo-entrada" inputmode="numeric" placeholder="Ex.: 2026" data-i18n-attr="placeholder">
                                 </label>
+                                <!-- Versão do conteúdo do dicionário; a do app Android fica no passo de publicação -->
+                                <label class="campo">
+                                    <span class="campo-rotulo" data-i18n>Versão do dicionário</span>
+                                    <input type="text" id="metaVersao" class="campo-entrada" placeholder="1.0">
+                                    <span class="campo-ajuda" data-i18n>Vazio, vale 1.0. Não é a versão do app Android.</span>
+                                </label>
+                            </fieldset>
+
+                            <!-- Citação do próprio dicionário ("Como citar" no HTML e no app Android).
+                                 Vem das chaves Citacao-* do configuracao.txt; editada aqui, vai para metadados.citacao. -->
+                            <fieldset class="info-grupo" id="metaCitacaoGrupo">
+                                <legend data-i18n>Como citar</legend>
+                                <label class="campo campo-largo">
+                                    <span class="campo-rotulo" data-i18n>Autoria na citação <span class="campo-opcional" data-i18n>(opcional)</span></span>
+                                    <input type="text" id="metaCitacaoAutores" class="campo-entrada" data-citacao="autores" placeholder="Ex.: SILVA, Ana; SOUZA, Rui" data-i18n-attr="placeholder">
+                                    <span class="campo-ajuda" data-i18n>Vazio, usa a Autoria acima.</span>
+                                </label>
+                                <label class="campo">
+                                    <span class="campo-rotulo" data-i18n>Local <span class="campo-opcional" data-i18n>(opcional)</span></span>
+                                    <input type="text" id="metaCitacaoLocal" class="campo-entrada" data-citacao="local" placeholder="Ex.: Porto Velho" data-i18n-attr="placeholder">
+                                </label>
+                                <label class="campo">
+                                    <span class="campo-rotulo" data-i18n>Editora ou instituição <span class="campo-opcional" data-i18n>(opcional)</span></span>
+                                    <input type="text" id="metaCitacaoEditor" class="campo-entrada" data-citacao="editor" placeholder="Ex.: Editora da Universidade" data-i18n-attr="placeholder">
+                                </label>
+                                <label class="campo campo-largo">
+                                    <span class="campo-rotulo" data-i18n>Link <span class="campo-opcional" data-i18n>(opcional)</span></span>
+                                    <input type="url" id="metaCitacaoLink" class="campo-entrada" data-citacao="link" placeholder="https://">
+                                </label>
+                                <div class="campo campo-largo">
+                                    <span class="campo-rotulo" data-i18n>Prévia</span>
+                                    <p class="citacao-previa" id="metaCitacaoPrevia"></p>
+                                    <span class="campo-ajuda" data-i18n>Texto exatamente como sai nas exportações HTML e Android.</span>
+                                </div>
                             </fieldset>
 
                             <!-- Só para projetos CLDF; campos espelhados no diálogo de exportação CLDF (ver sincronizarCamposCldf) -->
@@ -1112,6 +1146,24 @@
                         <input type="checkbox" id="swAlpha" checked hidden>
                         <input type="checkbox" id="swSemantic" checked hidden>
 
+                        <fieldset class="info-grupo estrutura-alfabeto">
+                            <legend data-i18n>Alfabeto usado na ordenação</legend>
+                            <label class="opcao-radio">
+                                <input type="radio" name="tipoAlfabeto" value="padrao" id="alfabetoPadrao" checked onchange="window.aplicarAlfabeto()">
+                                <span><strong data-i18n>Padrão (A a Z)</strong><span class="campo-ajuda" data-i18n>Ordem alfabética do português.</span></span>
+                            </label>
+                            <label class="opcao-radio">
+                                <input type="radio" name="tipoAlfabeto" value="lingua" id="alfabetoLingua" onchange="window.aplicarAlfabeto()">
+                                <span><strong data-i18n>Alfabeto da língua</strong><span class="campo-ajuda" data-i18n>Defina a sequência de letras, incluindo dígrafos. Acentos são ignorados na comparação.</span></span>
+                            </label>
+                            <div class="campo estrutura-alfabeto-letras" id="alfabetoLetrasCampo" hidden>
+                                <label class="campo-rotulo" for="alfabetoLetras" data-i18n>Letras, em ordem, separadas por vírgula</label>
+                                <textarea id="alfabetoLetras" class="campo-entrada mono" rows="3" data-i18n-attr="placeholder" placeholder="Ex.: a, b, ch, d, e, …" oninput="window.aplicarAlfabeto()"></textarea>
+                                <button type="button" class="btn-secundario btn-compacto" onclick="document.getElementById('inputAlfabeto').click()" data-i18n>Importar de arquivo</button>
+                                <input type="file" id="inputAlfabeto" accept=".txt,text/plain" hidden onchange="window.importarAlfabeto(this.files[0])">
+                            </div>
+                        </fieldset>
+
                         <div class="estrutura-grade">
                             <div class="estrutura-coluna">
                                 <section class="estrutura-painel" aria-labelledby="ordemEntradasTitulo">
@@ -1127,24 +1179,6 @@
                                     </div>
                                     <ul class="estrutura-lista" id="gridAlpha"><li class="estrutura-vazia" data-i18n>Importe um projeto para ver as categorias.</li></ul>
                                 </section>
-
-                                <fieldset class="info-grupo estrutura-alfabeto">
-                                    <legend data-i18n>Alfabeto usado na ordenação</legend>
-                                    <label class="opcao-radio">
-                                        <input type="radio" name="tipoAlfabeto" value="padrao" id="alfabetoPadrao" checked onchange="window.aplicarAlfabeto()">
-                                        <span><strong data-i18n>Padrão (A a Z)</strong><span class="campo-ajuda" data-i18n>Ordem alfabética do português.</span></span>
-                                    </label>
-                                    <label class="opcao-radio">
-                                        <input type="radio" name="tipoAlfabeto" value="lingua" id="alfabetoLingua" onchange="window.aplicarAlfabeto()">
-                                        <span><strong data-i18n>Alfabeto da língua</strong><span class="campo-ajuda" data-i18n>Defina a sequência de letras, incluindo dígrafos. Acentos são ignorados na comparação.</span></span>
-                                    </label>
-                                    <div class="campo estrutura-alfabeto-letras" id="alfabetoLetrasCampo" hidden>
-                                        <label class="campo-rotulo" for="alfabetoLetras" data-i18n>Letras, em ordem, separadas por vírgula</label>
-                                        <textarea id="alfabetoLetras" class="campo-entrada mono" rows="3" data-i18n-attr="placeholder" placeholder="Ex.: a, b, ch, d, e, …" oninput="window.aplicarAlfabeto()"></textarea>
-                                        <button type="button" class="btn-secundario btn-compacto" onclick="document.getElementById('inputAlfabeto').click()" data-i18n>Importar de arquivo</button>
-                                        <input type="file" id="inputAlfabeto" accept=".txt,text/plain" hidden onchange="window.importarAlfabeto(this.files[0])">
-                                    </div>
-                                </fieldset>
                             </div>
 
                             <section class="estrutura-painel" aria-labelledby="ordemCategoriasTitulo">
@@ -2420,6 +2454,7 @@
     import { abrirEditorIcone } from './packages/ui/editorIcone.js';
     import { processarLogo, recortarLogoOriginal } from './packages/core/iconeUtil.js';
     import { abrirEditorLogo } from './packages/ui/editorLogo.js';
+    import { montarPartesCitacao } from './packages/exporters/dadosApp.js';
 
     
     // 1. Criar instâncias do sistema modular
@@ -2864,6 +2899,36 @@
         window.atualizarUIReferencia();
     };
 
+    // Prévia de "Como citar": usa a mesma montagem das exportações (montarPartesCitacao) e os
+    // mesmos valores de reserva de coletarMetadadosExportacao. O texto não é traduzido.
+    function atualizarPreviaCitacao() {
+        const previa = document.getElementById('metaCitacaoPrevia');
+        if (!previa) return;
+        const existente = window.configurador.getConfig().metadados || {};
+        const valor = (id) => document.getElementById(id)?.value.trim() || '';
+        const { autores, titulo, complemento } = montarPartesCitacao({
+            tituloHtml: valor('metaHtml') || existente.html || 'Dicionário',
+            autor: valor('metaAutor') || existente.autor || '',
+            ano: valor('metaAno') || existente.ano || '',
+            versao: valor('metaVersao') || existente.versao || '1.0',
+            citacao: existente.citacao,
+        });
+        const negrito = document.createElement('strong');
+        negrito.textContent = `${titulo}.`;
+        previa.replaceChildren(...[autores && `${autores}. `, negrito, complemento && ` ${complemento}`].filter(Boolean));
+    }
+
+    // Os campos de citação gravam direto na configuração (exportações e projeto.json leem dali);
+    // qualquer outro campo da etapa só atualiza a prévia
+    document.getElementById('step3')?.addEventListener('input', (evento) => {
+        const parte = evento.target.dataset && evento.target.dataset.citacao;
+        if (parte) {
+            window.configurador.mesclarConfigLocal({ metadados: { citacao: { [parte]: evento.target.value.trim() } } });
+        }
+        atualizarPreviaCitacao();
+    });
+    atualizarPreviaCitacao();
+
     window.preencherUIComMetadados = function() {
         const sis = window.sistema;
         if (!sis) return;
@@ -2875,6 +2940,12 @@
         if (meta.pdf) document.getElementById('metaPdf').value = meta.pdf;
         if (meta.autor) document.getElementById('metaAutor').value = meta.autor;
         if (meta.ano) document.getElementById('metaAno').value = meta.ano;
+        if (meta.versao) document.getElementById('metaVersao').value = meta.versao;
+        // Sempre reescritos: a citação não tem outra origem além da configuração
+        document.querySelectorAll('#metaCitacaoGrupo [data-citacao]').forEach(campo => {
+            campo.value = (meta.citacao && meta.citacao[campo.dataset.citacao]) || '';
+        });
+        atualizarPreviaCitacao();
         window.definirEstadoTituloPdf();
         window._referenciaArquivo = null;
         window.atualizarUIReferencia();
@@ -3258,7 +3329,7 @@
             tituloPdf:  document.getElementById('metaPdf')?.value.trim()  || existente.pdf  || 'Dicionário',
             autor:      document.getElementById('metaAutor')?.value.trim() || existente.autor || '',
             ano:        document.getElementById('metaAno')?.value.trim()   || existente.ano  || '',
-            versao:     existente.versao || '1.0',
+            versao:     document.getElementById('metaVersao')?.value.trim() || existente.versao || '1.0',
             citacao:    existente.citacao || null,
             introHtml: introHtml,
             introPdf: introPdf,
