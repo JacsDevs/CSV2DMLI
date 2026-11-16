@@ -893,6 +893,8 @@ p.conferir-sem-projeto { margin: 0; padding: 0; }
     min-width: 0;
 }
 .info-coluna-lateral {
+    /* A borda do fieldset ao lado começa no meio da legenda: desce os cartões para alinhar o topo */
+    padding-top: calc(var(--info-legenda-altura) / 2);
     display: flex;
     flex-direction: column;
     gap: 24px;
@@ -908,7 +910,8 @@ p.conferir-sem-projeto { margin: 0; padding: 0; }
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px 20px;
 }
-.info-grupo legend { padding: 0 6px; font-size: 16px; font-weight: 700; color: var(--text-main); }
+.info-grade { --info-legenda-altura: 24px; }
+.info-grupo legend { padding: 0 6px; font-size: 16px; line-height: var(--info-legenda-altura); font-weight: 700; color: var(--text-main); }
 .info-grupo-selo {
     margin-left: 6px;
     padding: 1px 8px;
@@ -922,6 +925,16 @@ p.conferir-sem-projeto { margin: 0; padding: 0; }
 .campo-opcional { font-weight: 400; color: var(--text-muted); font-size: 13px; }
 .campo .campo-entrada.mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
 .info-cartao-status { font-size: 14px; font-weight: 600; color: var(--text-strong); }
+.citacao-previa {
+    margin: 0;
+    padding: 12px 14px;
+    border-radius: var(--radius-control);
+    background: var(--bg-secondary);
+    color: var(--text-main);
+    font-size: 14px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
 
 .campo {
     display: flex;
@@ -1040,6 +1053,7 @@ p.conferir-sem-projeto { margin: 0; padding: 0; }
 @media (max-width: 1024px) {
     .info-grade { grid-template-columns: 1fr; }
     .info-coluna-principal { grid-column: auto; }
+    .info-coluna-lateral { padding-top: 0; }
 }
 @media (max-width: 600px) {
     .info-grupo { grid-template-columns: 1fr; }
@@ -1165,7 +1179,7 @@ p.conferir-sem-projeto { margin: 0; padding: 0; }
 }
 .opcao-radio input { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--primary); flex-shrink: 0; }
 .opcao-radio strong { display: block; font-size: 15px; color: var(--text-main); }
-.info-grupo.estrutura-alfabeto { display: flex; flex-direction: column; gap: 12px; }
+.info-grupo.estrutura-alfabeto { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
 .estrutura-alfabeto-letras { padding-left: 28px; }
 .campo textarea.campo-entrada { min-height: 0; resize: vertical; font-size: 14px; }
 .estrutura-alfabeto-letras .btn-secundario { align-self: flex-start; }
