@@ -165,7 +165,7 @@ export default class ModuloExportacao {
 
     async gerarPdfBlob(opcoes = {}) {
         const codigoTypst = this.exportarTypst(opcoes);
-        return await this.compiladorPdf.gerarPdf(codigoTypst);
+        return await this.compiladorPdf.gerarPdf(codigoTypst, opcoes);
     }
 
     async exportarZip(nomeArquivo) {

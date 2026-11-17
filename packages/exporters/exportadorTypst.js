@@ -16,7 +16,7 @@ class ExportadorTypst extends ExportadorBase {
             if (false && cachePrincipal) this.templatePrincipal = cachePrincipal;
             else {
                 try {
-                    const res = await fetch('config/templates/typst/template.typ');
+                    const res = await fetch('config/templates/typst/template.typ?v=' + Date.now());
                     if (res.ok) this.templatePrincipal = await res.text();
                 } catch(e) { console.warn('Fetch de config/templates/typst/template.typ falhou, usando fallback.'); }
             }
@@ -24,7 +24,7 @@ class ExportadorTypst extends ExportadorBase {
             if (false && cacheEntrada) this.templateEntrada = cacheEntrada;
             else {
                 try {
-                    const res = await fetch('config/templates/typst/entrada.typ');
+                    const res = await fetch('config/templates/typst/entrada.typ?v=' + Date.now());
                     if (res.ok) this.templateEntrada = await res.text();
                 } catch(e) { console.warn('Fetch de config/templates/typst/entrada.typ falhou, usando fallback.'); }
             }
@@ -191,9 +191,8 @@ class ExportadorTypst extends ExportadorBase {
         const versao = meta.versao || '1.0';
 
         let referenciasTypst = '';
-        if (meta.referenciasTypst) {
-            referenciasTypst = meta.referenciasTypst;
-        } else if (meta.bibliografiaBib || this.db.bibliografiaBib) {
+        const temBib = !!(meta.bibliografiaBib || (this.db && this.db.bibliografiaBib));
+        if (temBib) {
             referenciasTypst = '#bibliography("bibliografia.bib", style: "abnt-6023.csl", full: true, title: none)';
         }
 

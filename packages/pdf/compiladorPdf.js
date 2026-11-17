@@ -48,7 +48,7 @@ export default class CompiladorPdf {
         }
     }
 
-    async _injetarRecursosTypst() {
+    async _injetarRecursosTypst(opcoes = {}) {
         console.log('⏳ Preparando ambiente (Fontes e Dependências)...');
         
         // 1. Carregar Fontes Locais
@@ -133,9 +133,12 @@ export default class CompiladorPdf {
         }
 
         // 3.2. Injeta bibliografia .bib na memória virtual
-        if (this.gerenciador && this.gerenciador.bibliografiaBib) {
+        const conteudoBib = (opcoes && opcoes.metadados && opcoes.metadados.bibliografiaBib)
+                         || (opcoes && opcoes.bibliografiaBib)
+                         || (this.gerenciador && this.gerenciador.bibliografiaBib);
+        if (conteudoBib) {
             try {
-                const uint8Bib = new TextEncoder().encode(this.gerenciador.bibliografiaBib);
+                const uint8Bib = new TextEncoder().encode(conteudoBib);
                 if (typeof this.typstModule.mapShadow === 'function') {
                     await this.typstModule.mapShadow('/bibliografia.bib', uint8Bib);
                 } else {
@@ -174,14 +177,14 @@ export default class CompiladorPdf {
         }
     }
 
-    async gerarPdf(codigoTypst) {
+    async gerarPdf(codigoTypst, opcoes = {}) {
         if (!this.inicializado) await this.inicializar();
         
         // Proteção contra templates antigos no cache (corrige erro 'unexpected argument: keep-together')
         codigoTypst = codigoTypst.replace(/#box\(\s*keep-together:\s*true\s*\)\s*\[/g, '#block(breakable: false)[');
 
         // Preenche a memória virtual do Typst com fontes e imagens antes de compilar
-        await this._injetarRecursosTypst();
+        await this._injetarRecursosTypst(opcoes);
 
         console.log('⏳ Compilando documento PDF...');
         
