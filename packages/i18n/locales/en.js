@@ -993,4 +993,5 @@ I18N.registrar('en', {
     "Gerado em: {data}": "Generated on: {data}",
     "Em breve": "Coming soon",
     "Ainda será implementado: a lista de referências virá de um arquivo <code>.bib</code>.": "Not implemented yet: the list of references will come from a <code>.bib</code> file.",
+    "Lista exibida ao final do dicionário no padrão ABNT. Detectada automaticamente se houver <code>bibliografia.bib</code> na raiz da pasta.": "List displayed at the end of the dictionary in ABNT standard. Automatically detected if there is a <code>bibliografia.bib</code> file in the folder root.",
 });

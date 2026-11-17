@@ -48,7 +48,7 @@ export default class CompiladorPdf {
         }
     }
 
-    async _injetarRecursosTypst() {
+    async _injetarRecursosTypst(opcoes = {}) {
         console.log('⏳ Preparando ambiente (Fontes e Dependências)...');
         
         // 1. Carregar Fontes Locais
@@ -116,6 +116,40 @@ export default class CompiladorPdf {
             }
         }
 
+        // 3.1. Carrega estilo CSL para bibliografia ABNT
+        try {
+            const resCsl = await fetch(this._resolverCaminho('config/typst-deps/abnt-6023.csl'));
+            if (resCsl.ok) {
+                const bufferCsl = await resCsl.arrayBuffer();
+                const uint8Csl = new Uint8Array(bufferCsl);
+                if (typeof this.typstModule.mapShadow === 'function') {
+                    await this.typstModule.mapShadow('/abnt-6023.csl', uint8Csl);
+                } else {
+                    this.typstModule.addMemoryFile('/abnt-6023.csl', uint8Csl);
+                }
+            }
+        } catch (e) {
+            console.warn('⚠️ Estilo CSL ABNT não encontrado:', e);
+        }
+
+        // 3.2. Injeta bibliografia .bib na memória virtual
+        const conteudoBib = (opcoes && opcoes.metadados && opcoes.metadados.bibliografiaBib)
+                         || (opcoes && opcoes.bibliografiaBib)
+                         || (this.gerenciador && this.gerenciador.bibliografiaBib);
+        if (conteudoBib) {
+            try {
+                const uint8Bib = new TextEncoder().encode(conteudoBib);
+                if (typeof this.typstModule.mapShadow === 'function') {
+                    await this.typstModule.mapShadow('/bibliografia.bib', uint8Bib);
+                } else {
+                    this.typstModule.addMemoryFile('/bibliografia.bib', uint8Bib);
+                }
+                console.log(`✅ Arquivo /bibliografia.bib injetado na memória do Typst (${uint8Bib.length} bytes).`);
+            } catch (e) {
+                console.warn('⚠️ Erro ao injetar /bibliografia.bib:', e);
+            }
+        }
+
         // 4. Injetar imagens do Sistema de Arquivos Virtual na memória do compilador
         const imagens = this.gerenciador.vfs.imagem;
         if (imagens && imagens.size > 0) {
@@ -143,14 +177,14 @@ export default class CompiladorPdf {
         }
     }
 
-    async gerarPdf(codigoTypst) {
+    async gerarPdf(codigoTypst, opcoes = {}) {
         if (!this.inicializado) await this.inicializar();
         
         // Proteção contra templates antigos no cache (corrige erro 'unexpected argument: keep-together')
         codigoTypst = codigoTypst.replace(/#box\(\s*keep-together:\s*true\s*\)\s*\[/g, '#block(breakable: false)[');
 
         // Preenche a memória virtual do Typst com fontes e imagens antes de compilar
-        await this._injetarRecursosTypst();
+        await this._injetarRecursosTypst(opcoes);
 
         console.log('⏳ Compilando documento PDF...');
         

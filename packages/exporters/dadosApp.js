@@ -7,6 +7,8 @@
 // exportadorBase.js, já com os caminhos de mídia relativos: "audio/x.mp3", "foto/y.jpg"...).
 // Só funções puras: o mesmo módulo serve ao gerador no navegador e aos testes em Node.
 
+import { renderizarReferenciasAbnt } from '../core/bibliografiaAbnt.js';
+
 export const VERSAO_DADOS_APP = 1;
 
 const texto = (v) => (v === undefined || v === null) ? '' : String(v).trim();
@@ -156,6 +158,21 @@ export function montarConfigApp(meta = {}) {
     const versaoApp = texto(meta.versao);
     const ano = texto(meta.ano);
     const { autores, titulo, complemento } = montarPartesCitacao(meta);
+
+    let referencias = [];
+    if (Array.isArray(meta.referenciasTexto) && meta.referenciasTexto.length > 0) {
+        referencias = meta.referenciasTexto;
+    } else if (meta.bibliografiaBib) {
+        try {
+            referencias = renderizarReferenciasAbnt(meta.bibliografiaBib, 'texto');
+        } catch (e) {
+            console.warn('⚠️ Falha ao renderizar referências ABNT para app Android:', e);
+        }
+    }
+
+    const citacaoLivre = texto(meta.referencia);
+    const citacaoPadrao = [autores && `${autores}.`, `${titulo}.`, complemento].filter(Boolean).join(' ');
+
     return {
         versao: VERSAO_DADOS_APP,
         nome,
@@ -163,8 +180,8 @@ export function montarConfigApp(meta = {}) {
         versaoApp,
         ano,
         introducao: texto(meta.introHtml),
-        referencias: texto(meta.referencia).split(/\r?\n/).map(l => l.trim()).filter(Boolean),
-        citacao: [autores && `${autores}.`, `${titulo}.`, complemento].filter(Boolean).join(' '),
+        referencias,
+        citacao: citacaoLivre || citacaoPadrao,
         ordemCategorias: lista(meta.ordemCategorias).map(texto).filter(Boolean),
         tema: {
             claro: converterCores(meta.tema && meta.tema.light),

@@ -40,6 +40,71 @@ export default class ModuloExportacao {
         return this.exportadorTypstModule.exportar(opcoes);
     }
 
+    async gerarTypstZipBlob(opcoes = {}) {
+        const codigoTypst = this.exportarTypst(opcoes);
+        
+        if (!window.JSZip) {
+            throw new Error(_t('JSZip não carregado.'));
+        }
+        
+        const zip = new window.JSZip();
+        zip.file("main.typ", codigoTypst);
+
+        const conteudoBib = (opcoes.metadados && opcoes.metadados.bibliografiaBib) || (this.gerenciador && this.gerenciador.bibliografiaBib);
+        if (conteudoBib) {
+            const nomeBib = (opcoes.metadados && opcoes.metadados.nomeArquivoBib) || (this.gerenciador && this.gerenciador.nomeArquivoBib) || 'bibliografia.bib';
+            zip.file(nomeBib, conteudoBib);
+
+            try {
+                const resCsl = await fetch('config/typst-deps/abnt-6023.csl');
+                if (resCsl.ok) {
+                    const cslText = await resCsl.text();
+                    zip.file('abnt-6023.csl', cslText);
+                }
+            } catch (e) {
+                console.warn('⚠️ Erro ao embutir abnt-6023.csl no ZIP:', e);
+            }
+        }
+
+        const dependencias = ['in-dexter.typ', 'cmarker.typ'];
+        for (const dep of dependencias) {
+            try {
+                const resDep = await fetch(`config/typst-deps/${dep}`);
+                if (resDep.ok) {
+                    const depText = await resDep.text();
+                    zip.file(dep, depText);
+                }
+            } catch (e) {
+                // silencioso
+            }
+        }
+
+        if (this.gerenciador && this.gerenciador.vfs && this.gerenciador.vfs.imagem) {
+            const imagens = this.gerenciador.vfs.imagem;
+            if (imagens.size > 0) {
+                const imgFolder = zip.folder("foto");
+                for (const [chave, file] of imagens.entries()) {
+                    try {
+                        const nomeArquivo = chave.split('/').pop().split('\\').pop();
+                        const blob = this.gerenciador.vfs.obterArquivo('imagem', nomeArquivo);
+                        if (blob) {
+                            imgFolder.file(nomeArquivo, blob);
+                        }
+                    } catch (e) {
+                        console.warn('⚠️ Erro ao embutir imagem no ZIP Typst:', chave, e);
+                    }
+                }
+            }
+        }
+
+        return await zip.generateAsync({ type: "blob" });
+    }
+
+    async exportarTypstZip(opcoes = {}, nomeArquivo = 'dicionario_typst.zip') {
+        const zipBlob = await this.gerarTypstZipBlob(opcoes);
+        await this.salvarArquivoBlob(zipBlob, nomeArquivo);
+    }
+
     async exportarLatexZip(opcoes = {}, nomeArquivo = 'dicionario_latex.zip') {
         const resultado = this.exportadorLatexModule.exportar(opcoes);
         
@@ -50,6 +115,12 @@ export default class ModuloExportacao {
         
         const zip = new window.JSZip();
         zip.file("main.tex", resultado.latex);
+
+        const conteudoBib = (opcoes.metadados && opcoes.metadados.bibliografiaBib) || (this.gerenciador && this.gerenciador.bibliografiaBib);
+        if (conteudoBib) {
+            const nomeBib = (opcoes.metadados && opcoes.metadados.nomeArquivoBib) || (this.gerenciador && this.gerenciador.nomeArquivoBib) || 'bibliografia.bib';
+            zip.file(nomeBib, conteudoBib);
+        }
         
         if (resultado.imagens.length > 0) {
             const imgFolder = zip.folder("images");
@@ -94,7 +165,7 @@ export default class ModuloExportacao {
 
     async gerarPdfBlob(opcoes = {}) {
         const codigoTypst = this.exportarTypst(opcoes);
-        return await this.compiladorPdf.gerarPdf(codigoTypst);
+        return await this.compiladorPdf.gerarPdf(codigoTypst, opcoes);
     }
 
     async exportarZip(nomeArquivo) {

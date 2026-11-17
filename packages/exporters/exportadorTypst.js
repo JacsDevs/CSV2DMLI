@@ -1,4 +1,5 @@
 import ExportadorBase from './exportadorBase.js';
+import { renderizarReferenciasAbnt } from '../core/bibliografiaAbnt.js';
 
 class ExportadorTypst extends ExportadorBase {
     constructor(gerenciadorDados) {
@@ -15,7 +16,7 @@ class ExportadorTypst extends ExportadorBase {
             if (false && cachePrincipal) this.templatePrincipal = cachePrincipal;
             else {
                 try {
-                    const res = await fetch('config/templates/typst/template.typ');
+                    const res = await fetch('config/templates/typst/template.typ?v=' + Date.now());
                     if (res.ok) this.templatePrincipal = await res.text();
                 } catch(e) { console.warn('Fetch de config/templates/typst/template.typ falhou, usando fallback.'); }
             }
@@ -23,7 +24,7 @@ class ExportadorTypst extends ExportadorBase {
             if (false && cacheEntrada) this.templateEntrada = cacheEntrada;
             else {
                 try {
-                    const res = await fetch('config/templates/typst/entrada.typ');
+                    const res = await fetch('config/templates/typst/entrada.typ?v=' + Date.now());
                     if (res.ok) this.templateEntrada = await res.text();
                 } catch(e) { console.warn('Fetch de config/templates/typst/entrada.typ falhou, usando fallback.'); }
             }
@@ -188,6 +189,19 @@ class ExportadorTypst extends ExportadorBase {
         const ano = meta.ano || '';
         const introPdf = meta.introPdf || meta.intro_pdf || '';
         const versao = meta.versao || '1.0';
+
+        let referenciasTypst = '';
+        const temBib = !!(meta.bibliografiaBib || (this.db && this.db.bibliografiaBib));
+        if (temBib) {
+            referenciasTypst = '#bibliography("bibliografia.bib", style: "abnt-6023.csl", full: true, title: none)';
+        }
+
+        if (referenciasTypst) {
+            codigo = codigo.replace(/\{\{\s*textos\.referencias_typst\s*(\|\s*safe)?\s*\}\}/gi, referenciasTypst);
+        } else {
+            // Remove a seção de referências caso não haja bibliografia carregada
+            codigo = codigo.replace(/(#\[[\s\r\n]*)?(#show\s+heading[\s\S]*?)?=\s*Refer[eê]ncias[\s\S]*?\{\{\s*textos\.referencias_typst\s*(\|\s*safe)?\s*\}\}[\s\r\n]*(\][\s\r\n]*)?#pagebreak\(\)/gi, '');
+        }
 
         codigo = codigo.replace(/\{\{\s*metadados\.html\s*\}\}/gi, meta.tituloHtml || titulo)
                        .replace(/\{\{\s*metadados\.titulo\s*\}\}/gi, titulo)

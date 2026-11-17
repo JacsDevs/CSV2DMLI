@@ -1,5 +1,6 @@
 import ExportadorBase from './exportadorBase.js';
 import { montarPartesCitacao } from './dadosApp.js';
+import { renderizarReferenciasAbnt } from '../core/bibliografiaAbnt.js';
 
 class ExportadorHtmlCards extends ExportadorBase {
     constructor(gerenciadorDados) {
@@ -324,17 +325,28 @@ class ExportadorHtmlCards extends ExportadorBase {
             ? `<strong>Autoria e colaboração:</strong> ${meta.autor || ''}<br>\n                   ${versaoAnoLabelHtml}`
             : `<strong>Autoria e colaboração:</strong> ${meta.autor || ''}`;
 
-        const partesCitacao = montarPartesCitacao(meta);
-        const citacaoHtml = [
-            partesCitacao.autores && `${this.escaparHTML(partesCitacao.autores)}.`,
-            `<strong>${this.escaparHTML(partesCitacao.titulo)}</strong>.`,
-            this.escaparHTML(partesCitacao.complemento)
-        ].filter(Boolean).join(' ');
+        let citacaoHtml = '';
+        if (meta.referencia && String(meta.referencia).trim()) {
+            citacaoHtml = this.escaparHTML(meta.referencia.trim()).replace(/\r?\n/g, '<br>');
+        } else {
+            const partesCitacao = montarPartesCitacao(meta);
+            citacaoHtml = [
+                partesCitacao.autores && `${this.escaparHTML(partesCitacao.autores)}.`,
+                `<strong>${this.escaparHTML(partesCitacao.titulo)}</strong>.`,
+                this.escaparHTML(partesCitacao.complemento)
+            ].filter(Boolean).join(' ');
+        }
 
-        const linhasReferencias = String(meta.referencia || '').split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-        const referenciasHtml = linhasReferencias.length
-            ? `<ul class="lista-referencias">${linhasReferencias.map(l => `<li>${this.escaparHTML(l)}</li>`).join('')}</ul>`
-            : '';
+        let referenciasHtml = '';
+        if (meta.referenciasHtml) {
+            referenciasHtml = meta.referenciasHtml;
+        } else if (meta.bibliografiaBib) {
+            try {
+                referenciasHtml = renderizarReferenciasAbnt(meta.bibliografiaBib, 'html');
+            } catch (e) {
+                console.warn('⚠️ Falha ao renderizar referências ABNT em HTML:', e);
+            }
+        }
 
         const tema = meta.tema || null;
         const temaOverrideClaro = this.gerarBlocoTemaCSS(tema && tema.light, ':root');
