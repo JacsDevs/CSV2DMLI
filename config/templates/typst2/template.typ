@@ -141,12 +141,19 @@
   ]
 )
 
-= Referências
+#[
+  #show heading.where(level: 1): it => block(width: 100%, above: 1em, below: 1.5em)[
+    #set align(center)
+    #it.body
+  ]
 
-#set text(lang: "pt", region: "BR")
-#set par(first-line-indent: 0pt, justify: false)
+  = Referências
 
-{{ textos.referencias_typst | safe }}
+  #set text(lang: "pt", region: "BR")
+  #set par(first-line-indent: 0pt, justify: false)
+
+  {{ textos.referencias_typst | safe }}
+]
 
 #pagebreak()
 #set page(columns: 3)
