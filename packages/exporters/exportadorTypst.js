@@ -1,4 +1,5 @@
 import ExportadorBase from './exportadorBase.js';
+import { renderizarReferenciasAbnt } from '../core/bibliografiaAbnt.js';
 
 class ExportadorTypst extends ExportadorBase {
     constructor(gerenciadorDados) {
@@ -188,6 +189,20 @@ class ExportadorTypst extends ExportadorBase {
         const ano = meta.ano || '';
         const introPdf = meta.introPdf || meta.intro_pdf || '';
         const versao = meta.versao || '1.0';
+
+        let referenciasTypst = '';
+        if (meta.referenciasTypst) {
+            referenciasTypst = meta.referenciasTypst;
+        } else if (meta.bibliografiaBib || this.db.bibliografiaBib) {
+            referenciasTypst = '#bibliography("bibliografia.bib", style: "abnt-6023.csl", full: true, title: none)';
+        }
+
+        if (referenciasTypst) {
+            codigo = codigo.replace(/\{\{\s*textos\.referencias_typst\s*(\|\s*safe)?\s*\}\}/gi, referenciasTypst);
+        } else {
+            // Remove a seção de referências caso não haja bibliografia carregada
+            codigo = codigo.replace(/=\s*Refer[eê]ncias[\s\S]*?\{\{\s*textos\.referencias_typst\s*(\|\s*safe)?\s*\}\}[\s\r\n]*#pagebreak\(\)/gi, '');
+        }
 
         codigo = codigo.replace(/\{\{\s*metadados\.html\s*\}\}/gi, meta.tituloHtml || titulo)
                        .replace(/\{\{\s*metadados\.titulo\s*\}\}/gi, titulo)

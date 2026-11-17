@@ -616,6 +616,14 @@ export class ExportadorCLDF extends ExportadorBase {
 
         cldfFolder.file("cldf-metadata.json", JSON.stringify(metadata, null, 2));
 
+        const conteudoBib = (opcoes.metadados && opcoes.metadados.bibliografiaBib) || (this.db && this.db.bibliografiaBib);
+        if (conteudoBib) {
+            metadata["dc:source"] = "sources.bib";
+            cldfFolder.file("sources.bib", conteudoBib);
+            // Atualiza o cldf-metadata.json com dc:source
+            cldfFolder.file("cldf-metadata.json", JSON.stringify(metadata, null, 2));
+        }
+
         if (media.length > 0) {
             for (const m of media) {
                 try {

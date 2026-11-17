@@ -22,6 +22,15 @@ class ExportadorZip {
             zip.file('projeto.json', projetoJson);
         }
 
+        // 2.1 Anexar arquivos de bibliografia e citação se existirem
+        if (this.db.bibliografiaBib) {
+            const nomeBib = this.db.nomeArquivoBib || 'bibliografia.bib';
+            zip.file(nomeBib, this.db.bibliografiaBib);
+        }
+        if (this.db.referencia) {
+            zip.file('referencia.txt', this.db.referencia);
+        }
+
         // 3. Empacotar todas as mídias mantendo a estrutura de pastas
         if (this.db.vfs) {
             const tipos = ['audio', 'imagem', 'video'];

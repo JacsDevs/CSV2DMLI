@@ -116,6 +116,37 @@ export default class CompiladorPdf {
             }
         }
 
+        // 3.1. Carrega estilo CSL para bibliografia ABNT
+        try {
+            const resCsl = await fetch(this._resolverCaminho('config/typst-deps/abnt-6023.csl'));
+            if (resCsl.ok) {
+                const bufferCsl = await resCsl.arrayBuffer();
+                const uint8Csl = new Uint8Array(bufferCsl);
+                if (typeof this.typstModule.mapShadow === 'function') {
+                    await this.typstModule.mapShadow('/abnt-6023.csl', uint8Csl);
+                } else {
+                    this.typstModule.addMemoryFile('/abnt-6023.csl', uint8Csl);
+                }
+            }
+        } catch (e) {
+            console.warn('⚠️ Estilo CSL ABNT não encontrado:', e);
+        }
+
+        // 3.2. Injeta bibliografia .bib na memória virtual
+        if (this.gerenciador && this.gerenciador.bibliografiaBib) {
+            try {
+                const uint8Bib = new TextEncoder().encode(this.gerenciador.bibliografiaBib);
+                if (typeof this.typstModule.mapShadow === 'function') {
+                    await this.typstModule.mapShadow('/bibliografia.bib', uint8Bib);
+                } else {
+                    this.typstModule.addMemoryFile('/bibliografia.bib', uint8Bib);
+                }
+                console.log(`✅ Arquivo /bibliografia.bib injetado na memória do Typst (${uint8Bib.length} bytes).`);
+            } catch (e) {
+                console.warn('⚠️ Erro ao injetar /bibliografia.bib:', e);
+            }
+        }
+
         // 4. Injetar imagens do Sistema de Arquivos Virtual na memória do compilador
         const imagens = this.gerenciador.vfs.imagem;
         if (imagens && imagens.size > 0) {

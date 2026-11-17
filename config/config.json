@@ -72,6 +72,11 @@
     "logo": {
       "nomes": ["logo.png", "logo.jpg", "logo.jpeg", "logo.webp"],
       "obrigatorio": false
+    },
+    "bibliografia": {
+      "nomes": ["bibliografia.bib", "referencias.bib", "referencia.bib", "sources.bib", "references.bib"],
+      "extensoes": ["bib"],
+      "obrigatorio": false
     }
   }
 }

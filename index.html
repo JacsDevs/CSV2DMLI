@@ -1089,19 +1089,19 @@
                                 <input type="file" id="inputMetaIcone" accept="image/png,image/jpeg,image/webp" hidden onchange="metaLogoSelecionar(this.files[0])">
                             </div>
 
-                            <!-- Bloqueado até a importação de referências em .bib ser implementada -->
-                            <div class="info-cartao info-cartao-bloqueado">
-                                <h3 data-i18n>Referências bibliográficas <span class="info-cartao-selo" data-i18n>Em breve</span></h3>
-                                <span class="campo-ajuda" data-i18n="html">Ainda será implementado: a lista de referências virá de um arquivo <code>.bib</code>.</span>
+                            <!-- Referências bibliográficas (.bib) -->
+                            <div class="info-cartao">
+                                <h3 data-i18n>Referências bibliográficas <span class="campo-opcional" data-i18n>(opcional)</span></h3>
+                                <span class="campo-ajuda" data-i18n="html">Lista exibida ao final do dicionário no padrão ABNT. Detectada automaticamente se houver <code>bibliografia.bib</code> na raiz da pasta.</span>
                                 <span class="info-cartao-status" id="metaReferenciaStatus" data-i18n>Nenhuma referência importada</span>
-                                <div class="info-cartao-acoes" inert>
-                                    <button type="button" class="btn-secundario" disabled onclick="document.getElementById('inputMetaReferencia').click()" data-i18n>
+                                <div class="info-cartao-acoes">
+                                    <button type="button" class="btn-secundario" onclick="document.getElementById('inputMetaReferencia').click()" data-i18n>
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"></path><path d="M4 20h16"></path></svg>
                                         Importar arquivo
                                     </button>
-                                    <button type="button" class="btn-secundario" id="btnMetaReferenciaRemover" hidden disabled onclick="metaReferenciaRemover()" data-i18n>Remover</button>
+                                    <button type="button" class="btn-secundario" id="btnMetaReferenciaRemover" hidden onclick="metaReferenciaRemover()" data-i18n>Remover</button>
                                 </div>
-                                <input type="file" id="inputMetaReferencia" accept=".txt,.md,text/plain" hidden disabled onchange="metaReferenciaSelecionar(this.files[0])">
+                                <input type="file" id="inputMetaReferencia" accept=".bib,text/plain" hidden onchange="metaReferenciaSelecionar(this.files[0])">
                             </div>
                             </div>
                         </div>
@@ -2872,29 +2872,43 @@
         document.getElementById('metaCldfGrupo').hidden = !ehCldf;
     };
 
-    // Referências bibliográficas: texto livre, uma referência por linha (ver exportadorHtmlCards)
+    // Referências bibliográficas (.bib) formatadas no padrão ABNT
     window.atualizarUIReferencia = function() {
-        const texto = String((window.sistema && window.sistema.referencia) || '');
-        const linhas = texto.split(/\r?\n/).filter(l => l.trim()).length;
+        const bib = (window.sistema && window.sistema.bibliografiaBib) || '';
         const status = document.getElementById('metaReferenciaStatus');
-        const origem = window._referenciaArquivo;
-        if (linhas === 0) {
+        const btnRemover = document.getElementById('btnMetaReferenciaRemover');
+        if (!status) return;
+
+        if (!bib.trim()) {
             status.textContent = _t('Nenhuma referência importada');
-        } else {
-            status.textContent = `${_tn('{n} referência', '{n} referências', linhas)}${origem ? ` · ${origem}` : ''}`;
+            if (btnRemover) btnRemover.hidden = true;
+            return;
         }
-        document.getElementById('btnMetaReferenciaRemover').hidden = linhas === 0;
+
+        let total = 0;
+        try {
+            const lista = window.sistema.obterReferenciasAbnt ? window.sistema.obterReferenciasAbnt('texto') : [];
+            total = Array.isArray(lista) ? lista.length : 0;
+        } catch {
+            total = (bib.match(/@\w+\s*[\{(]/g) || []).length;
+        }
+
+        const nomeArquivo = window._referenciaArquivo || (window.sistema && window.sistema.nomeArquivoBib) || 'bibliografia.bib';
+        status.textContent = `${_tn('{n} referência', '{n} referências', total)}${nomeArquivo ? ` · ${nomeArquivo}` : ''}`;
+        if (btnRemover) btnRemover.hidden = false;
     };
     window.metaReferenciaSelecionar = async function(arquivo) {
         if (!arquivo || !window.sistema) return;
-        window.sistema.setReferencia(await arquivo.text());
+        const conteudo = await arquivo.text();
+        window.sistema.setBibliografiaBib(conteudo, arquivo.name);
         window._referenciaArquivo = arquivo.name;
-        document.getElementById('inputMetaReferencia').value = '';
+        const input = document.getElementById('inputMetaReferencia');
+        if (input) input.value = '';
         window.atualizarUIReferencia();
     };
     window.metaReferenciaRemover = function() {
         if (!window.sistema) return;
-        window.sistema.setReferencia('');
+        window.sistema.setBibliografiaBib('', '');
         window._referenciaArquivo = null;
         window.atualizarUIReferencia();
     };
@@ -3335,6 +3349,11 @@
             introPdf: introPdf,
             introMd: introMd,
             referencia: (window.sistema && window.sistema.referencia) ? String(window.sistema.referencia).trim() : '',
+            bibliografiaBib: (window.sistema && window.sistema.bibliografiaBib) ? window.sistema.bibliografiaBib : '',
+            nomeArquivoBib: (window.sistema && window.sistema.nomeArquivoBib) ? window.sistema.nomeArquivoBib : 'bibliografia.bib',
+            referenciasHtml: (window.sistema && window.sistema.obterReferenciasAbnt) ? window.sistema.obterReferenciasAbnt('html') : '',
+            referenciasTypst: (window.sistema && window.sistema.obterReferenciasAbnt) ? window.sistema.obterReferenciasAbnt('typst') : '',
+            referenciasTexto: (window.sistema && window.sistema.obterReferenciasAbnt) ? window.sistema.obterReferenciasAbnt('texto') : [],
             // Imagem do cabeçalho: logo do projeto, ou o ícone do app quando não houver logo
             iconeDataUrl: (window.sistema && window.sistema.getImagemCabecalho()) || null,
             tema: window.coletarTemaExportacao ? window.coletarTemaExportacao() : null,
@@ -3772,10 +3791,23 @@
         } else if (tipo === 'typst') {
             window.mostrarLoader(_t('Gerando Typst'), _t('Escrevendo código fonte...'));
             try {
-                conteudoParaBaixar = await window.exportador.exportarTypst({ metadados: coletarMetadadosExportacao() });
-                nomeArquivo = 'dicionario.typ';
+                const metadados = coletarMetadadosExportacao();
+                const codigoTypst = await window.exportador.exportarTypst({ metadados });
+                const temBib = !!(metadados.bibliografiaBib || (window.gerenciador && window.gerenciador.bibliografiaBib));
+                const temImagens = !!(window.gerenciador && window.gerenciador.vfs && window.gerenciador.vfs.imagem && window.gerenciador.vfs.imagem.size > 0);
+
                 modalTitle = _t('Código Typst Gerado');
-                previewContentHtml = `<textarea style="width: 100%; height: 100%; padding: 15px; font-family: monospace; border: none; background: var(--bg-secondary); color: var(--text-color); resize: none;" readonly>${conteudoParaBaixar}</textarea>`;
+                previewContentHtml = `<textarea style="width: 100%; height: 100%; padding: 15px; font-family: monospace; border: none; background: var(--bg-secondary); color: var(--text-color); resize: none;" readonly>${codigoTypst}</textarea>`;
+
+                if (temBib || temImagens) {
+                    conteudoParaBaixar = await window.exportador.gerarTypstZipBlob({ metadados });
+                    nomeArquivo = 'projeto_typst.zip';
+                    mimeType = 'application/zip';
+                } else {
+                    conteudoParaBaixar = codigoTypst;
+                    nomeArquivo = 'dicionario.typ';
+                    mimeType = 'text/plain;charset=utf-8';
+                }
             } catch (e) {
                 console.error(e);
                 alert(_t('Erro ao gerar Typst: {erro}', { erro: e.message }));

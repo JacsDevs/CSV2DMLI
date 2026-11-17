@@ -67,17 +67,20 @@ class CarregadorPasta {
             metadados: null,
             icone: null,
             logo: null,
+            bibliografia: null,
             cldf: {
                 metadata: null,
                 entries: null,
                 senses: null,
                 forms: null,
                 examples: null,
-                media: null
+                media: null,
+                sources: null
             },
             textosExtra: {
                 introHtml: null,
                 introPdf: null,
+                referencia: null,
                 alfabeto: null
             },
             audio: [],
@@ -163,7 +166,7 @@ class CarregadorPasta {
             }
         }
 
-        // 4.5 Carregar arquivos de textos TXT (legados)
+        // 4.5 Carregar arquivos de textos TXT e Bibliografia (.bib)
         if (organizados.textosExtra.introHtml) {
             await this._carregarTextoGenerico(organizados.textosExtra.introHtml, conteudo => this.gerenciador.setIntroHtml(conteudo));
             this.arquivosEncontrados.textosExtra.introHtml = organizados.textosExtra.introHtml;
@@ -173,6 +176,19 @@ class CarregadorPasta {
             await this._carregarTextoGenerico(organizados.textosExtra.introPdf, conteudo => this.gerenciador.setIntroPdf(conteudo));
             this.arquivosEncontrados.textosExtra.introPdf = organizados.textosExtra.introPdf;
             this._atualizarUI('introPdfDropZone');
+        }
+        if (organizados.textosExtra.referencia) {
+            await this._carregarTextoGenerico(organizados.textosExtra.referencia, conteudo => this.gerenciador.setReferencia(conteudo));
+            this.arquivosEncontrados.textosExtra.referencia = organizados.textosExtra.referencia;
+        }
+        if (organizados.bibliografia) {
+            await this._carregarTextoGenerico(organizados.bibliografia, conteudo => {
+                this.gerenciador.setBibliografiaBib(conteudo, organizados.bibliografia.name);
+            });
+            this.arquivosEncontrados.bibliografia = organizados.bibliografia;
+            if (typeof window !== 'undefined' && window.atualizarUIReferencia) {
+                window.atualizarUIReferencia();
+            }
         }
         if (organizados.textosExtra.alfabeto) {
             await this._carregarTextoGenerico(organizados.textosExtra.alfabeto, conteudo => this.gerenciador.setAlfabetoCustomizado(conteudo));
@@ -218,6 +234,7 @@ class CarregadorPasta {
             metadados: null,
             icone: null,
             logo: null,
+            bibliografia: null,
             cldf: {
                 metadata: null,
                 entries: null,
@@ -225,12 +242,14 @@ class CarregadorPasta {
                 forms: null,
                 examples: null,
                 media: null,
+                sources: null,
                 pastaBase: '',
                 caminhosMidia: []
             },
             textosExtra: {
                 introHtml: null,
                 introPdf: null,
+                referencia: null,
                 alfabeto: null
             },
             audio: [],
@@ -318,6 +337,10 @@ class CarregadorPasta {
                 resultado.cldf.examples = arquivo;
             } else if (caminhoRelativo.toLowerCase().includes('media.csv')) {
                 resultado.cldf.media = arquivo;
+            } else if (caminhoRelativo.toLowerCase().includes('sources.bib') || (extensao === 'bib' && caminhoRelativo.toLowerCase().startsWith('cldf'))) {
+                resultado.cldf.sources = arquivo;
+                if (!resultado.bibliografia) resultado.bibliografia = arquivo;
+                console.log(`📚 Bibliografia CLDF encontrada: ${nomeArquivo}`);
             } else if (estaNaRaiz && nomeArquivo.toLowerCase() === 'projeto.json') {
                 resultado.projeto = arquivo;
                 console.log(`📥 Projeto JSON de recuperação encontrado: ${nomeArquivo}`);
@@ -366,6 +389,16 @@ class CarregadorPasta {
             else if (estaNaRaiz && nomeArquivo.toLowerCase() === 'alfabeto.txt') {
                 resultado.textosExtra.alfabeto = arquivo;
                 console.log(`📄 Arquivo de alfabeto encontrado: ${nomeArquivo}`);
+            }
+            else if (estaNaRaiz && (nomeArquivo.toLowerCase() === 'referencia.txt' || nomeArquivo.toLowerCase() === 'referencias.txt')) {
+                resultado.textosExtra.referencia = arquivo;
+                console.log(`📄 Arquivo de citação próprio ("Como citar") encontrado: ${nomeArquivo}`);
+            }
+            else if (estaNaRaiz && extensao === 'bib') {
+                if (!resultado.bibliografia || nomeArquivo.toLowerCase() === 'bibliografia.bib') {
+                    resultado.bibliografia = arquivo;
+                }
+                console.log(`📚 Arquivo de bibliografia BibTeX encontrado: ${nomeArquivo}`);
             }
             
             // O usuário solicitou que mídias em subpastas sejam ignoradas PARA ARQUIVOS PADRÃO (DMLI).
@@ -485,6 +518,7 @@ class CarregadorPasta {
         console.log(`   - Metadados: ${organizados.metadados ? '✅' : '❌'}`);
         console.log(`   - Ícone do app: ${organizados.icone ? '✅' : '❌'}`);
         console.log(`   - Logo do projeto: ${organizados.logo ? '✅' : '❌'}`);
+        console.log(`   - Bibliografia (.bib): ${organizados.bibliografia ? '✅ (' + organizados.bibliografia.name + ')' : '❌'}`);
         console.log(`   - Áudios: ${organizados.audio.length} arquivos`);
         console.log(`   - Imagens: ${organizados.imagem.length} arquivos`);
         console.log(`   - Vídeos: ${organizados.video.length} arquivos`);

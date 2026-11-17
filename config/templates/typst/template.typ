@@ -171,7 +171,12 @@
   ]
 )
 
-= Referências Bibliográficas
+= Referências
+
+#set text(lang: "pt", region: "BR")
+#set par(first-line-indent: 0pt, justify: false)
+
+{{ textos.referencias_typst | safe }}
 
 #pagebreak()
 #set page(columns: 3)

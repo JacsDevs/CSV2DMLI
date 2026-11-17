@@ -91,8 +91,30 @@ export class LeitorCLDF {
         });
     }
 
+    async lerArquivoComoTexto(arquivo) {
+        if (typeof arquivo.text === 'function') {
+            return await arquivo.text();
+        }
+        return new Promise((resolve, reject) => {
+            const leitor = new FileReader();
+            leitor.onload = (e) => resolve(e.target.result);
+            leitor.onerror = reject;
+            leitor.readAsText(arquivo, 'UTF-8');
+        });
+    }
+
     async carregarCldf(arquivosCldf) {
-        const { metadata, entries, senses, forms, examples, media, pastaBase = '', caminhosMidia = [] } = arquivosCldf;
+        const { metadata, entries, senses, forms, examples, media, sources, pastaBase = '', caminhosMidia = [] } = arquivosCldf;
+        
+        if (sources && this.gerenciador && !this.gerenciador.bibliografiaBib) {
+            try {
+                const conteudoSources = await this.lerArquivoComoTexto(sources);
+                this.gerenciador.setBibliografiaBib(conteudoSources, sources.name || 'sources.bib');
+                console.log('📚 Bibliografia CLDF carregada no gerenciador a partir de', sources.name);
+            } catch (err) {
+                console.warn('⚠️ Falha ao carregar sources.bib do CLDF:', err);
+            }
+        }
         
         let entriesData = [];
         let sensesData = [];

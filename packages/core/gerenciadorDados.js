@@ -2,6 +2,7 @@ import SistemaArquivosVirtual from './sistemaArquivosVirtual.js';
 import CarregadorCsv from './carregadorCsv.js';
 import ConstrutorBancoDados from './construtorBancoDados.js';
 import { buscaFuzzy } from './helpers.js';
+import { renderizarReferenciasAbnt } from './bibliografiaAbnt.js';
 
 /**
  * Gerencia o carregamento e o armazenamento de todos os dados da aplicação,
@@ -27,6 +28,8 @@ export default class GerenciadorDados {
         this.introHtml = '';
         this.introPdf = '';
         this.referencia = '';
+        this.bibliografiaBib = '';
+        this.nomeArquivoBib = 'bibliografia.bib';
         this.alfabetoCustomizado = '';
         // Ícone do app (launcher Android e ficha da Play Store): quadrado, 512×512
         this.icone = { dataUrl: null, bytes: null, nome: null };
@@ -292,6 +295,13 @@ export default class GerenciadorDados {
     setIntroHtml(conteudo) { this.introHtml = conteudo; }
     setIntroPdf(conteudo) { this.introPdf = conteudo; }
     setReferencia(conteudo) { this.referencia = conteudo; }
+    setBibliografiaBib(conteudo, nomeArquivo = 'bibliografia.bib') {
+        this.bibliografiaBib = conteudo || '';
+        this.nomeArquivoBib = nomeArquivo || 'bibliografia.bib';
+    }
+    obterReferenciasAbnt(formato = 'html') {
+        return renderizarReferenciasAbnt(this.bibliografiaBib, formato);
+    }
     setAlfabetoCustomizado(conteudo) { this.alfabetoCustomizado = conteudo; }
     setMetadados(metadados) {
         if(this.configurador && this.configurador.mesclarConfigLocal) {
@@ -394,6 +404,8 @@ export default class GerenciadorDados {
         if (projeto.introHtml) this.introHtml = projeto.introHtml;
         if (projeto.introPdf) this.introPdf = projeto.introPdf;
         if (projeto.referencia) this.referencia = projeto.referencia;
+        if (projeto.bibliografiaBib) this.bibliografiaBib = projeto.bibliografiaBib;
+        if (projeto.nomeArquivoBib) this.nomeArquivoBib = projeto.nomeArquivoBib;
         if (projeto.alfabetoCustomizado) this.alfabetoCustomizado = projeto.alfabetoCustomizado;
         if (projeto.citacao) this.configurador.mesclarConfigLocal({ metadados: { citacao: projeto.citacao } });
         this._reconstruirBanco();
@@ -420,6 +432,8 @@ export default class GerenciadorDados {
         this.icone = { dataUrl: null, bytes: null, nome: null };
         this.logo = { dataUrl: null, bytes: null, nome: null, original: null, recorte: null };
         this.referencia = '';
+        this.bibliografiaBib = '';
+        this.nomeArquivoBib = 'bibliografia.bib';
         this.alfabetoCustomizado = '';
         this.vfs.limpar();
         console.log('🧹 Dados limpos com sucesso.');
@@ -472,6 +486,8 @@ export default class GerenciadorDados {
                 introHtml: this.introHtml,
                 introPdf: this.introPdf,
                 referencia: this.referencia,
+                bibliografiaBib: this.bibliografiaBib,
+                nomeArquivoBib: this.nomeArquivoBib,
                 alfabetoCustomizado: this.alfabetoCustomizado,
                 citacao: this.configurador.getConfig().metadados?.citacao,
                 geradoEm: new Date().toISOString()

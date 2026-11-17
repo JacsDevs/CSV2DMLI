@@ -163,6 +163,12 @@ class ExportadorLatex extends ExportadorBase {
 
         const introLatex = converterMarkdownParaLatex(introMd);
 
+        const temBib = !!(meta.bibliografiaBib || this.db.bibliografiaBib);
+        const nomeBibBase = (meta.nomeArquivoBib || this.db.nomeArquivoBib || 'bibliografia.bib').replace(/\.bib$/i, '');
+        const blocoReferenciasLatex = temBib
+            ? `\\chapter*{Referências Bibliográficas}\n\\addcontentsline{toc}{chapter}{Referências Bibliográficas}\n\\nocite{*}\n\\bibliographystyle{plain}\n\\bibliography{${nomeBibBase}}`
+            : '';
+
         // Limpar metadados para latex (escapar os que são diretos)
         const tituloEscapado = this.escaparLatex(titulo);
         const autorEscapado = this.escaparLatex(autor);
@@ -174,6 +180,7 @@ class ExportadorLatex extends ExportadorBase {
                        .replace(/\{\{\s*metadados\.ano\s*\}\}/gi, this.escaparLatex(ano))
                        .replace(/\{\{\s*metadados\.versao\s*\}\}/gi, this.escaparLatex(versao))
                        .replace(/\{\{\s*textos\.intro_pdf\s*\}\}/gi, introLatex)
+                       .replace(/\{\{\s*textos\.referencias_latex\s*(\|\s*safe)?\s*\}\}/gi, blocoReferenciasLatex)
                        .replace(/\{\{\s*corpo_dicionario\s*(\|\s*safe)?\s*\}\}/gi, corpo);
 
         // RegEx varredor: apaga quaisquer marcadores órfãos que não foram preenchidos

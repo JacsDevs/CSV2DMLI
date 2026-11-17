@@ -219,13 +219,28 @@ exporter.templateEntrada   = await readFile(join(templateDir, 'entrada.html'), '
 exporter.estilosGlobais    = await readFile(join(ROOT, 'config/templates/estilos-globais.css'), 'utf8').catch(() => '');
 
 // ── Gerar HTML ─────────────────────────────────────────────────────────────────
+let bibliografiaBib = '';
+for (const nomeBib of ['bibliografia.bib', 'referencias.bib', 'referencia.bib', 'sources.bib']) {
+    try {
+        bibliografiaBib = await readFile(join(IN_DIR, nomeBib), 'utf8');
+        if (bibliografiaBib) break;
+    } catch {}
+}
+
+let referenciaTxt = '';
+try {
+    referenciaTxt = await readFile(join(IN_DIR, 'referencia.txt'), 'utf8');
+} catch {}
+
 const meta = {
     tituloHtml: config.metadados?.titulo || config.nome || 'Dicionário',
     tituloPdf:  config.metadados?.titulo || config.nome || 'Dicionário',
     autor:      config.metadados?.autor  || '',
     versao:     config.metadados?.versao || '1.0',
     ano:        config.metadados?.ano    || String(new Date().getFullYear()),
-    introHtml:  ''
+    introHtml:  '',
+    referencia: referenciaTxt,
+    bibliografiaBib
 };
 const htmlContent = await exporter.exportar({ embutirMidias: false, metadados: meta });
 

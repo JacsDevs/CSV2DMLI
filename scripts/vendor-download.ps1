@@ -1,4 +1,4 @@
-# Fase 1: Vendorizar dependências externas
+﻿# Fase 1: Vendorizar dependências externas
 # Execute uma vez com internet para popular vendor/.
 # Idempotente: pula arquivos já existentes.
 
@@ -29,6 +29,10 @@ Get-Vendor "https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"            
 # Bundle "-all" so existe no CDN oficial NHN (uicdn.toast.com), nao no pacote npm @toast-ui/editor
 Get-Vendor "https://uicdn.toast.com/editor/3.2.2/toastui-editor-all.min.js" "vendor/toastui-editor-all.min.js"
 Get-Vendor "https://uicdn.toast.com/editor/3.2.2/toastui-editor.min.css"    "vendor/toastui-editor.min.css"
+
+# ── Typst CSL & Packages ───────────────────────────────────────────────────────
+Write-Host "`n=== Typst CSL & Packages ==="
+Get-Vendor "https://raw.githubusercontent.com/lucaslrodri/abntly/main/src/csl/abnt-6023.csl" "config/typst-deps/abnt-6023.csl"
 
 # ── Font Awesome 6.4.0 ────────────────────────────────────────────────────────
 Write-Host "`n=== Font Awesome 6.4.0 ==="
