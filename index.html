@@ -1254,11 +1254,6 @@
                         </div>
 
                         <div class="publicar-conteudo">
-                            <section class="publicar-resumo" aria-labelledby="resumoTitulo">
-                                <h3 id="resumoTitulo" data-i18n>Resumo do projeto</h3>
-                                <ul id="publicarResumo"></ul>
-                            </section>
-
                             <section class="publicar-secao" aria-labelledby="publicoTitulo">
                                 <h3 id="publicoTitulo" data-i18n>Para o público</h3>
                                 <div class="publicar-cartoes">
@@ -6746,20 +6741,22 @@
         if (!grid) return;
         grid.innerHTML = '';
         const ICONE_MARCADA = '<svg class="aparencia-marca" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5 9-10"></path></svg>';
-        const criarOpcao = (id, ativo, conteudoVisual, nome) => {
+        // nomeVisivel=false: só as amostras aparecem; o nome fica para leitor de tela e dica (title)
+        const criarOpcao = (id, ativo, conteudoVisual, nome, nomeVisivel = true) => {
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'aparencia-opcao' + (ativo ? ' ativa' : '');
             btn.setAttribute('role', 'radio');
             btn.setAttribute('aria-checked', String(ativo));
-            btn.innerHTML = `${conteudoVisual}<span class="aparencia-opcao-nome">${nome}</span>${ativo ? ICONE_MARCADA : ''}`;
+            if (!nomeVisivel) { btn.setAttribute('aria-label', nome); btn.title = nome; }
+            btn.innerHTML = `${conteudoVisual}${nomeVisivel ? `<span class="aparencia-opcao-nome">${nome}</span>` : ''}${ativo ? ICONE_MARCADA : ''}`;
             btn.onclick = () => selecionarPaletaTema(id);
             grid.appendChild(btn);
         };
         PALETAS_TEMA.forEach(p => {
             const ativo = temaSelecionado.tipo === 'paleta' && temaSelecionado.paletaId === p.id;
             const amostras = `<span class="aparencia-amostras" aria-hidden="true">${p.amostra.map(cor => `<span style="background:${cor};"></span>`).join('')}</span>`;
-            criarOpcao(p.id, ativo, amostras, p.nome());
+            criarOpcao(p.id, ativo, amostras, p.nome(), false);
         });
 
         const customAtivo = temaSelecionado.tipo === 'custom';
