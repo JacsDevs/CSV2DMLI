@@ -1278,11 +1278,11 @@
                             <section class="publicar-secao" aria-labelledby="publicoTitulo">
                                 <h3 id="publicoTitulo" data-i18n>Para o público</h3>
                                 <div class="publicar-cartoes">
-                                    <div class="publicar-cartao destaque">
+                                    <div class="publicar-cartao">
                                         <span class="publicar-cartao-icone" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"></rect><path d="M11 18h2"></path></svg></span>
                                         <strong data-i18n>Aplicativo Android</strong>
                                         <span class="publicar-cartao-texto" data-i18n>Para instalar no celular. Funciona sem internet, com áudios e imagens.</span>
-                                        <button type="button" class="btn-principal" onclick="abrirModalAndroid()" data-i18n>Gerar aplicativo</button>
+                                        <button type="button" class="btn-contorno" onclick="abrirModalAndroid()" data-i18n>Gerar aplicativo</button>
                                     </div>
                                     <div class="publicar-cartao">
                                         <span class="publicar-cartao-icone" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"></path></svg></span>
@@ -2795,6 +2795,7 @@
             // Barra reduzida: título, negrito e itálico; listas; link e imagem
             toolbarItems: [['heading', 'bold', 'italic'], ['ul', 'ol'], ['link', 'image']],
             hideModeSwitch: true, // o modo é trocado pelos botões "Visual / Markdown" acima do editor
+            autofocus: false, // o padrão (true) rola a etapa até o editor ao abri-la
             placeholder: _t('Escreva aqui uma apresentação do dicionário: a língua, o povo, como o material foi reunido…'),
             usageStatistics: false
         });
@@ -2810,7 +2811,7 @@
         editor.destroy();
         window._introEditor = null;
         window.inicializarIntroEditor();
-        window._introEditor.setMarkdown(conteudo);
+        window._introEditor.setMarkdown(conteudo, false);
         window.mudarModoIntro(modo);
     });
 
@@ -2848,7 +2849,7 @@
 
     window.definirIntroMarkdown = function(md) {
         if (window._introEditor) {
-            window._introEditor.setMarkdown(md || '');
+            window._introEditor.setMarkdown(md || '', false); // false: não move o cursor nem dá foco
         } else {
             // editor ainda não foi inicializado (usuário não passou pelo passo 3 ainda) - guarda para aplicar depois
             window._introMarkdownPendente = md || '';
@@ -6136,8 +6137,13 @@
         document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
 
         // Mostra o atual
-        document.getElementById(`step${passo}`).classList.add('active');
+        const etapa = document.getElementById(`step${passo}`);
+        etapa.classList.add('active');
         atualizarStepper(passo);
+        // Cada etapa abre do topo, sem herdar a rolagem da anterior
+        etapa.closest('.wizard-body').scrollTop = 0;
+        const rolagem = etapa.closest('.scroll-content');
+        if (rolagem) rolagem.scrollTop = 0;
 
         // Toast UI Editor (avaliação em andamento): inicializa de forma lazy só quando o
         // passo 3 (Metadados/Introdução) fica visível pela 1ª vez - instanciar com o container

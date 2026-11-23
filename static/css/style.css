@@ -1394,7 +1394,6 @@ p.conferir-sem-projeto { margin: 0; padding: 0; }
     border-radius: var(--radius-md);
     background: var(--bg-card);
 }
-.publicar-cartao.destaque { border: 2px solid var(--primary); background: var(--primary-soft); }
 .publicar-cartao > strong { font-size: 18px; color: var(--text-main); }
 .publicar-cartao-icone {
     width: 48px;
@@ -1406,7 +1405,6 @@ p.conferir-sem-projeto { margin: 0; padding: 0; }
     align-items: center;
     justify-content: center;
 }
-.publicar-cartao.destaque .publicar-cartao-icone { background: var(--primary); color: #ffffff; }
 .publicar-cartao-texto { flex: 1; font-size: 14px; color: var(--text-muted); }
 .publicar-cartao .btn-principal { font-size: 15px; }
 
