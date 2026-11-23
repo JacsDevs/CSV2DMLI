@@ -58,7 +58,7 @@
 {{/SIGNIFICADOS}}{{#ITENS_RELACIONADOS}} #text(size: 8.5pt)[→ _Veja também_ {{ ITENS_RELACIONADOS }}]{{/ITENS_RELACIONADOS}}
 
 // Separador entre verbetes: marca onde um termina e o outro começa
-// (opção "Linha divisória" no cartão do PDF)
+// (opção "Linha divisória entre os verbetes" em Aparência > PDF)
 {{#SEPARADOR}}
 #v(0.6em, weak: true)
 #align(center)[

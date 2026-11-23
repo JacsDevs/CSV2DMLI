@@ -1,5 +1,5 @@
 // const CACHE = 'csv2dmli-v2'; // versão anterior (antes do Toast UI Editor) - reverter para esta linha se abandonar o editor
-const CACHE = 'csv2dmli-v15';
+const CACHE = 'csv2dmli-v16';
 
 // Lista de idiomas da interface: mantém todos os dicionários disponíveis offline.
 importScripts('packages/i18n/idiomas.js');
