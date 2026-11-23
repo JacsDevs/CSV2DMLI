@@ -18,6 +18,18 @@ export function interpretarConfiguracaoTxt(conteudo) {
         'autor(es)': v => { config.metadados.autor = v; },
         'ano': v => { config.metadados.ano = v; },
         'versao': v => { config.metadados.versao = v; },
+        'subtitulo': v => { config.metadados.subtitulo = v; },
+        // "impressao" (margens espelhadas) ou "tela" (padrão)
+        'layout do pdf': v => {
+            const opcao = normalizarChave(v);
+            if (opcao === 'impressao' || opcao === 'tela') config.metadados.modoPdf = opcao;
+            else if (opcao) console.warn(`⚠️ configuracao.txt: "Layout do PDF" deve ser "impressao" ou "tela" (recebido: "${v}").`);
+        },
+        'divisoria entre verbetes': v => {
+            const opcao = normalizarChave(v);
+            if (opcao === 'sim' || opcao === 'nao') config.metadados.separadorPdf = opcao === 'sim';
+            else if (opcao) console.warn(`⚠️ configuracao.txt: "Divisoria entre verbetes" deve ser "sim" ou "nao" (recebido: "${v}").`);
+        },
         'citacao-autores': v => { citacao.autores = v; },
         'citacao-local': v => { citacao.local = v; },
         'citacao-editor': v => { citacao.editor = v; },

@@ -1,3 +1,6 @@
+import { sanearBibParaTypst } from '../core/bibliografiaAbnt.js';
+import { logoCapaPdf } from '../exporters/exportadorTypst.js';
+
 /**
  * Encapsula a lógica de compilação do Typst via WebAssembly (WASM).
  * Permite geração de PDF 100% offline no navegador.
@@ -25,17 +28,24 @@ export default class CompiladorPdf {
             console.log('⏳ Inicializando motor Typst WASM...');
             
             // 1. Importa o wrapper dinamicamente
-            let $typst;
+            let $typst, loadFonts;
             try {
                 const module = await import(this._resolverCaminho('assets/typst/typst_wrapper.js'));
                 $typst = module.$typst;
+                loadFonts = module.loadFonts;
             } catch (err) {
                 throw new Error(_t('Arquivo Javascript (typst_wrapper.js) ausente. Verifique se ele está na pasta assets/typst/.'));
             }
 
-            // 2. Inicializa os WASMs apontando para os binários locais
+            // 2. Fontes locais: o Typst só enxerga fontes registradas na criação do
+            // compilador (arquivos no VFS não contam). `assets: false` impede o wrapper
+            // de baixar as fontes padrão da CDN, o que quebraria a geração offline.
+            const fontes = await this._carregarFontesLocais();
+
+            // 3. Inicializa os WASMs apontando para os binários locais
             await $typst.setCompilerInitOptions({
-                getModule: () => this._resolverCaminho('assets/typst/typst_compiler.wasm')
+                getModule: () => this._resolverCaminho('assets/typst/typst_compiler.wasm'),
+                beforeBuild: [loadFonts(fontes, { assets: false })]
             });
             
             this.typstModule = $typst;
@@ -48,24 +58,14 @@ export default class CompiladorPdf {
         }
     }
 
-    async _injetarRecursosTypst(opcoes = {}) {
-        console.log('⏳ Preparando ambiente (Fontes e Dependências)...');
-        
-        // 1. Carregar Fontes Locais
-        const fontes = ['Charis-Regular.ttf', 'Charis-Bold.ttf', 'Charis-Italic.ttf', 'Charis-BoldItalic.ttf'];
-        for (const fonte of fontes) {
+    async _carregarFontesLocais() {
+        const nomes = ['Charis-Regular.ttf', 'Charis-Bold.ttf', 'Charis-Italic.ttf', 'Charis-BoldItalic.ttf'];
+        const fontes = [];
+        for (const fonte of nomes) {
             try {
                 const res = await fetch(this._resolverCaminho(`assets/typst/fonts/${fonte}`));
                 if (res.ok) {
-                    const buffer = await res.arrayBuffer();
-                    const uint8 = new Uint8Array(buffer);
-                    if (typeof this.typstModule.mapShadow === 'function') {
-                        await this.typstModule.mapShadow(`/${fonte}`, uint8);
-                    } else if (typeof this.typstModule.addAsset === 'function') {
-                        await this.typstModule.addAsset(`/${fonte}`, uint8);
-                    } else {
-                        await this.typstModule.addMemoryFile(`/${fonte}`, uint8);
-                    }
+                    fontes.push(new Uint8Array(await res.arrayBuffer()));
                 } else {
                     console.warn(`⚠️ Fonte local não encontrada no caminho: assets/typst/fonts/${fonte}`);
                 }
@@ -73,8 +73,17 @@ export default class CompiladorPdf {
                 console.warn(`⚠️ Erro ao carregar a fonte ${fonte}:`, e);
             }
         }
+        // Sem nenhuma fonte o PDF sairia sem texto visível
+        if (fontes.length === 0) {
+            throw new Error('Nenhuma fonte encontrada em assets/typst/fonts/');
+        }
+        return fontes;
+    }
 
-        // 2. Carrega o plugin binário do cmarker
+    async _injetarRecursosTypst(opcoes = {}) {
+        console.log('⏳ Preparando ambiente (Fontes e Dependências)...');
+
+        // 1. Carrega o plugin binário do cmarker
         try {
             const resPlugin = await fetch(this._resolverCaminho('assets/typst/plugin.wasm'));
             if (resPlugin.ok) {
@@ -138,7 +147,7 @@ export default class CompiladorPdf {
                          || (this.gerenciador && this.gerenciador.bibliografiaBib);
         if (conteudoBib) {
             try {
-                const uint8Bib = new TextEncoder().encode(conteudoBib);
+                const uint8Bib = new TextEncoder().encode(sanearBibParaTypst(conteudoBib));
                 if (typeof this.typstModule.mapShadow === 'function') {
                     await this.typstModule.mapShadow('/bibliografia.bib', uint8Bib);
                 } else {
@@ -153,6 +162,16 @@ export default class CompiladorPdf {
                 await this.typstModule.unmapShadow('/bibliografia.bib');
             } catch (_) {
                 // Ignora caso não estivesse mapeado
+            }
+        }
+
+        // 3.3. Logo do projeto para a capa (mesmo caminho que o ExportadorTypst põe no template)
+        const logo = logoCapaPdf(this.gerenciador);
+        if (logo) {
+            try {
+                await this.typstModule.mapShadow(logo.caminho, logo.bytes);
+            } catch (e) {
+                console.warn('⚠️ Erro ao injetar o logo da capa:', e);
             }
         }
 
