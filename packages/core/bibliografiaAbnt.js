@@ -747,9 +747,95 @@ export function renderizarReferenciasAbnt(conteudoBib, formato = 'html') {
     throw new Error(`Formato de bibliografia desconhecido: ${formato}`);
 }
 
+// ── Saneamento do .bib para o Typst ───────────────────────────────────────────
+
+/**
+ * Corrige os campos `year`/`date` que o leitor BibLaTeX do Typst rejeita
+ * ("wrong number of digits"), comuns em fontes de CLDF/Glottolog: "s.d.", "n.d.",
+ * "[1985]", "c1985", "forthcoming", valor vazio. O resto do arquivo fica intacto.
+ * - valor que começa com um ano (até 4 dígitos): mantido ("2020a", "1990-91");
+ * - ano de 4 dígitos no meio do texto: vira só o ano ("[1985]" → 1985);
+ * - nenhum ano: o campo é removido (a referência sai sem data).
+ * @param {string} conteudoBib
+ * @returns {string}
+ */
+export function sanearBibParaTypst(conteudoBib) {
+    if (!conteudoBib || typeof conteudoBib !== 'string') return conteudoBib;
+
+    const regexCampo = /(,\s*)(year|date)(\s*=\s*)/gi;
+    let resultado = '';
+    let cursor = 0;
+    // Profundidade de chaves até `posicaoProfundidade`: campos da entrada ficam no nível 1;
+    // um "year = {...}" dentro de um título, por exemplo, fica mais fundo e é ignorado
+    let profundidade = 0;
+    let posicaoProfundidade = 0;
+    let m;
+
+    while ((m = regexCampo.exec(conteudoBib)) !== null) {
+        for (; posicaoProfundidade < m.index; posicaoProfundidade++) {
+            const c = conteudoBib[posicaoProfundidade];
+            if (c === '{') profundidade++;
+            else if (c === '}') profundidade--;
+        }
+        if (profundidade !== 1) continue;
+
+        const inicioValor = m.index + m[0].length;
+        const fimValor = fimDoValorBib(conteudoBib, inicioValor);
+        if (fimValor < 0) continue;
+
+        const bruto = conteudoBib.slice(inicioValor, fimValor);
+        // Valor sem chave/aspas é número ou macro @string: deixa como está
+        if (bruto[0] !== '{' && bruto[0] !== '"') continue;
+
+        const texto = bruto.slice(1, -1).replace(/[{}]/g, '').trim();
+        if (/^\d{1,4}(?!\d)/.test(texto)) continue;
+
+        const ano = texto.match(/(?<!\d)\d{4}(?!\d)/);
+        const inicioCampo = m.index + m[1].length;
+        if (ano) {
+            resultado += conteudoBib.slice(cursor, inicioValor) + `{${ano[0]}}`;
+            cursor = fimValor;
+        } else {
+            // Remove "campo = {valor}" e a vírgula seguinte, se houver
+            let fim = fimValor;
+            const resto = conteudoBib.slice(fim).match(/^\s*,/);
+            if (resto) fim += resto[0].length;
+            resultado += conteudoBib.slice(cursor, inicioCampo);
+            cursor = fim;
+        }
+        regexCampo.lastIndex = fimValor;
+    }
+
+    return resultado + conteudoBib.slice(cursor);
+}
+
+// Posição logo após o valor de um campo BibTeX que começa em `inicio`
+// ({...} com chaves aninhadas, "..." ou token simples); -1 se malformado.
+function fimDoValorBib(texto, inicio) {
+    const c = texto[inicio];
+    if (c === '{') {
+        let nivel = 0;
+        for (let i = inicio; i < texto.length; i++) {
+            if (texto[i] === '{') nivel++;
+            else if (texto[i] === '}' && --nivel === 0) return i + 1;
+        }
+        return -1;
+    }
+    if (c === '"') {
+        for (let i = inicio + 1; i < texto.length; i++) {
+            if (texto[i] === '\\') i++;
+            else if (texto[i] === '"') return i + 1;
+        }
+        return -1;
+    }
+    const token = texto.slice(inicio).match(/^[A-Za-z0-9_-]+/);
+    return token ? inicio + token[0].length : -1;
+}
+
 export default {
     limparLatex,
     parseBibtex,
+    sanearBibParaTypst,
     formatarNomeAutorAbnt,
     formatarAutoresAbnt,
     decomporEntradaAbnt,

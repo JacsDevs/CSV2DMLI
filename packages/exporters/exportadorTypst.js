@@ -1,6 +1,24 @@
 import ExportadorBase from './exportadorBase.js';
 import { renderizarReferenciasAbnt } from '../core/bibliografiaAbnt.js';
 
+// Cores da capa quando não há tema (verde original do modelo)
+const CORES_CAPA_PADRAO = { primaria: '#1b4332', acento: '#74a383', contraste: '#ffffff' };
+
+/**
+ * Logo do projeto para a capa do PDF: só o logo definido pelo usuário (nunca o
+ * ícone do app) e só em PNG/JPEG, formatos que o Typst lê pelo nome do arquivo.
+ * Usado pelo exportador (caminho no template) e pelo CompiladorPdf (bytes no VFS).
+ * @returns {{ caminho: string, bytes: Uint8Array } | null}
+ */
+export function logoCapaPdf(gerenciador) {
+    const bruto = gerenciador && gerenciador.logo && gerenciador.logo.bytes;
+    if (!bruto || bruto.length < 4) return null;
+    const bytes = bruto instanceof Uint8Array ? bruto : Uint8Array.from(bruto);
+    if (bytes[0] === 0x89 && bytes[1] === 0x50) return { caminho: '/capa-logo.png', bytes };
+    if (bytes[0] === 0xff && bytes[1] === 0xd8) return { caminho: '/capa-logo.jpg', bytes };
+    return null;
+}
+
 class ExportadorTypst extends ExportadorBase {
     constructor(gerenciadorDados) {
         super(gerenciadorDados);
@@ -101,7 +119,11 @@ class ExportadorTypst extends ExportadorBase {
         dados.FONETICA = this.escaparTypst(dados.FONETICA);
         dados.INDEX = this.escaparTypst(dados.INDEX);
         dados.ITENS_RELACIONADOS = this.escaparTypst(dados.ITENS_RELACIONADOS);
-        
+        // Bloco {{#SEPARADOR}} do entrada.typ: linha divisória entre verbetes
+        // (processarTemplate só omite valores vazios, não `false`)
+        dados.SEPARADOR = this.separadorPdf !== false ? true : '';
+        dados.SEM_SEPARADOR = dados.SEPARADOR ? '' : true;
+
         dados.SIGNIFICADOS = dados.SIGNIFICADOS.map(s => ({
             ...s,
             TRADUCAO: this.escaparTypst(s.TRADUCAO),
@@ -135,11 +157,11 @@ class ExportadorTypst extends ExportadorBase {
         }
         
         // Metadados embutidos para formar o cabeçalho dinâmico do documento em caso de fallback emergencial
-        let typ = `\n#v(0.6em)\n#metadata("${dados.TERMO}") <dict-word>\n*${dados.TERMO}*`;
+        let typ = `\n#v(0.75em, weak: true)\n#metadata("${dados.TERMO}") <dict-word>\n#block[*${dados.TERMO}*`;
         if (dados.CLASSE) typ += ` _${dados.CLASSE}_`;
         dados.SIGNIFICADOS.forEach(s => typ += ` ${s.TRADUCAO}`);
-        
-        return typ;
+
+        return typ + ']';
     }
 
     gerarCorpoTypst(arvore, categoriasRaizes, manterSet) {
@@ -149,6 +171,10 @@ class ExportadorTypst extends ExportadorBase {
         const processarNo = (nomeNo, noDict, nivel, raizCategoria) => {
             if (nivel === 1) {
                 raizCategoria = nomeNo;
+                // Absorvedor de fim de categoria: na última coluna da categoria anterior,
+                // o espaço que sobra fica no pé em vez de ir para os blocos 1fr das
+                // imagens (ver entrada.typ). Não vai antes da primeira: criaria página vazia.
+                if (partes.length > 0) partes.push('\n#v(1000fr, weak: true)\n');
                 const nome = this.escaparTypst(nomeNo.toUpperCase());
                 partes.push(`\n#heading(level: 1, outlined: true, bookmarked: true)[${nome}]\n`);
             } else if (nomeNo !== 'Geral') {
@@ -177,6 +203,8 @@ class ExportadorTypst extends ExportadorBase {
         // Reconstrói o índice a cada exportação: o VFS pode ter mudado desde a última
         this.indiceImagens = this.montarIndiceImagens();
 
+        this.separadorPdf = (opcoes.metadados || {}).separadorPdf !== false;
+
         const { arvore, categoriasRaizes } = this.db.obterArvoreOrdenada();
         const manterSet = new Set((opcoes.categoriasManterOriginal || []).map(c => c.toLowerCase()));
         const corpo = this.gerarCorpoTypst(arvore, categoriasRaizes, manterSet);
@@ -189,6 +217,16 @@ class ExportadorTypst extends ExportadorBase {
         const ano = meta.ano || '';
         const introPdf = meta.introPdf || meta.intro_pdf || '';
         const versao = meta.versao || '1.0';
+        const modoPdf = meta.modoPdf === 'impressao' ? 'impressao' : 'tela';
+
+        // Capa: cores da paleta de Aparência (versão clara), subtítulo e logo opcionais
+        const paleta = (meta.tema && meta.tema.light) || {};
+        const corValida = (valor, padrao) => /^#[0-9a-f]{6}$/i.test(String(valor || '').trim()) ? String(valor).trim() : padrao;
+        const corPrimaria = corValida(paleta['--cor-primaria'], CORES_CAPA_PADRAO.primaria);
+        const corAcento = corValida(paleta['--cor-acento'], CORES_CAPA_PADRAO.acento);
+        const corContraste = corValida(paleta['--cor-primaria-contraste'], CORES_CAPA_PADRAO.contraste);
+        const subtituloCapa = this.escaparTypst((meta.subtitulo || '').trim());
+        const logo = logoCapaPdf(this.db);
 
         let referenciasTypst = '';
         const temBib = !!(meta.bibliografiaBib || (this.db && this.db.bibliografiaBib));
@@ -201,8 +239,8 @@ class ExportadorTypst extends ExportadorBase {
         } else {
             // Remove a seção de referências caso não haja bibliografia carregada
             codigo = codigo
-                .replace(/#\[\s*#show\s+heading\.where\(level:\s*1\)[\s\S]*?=\s*Refer[eê]ncias[\s\S]*?\{\{\s*textos\.referencias_typst\s*(\|\s*safe)?\s*\}\}\s*\]\s*#pagebreak\(\)/gi, '')
-                .replace(/=\s*Refer[eê]ncias[\s\S]*?\{\{\s*textos\.referencias_typst\s*(\|\s*safe)?\s*\}\}\s*#pagebreak\(\)/gi, '');
+                .replace(/#\[\s*#show\s+heading\.where\(level:\s*1\)[\s\S]*?=\s*Refer[eê]ncias[\s\S]*?\{\{\s*textos\.referencias_typst\s*(\|\s*safe)?\s*\}\}\s*\]\s*#(?:pagebreak|nova-secao)\(\)/gi, '')
+                .replace(/=\s*Refer[eê]ncias[\s\S]*?\{\{\s*textos\.referencias_typst\s*(\|\s*safe)?\s*\}\}\s*#(?:pagebreak|nova-secao)\(\)/gi, '');
         }
 
         codigo = codigo.replace(/\{\{\s*metadados\.html\s*\}\}/gi, meta.tituloHtml || titulo)
@@ -211,10 +249,19 @@ class ExportadorTypst extends ExportadorBase {
                        .replace(/\{\{\s*metadados\.autor\s*\}\}/gi, autor)
                        .replace(/\{\{\s*metadados\.ano\s*\}\}/gi, ano)
                        .replace(/\{\{\s*metadados\.versao\s*\}\}/gi, versao)
+                       .replace(/\{\{\s*metadados\.modo_pdf\s*\}\}/gi, modoPdf)
+                       .replace(/\{\{\s*metadados\.cor_primaria\s*\}\}/gi, corPrimaria)
+                       .replace(/\{\{\s*metadados\.cor_acento\s*\}\}/gi, corAcento)
+                       .replace(/\{\{\s*metadados\.cor_contraste\s*\}\}/gi, corContraste)
                        .replace(/\{\{\s*textos\.intro_pdf\s*\}\}/gi, introPdf)
                        .replace(/\{\{\s*corpo_dicionario\s*(\|\s*safe)?\s*\}\}/gi, corpo);
 
-        codigo = this.processarTemplate(codigo, { ...meta, corpo_dicionario: corpo });
+        codigo = this.processarTemplate(codigo, {
+            ...meta,
+            corpo_dicionario: corpo,
+            SUBTITULO_CAPA: subtituloCapa,
+            LOGO_CAPA: logo ? logo.caminho : ''
+        });
 
         // RegEx varredor: apaga quaisquer marcadores órfãos que não foram preenchidos
         codigo = codigo.replace(/\{\{.*?\}\}/g, '');
