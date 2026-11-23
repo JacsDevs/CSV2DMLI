@@ -1,5 +1,5 @@
 // const CACHE = 'csv2dmli-v2'; // versão anterior (antes do Toast UI Editor) - reverter para esta linha se abandonar o editor
-const CACHE = 'csv2dmli-v13';
+const CACHE = 'csv2dmli-v14';
 
 // Lista de idiomas da interface: mantém todos os dicionários disponíveis offline.
 importScripts('packages/i18n/idiomas.js');
@@ -23,6 +23,15 @@ const PRE_CACHE = [
   BASE + '/config/typst-deps/abnt-6023.csl',
   BASE + '/config/typst-deps/in-dexter.typ',
   BASE + '/config/typst-deps/cmarker.typ',
+  BASE + '/config/templates/typst/template.typ',
+  BASE + '/config/templates/typst/entrada.typ',
+  BASE + '/assets/typst/typst_wrapper.js',
+  BASE + '/assets/typst/typst_compiler.wasm',
+  BASE + '/assets/typst/plugin.wasm',
+  BASE + '/assets/typst/fonts/Charis-Regular.ttf',
+  BASE + '/assets/typst/fonts/Charis-Bold.ttf',
+  BASE + '/assets/typst/fonts/Charis-Italic.ttf',
+  BASE + '/assets/typst/fonts/Charis-BoldItalic.ttf',
   BASE + '/packages/core/bibliografiaAbnt.js',
   BASE + '/packages/i18n/idiomas.js',
   BASE + '/packages/i18n/nucleo.js',

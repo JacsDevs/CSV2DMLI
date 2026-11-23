@@ -132,7 +132,7 @@ export default class CompiladorPdf {
             console.warn('⚠️ Estilo CSL ABNT não encontrado:', e);
         }
 
-        // 3.2. Injeta bibliografia .bib na memória virtual
+        // 3.2. Injeta bibliografia .bib na memória virtual (ou remove se não houver)
         const conteudoBib = (opcoes && opcoes.metadados && opcoes.metadados.bibliografiaBib)
                          || (opcoes && opcoes.bibliografiaBib)
                          || (this.gerenciador && this.gerenciador.bibliografiaBib);
@@ -147,6 +147,12 @@ export default class CompiladorPdf {
                 console.log(`✅ Arquivo /bibliografia.bib injetado na memória do Typst (${uint8Bib.length} bytes).`);
             } catch (e) {
                 console.warn('⚠️ Erro ao injetar /bibliografia.bib:', e);
+            }
+        } else if (this.typstModule && typeof this.typstModule.unmapShadow === 'function') {
+            try {
+                await this.typstModule.unmapShadow('/bibliografia.bib');
+            } catch (_) {
+                // Ignora caso não estivesse mapeado
             }
         }
 

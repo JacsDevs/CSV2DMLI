@@ -200,7 +200,9 @@ class ExportadorTypst extends ExportadorBase {
             codigo = codigo.replace(/\{\{\s*textos\.referencias_typst\s*(\|\s*safe)?\s*\}\}/gi, referenciasTypst);
         } else {
             // Remove a seção de referências caso não haja bibliografia carregada
-            codigo = codigo.replace(/(#\[[\s\r\n]*)?(#show\s+heading[\s\S]*?)?=\s*Refer[eê]ncias[\s\S]*?\{\{\s*textos\.referencias_typst\s*(\|\s*safe)?\s*\}\}[\s\r\n]*(\][\s\r\n]*)?#pagebreak\(\)/gi, '');
+            codigo = codigo
+                .replace(/#\[\s*#show\s+heading\.where\(level:\s*1\)[\s\S]*?=\s*Refer[eê]ncias[\s\S]*?\{\{\s*textos\.referencias_typst\s*(\|\s*safe)?\s*\}\}\s*\]\s*#pagebreak\(\)/gi, '')
+                .replace(/=\s*Refer[eê]ncias[\s\S]*?\{\{\s*textos\.referencias_typst\s*(\|\s*safe)?\s*\}\}\s*#pagebreak\(\)/gi, '');
         }
 
         codigo = codigo.replace(/\{\{\s*metadados\.html\s*\}\}/gi, meta.tituloHtml || titulo)
