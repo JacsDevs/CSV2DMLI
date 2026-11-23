@@ -40,30 +40,118 @@
 )
 #set par(justify: true, leading: 0.65em, spacing: 1em, first-line-indent: 0pt)
 
+// Títulos: um só estilo para o documento inteiro (pré-textuais, categorias do
+// dicionário e pós-textuais), para o livro ficar uniforme
 #show heading: set text(weight: "bold", fill: black)
-#show heading: set block(above: 1.8em, below: 0.9em, sticky: true)
-#show heading.where(level: 1): set text(size: 20pt)
-#show heading.where(level: 1): set block(above: 0pt, below: 1.6em)
-#show heading.where(level: 2): set text(size: 13pt)
-#show heading.where(level: 3): set text(size: corpo-texto)
+#show heading: set block(sticky: true)
+// Nível 1 (Sumário, Introdução, categorias, Referências, Índice): abre página e
+// atravessa as colunas, em versalete com filete curto
+#show heading.where(level: 1): it => {
+  // No modo impressão, cada seção e cada categoria principal do dicionário abre
+  // à direita (página ímpar); o verso que sobrar fica em branco
+  if impressao {
+    [#metadata("fim-secao") <fim-secao>]
+    pagebreak(weak: true, to: "odd")
+  } else {
+    pagebreak(weak: true)
+  }
+  place(top + center, scope: "parent", float: true, clearance: 1.6em)[
+    #set align(center)
+    #set text(size: 13pt, weight: "regular", fill: black, tracking: 0.06em)
+    #smallcaps(lower(it.body))
+    #v(0.2em)
+    #line(length: 2.5cm, stroke: 0.4pt + cor-regua)
+  ]
+}
+#show heading.where(level: 2): set text(size: 10.5pt)
+#show heading.where(level: 2): set block(above: 1.4em, below: 0.7em)
+#show heading.where(level: 3): set text(size: corpo-verbete)
+#show heading.where(level: 3): set block(above: 1.1em, below: 0.55em)
+#show heading.where(level: 4): set text(size: corpo-verbete, style: "italic")
+#show heading.where(level: 4): set block(above: 1em, below: 0.5em)
 
-// Nova seção: no modo impressão começa sempre em página ímpar (direita)
-#let nova-secao() = if impressao { pagebreak(to: "odd") } else { pagebreak() }
+// Nova seção: no modo impressão começa sempre em página ímpar (direita, o recto),
+// como em livros impressos frente e verso; o verso que sobrar fica em branco.
+// O marcador <fim-secao> permite identificar esses versos para não pôr neles
+// cabeçalho, número nem régua (ver pagina-em-branco)
+#let nova-secao() = if impressao {
+  [#metadata("fim-secao") <fim-secao>]
+  pagebreak(to: "odd")
+} else { pagebreak() }
 
-// Número de página: borda externa no modo impressão, centralizado no modo tela
-#let alinhamento-externo() = if impressao {
-  if calc.odd(here().page()) { right } else { left }
-} else { center }
+// Verso deixado em branco por nova-secao: entre o fim de uma seção e a página do
+// próximo título de nível 1 (ou depois da última seção, no fim do documento)
+#let pagina-em-branco(pagina) = {
+  query(<fim-secao>).any(f => {
+    let fim = f.location().page()
+    // próximo título na ordem do documento (não pela página: o título pode estar
+    // na mesma página do marcador quando não foi preciso pular nenhuma)
+    let seguintes = query(heading.where(level: 1).after(f.location()))
+    let inicio = if seguintes.len() > 0 { seguintes.first().location().page() } else { 1000000 }
+    pagina > fim and pagina < inicio
+  })
+}
 
-#let rodape-numerado = context align(alinhamento-externo())[
-  #text(size: 9pt)[#counter(page).display()]
-]
+// Cabeçalho único do miolo: título corrente (palavras-guia no dicionário, nome da
+// seção nas demais páginas), número na borda externa e filete
+#let cabecalho = context if not pagina-em-branco(here().page()) {
+  let pagina = here().page()
+  let num = text(size: 9pt)[#counter(page).display()]
+  set text(size: 8.5pt)
+
+  let marcas = query(<dict-word>).filter(m => m.location().page() == pagina)
+  let corrente = if marcas.len() > 0 {
+    let first = marcas.first().value
+    let last = marcas.last().value
+    if first == last { strong(first) } else [*#first* --- *#last*]
+  } else {
+    // Seção que abre nesta página ou, se nenhuma, a última aberta antes dela
+    let titulos = query(heading.where(level: 1))
+    let desta = titulos.filter(h => h.location().page() == pagina)
+    let anteriores = titulos.filter(h => h.location().page() < pagina)
+    let titulo = if desta.len() > 0 { desta.first() } else if anteriores.len() > 0 { anteriores.last() } else { none }
+    if titulo != none { smallcaps(lower(titulo.body)) }
+  }
+
+  if impressao and calc.even(pagina) {
+    grid(columns: (auto, 1fr), column-gutter: 1em, num, align(right, corrente))
+  } else {
+    grid(columns: (1fr, auto), column-gutter: 1em, corrente, num)
+  }
+  v(-0.35em)
+  line(length: 100%, stroke: 0.4pt + cor-regua)
+}
+
+// Réguas verticais finas no meio de cada espaço entre colunas
+// (n = número de colunas da seção, entre = espaço entre elas)
+#let regua-colunas(n, entre) = context if not pagina-em-branco(here().page()) {
+  let m = margens
+  let topo = m.top
+  let base = m.bottom
+  let esquerda = if impressao {
+    if calc.odd(here().page()) { m.inside } else { m.outside }
+  } else { m.x }
+  let direita = if impressao {
+    if calc.odd(here().page()) { m.outside } else { m.inside }
+  } else { m.x }
+  let largura-mancha = page.width - esquerda - direita
+  // Em página que abre seção, a régua começa abaixo do título
+  let abre-secao = query(heading.where(level: 1)).any(h => h.location().page() == here().page())
+  if abre-secao { topo += 1.6cm }
+  let largura-coluna = (largura-mancha - (n - 1) * entre) / n
+  for k in range(1, n) {
+    place(
+      top + left,
+      dx: esquerda + k * largura-coluna + (k - 1) * entre + entre / 2,
+      dy: topo,
+      line(angle: 90deg, length: page.height - topo - base, stroke: 0.3pt + luma(200))
+    )
+  }
+}
 
 // ============================================
 // 1. CAPA
 // ============================================
-// Losango: mesmo motivo das divisórias entre verbetes
-#let losango(tamanho, cor) = rotate(45deg, square(size: tamanho, stroke: 0.6pt + cor))
 #let altura-faixa = 13cm
 
 #set page(
@@ -96,10 +184,7 @@
     ]
   ]
 
-  // Fileira de losangos logo abaixo do bloco, na largura da mancha
-  #v(1.3cm + 0.8cm)
-  #box(width: 100%, repeat(gap: 8pt, justify: true, losango(4pt, cor-acento)))
-  #v(1.4cm)
+  #v(1.3cm + 1.6cm)
   #text(size: 13pt, tracking: 0.08em, fill: luma(40))[#smallcaps(lower[{{ metadados.autor }}])]
   #v(1fr)
   {{#LOGO_CAPA}}
@@ -127,157 +212,99 @@
   #v(0.5em)
   #text(size: 10.5pt, tracking: 0.1em)[#smallcaps(lower[{{ SUBTITULO_CAPA }}])]
   {{/SUBTITULO_CAPA}}
-  #v(0.8em)
-  #losango(4pt, cor-acento)
-  #v(0.6em)
+  #v(1.2em)
   #text(size: corpo-texto, style: "italic")[Versão {{ metadados.versao }}]
   #v(2fr)
   #text(size: corpo-texto)[{{ metadados.ano }}]
 ]
 
+
 // ============================================
-// 3. PRÉ-TEXTUAIS E INTRODUÇÃO (NUMERAÇÃO NO RODAPÉ)
+// 3. MIOLO: MESMO ESTILO DO PRÉ AO PÓS-TEXTUAL
 // ============================================
+// Daqui em diante todas as páginas usam o cabeçalho único (sem rodapé), o corpo e
+// a entrelinha dos verbetes e os mesmos títulos de seção
 #nova-secao()
 #counter(page).update(1)
 
-#set page(header: none, footer: rodape-numerado)
+#set page(header: cabecalho, header-ascent: 35%, footer: none, background: none)
+#set columns(gutter: 7mm)
+#set text(size: corpo-verbete, costs: (widow: 100%, orphan: 100%, hyphenation: 80%))
+#set par(leading: 0.7em, spacing: 0.7em, justify: true)
 
+// Sumário (uma coluna)
+#heading(outlined: false, bookmarked: true)[Sumário]
 #[
-  #show outline.entry.where(level: 1): it => {
-    set text(weight: "bold")
-    v(0.6em, weak: true)
-    it
-  }
   #set outline.entry(fill: repeat(text(fill: luma(150))[.#h(0.25em)]))
-  #outline(title: "Sumário", indent: 1.5em, depth: 3)
+  // Primeiro nível em versalete, como os títulos de seção no corpo
+  #show outline.entry.where(level: 1): it => {
+    v(0.6em, weak: true)
+    link(it.element.location(), it.indented(it.prefix(), [
+      #smallcaps(lower(it.body())) #box(width: 1fr, it.fill) #it.page()
+    ]))
+  }
+  #outline(title: none, indent: 1.5em, depth: 3)
 ]
 
+// [INTRODUCAO-INICIO] Introdução (uma coluna). O ExportadorTypst remove este
+// trecho quando o texto da introdução está vazio
 #nova-secao()
-#[
-  #set par(first-line-indent: 1.25em, spacing: 0.65em)
-  = Introdução
-  #let texto_markdown = ```
+= Introdução
+#let texto_markdown = ```
 {{ textos.intro_pdf }}
 ```
 
+// Texto corrido: recuo na primeira linha para marcar o início de cada parágrafo
+#[
+  #set par(first-line-indent: 1em)
   #render(texto_markdown.text)
 ]
+// [INTRODUCAO-FIM]
 
 // ============================================
-// 4. DICIONÁRIO (CABEÇALHO COM PALAVRAS-GUIA, SEM RODAPÉ)
+// 4. DICIONÁRIO (DUAS COLUNAS, PALAVRAS-GUIA NO CABEÇALHO)
 // ============================================
 #nova-secao()
-
-#set page(
-  columns: 2,
-  header-ascent: 35%,
-  header: context {
-    let page-marks = query(<dict-word>).filter(m => m.location().page() == here().page())
-    let num = text(size: 9pt)[#counter(page).display()]
-    set text(size: 8.5pt)
-
-    let guias = if page-marks.len() > 0 {
-      let first = page-marks.first().value
-      let last = page-marks.last().value
-      if first == last { strong(first) } else [*#first* --- *#last*]
-    } else {
-      set text(hyphenate: false)
-      show "-": "\u{2011}"
-      smallcaps[{{ metadados.pdf }}]
-    }
-
-    // Número na borda externa; palavras-guia ocupam o restante da linha
-    if impressao and calc.even(here().page()) {
-      grid(columns: (auto, 1fr), column-gutter: 1em, num, align(right, guias))
-    } else {
-      grid(columns: (1fr, auto), column-gutter: 1em, guias, num)
-    }
-    v(-0.35em)
-    line(length: 100%, stroke: 0.4pt + cor-regua)
-  },
-  // Régua vertical fina entre as colunas, só nesta seção
-  background: context {
-    let m = margens
-    let topo = m.top
-    let base = m.bottom
-    let esquerda = if impressao {
-      if calc.odd(here().page()) { m.inside } else { m.outside }
-    } else { m.x }
-    let direita = if impressao {
-      if calc.odd(here().page()) { m.outside } else { m.inside }
-    } else { m.x }
-    let largura-mancha = page.width - esquerda - direita
-    // Em página que abre categoria, a régua começa abaixo do título
-    let abre-categoria = query(heading.where(level: 1)).any(h => h.location().page() == here().page())
-    if abre-categoria { topo += 1.6cm }
-    place(
-      top + left,
-      dx: esquerda + largura-mancha / 2,
-      dy: topo,
-      line(angle: 90deg, length: page.height - topo - base, stroke: 0.3pt + luma(200))
-    )
-  },
-  footer: none
-)
+#set page(columns: 2, background: regua-colunas(2, 7mm))
 #set columns(gutter: 7mm)
 
-#[
-  #set text(size: corpo-verbete, costs: (widow: 100%, orphan: 100%, hyphenation: 80%))
-  #set par(leading: 0.7em, spacing: 0.7em, justify: true)
-
-  // Categoria (nível 1): abre página e atravessa as duas colunas, em versalete
-  #show heading.where(level: 1): it => {
-    pagebreak(weak: true)
-    place(top + center, scope: "parent", float: true, clearance: 1.6em)[
-      #set align(center)
-      #set text(size: 13pt, weight: "regular", fill: black, tracking: 0.06em)
-      #smallcaps(lower(it.body))
-      #v(0.2em)
-      #line(length: 2.5cm, stroke: 0.4pt + cor-regua)
-    ]
-  }
-  #show heading.where(level: 2): set text(size: 10.5pt)
-  #show heading.where(level: 2): set block(above: 1.4em, below: 0.7em)
-  #show heading.where(level: 3): set text(size: corpo-verbete)
-  #show heading.where(level: 3): set block(above: 1.1em, below: 0.55em)
-  #show heading.where(level: 4): set text(size: corpo-verbete, style: "italic")
-  #show heading.where(level: 4): set block(above: 1em, below: 0.5em)
-
 {{ corpo_dicionario | safe }}
-  // Fim da última categoria (as demais recebem o mesmo do ExportadorTypst)
-  #v(1000fr, weak: true)
-]
+// Fim da última categoria (as demais recebem o mesmo do ExportadorTypst)
+#v(1000fr, weak: true)
 
 // ============================================
-// 5. PÓS-TEXTUAIS (VOLTA NUMERAÇÃO NO RODAPÉ)
+// 5. PÓS-TEXTUAIS
 // ============================================
+// Referências em uma coluna
 #nova-secao()
-#set page(columns: 1, header: none, background: none, footer: rodape-numerado)
-#set text(size: corpo-texto)
-#set par(leading: 0.65em, spacing: 1em)
+#set page(columns: 1, background: none)
 
+// [REFERENCIAS-INICIO] O ExportadorTypst remove este trecho quando não há .bib
 #[
-  #show heading.where(level: 1): it => block(width: 100%, above: 0pt, below: 1.6em)[
-    #set align(center)
-    #it.body
-  ]
-
   = Referências
 
-  #set text(lang: "pt", region: "BR")
-  #set par(first-line-indent: 0pt, justify: false)
+  #set par(justify: false)
 
   {{ textos.referencias_typst | safe }}
 ]
-
 #nova-secao()
-#set page(columns: 3)
+// [REFERENCIAS-FIM]
+
+// Índice em três colunas
+#set page(columns: 3, background: regua-colunas(3, 5mm))
 #set columns(gutter: 5mm)
-#show heading.where(level: 1): it => place(top + left, scope: "parent", float: true, clearance: 1.6em, it)
 = Índice Alfabético
 #[
+  // Corpo menor que o do texto: em três colunas, 9,5pt quebraria quase toda entrada
   #set text(size: 8.5pt)
-  #set par(justify: false, leading: 0.5em, spacing: 0.5em)
+  #set par(justify: false)
   #make-index()
+]
+
+// Impressão frente e verso: total de páginas par, com o verso da última folha em branco
+// (mede a página pelo marcador de fim, que fica na última página com conteúdo;
+// medir a própria posição oscilaria, pois ela muda quando a página é inserida)
+#if impressao [
+  #metadata("fim-secao") <fim-secao>
+  #context if calc.odd(query(<fim-secao>).last().location().page()) { pagebreak() }
 ]

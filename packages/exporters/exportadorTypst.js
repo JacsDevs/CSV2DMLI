@@ -237,10 +237,17 @@ class ExportadorTypst extends ExportadorBase {
         if (referenciasTypst) {
             codigo = codigo.replace(/\{\{\s*textos\.referencias_typst\s*(\|\s*safe)?\s*\}\}/gi, referenciasTypst);
         } else {
-            // Remove a seção de referências caso não haja bibliografia carregada
+            // Remove a seção de referências caso não haja bibliografia carregada:
+            // entre os marcadores do template atual, ou pelos padrões de templates antigos
             codigo = codigo
+                .replace(/\/\/\s*\[REFERENCIAS-INICIO\][\s\S]*?\/\/\s*\[REFERENCIAS-FIM\]/g, '')
                 .replace(/#\[\s*#show\s+heading\.where\(level:\s*1\)[\s\S]*?=\s*Refer[eê]ncias[\s\S]*?\{\{\s*textos\.referencias_typst\s*(\|\s*safe)?\s*\}\}\s*\]\s*#(?:pagebreak|nova-secao)\(\)/gi, '')
                 .replace(/=\s*Refer[eê]ncias[\s\S]*?\{\{\s*textos\.referencias_typst\s*(\|\s*safe)?\s*\}\}\s*#(?:pagebreak|nova-secao)\(\)/gi, '');
+        }
+
+        // Sem texto de introdução, a seção inteira sai do documento (e do sumário)
+        if (!String(introPdf).trim()) {
+            codigo = codigo.replace(/\/\/\s*\[INTRODUCAO-INICIO\][\s\S]*?\/\/\s*\[INTRODUCAO-FIM\]/g, '');
         }
 
         codigo = codigo.replace(/\{\{\s*metadados\.html\s*\}\}/gi, meta.tituloHtml || titulo)

@@ -94,7 +94,7 @@ I18N.registrar('en', {
     "Leitura em tela": "On-screen reading",
     "Impressão encadernada": "Bound print",
     "Impressão: margens espelhadas e seções começando em página ímpar.": "Print: mirrored margins and sections starting on odd pages.",
-    "<strong>Linha divisória</strong>Separa cada verbete do seguinte.": "<strong>Divider line</strong>Separates each entry from the next.",
+    "Linha divisória entre os verbetes": "Divider line between entries",
     "Como citar": "How to cite",
     "Autoria na citação": "Authorship in the citation",
     "Ex.: SILVA, Ana; SOUZA, Rui": "E.g.: SILVA, Ana; SOUZA, Rui",

@@ -1215,6 +1215,7 @@ p.conferir-sem-projeto { margin: 0; padding: 0; }
 .aparencia-paletas legend,
 .aparencia-previa h3 { margin: 0 0 10px; padding: 0; border: 0; font-size: 16px; font-weight: 700; color: var(--text-main); }
 .aparencia-lista { display: flex; flex-direction: column; gap: 10px; }
+.aparencia-pdf { margin-top: 24px; }
 
 .aparencia-opcao {
     display: flex;
