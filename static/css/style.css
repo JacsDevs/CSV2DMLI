@@ -696,7 +696,7 @@ body {
     border-radius: var(--radius-md);
     background: var(--bg-card);
 }
-.importar-formato h3 { margin: 0 0 8px; padding: 0; border: 0; font-size: 15px; font-weight: 700; color: var(--text-main); }
+.importar-formato h3 { margin: 0 0 8px; font-size: 15px; font-weight: 700; color: var(--text-main); }
 .importar-formato ul {
     margin: 0;
     padding-left: 18px;
@@ -842,9 +842,6 @@ p.conferir-sem-projeto { margin: 0; padding: 0; }
     gap: 28px;
 }
 .conferir-conteudo h3 {
-    margin: 0;
-    padding: 0;
-    border: 0;
     font-size: 16px;
     font-weight: 700;
     color: var(--text-main);
@@ -1011,7 +1008,7 @@ p.conferir-sem-projeto { margin: 0; padding: 0; }
     border-radius: var(--radius-md);
 }
 .info-cartao h3,
-.info-introducao h3 { margin: 0; padding: 0; border: 0; font-size: 16px; font-weight: 700; color: var(--text-main); }
+.info-introducao h3 { font-size: 16px; font-weight: 700; color: var(--text-main); }
 .info-cartao-acoes { display: flex; flex-wrap: wrap; gap: 8px; }
 .info-cartao-bloqueado { background: var(--bg-secondary); cursor: not-allowed; }
 .info-cartao-bloqueado h3,
@@ -1134,7 +1131,7 @@ p.conferir-sem-projeto { margin: 0; padding: 0; }
     background: var(--bg-main);
     border-bottom: 1px solid var(--border-color);
 }
-.estrutura-painel-topo h3 { margin: 0; padding: 0; border: 0; font-size: 16px; font-weight: 700; color: var(--text-main); }
+.estrutura-painel-topo h3 { font-size: 16px; font-weight: 700; color: var(--text-main); }
 .estrutura-painel-acoes { display: flex; flex-wrap: wrap; gap: 8px; }
 .estrutura-vazia { padding: 20px; color: var(--text-muted); list-style: none; }
 
@@ -1242,7 +1239,7 @@ p.conferir-sem-projeto { margin: 0; padding: 0; }
     min-width: 0;
 }
 .aparencia-paletas legend,
-.aparencia-previa h3 { margin: 0 0 10px; padding: 0; border: 0; font-size: 16px; font-weight: 700; color: var(--text-main); }
+.aparencia-previa h3 { margin: 0 0 10px; font-size: 16px; font-weight: 700; color: var(--text-main); }
 .aparencia-lista { display: flex; flex-direction: column; gap: 10px; }
 .aparencia-pdf { margin-top: 24px; }
 
@@ -1322,7 +1319,7 @@ p.conferir-sem-projeto { margin: 0; padding: 0; }
    ETAPA 6 — EXPORTAR
 ========================================= */
 .publicar-conteudo { display: flex; flex-direction: column; gap: 28px; }
-.publicar-conteudo h3 { margin: 0; padding: 0; border: 0; font-size: 16px; font-weight: 700; color: var(--text-main); }
+.publicar-conteudo h3 { font-size: 16px; font-weight: 700; color: var(--text-main); }
 
 .btn-contorno {
     display: inline-flex;
@@ -1571,7 +1568,7 @@ p.conferir-sem-projeto { margin: 0; padding: 0; }
 .relatorio-resumo { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .relatorio-corpo { display: flex; flex-direction: column; gap: 24px; }
 .relatorio-secao { display: flex; flex-direction: column; gap: 10px; }
-.relatorio-secao h3 { margin: 0; padding: 0; border: 0; font-size: 15px; font-weight: 700; color: var(--text-main); }
+.relatorio-secao h3 { font-size: 15px; font-weight: 700; color: var(--text-main); }
 .relatorio-secao h3.relatorio-titulo-erro { color: var(--error-text); }
 .relatorio-secao h3.relatorio-titulo-aviso { color: var(--warning-text); }
 .relatorio-caixa {
@@ -1855,7 +1852,7 @@ button.midia-arquivo-miniatura:hover { background: var(--primary-light); }
     animation: spin 0.8s linear infinite;
 }
 @media (prefers-reduced-motion: reduce) { .carregando-giro { animation-duration: 2.4s; } }
-.carregando-titulo { margin: 0; padding: 0; border: 0; font-size: 18px; font-weight: 700; color: var(--text-main); }
+.carregando-titulo { font-size: 18px; font-weight: 700; color: var(--text-main); }
 .carregando-texto { margin: 2px 0 0; font-size: 14px; color: var(--text-muted); overflow-wrap: anywhere; }
 .carregando-progresso { display: flex; flex-direction: column; gap: 6px; }
 .carregando-barra { height: 8px; border-radius: var(--radius-pill); background: var(--border-color); overflow: hidden; }
@@ -1877,7 +1874,7 @@ button.midia-arquivo-miniatura:hover { background: var(--primary-light); }
     font-size: 14px;
 }
 .recursos-secao { display: flex; flex-direction: column; gap: 12px; }
-.recursos-secao h3 { margin: 0; padding: 0; border: 0; font-size: 16px; font-weight: 700; color: var(--text-main); }
+.recursos-secao h3 { font-size: 16px; font-weight: 700; color: var(--text-main); }
 .recursos-modelos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .recursos-cartao {
     display: flex;
@@ -2694,36 +2691,4 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     border-color: var(--primary);
     color: var(--primary);
     transform: translateY(-1px);
-}
-
-/* Títulos e separadores globais. Vários componentes zeram margem e borda destes h3 e h4;
-   --text-primary e --text-secondary não existem, então a cor é herdada. */
-h3 {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: 20px 0 16px 0;
-    padding-bottom: 8px;
-    border-bottom: 2px solid var(--border-color);
-}
-
-h4 {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin: 16px 0 12px 0;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-hr {
-    border: none;
-    border-top: 1px solid var(--border-color);
-    margin: 20px 0;
-}
-
-@media (max-width: 600px) {
-    .app-header {
-        padding: 6px 10px;
-    }
 }
