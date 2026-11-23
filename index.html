@@ -103,7 +103,7 @@
             position: fixed; inset: 0;
             background: rgba(15,23,42,0.55);
             backdrop-filter: blur(8px);
-            z-index: 1100;
+            z-index: var(--z-modal-app);
             display: none;
             align-items: center;
             justify-content: center;
@@ -556,7 +556,7 @@
             background: transparent; color: var(--text-strong); font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer;
         }
         .segmentado-botoes button:hover { background: var(--bg-card); }
-        .segmentado-botoes button[aria-pressed="true"] { background: var(--bg-card); color: var(--text-main); font-weight: 600; box-shadow: 0 1px 2px rgb(15 23 42 / 0.12); }
+        .segmentado-botoes button[aria-pressed="true"] { background: var(--bg-card); color: var(--text-main); box-shadow: 0 1px 2px rgb(15 23 42 / 0.12); }
 
         .editor-icone-fundo { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
         .editor-icone-fundo .campo-rotulo { margin-right: 4px; }
@@ -1399,7 +1399,7 @@
 </dialog>
 
 <!-- MODAL CLDF -->
-<div class="apk-wizard-overlay" id="modalCldf" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999999; justify-content: center; align-items: center;">
+<div class="apk-wizard-overlay" id="modalCldf" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: var(--z-modal-app); justify-content: center; align-items: center;">
     <div class="modal-content" style="background: var(--bg-secondary); border-radius: 10px; max-width: 500px; width: 100%; padding: 20px;">
         <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h3 style="margin: 0; color: var(--text-main);" data-i18n>Configuração CLDF</h3>
@@ -2190,7 +2190,7 @@
 </div><!-- /modalAndroid -->
 
 <!-- Confirmação: trocar a chave de assinatura salva -->
-<div class="apk-wizard-overlay" id="apkTrocarChaveModal" style="z-index:1200;">
+<div class="apk-wizard-overlay" id="apkTrocarChaveModal" style="z-index: var(--z-modal-sobreposto);">
   <div class="apk-dialogo" role="alertdialog" aria-modal="true" aria-labelledby="apkTrocarChaveTitulo" aria-describedby="apkTrocarChaveTexto">
     <div class="apk-status-cabecalho">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--apk-atencao)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l10 18H2z"></path><path d="M12 10v5M12 18v.5"></path></svg>
@@ -2223,7 +2223,7 @@
 </div>
 
 <!-- Carregando: mostrarLoader(titulo, descricao) / atualizarProgressoLoader(atual, total) / ocultarLoader() -->
-<div class="loader-overlay" id="globalLoader" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999999;">
+<div class="loader-overlay" id="globalLoader" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: var(--z-carregando);">
     <div class="carregando-caixa" role="status" aria-live="polite">
         <div class="carregando-topo">
             <span class="carregando-giro" aria-hidden="true"></span>

@@ -47,6 +47,17 @@
     --radius-pill: 9999px;
     --control-min-height: 44px;   /* área mínima de toque */
 
+    /* Camadas (z-index): use sempre estes tokens nas camadas globais.
+       Valores pequenos (2, 3, 5…) seguem livres para empilhar dentro de um componente.
+       Os <dialog> abertos com showModal() ficam na camada superior do navegador e não precisam de z-index. */
+    --z-cabecalho: 10;
+    --z-painel: 20;               /* histórico lateral */
+    --z-menu: 30;                 /* menu ☰ do celular */
+    --z-modal: 1000;
+    --z-modal-app: 1100;          /* assistentes do APK e do CLDF */
+    --z-modal-sobreposto: 1200;   /* confirmação aberta por cima de um assistente */
+    --z-carregando: 2000;         /* carregamento global, acima de qualquer modal */
+
     /* Shadows */
     --shadow-sm: 0 1px 3px rgb(15 23 42 / 0.08);
     --shadow-md: 0 4px 12px -2px rgb(15 23 42 / 0.10);
@@ -123,7 +134,7 @@ body {
     padding: 12px 40px;
     background: var(--bg-card);
     border-bottom: 1px solid var(--border-color);
-    z-index: 10;
+    z-index: var(--z-cabecalho);
 }
 
 .app-header img {
@@ -493,8 +504,9 @@ body {
     color: var(--primary);
     box-shadow: 0 0 0 4px var(--primary-ring);
 }
-.step-indicator.active .step-indicator-title { font-weight: 700; color: var(--text-main); }
-.step-indicator.active .step-indicator-estado { font-weight: 600; color: var(--primary); }
+/* Estado ativo só por cor: mudar o peso da fonte alteraria a largura do texto */
+.step-indicator.active .step-indicator-title { color: var(--text-main); }
+.step-indicator.active .step-indicator-estado { color: var(--primary); }
 
 .step-linha {
     flex: 1 1 auto;
@@ -1162,7 +1174,6 @@ p.conferir-sem-projeto { margin: 0; padding: 0; }
 .segmentado label:has(input:checked) {
     background: var(--bg-card);
     color: var(--text-main);
-    font-weight: 600;
     box-shadow: 0 1px 2px rgb(15 23 42 / 0.12);
 }
 .segmentado label:has(input:focus-visible) { outline: 2px solid var(--primary); outline-offset: 1px; }
@@ -1516,12 +1527,12 @@ p.conferir-sem-projeto { margin: 0; padding: 0; }
     color: var(--text-muted);
     font-family: inherit;
     font-size: 15px;
-    font-weight: 500;
+    font-weight: 600; /* peso fixo: a aba selecionada se distingue por cor e sublinhado, sem mudar de largura */
     white-space: nowrap;
     cursor: pointer;
 }
 .dialogo-aba:hover { color: var(--text-main); }
-.dialogo-aba[aria-selected="true"] { border-bottom-color: var(--primary); color: var(--primary); font-weight: 700; }
+.dialogo-aba[aria-selected="true"] { border-bottom-color: var(--primary); color: var(--primary); }
 .dialogo-aba:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
 .dialogo-aba-selo {
     padding: 0 8px;
@@ -1623,7 +1634,7 @@ p.conferir-sem-projeto { margin: 0; padding: 0; }
     font-weight: 500;
     cursor: pointer;
 }
-.midias-filtro[aria-pressed="true"] { border-color: var(--primary); background: var(--primary-light); color: var(--primary-hover); font-weight: 600; }
+.midias-filtro[aria-pressed="true"] { border-color: var(--primary); background: var(--primary-light); color: var(--primary-hover); }
 .midias-busca {
     display: flex;
     align-items: center;
@@ -1720,6 +1731,40 @@ button.midia-arquivo-miniatura:hover { background: var(--primary-light); }
 .midia-arquivo-remover:focus-visible { opacity: 1; }
 .midia-arquivo-remover:hover { color: var(--error); border-color: var(--error); }
 @media (hover: none) { .midia-arquivo-remover { opacity: 1; } }
+
+/* Área de toque mínima de 44px (--control-min-height) para controles que visualmente
+   são menores: um pseudo-elemento invisível amplia a área clicável sem mudar o desenho.
+   A ampliação é só vertical onde há vizinhos lado a lado com pouco espaço entre eles. */
+/* Só no toque: com mouse o botão fica invisível até o hover, e uma área maior
+   no canto do cartão seria fácil de acertar sem querer */
+@media (pointer: coarse) {
+    .midia-arquivo-remover::before {
+        content: '';
+        position: absolute;
+        inset: -6px;                 /* 32px + 2 × 6px = 44px */
+        border-radius: var(--radius-pill);
+    }
+}
+.recursos-voltar,
+.midias-filtro,
+.segmentado-botoes button,
+.campo-opcao.historico-tecnico { position: relative; }
+.recursos-voltar::before { content: ''; position: absolute; inset: -6px 0; }       /* 32px → 44px */
+.midias-filtro::before { content: ''; position: absolute; inset: -4px 0; }         /* 36px → 44px */
+.campo-opcao.historico-tecnico::before { content: ''; position: absolute; inset: -4px 0; }
+/* 38px dentro de um trilho com 3px de respiro: a área chega à borda do trilho (44px) */
+.segmentado label::before,
+.segmentado-botoes button::before { content: ''; position: absolute; inset: -3px 0; }
+
+/* Em telas de toque, campos de texto com fonte abaixo de 16px fazem o Safari do iOS
+   dar zoom ao focar. Vale para todos os campos, inclusive os do <style> do index.html
+   (que vem depois deste arquivo e usa !important em .apk-input-mono). */
+@media (pointer: coarse) {
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
+    select,
+    textarea,
+    [contenteditable="true"] { font-size: 16px !important; }
+}
 
 @media (max-width: 600px) {
     .midias-ferramentas { padding: 12px 16px; }
@@ -2282,7 +2327,7 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     flex-direction: column;
     border-left: 1px solid var(--border-color);
     box-shadow: -12px 0 32px -16px rgb(15 23 42 / 0.25);
-    z-index: 20;
+    z-index: var(--z-painel);
     overflow: hidden;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -2397,7 +2442,7 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     display: none;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: var(--z-modal);
 }
 
 .modal-box {
@@ -2474,7 +2519,7 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
         position: absolute;
         top: calc(100% + 4px);
         right: 8px;
-        z-index: 30;
+        z-index: var(--z-menu);
         flex-direction: column;
         align-items: stretch;
         gap: 4px;
@@ -3191,7 +3236,7 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 99999;
+    z-index: var(--z-carregando);
     flex-direction: column;
     gap: 20px;
 }
@@ -4036,7 +4081,7 @@ hr {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 99999;
+    z-index: var(--z-carregando);
     flex-direction: column;
     gap: 20px;
 }
