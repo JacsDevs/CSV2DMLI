@@ -48,3 +48,6 @@ android-template-nativo/gradle/wrapper/gradle-wrapper.jar
 
 # Documentos .md da raiz (notas locais, não versionar)
 /*.md
+
+# Playwright CLI (snapshots locais)
+.playwright-cli/
