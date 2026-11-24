@@ -1508,7 +1508,7 @@
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v4M12 16h.01"></path></svg>
                         <span class="recursos-links-texto"><strong data-i18n>Reportar um problema</strong></span>
                     </button></li>
-                    <li><button type="button" data-i18n-attr="data-acao" data-acao="Ver as novidades da versão">
+                    <li><button type="button" onclick="window.abrirSobre()">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"></path></svg>
                         <span class="recursos-links-texto"><strong data-i18n>Versão e novidades</strong><span id="recursosVersao"></span></span>
                     </button></li>
@@ -1609,6 +1609,32 @@
             <article class="docs-conteudo" id="docsConteudo" tabindex="-1"></article>
             <nav class="docs-paginacao" id="docsPaginacao" aria-label="Navegação entre páginas" data-i18n-attr="aria-label"></nav>
         </div>
+    </div>
+</dialog>
+
+<!-- Sobre (Recursos › Versão e novidades): identidade, versão publicada e novidades.
+     Novidades vêm de docs/<idioma>/novidades.md (uma seção "## <versão> (<data>)" por versão);
+     montado por abrirSobre(). -->
+<dialog id="dialogoSobre" class="dialogo dialogo-sobre" aria-labelledby="sobreTitulo">
+    <div class="sobre-topo">
+        <button type="button" class="btn-icone" aria-label="Fechar" onclick="document.getElementById('dialogoSobre').close()" data-i18n-attr="aria-label"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+    </div>
+    <div class="sobre-corpo">
+        <header class="sobre-identidade">
+            <img src="assets/images/MPEG-roxo.svg" alt="Logotipo Museu Goeldi" data-i18n-attr="alt" class="sobre-logo">
+            <h2 id="sobreTitulo" translate="no">CSV2DMLI</h2>
+            <p class="sobre-subtitulo" data-i18n>Gerador de dicionários multimídia</p>
+            <p class="sobre-versao"><strong id="sobreVersao"></strong><span id="sobreVersaoDetalhe"></span></p>
+        </header>
+        <p class="sobre-texto" data-i18n>O CSV2DMLI é mantido pela área de Linguística do Museu Paraense Emílio Goeldi.</p>
+
+        <section class="sobre-novidades" aria-labelledby="sobreNovidadesTitulo">
+            <h3 id="sobreNovidadesTitulo" data-i18n>Novidades desta versão</h3>
+            <p class="sobre-aviso-idioma" id="sobreAvisoIdioma" hidden data-i18n>Por enquanto, as novidades estão disponíveis só em português.</p>
+            <div class="sobre-novidades-conteudo" id="sobreNovidades"></div>
+            <button type="button" class="btn-link sobre-anteriores" id="sobreBtnAnteriores" hidden onclick="window.mostrarVersoesAnteriores()" data-i18n>Ver versões anteriores</button>
+            <div class="sobre-novidades-conteudo sobre-anteriores-lista" id="sobreAnteriores" hidden></div>
+        </section>
     </div>
 </dialog>
 
@@ -6339,6 +6365,71 @@
 
     document.addEventListener('idioma-alterado', () => {
         if (document.getElementById('dialogoDocumentacao').open) window.abrirDocumentacao(docsPaginaAtual);
+    });
+
+    // ===================================================================
+    // SOBRE (diálogo #dialogoSobre): versão publicada e novidades
+    // As novidades ficam em docs/<idioma>/novidades.md, uma seção "## <versão> (<data>)"
+    // por versão. Mostra a seção da versão publicada (ou a primeira, sem correspondência);
+    // as demais ficam atrás de "Ver versões anteriores".
+    // ===================================================================
+    let sobreSecoes = null; // [{ versao, html }]
+
+    async function carregarNovidades() {
+        if (sobreSecoes) return sobreSecoes;
+        const resposta = await fetch(`docs/${docsIdioma()}/novidades.md`);
+        if (!resposta.ok) throw new Error(`HTTP ${resposta.status}`);
+        const texto = await resposta.text();
+        sobreSecoes = texto.split(/^## /m).slice(1).map(secao => ({
+            versao: secao.split(/[\s(]/, 1)[0],
+            html: window.marked.parse('## ' + secao),
+        }));
+        return sobreSecoes;
+    }
+
+    window.mostrarVersoesAnteriores = function() {
+        document.getElementById('sobreAnteriores').hidden = false;
+        document.getElementById('sobreBtnAnteriores').hidden = true;
+    };
+
+    window.abrirSobre = async function() {
+        const recursos = document.getElementById('dialogoRecursos');
+        if (recursos.open) recursos.close();
+
+        const info = window.CSV2DMLI_VERSAO || {};
+        document.getElementById('sobreVersao').textContent = info.data
+            ? _t('Versão {versao}', { versao: info.versao || '?' })
+            : _t('Versão de desenvolvimento');
+        const detalhe = [];
+        if (info.data) detalhe.push(_t('Publicada em {data}', { data: new Date(info.data).toLocaleString(I18N.idioma, { dateStyle: 'short', timeStyle: 'short' }) }));
+        if (info.commit) detalhe.push(info.commit);
+        document.getElementById('sobreVersaoDetalhe').textContent = detalhe.join(' · ');
+        document.getElementById('sobreAvisoIdioma').hidden = docsIdioma() === I18N.idioma;
+
+        const dialogo = document.getElementById('dialogoSobre');
+        if (!dialogo.open) dialogo.showModal();
+
+        const atual = document.getElementById('sobreNovidades');
+        const anteriores = document.getElementById('sobreAnteriores');
+        const botaoAnteriores = document.getElementById('sobreBtnAnteriores');
+        anteriores.hidden = true;
+        try {
+            const secoes = await carregarNovidades();
+            const indice = Math.max(0, secoes.findIndex(s => s.versao === info.versao));
+            atual.innerHTML = secoes[indice] ? secoes[indice].html : '';
+            const resto = secoes.filter((_, i) => i !== indice);
+            anteriores.innerHTML = resto.map(s => s.html).join('');
+            botaoAnteriores.hidden = resto.length === 0;
+        } catch (err) {
+            console.error('Erro ao carregar as novidades:', err);
+            atual.textContent = _t('Não foi possível carregar as novidades. Detalhe técnico: {erro}', { erro: err.message || err });
+            botaoAnteriores.hidden = true;
+        }
+    };
+
+    document.addEventListener('idioma-alterado', () => {
+        sobreSecoes = null;
+        if (document.getElementById('dialogoSobre').open) window.abrirSobre();
     });
 
     // ===================================================================
