@@ -977,7 +977,7 @@ p.conferir-sem-projeto { margin: 0; padding: 0; }
     padding: 10px 14px;
     border: 1px solid var(--border-strong);
     border-radius: var(--radius-control);
-    background: var(--bg-card);
+    background-color: var(--bg-card);
     color: var(--text-main);
     font-family: inherit;
     font-size: 15px;
@@ -1311,8 +1311,34 @@ p.conferir-sem-projeto { margin: 0; padding: 0; }
     .aparencia-grade { grid-template-columns: 1fr; }
     .aparencia-paletas, .aparencia-previa { grid-column: auto; }
 }
+/* Cartão de pré-visualização do tema (renderizarPreviewCardTema); cores vêm inline da paleta */
+.previa-tema { padding: 16px; border: 1px solid; border-radius: 12px; }
+.previa-tema-titulo { margin-bottom: 12px; font-size: 14px; font-weight: 700; }
+.previa-tema-cartao {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px;
+    border: 1px solid;
+    border-radius: 10px;
+}
+.previa-tema-palavra { font-size: 1.05em; }
+.previa-tema-traducao { font-size: 0.88em; }
+.previa-tema-etiquetas { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.previa-tema-etiqueta { padding: 3px 10px; border-radius: 999px; font-size: 0.75em; font-weight: 600; }
+
 @media (max-width: 600px) {
-    .aparencia-previa-grade { grid-template-columns: 1fr; }
+    /* Claro e escuro lado a lado, mais compactos: é só um exemplo */
+    .aparencia-previa-grade { gap: 10px; }
+    .aparencia-previa-rotulo { margin-bottom: 6px; }
+    .previa-tema { padding: 10px; border-radius: 10px; }
+    .previa-tema-titulo { margin-bottom: 8px; font-size: 13px; }
+    .previa-tema-cartao { gap: 4px; padding: 10px; border-radius: 8px; }
+    .previa-tema-etiquetas { gap: 4px; margin-top: 2px; }
+    .previa-tema-etiqueta { padding: 2px 8px; }
+    /* Paletas 2 a 2; "Personalizada" (sempre o último botão, ver renderizarPaletasTema) ocupa a linha inteira */
+    .aparencia-lista { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .aparencia-lista .aparencia-opcao:last-child { grid-column: 1 / -1; }
 }
 
 /* =========================================
@@ -2210,8 +2236,22 @@ input[type="text"], textarea, select {
     font-family: inherit;
     font-size: 1rem;
     color: var(--text-main);
-    background: white;
+    background-color: white;
     transition: var(--transition);
+}
+
+/* Seta de todos os <select>: a nativa ignora o padding e fica colada na borda.
+   Chevron em linha no traço dos ícones do app, cor --text-muted (#475569).
+   Os seletores mais específicos definem só background-color para não apagar a seta. */
+select:not([multiple]):not([size]) {
+    -webkit-appearance: none;
+    appearance: none;
+    padding-right: 40px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 16px 16px;
+    cursor: pointer;
 }
 
 input[type="text"]:focus, textarea:focus, select:focus {
@@ -2543,7 +2583,19 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
         box-shadow: none;
         overflow: visible; /* permite o rodapé fixo (position: sticky) */
     }
-    body .wizard-stepper { display: none; }
+    /* Stepper só com os círculos (o nome da etapa já está no título de cada tela) */
+    body .wizard-stepper {
+        position: sticky; /* fica no topo enquanto a etapa rola */
+        top: 0;
+        z-index: 6;
+        /* 10px + 6px de folga da área de toque (44px) em volta da bola (32px) = bola alinhada aos 16px do conteúdo */
+        padding: 6px 10px;
+        min-height: 0;
+    }
+    body .step-indicator .step-indicator-texto { display: none; }
+    /* Só a etapa atual tem linha, e ela estica; as demais bolinhas ficam juntas, sem linha */
+    body .step-item:not(:has(.step-indicator.active)) .step-linha { display: none; }
+    body .step-indicator { justify-content: center; min-width: 44px; min-height: 44px; padding: 0; }
     body .wizard-body { padding: 20px 16px; }
     body .wizard-footer {
         position: sticky;
@@ -2559,8 +2611,6 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     body .wizard-footer #btnPrev { flex: 0 0 48px; padding: 0; font-size: 0; }
     body .wizard-footer #btnPrev svg { width: 20px; height: 20px; }
 
-    /* Nome e contador da etapa já aparecem no progresso */
-    .etapa-contador, .etapa-titulo { display: none; }
     .etapa-cabecalho { margin-bottom: 16px; }
 
     /* Etapa 1: os cartões de formato viram um bloco recolhido */
@@ -2568,69 +2618,8 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     .importar-zona { padding: 32px 16px; }
 }
 
-/* Progresso de etapas no celular (fora do celular fica oculto) */
-.progresso-celular { display: none; }
 .importar-formatos-celular { display: none; }
 @media (max-width: 768px) {
-    .progresso-celular {
-        display: block;
-        position: sticky;
-        top: 0;
-        z-index: 6;
-        background: var(--bg-card);
-        border-bottom: 1px solid var(--border-color);
-    }
-    .progresso-celular summary { display: block; padding: 14px 16px; list-style: none; cursor: pointer; }
-    .progresso-celular summary::-webkit-details-marker { display: none; }
-    .progresso-celular-linha { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px; }
-    .progresso-celular-nome { font-size: 15px; font-weight: 700; color: var(--text-main); }
-    .progresso-celular-contador { flex-shrink: 0; font-size: 13px; font-weight: 600; color: var(--primary); }
-    .progresso-celular-barra { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
-    .progresso-celular-barra span { height: 6px; border-radius: 3px; background: var(--border-color); }
-    .progresso-celular-barra span.feita,
-    .progresso-celular-barra span.atual { background: var(--primary); }
-    .progresso-celular-barra span.pendencias { background: #d97706; }
-    .progresso-celular-seguinte { display: flex; justify-content: space-between; margin-top: 6px; font-size: 12px; color: var(--text-muted); }
-    .progresso-celular-seguinte::after { content: attr(data-ver-etapas) ' ▾'; font-weight: 600; color: var(--primary); }
-    .progresso-celular[open] .progresso-celular-seguinte::after { content: attr(data-fechar) ' ▴'; }
-
-    .progresso-celular-lista { margin: 0; padding: 0 8px 12px; list-style: none; display: flex; flex-direction: column; gap: 2px; }
-    .progresso-celular-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        width: 100%;
-        min-height: 48px;
-        padding: 4px 8px;
-        border: 0;
-        border-radius: var(--radius-control);
-        background: transparent;
-        color: var(--text-main);
-        font-family: inherit;
-        text-align: left;
-        cursor: pointer;
-    }
-    .progresso-celular-item:hover, .progresso-celular-item[aria-current] { background: var(--primary-soft); }
-    .progresso-celular-num {
-        width: 28px;
-        height: 28px;
-        flex-shrink: 0;
-        border-radius: 50%;
-        border: 2px solid var(--border-strong);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 13px;
-        font-weight: 700;
-        color: var(--text-muted);
-    }
-    .progresso-celular-item.feita .progresso-celular-num { background: var(--primary); border-color: var(--primary); color: #ffffff; }
-    .progresso-celular-item.atual .progresso-celular-num { border-color: var(--primary); color: var(--primary); }
-    .progresso-celular-item.pendencias .progresso-celular-num { background: var(--warning-bg); border-color: #d97706; color: var(--warning-text); }
-    .progresso-celular-item-texto { display: flex; flex-direction: column; line-height: 1.3; }
-    .progresso-celular-item-texto strong { font-size: 14px; }
-    .progresso-celular-item-texto span { font-size: 12px; color: var(--text-muted); }
-
     .importar-formatos-celular { display: block; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-card); }
     .importar-formatos-celular summary { display: flex; align-items: center; min-height: 48px; padding: 0 16px; font-size: 15px; font-weight: 600; cursor: pointer; }
     .importar-formatos-celular div { display: flex; flex-direction: column; gap: 8px; padding: 0 16px 16px; font-size: 14px; color: var(--text-muted); }
