@@ -2632,8 +2632,10 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
     }
     body .wizard-footer .btn-rodape { flex: 1; min-height: 48px; margin: 0; }
     /* "Voltar" vira só a seta; o texto completo segue no botão para leitores de tela */
-    body .wizard-footer #btnPrev { flex: 0 0 48px; padding: 0; font-size: 0; }
-    body .wizard-footer #btnPrev svg { width: 20px; height: 20px; }
+    /* gap 0 e texto fora do fluxo: senão o span vazio + gap empurram a seta para a esquerda */
+    body .wizard-footer #btnPrev { flex: 0 0 48px; padding: 0; gap: 0; font-size: 0; }
+    body .wizard-footer #btnPrev svg { width: 20px; height: 20px; flex-shrink: 0; }
+    body .wizard-footer #btnPrevTexto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
     .etapa-cabecalho { margin-bottom: 16px; }
 
