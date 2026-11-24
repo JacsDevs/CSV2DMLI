@@ -16,10 +16,10 @@
             width: auto;
             margin: 0;
             min-height: var(--control-min-height);
-            padding: 0 8px;
+            padding: 0 12px;
             border: 1px solid var(--border-color);
             border-radius: var(--radius-control);
-            background: var(--bg-card);
+            background-color: var(--bg-card);
             color: var(--text-strong);
             font: inherit;
             cursor: pointer;
@@ -63,7 +63,6 @@
         
         .wizard-step {
             display: none;
-            animation: fadeIn 0.4s ease;
         }
         
         .wizard-step.active {
@@ -104,7 +103,7 @@
             position: fixed; inset: 0;
             background: rgba(15,23,42,0.55);
             backdrop-filter: blur(8px);
-            z-index: 1100;
+            z-index: var(--z-modal-app);
             display: none;
             align-items: center;
             justify-content: center;
@@ -260,7 +259,7 @@
             border: 1px solid var(--apk-borda);
             border-radius: 8px;
             font-size: 0.95em; font-family: inherit; color: var(--text-main);
-            background: var(--bg-card);
+            background-color: var(--bg-card);
             outline: none; transition: border-color 0.2s, box-shadow 0.2s;
             width: 100%; box-sizing: border-box;
         }
@@ -323,7 +322,7 @@
             border: 1px solid var(--border-color); border-radius: 12px;
             display: flex; flex-direction: column; gap: 16px;
         }
-        .apk-painel .apk-field input, .apk-painel .apk-field select { background: var(--bg-card); }
+        .apk-painel .apk-field input, .apk-painel .apk-field select { background-color: var(--bg-card); }
         .apk-aviso { display: flex; gap: 12px; padding: 14px 16px; border-radius: 10px; border: 1px solid; font-size: 0.88em; line-height: 1.5; }
         .apk-aviso svg { flex-shrink: 0; margin-top: 1px; }
         .apk-aviso-atencao { background: #fffbeb; border-color: #fcd34d; color: #78350f; }
@@ -445,7 +444,7 @@
             background: var(--bg-card); border-radius: 16px; box-shadow: var(--shadow-lg);
             padding: 24px; display: flex; flex-direction: column; gap: 14px;
         }
-        .apk-dialogo h3 { margin: 0 0 6px; padding: 0; border: 0; font-size: 1.06em; color: var(--text-main); }
+        .apk-dialogo h3 { margin: 0 0 6px; font-size: 1.06em; color: var(--text-main); }
         .apk-dialogo p { margin: 0; font-size: 0.92em; color: #334155; line-height: 1.5; }
 
         /* Resumo de tamanho do projeto (antes de gerar o app) */
@@ -557,7 +556,7 @@
             background: transparent; color: var(--text-strong); font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer;
         }
         .segmentado-botoes button:hover { background: var(--bg-card); }
-        .segmentado-botoes button[aria-pressed="true"] { background: var(--bg-card); color: var(--text-main); font-weight: 600; box-shadow: 0 1px 2px rgb(15 23 42 / 0.12); }
+        .segmentado-botoes button[aria-pressed="true"] { background: var(--bg-card); color: var(--text-main); box-shadow: 0 1px 2px rgb(15 23 42 / 0.12); }
 
         .editor-icone-fundo { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
         .editor-icone-fundo .campo-rotulo { margin-right: 4px; }
@@ -567,7 +566,7 @@
         .editor-icone-outra input[type="color"] { width: 40px; height: 36px; padding: 2px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--bg-card); cursor: pointer; }
 
         .editor-icone-secao { display: flex; flex-direction: column; gap: 8px; }
-        .editor-icone-secao h3 { margin: 0; padding: 0; border: 0; font-size: 15px; font-weight: 700; color: var(--text-main); }
+        .editor-icone-secao h3 { font-size: 15px; font-weight: 700; color: var(--text-main); }
         .editor-icone-caixa { padding: 14px 16px; border: 1px solid var(--border-color); border-radius: var(--radius-md); }
 
         .icone-formas { display: flex; justify-content: space-around; gap: 8px; padding: 24px 12px 16px; border-radius: var(--radius-md); background: #1e293b; }
@@ -782,7 +781,8 @@
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"></path><path d="M4 20h16"></path></svg>
                         <span class="btn-cabecalho-texto" data-i18n>Recursos</span>
                     </button>
-                    <button type="button" class="btn-cabecalho" data-i18n-attr="title" title="Avançado: modelos de exportação" aria-haspopup="dialog" onclick="document.getElementById('modalCustomizacao').showModal()">
+                    <!-- Oculto para o usuário comum: o diálogo #modalCustomizacao continua no código. Para reexibir, remova o atributo hidden. -->
+                    <button type="button" class="btn-cabecalho" hidden data-i18n-attr="title" title="Avançado: modelos de exportação" aria-haspopup="dialog" onclick="document.getElementById('modalCustomizacao').showModal()">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 6-6 6 6 6M16 6l6 6-6 6"></path></svg>
                         <span class="btn-cabecalho-texto" data-i18n>Avançado</span>
                     </button>
@@ -806,18 +806,6 @@
                     </ol>
                 </nav>
 
-                <!-- Progresso no celular (substitui o stepper): preenchido por atualizarStepper; toque abre a lista de etapas -->
-                <details class="progresso-celular" id="progressoCelular">
-                    <summary data-i18n-attr="aria-label" aria-label="Progresso: abrir a lista de etapas">
-                        <span class="progresso-celular-linha">
-                            <span class="progresso-celular-nome" id="progressoCelularNome" data-i18n>Fonte de Dados</span>
-                            <span class="progresso-celular-contador" id="progressoCelularContador" data-i18n>Etapa 1 de 6</span>
-                        </span>
-                        <span class="progresso-celular-barra" id="progressoCelularBarra" aria-hidden="true"></span>
-                        <span class="progresso-celular-seguinte" id="progressoCelularSeguinte" data-i18n data-i18n-attr="data-ver-etapas data-fechar" data-ver-etapas="Ver etapas" data-fechar="Fechar">A seguir: Mídias e Validação</span>
-                    </summary>
-                    <ol class="progresso-celular-lista" id="progressoCelularLista" data-i18n-attr="aria-label" aria-label="Etapas"></ol>
-                </details>
 
                 <!-- Corpo das Etapas -->
                 <div class="wizard-body">
@@ -1279,25 +1267,25 @@
                             <section class="publicar-secao" aria-labelledby="publicoTitulo">
                                 <h3 id="publicoTitulo" data-i18n>Para o público</h3>
                                 <div class="publicar-cartoes">
-                                    <div class="publicar-cartao destaque">
+                                    <div class="publicar-cartao">
                                         <span class="publicar-cartao-icone" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"></rect><path d="M11 18h2"></path></svg></span>
                                         <strong data-i18n>Aplicativo Android</strong>
                                         <span class="publicar-cartao-texto" data-i18n>Para instalar no celular. Funciona sem internet, com áudios e imagens.</span>
-                                        <button type="button" class="btn-principal" onclick="abrirModalAndroid()" data-i18n>Gerar aplicativo</button>
+                                        <button type="button" class="btn-contorno" onclick="abrirModalAndroid()" data-i18n>Gerar aplicativo</button>
                                     </div>
                                     <div class="publicar-cartao">
                                         <span class="publicar-cartao-icone" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"></path></svg></span>
-                                        <strong data-i18n>Site</strong>
+                                        <strong data-i18n>Página web (HTML)</strong>
                                         <span class="publicar-cartao-texto" data-i18n>Para abrir no navegador ou publicar na internet.</span>
                                         <label class="publicar-opcao">
                                             <input type="checkbox" id="swMidia" checked>
                                             <span data-i18n="html"><strong>Arquivo único</strong>Mídias embutidas no HTML: é só enviar um arquivo, mas ele fica maior.</span>
                                         </label>
-                                        <button type="button" class="btn-contorno" onclick="gerarExportacao('html')" data-i18n>Gerar site</button>
+                                        <button type="button" class="btn-contorno" onclick="gerarExportacao('html')" data-i18n>Gerar página web</button>
                                     </div>
                                     <div class="publicar-cartao">
                                         <span class="publicar-cartao-icone" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6M8 13h8M8 17h5"></path></svg></span>
-                                        <strong data-i18n>PDF</strong>
+                                        <strong data-i18n>Documento PDF</strong>
                                         <span class="publicar-cartao-texto" data-i18n>Para imprimir ou distribuir como livro.</span>
                                         <button type="button" class="btn-contorno" onclick="gerarExportacao('pdf')" data-i18n>Gerar PDF</button>
                                     </div>
@@ -1400,7 +1388,7 @@
 </dialog>
 
 <!-- MODAL CLDF -->
-<div class="apk-wizard-overlay" id="modalCldf" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999999; justify-content: center; align-items: center;">
+<div class="apk-wizard-overlay" id="modalCldf" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: var(--z-modal-app); justify-content: center; align-items: center;">
     <div class="modal-content" style="background: var(--bg-secondary); border-radius: 10px; max-width: 500px; width: 100%; padding: 20px;">
         <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h3 style="margin: 0; color: var(--text-main);" data-i18n>Configuração CLDF</h3>
@@ -1423,7 +1411,7 @@
             </label>
             <label style="display: block; margin-bottom: 20px;">
                 <span style="color: var(--text-muted); display: block; margin-bottom: 5px;" data-i18n>Idioma das Traduções (Para Concepticon)</span>
-                <select id="cldfGlossLang" class="form-input" style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-primary); color: var(--text-main);">
+                <select id="cldfGlossLang" class="form-input" style="width: 100%; padding: 8px 40px 8px 8px; border: 1px solid var(--border-color); border-radius: 5px; background-color: var(--bg-primary); color: var(--text-main);">
                     <option value="pt" data-i18n>Português</option>
                     <option value="en" data-i18n>Inglês</option>
                     <option value="es" data-i18n>Espanhol</option>
@@ -2191,7 +2179,7 @@
 </div><!-- /modalAndroid -->
 
 <!-- Confirmação: trocar a chave de assinatura salva -->
-<div class="apk-wizard-overlay" id="apkTrocarChaveModal" style="z-index:1200;">
+<div class="apk-wizard-overlay" id="apkTrocarChaveModal" style="z-index: var(--z-modal-sobreposto);">
   <div class="apk-dialogo" role="alertdialog" aria-modal="true" aria-labelledby="apkTrocarChaveTitulo" aria-describedby="apkTrocarChaveTexto">
     <div class="apk-status-cabecalho">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--apk-atencao)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l10 18H2z"></path><path d="M12 10v5M12 18v.5"></path></svg>
@@ -2224,7 +2212,7 @@
 </div>
 
 <!-- Carregando: mostrarLoader(titulo, descricao) / atualizarProgressoLoader(atual, total) / ocultarLoader() -->
-<div class="loader-overlay" id="globalLoader" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999999;">
+<div class="loader-overlay" id="globalLoader" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: var(--z-carregando);">
     <div class="carregando-caixa" role="status" aria-live="polite">
         <div class="carregando-topo">
             <span class="carregando-giro" aria-hidden="true"></span>
@@ -2796,6 +2784,7 @@
             // Barra reduzida: título, negrito e itálico; listas; link e imagem
             toolbarItems: [['heading', 'bold', 'italic'], ['ul', 'ol'], ['link', 'image']],
             hideModeSwitch: true, // o modo é trocado pelos botões "Visual / Markdown" acima do editor
+            autofocus: false, // o padrão (true) rola a etapa até o editor ao abri-la
             placeholder: _t('Escreva aqui uma apresentação do dicionário: a língua, o povo, como o material foi reunido…'),
             usageStatistics: false
         });
@@ -2811,7 +2800,7 @@
         editor.destroy();
         window._introEditor = null;
         window.inicializarIntroEditor();
-        window._introEditor.setMarkdown(conteudo);
+        window._introEditor.setMarkdown(conteudo, false);
         window.mudarModoIntro(modo);
     });
 
@@ -2849,7 +2838,7 @@
 
     window.definirIntroMarkdown = function(md) {
         if (window._introEditor) {
-            window._introEditor.setMarkdown(md || '');
+            window._introEditor.setMarkdown(md || '', false); // false: não move o cursor nem dá foco
         } else {
             // editor ainda não foi inicializado (usuário não passou pelo passo 3 ainda) - guarda para aplicar depois
             window._introMarkdownPendente = md || '';
@@ -6057,57 +6046,6 @@
             const linha = indicador.parentElement.querySelector('.step-linha');
             if (linha) linha.classList.toggle('feita', n < passo);
         }
-        atualizarProgressoCelular(passo);
-    }
-
-    // Progresso no celular: espelha o estado do stepper (classes dos #indicatorN) numa barra de segmentos
-    function atualizarProgressoCelular(passo) {
-        const nome = n => document.querySelector(`#indicator${n} .step-indicator-title`).textContent;
-        document.getElementById('progressoCelularNome').textContent = nome(passo);
-        document.getElementById('progressoCelularContador').textContent = _t('Etapa {atual} de {total}', { atual: passo, total: totalPassos });
-        document.getElementById('progressoCelularSeguinte').textContent =
-            passo < totalPassos ? _t('A seguir: {etapa}', { etapa: nome(passo + 1) }) : _t('Última etapa');
-
-        const estadoDe = n => {
-            const ind = document.getElementById(`indicator${n}`);
-            if (ind.classList.contains('active')) return 'atual';
-            if (ind.classList.contains('com-pendencias')) return 'pendencias';
-            if (ind.classList.contains('concluida') || n < passo) return 'feita';
-            return '';
-        };
-        const barra = document.getElementById('progressoCelularBarra');
-        barra.replaceChildren(...Array.from({ length: totalPassos }, (_, i) => {
-            const seg = document.createElement('span');
-            seg.className = estadoDe(i + 1);
-            return seg;
-        }));
-
-        const lista = document.getElementById('progressoCelularLista');
-        lista.replaceChildren(...Array.from({ length: totalPassos }, (_, i) => {
-            const n = i + 1;
-            const li = document.createElement('li');
-            const botao = document.createElement('button');
-            botao.type = 'button';
-            botao.className = `progresso-celular-item ${estadoDe(n)}`;
-            if (n === passo) botao.setAttribute('aria-current', 'step');
-            const num = document.createElement('span');
-            num.className = 'progresso-celular-num';
-            num.textContent = n;
-            const texto = document.createElement('span');
-            texto.className = 'progresso-celular-item-texto';
-            const titulo = document.createElement('strong');
-            titulo.textContent = nome(n);
-            const estado = document.createElement('span');
-            estado.textContent = document.querySelector(`#indicator${n} .step-indicator-estado`).textContent;
-            texto.append(titulo, estado);
-            botao.append(num, texto);
-            botao.addEventListener('click', () => {
-                document.getElementById('progressoCelular').open = false;
-                window.irParaPasso(n);
-            });
-            li.append(botao);
-            return li;
-        }));
     }
 
     // Menu ☰ do cabeçalho no celular: mostra as ferramentas (#ferramentasCabecalho) como lista suspensa
@@ -6137,8 +6075,13 @@
         document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
 
         // Mostra o atual
-        document.getElementById(`step${passo}`).classList.add('active');
+        const etapa = document.getElementById(`step${passo}`);
+        etapa.classList.add('active');
         atualizarStepper(passo);
+        // Cada etapa abre do topo, sem herdar a rolagem da anterior
+        etapa.closest('.wizard-body').scrollTop = 0;
+        const rolagem = etapa.closest('.scroll-content');
+        if (rolagem) rolagem.scrollTop = 0;
 
         // Toast UI Editor (avaliação em andamento): inicializa de forma lazy só quando o
         // passo 3 (Metadados/Introdução) fica visível pela 1ª vez - instanciar com o container
@@ -6827,14 +6770,17 @@
 
     function renderizarPreviewCardTema(container, vars, rotulo) {
         if (!container) return;
+        // Layout nas classes .previa-tema* (style.css); aqui ficam só as cores da paleta
         container.innerHTML = `
-            <div style="border-radius:12px; padding:16px; background:${vars['--cor-fundo']}; border:1px solid ${vars['--cor-borda-forte']};">
-                <div style="font-size:14px; font-weight:700; color:${vars['--cor-primaria']}; margin-bottom:12px;">${rotulo}</div>
-                <div style="background:${vars['--cor-superficie']}; border:1px solid ${vars['--cor-borda']}; border-radius:10px; padding:12px; display:flex; flex-direction:column; gap:6px;">
-                    <strong style="color:${vars['--cor-primaria']}; font-size:1.05em;">${_t('Palavra')}</strong>
-                    <span style="color:${vars['--cor-texto']}; font-size:0.88em;">${_t('tradução de exemplo')}</span>
-                    <span style="display:inline-block; align-self:flex-start; margin-top:4px; padding:3px 10px; border-radius:999px; font-size:0.75em; font-weight:600; background:${vars['--cor-primaria-light']}; color:${vars['--cor-primaria']};">${_t('substantivo')}</span>
-                    <span style="display:inline-block; align-self:flex-start; padding:3px 10px; border-radius:999px; font-size:0.75em; font-weight:600; background:${vars['--cor-acento-light']}; color:${vars['--cor-acento-forte']};">${_t('destaque')}</span>
+            <div class="previa-tema" style="background:${vars['--cor-fundo']}; border-color:${vars['--cor-borda-forte']};">
+                <div class="previa-tema-titulo" style="color:${vars['--cor-primaria']};">${rotulo}</div>
+                <div class="previa-tema-cartao" style="background:${vars['--cor-superficie']}; border-color:${vars['--cor-borda']};">
+                    <strong class="previa-tema-palavra" style="color:${vars['--cor-primaria']};">${_t('Palavra')}</strong>
+                    <span class="previa-tema-traducao" style="color:${vars['--cor-texto']};">${_t('tradução de exemplo')}</span>
+                    <span class="previa-tema-etiquetas">
+                        <span class="previa-tema-etiqueta" style="background:${vars['--cor-primaria-light']}; color:${vars['--cor-primaria']};">${_t('substantivo')}</span>
+                        <span class="previa-tema-etiqueta" style="background:${vars['--cor-acento-light']}; color:${vars['--cor-acento-forte']};">${_t('destaque')}</span>
+                    </span>
                 </div>
             </div>
         `;

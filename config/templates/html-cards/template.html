@@ -47,7 +47,14 @@
             --sombra-interna: inset 0 1px 2px rgba(60, 44, 26, 0.07);
             --sombra-modal: 0 24px 60px rgba(35, 25, 15, 0.28);
 
-            --transicao: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+            --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+            --transicao:
+                color 150ms ease,
+                background-color 150ms ease,
+                border-color 150ms ease,
+                box-shadow 150ms ease,
+                transform 160ms var(--ease-out);
             --raio: 16px;
             --raio-sm: 10px;
             --raio-pilula: 999px;
@@ -541,7 +548,7 @@
             display: flex;
             flex-direction: column;
             gap: 22px;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 300ms var(--ease-drawer);
         }
         .sidebar-overlay {
             position: fixed;
@@ -591,7 +598,7 @@
             justify-content: center;
             cursor: pointer;
             z-index: 1040;
-            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s;
+            transition: left 300ms var(--ease-drawer), background 0.2s;
             font-size: 1.1rem;
         }
         .sidebar-desktop-toggle .icone { width: 14px; height: 14px; }
@@ -604,7 +611,7 @@
             margin-top: var(--app-bar-h);
             padding: 28px 50px 64px;
             min-height: calc(100vh - var(--app-bar-h));
-            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: margin-left 300ms var(--ease-drawer);
         }
 
         /* Painel de categorias */
@@ -693,7 +700,9 @@
             overflow: hidden;
             height: 100%;
         }
-        .card:hover { box-shadow: var(--sombra-hover); transform: translateY(-2px); border-color: var(--cor-borda-forte); }
+        @media (hover: hover) and (pointer: fine) {
+            .card:hover { box-shadow: var(--sombra-hover); transform: translateY(-2px); border-color: var(--cor-borda-forte); }
+        }
         .card:active { transform: scale(0.99); }
         .card-media {
             flex: 0 0 84px;
@@ -710,7 +719,9 @@
             filter: saturate(0.88) contrast(0.96);
             transition: transform 0.4s ease;
         }
-        .card:hover .card-media img { transform: scale(1.04); }
+        @media (hover: hover) and (pointer: fine) {
+            .card:hover .card-media img { transform: scale(1.04); }
+        }
         .card-texto { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
         .card-categoria {
             font-size: 0.68rem;
@@ -994,7 +1005,9 @@
             transition: var(--transicao);
             margin: 0;
         }
-        .dict-media-card:hover { transform: translateY(-2px); box-shadow: var(--sombra-suave); }
+        @media (hover: hover) and (pointer: fine) {
+            .dict-media-card:hover { transform: translateY(-2px); box-shadow: var(--sombra-suave); }
+        }
         .dict-media-card img, .dict-media-card video {
             width: 100%;
             object-fit: contain;
@@ -1216,7 +1229,11 @@
             cursor: pointer;
             z-index: 1000;
             box-shadow: var(--sombra-hover);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition:
+                transform 250ms var(--ease-out),
+                opacity 250ms var(--ease-out),
+                background-color 150ms ease,
+                color 150ms ease;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1318,7 +1335,7 @@
             flex-direction: column;
             transform: translateY(100%);
             visibility: hidden;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s;
+            transition: transform 400ms var(--ease-drawer), visibility 400ms;
         }
         .tela-categorias.ativo { transform: translateY(0); visibility: visible; }
         .tela-categorias-header {
@@ -1362,7 +1379,7 @@
             z-index: 1310;
             transform: translateY(101%);
             visibility: hidden;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s;
+            transition: transform 400ms var(--ease-drawer), visibility 400ms;
             max-height: 86vh;
             overflow-y: auto;
             padding: 8px 20px calc(28px + env(safe-area-inset-bottom));
@@ -1379,7 +1396,7 @@
             z-index: 1300;
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s;
+            transition: opacity 400ms ease, visibility 400ms;
         }
         .sheet-overlay.ativo { opacity: 1; visibility: visible; }
         .sheet-grupo { display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px; }
@@ -1524,7 +1541,7 @@
                 border: none;
                 padding: 8px 20px calc(20px + env(safe-area-inset-bottom));
                 transform: translateY(100%);
-                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                transition: transform 400ms var(--ease-drawer);
             }
             .modal-overlay.ativo .painel-a11y { transform: translateY(0); }
             .painel-a11y-cabecalho { top: -8px; margin-top: -8px; padding-top: 12px; }
@@ -1565,9 +1582,10 @@
 
             /* Modal em tela cheia, como um app */
             .modal-overlay { padding: 0; align-items: flex-end; }
+            .modal-overlay { transition: opacity 400ms ease, visibility 400ms; }
             .modal-conteudo {
                 transform: translateY(100%);
-                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                transition: transform 400ms var(--ease-drawer);
                 max-height: 100vh;
                 height: 100%;
                 width: 100%;
@@ -3445,7 +3463,7 @@
                     const obs = new MutationObserver(() => {
                         if (info.classList.contains('ativo')) return;
                         obs.disconnect();
-                        setTimeout(mostrar, 300);
+                        setTimeout(mostrar, 400);
                     });
                     obs.observe(info, { attributes: true, attributeFilter: ['class'] });
                 }, 800);
