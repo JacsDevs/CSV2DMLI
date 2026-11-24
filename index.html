@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title data-i18n>CSV2DMLI - Assistente</title>    
     <!-- Idiomas da interface (ver packages/i18n/idiomas.js) -->
     <script src="packages/i18n/idiomas.js"></script>
@@ -107,7 +107,9 @@
             display: none;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            /* Margem mínima, maior onde há ilha dinâmica ou barra de início (iPhone) */
+            --overlay-margem: 20px;
+            padding: max(var(--overlay-margem), env(safe-area-inset-top)) max(var(--overlay-margem), env(safe-area-inset-right)) max(var(--overlay-margem), env(safe-area-inset-bottom)) max(var(--overlay-margem), env(safe-area-inset-left));
         }
 
         /* Seletor de imagem tracejado (também usado no ícone do projeto, Etapa 3) */
@@ -528,8 +530,8 @@
 
         /* ---- Editores de ícone e de logo (<dialog class="dialogo">) ----
            Os canvas são desenhados por packages/ui/editorIcone.js e editorLogo.js. */
-        .dialogo.dialogo-icone { width: min(880px, calc(100vw - 32px)); height: min(780px, calc(100vh - 32px)); }
-        .dialogo.dialogo-logo { width: min(680px, calc(100vw - 32px)); height: min(820px, calc(100vh - 32px)); }
+        .dialogo.dialogo-icone { width: min(880px, calc(100vw - 32px)); height: min(780px, calc(100vh - 32px)); height: min(780px, calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom))); }
+        .dialogo.dialogo-logo { width: min(680px, calc(100vw - 32px)); height: min(820px, calc(100vh - 32px)); height: min(820px, calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom))); }
         .editor-icone-corpo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
         .editor-icone-coluna { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
         .editor-icone-area { position: relative; align-self: center; border-radius: var(--radius-md); overflow: hidden; }
@@ -704,7 +706,7 @@
                 gap: 10px;
             }
 
-            .apk-wizard-overlay { padding: 12px; }
+            .apk-wizard-overlay { --overlay-margem: 12px; }
             .apk-wizard-header { padding: 14px 16px; }
             .apk-form-col { padding: 20px 16px; }
             .apk-rodape { padding: 12px 16px; }
