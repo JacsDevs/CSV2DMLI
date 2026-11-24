@@ -2161,6 +2161,48 @@ button.midia-arquivo-miniatura:hover { background: var(--primary-light); }
     .docs-paginacao .docs-paginacao-proxima { order: -1; margin-left: 0; text-align: left; }
 }
 
+/* Sobre (#dialogoSobre): identidade centralizada no topo, novidades alinhadas à esquerda abaixo */
+.dialogo.dialogo-sobre { width: min(520px, calc(100vw - 32px)); }
+.sobre-topo { display: flex; justify-content: flex-end; padding: 12px 12px 0; }
+.sobre-corpo { flex: 1; min-height: 0; overflow-y: auto; padding: 0 32px 32px; }
+.sobre-identidade { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.sobre-logo { width: 180px; max-width: 60%; height: auto; margin-bottom: 18px; }
+.sobre-identidade h2 { margin: 0; font-size: 26px; font-weight: 700; letter-spacing: 0.01em; color: var(--primary); }
+.sobre-subtitulo { margin: 2px 0 0; font-size: 15px; color: var(--text-muted); }
+.sobre-versao { display: flex; flex-direction: column; align-items: center; gap: 2px; margin: 16px 0 0; padding: 8px 16px; border-radius: var(--radius-pill); background: var(--primary-soft); }
+.sobre-versao strong { font-size: 14px; color: var(--primary-hover); }
+.sobre-versao span { font-size: 12px; color: var(--text-muted); }
+.sobre-versao span:empty { display: none; }
+.sobre-texto { max-width: 38ch; margin: 20px auto 0; font-size: 15px; line-height: 1.6; text-align: center; color: var(--text-main); }
+
+.sobre-novidades { margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--border-color); }
+.sobre-novidades h3 { margin: 0 0 4px; font-size: 16px; font-weight: 700; color: var(--text-main); }
+.sobre-aviso-idioma { margin: 0 0 8px; font-size: 13px; color: var(--text-muted); }
+.sobre-novidades-conteudo { font-size: 15px; line-height: 1.6; }
+/* O título "## 0.1.0 (data)" de cada versão vira uma linha discreta */
+.sobre-novidades-conteudo h2 { margin: 0 0 8px; font-size: 13px; font-weight: 600; color: var(--text-muted); }
+.sobre-anteriores-lista h2 { margin-top: 20px; }
+.sobre-novidades-conteudo p, .sobre-novidades-conteudo ul { margin: 0 0 10px; }
+.sobre-novidades-conteudo ul { padding-left: 20px; }
+.sobre-novidades-conteudo li + li { margin-top: 4px; }
+.sobre-novidades-conteudo code { padding: 1px 5px; border-radius: var(--radius-sm); background: var(--bg-secondary); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.88em; }
+.sobre-anteriores { padding: 0; font-size: 14px; }
+
+@media (max-width: 600px) {
+    .dialogo.dialogo-sobre {
+        width: 100vw;
+        max-width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+        max-height: 100dvh;
+        margin: 0;
+        border: 0;
+        border-radius: 0;
+        padding-top: env(safe-area-inset-top);
+    }
+    .sobre-corpo { padding: 0 20px calc(28px + env(safe-area-inset-bottom)); }
+}
+
 @media (max-width: 600px) {
     .recursos-funcoes, .recursos-passos, .recursos-descricoes { grid-template-columns: 1fr; }
     .recursos-link-direita { margin-left: 0; }

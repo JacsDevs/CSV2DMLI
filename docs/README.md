@@ -17,4 +17,5 @@ A mesma documentação aparece dentro do app, em **Recursos › Documentação**
 - Cada página é um arquivo Markdown em `docs/<idioma>/`. A lista de páginas exibida no app fica em `DOCS_PAGINAS`, no `index.html`.
 - Links entre páginas usam o nome do arquivo (`[Mídias](midias.md)`): funcionam no GitHub e no app.
 - Para traduzir, crie `docs/en/` ou `docs/es/` com os mesmos nomes de arquivo e acrescente o idioma em `DOCS_IDIOMAS`, no `index.html`.
+- As novidades de cada versão ficam em `pt-BR/novidades.md` e aparecem em **Recursos › Versão e novidades**. A cada versão nova, aumente `version` em `src-tauri/tauri.conf.json` e acrescente no topo uma seção `## <versão> (<data>)`.
 - Ao mudar o formato do projeto (colunas, chaves do `configuracao.txt`, pastas), atualize também o projeto modelo em `assets/projeto-modelo/`.
