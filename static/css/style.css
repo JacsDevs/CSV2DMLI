@@ -2552,7 +2552,7 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
        iOS (só o WebKit do iOS conhece -webkit-touch-callout); no Android não há degradê. */
     @media (display-mode: standalone) {
         @supports (-webkit-touch-callout: none) {
-            .app-header { padding-top: calc(env(safe-area-inset-top) + 28px); }
+            .app-header { padding-top: calc(env(safe-area-inset-top) + 20px); }
         }
     }
     .logo-header { flex-wrap: nowrap; }
