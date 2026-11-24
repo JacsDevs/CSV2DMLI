@@ -1596,11 +1596,19 @@
         </div>
         <button type="button" class="btn-icone" aria-label="Fechar" onclick="document.getElementById('dialogoDocumentacao').close()" data-i18n-attr="aria-label"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
     </div>
+    <!-- No celular o índice lateral some e a troca de página é feita por este seletor -->
+    <div class="docs-seletor">
+        <label for="docsSeletor" data-i18n>Página da documentação</label>
+        <select id="docsSeletor" onchange="window.abrirDocumentacao(this.value)"></select>
+    </div>
     <div class="docs-corpo">
         <nav class="docs-indice" aria-label="Páginas da documentação" data-i18n-attr="aria-label">
             <ul id="docsIndice"></ul>
         </nav>
-        <article class="docs-conteudo" id="docsConteudo" tabindex="-1"></article>
+        <div class="docs-rolagem" id="docsRolagem">
+            <article class="docs-conteudo" id="docsConteudo" tabindex="-1"></article>
+            <nav class="docs-paginacao" id="docsPaginacao" aria-label="Navegação entre páginas" data-i18n-attr="aria-label"></nav>
+        </div>
     </div>
 </dialog>
 
@@ -6248,8 +6256,41 @@
             item.appendChild(botao);
             return item;
         }));
-        // No celular o índice é uma fileira rolável: traz a página atual para a vista
-        lista.querySelector('[aria-current]')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        const seletor = document.getElementById('docsSeletor');
+        seletor.replaceChildren(...DOCS_PAGINAS.map((pagina, i) => new Option(`${i + 1}. ${pagina.titulo()}`, pagina.id)));
+        seletor.value = docsPaginaAtual;
+    }
+
+    // "Anterior" e "Próxima" no fim de cada página: as páginas seguem uma sequência
+    function docsMontarPaginacao() {
+        const indice = DOCS_PAGINAS.findIndex(p => p.id === docsPaginaAtual);
+        const vizinhas = [
+            { pagina: DOCS_PAGINAS[indice - 1], rotulo: _t('Anterior'), classe: 'anterior' },
+            { pagina: DOCS_PAGINAS[indice + 1], rotulo: _t('Próxima'), classe: 'proxima' },
+        ];
+        document.getElementById('docsPaginacao').replaceChildren(...vizinhas.filter(v => v.pagina).map(v => {
+            const botao = document.createElement('button');
+            botao.type = 'button';
+            botao.className = `docs-paginacao-${v.classe}`;
+            botao.onclick = () => docsMostrar(v.pagina.id);
+            const rotulo = document.createElement('span');
+            rotulo.textContent = v.rotulo;
+            const titulo = document.createElement('strong');
+            titulo.textContent = v.pagina.titulo();
+            botao.append(rotulo, titulo);
+            return botao;
+        }));
+    }
+
+    // Tabelas: cada célula leva o nome da sua coluna, usado no celular, onde as linhas viram blocos
+    function docsPrepararTabelas(conteudo) {
+        conteudo.querySelectorAll('table').forEach(tabela => {
+            const colunas = [...tabela.querySelectorAll('thead th')].map(th => th.textContent.trim());
+            if (colunas.length > 2) tabela.classList.add('docs-tabela-larga');
+            tabela.querySelectorAll('tbody tr').forEach(linha => {
+                [...linha.cells].forEach((celula, i) => { if (colunas[i]) celula.dataset.coluna = colunas[i]; });
+            });
+        });
     }
 
     async function docsMostrar(id) {
@@ -6266,6 +6307,8 @@
             }
             if (docsPaginaAtual !== id) return; // outra página foi pedida enquanto esta carregava
             conteudo.innerHTML = docsCache.get(caminho);
+            docsPrepararTabelas(conteudo);
+            docsMontarPaginacao();
             conteudo.querySelectorAll('a[href]').forEach(link => {
                 const destino = link.getAttribute('href');
                 const interna = destino.match(/^([\w-]+)\.md(#.*)?$/);
@@ -6279,8 +6322,9 @@
         } catch (err) {
             console.error('Erro ao carregar a documentação:', caminho, err);
             conteudo.textContent = _t('Não foi possível carregar esta página da documentação. Detalhe técnico: {erro}', { erro: err.message || err });
+            document.getElementById('docsPaginacao').replaceChildren();
         }
-        conteudo.scrollTop = 0;
+        document.getElementById('docsRolagem').scrollTop = 0;
     }
 
     // `pagina`: id de DOCS_PAGINAS (padrão: a primeira)
