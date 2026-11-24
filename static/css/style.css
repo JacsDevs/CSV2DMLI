@@ -86,13 +86,14 @@
 
 [hidden] { display: none !important; }
 
-/* Com viewport-fit=cover, a faixa atrás da ilha dinâmica e das barras do Safari
-   mostra este fundo; mesma cor do cabeçalho para não parecer um corte. */
+/* O Safari do iPhone pinta a faixa atrás da ilha dinâmica e das barras com o fundo
+   do body (e do html, ao puxar a página): mesma cor do cabeçalho para não parecer um
+   corte. O cinza do fundo do app fica no .app-layout. */
 html { background-color: var(--bg-card); }
 
 body {
     font-family: 'Outfit', 'Inter', sans-serif;
-    background-color: var(--bg-main);
+    background-color: var(--bg-card);
     color: var(--text-main);
     line-height: 1.6;
     overflow: hidden; /* App takes full screen, internal scrolling */
@@ -113,6 +114,7 @@ body {
     display: flex;
     height: 100%;
     width: 100%;
+    background-color: var(--bg-main);
 }
 
 .main-panel {
