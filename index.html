@@ -9,6 +9,7 @@
     <script src="packages/i18n/nucleo.js"></script>
     <script src="packages/i18n/locales/en.js"></script>
     <script src="packages/i18n/locales/es.js"></script>
+    <script src="static/versao.js"></script>
     <style>
         html.i18n-carregando body { visibility: hidden; }
         .idioma-interface {
@@ -866,12 +867,11 @@
                                 <span class="importar-sem-projeto-icone" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6M12 12v6M9 15h6"></path></svg></span>
                                 <div class="importar-sem-projeto-texto">
                                     <strong data-i18n>Ainda não tem um projeto?</strong>
-                                    <span data-i18n>Baixe um modelo, preencha a planilha e coloque as mídias nas pastas. Depois é só importar aqui.</span>
+                                    <span data-i18n>Abra o exemplo para ver o resultado, ou baixe o projeto modelo, preencha a planilha e coloque as mídias nas pastas. Depois é só importar aqui.</span>
                                 </div>
                                 <div class="importar-sem-projeto-acoes">
-                                    <button type="button" class="btn-principal" onclick="window.abrirRecursos()" data-i18n>Modelo com exemplo</button>
-                                    <button type="button" class="btn-secundario" onclick="window.abrirRecursos()" data-i18n>Modelo vazio</button>
-                                    <button type="button" class="btn-link" onclick="window.abrirRecursos()" data-i18n>Mais recursos</button>
+                                    <button type="button" class="btn-principal" onclick="window.abrirProjetoExemplo(this)" data-i18n>Abrir exemplo</button>
+                                    <button type="button" class="btn-secundario" onclick="window.baixarProjetoModelo(this)" data-i18n>Baixar projeto modelo</button>
                                 </div>
                             </div>
                         </div>
@@ -1451,25 +1451,22 @@
                     <h3 data-i18n>Começar um projeto</h3>
                     <span class="campo-ajuda" data-i18n>Uma pasta pronta para preencher, na estrutura que a etapa Fonte de Dados reconhece.</span>
                 </div>
-                <div class="recursos-modelos">
-                    <div class="recursos-cartao">
-                        <strong data-i18n>Modelo vazio</strong>
-                        <span class="recursos-cartao-texto" data-i18n="html"><code>dicionario.csv</code> só com os cabeçalhos e as pastas de áudio, imagem e vídeo vazias.</span>
-                        <button type="button" class="btn-contorno btn-compacto-acao" data-i18n-attr="data-acao" data-acao="Baixar o modelo vazio" data-i18n>
+                <!-- Arquivos em assets/projeto-modelo/ (publicados junto com o app: funciona offline no Tauri) -->
+                <div class="recursos-cartao destaque">
+                    <strong data-i18n>Projeto modelo</strong>
+                    <span class="recursos-cartao-texto" data-i18n="html">Uma entrada de exemplo com áudio, imagem e vídeo, o <code>configuracao.txt</code> comentado e um LEIA-ME explicando cada arquivo.</span>
+                    <div class="recursos-cartao-acoes">
+                        <button type="button" class="btn-principal btn-compacto-acao" onclick="window.baixarProjetoModelo(this)" data-i18n>
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"></path><path d="M4 20h16"></path></svg>
                             Baixar ZIP
                         </button>
-                    </div>
-                    <div class="recursos-cartao destaque">
-                        <span class="recursos-cartao-titulo"><strong data-i18n>Modelo com exemplo</strong><span class="selo-recomendado" data-i18n>Recomendado</span></span>
-                        <span class="recursos-cartao-texto" data-i18n>Algumas entradas já preenchidas, com áudio e imagem, para ver como cada coluna funciona.</span>
-                        <button type="button" class="btn-principal btn-compacto-acao" data-i18n-attr="data-acao" data-acao="Baixar o modelo com exemplo" data-i18n>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"></path><path d="M4 20h16"></path></svg>
-                            Baixar ZIP
+                        <button type="button" class="btn-contorno btn-compacto-acao" onclick="window.abrirProjetoExemplo(this)" data-i18n>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            Abrir exemplo no app
                         </button>
                     </div>
                 </div>
-                <button type="button" class="btn-link recursos-link" data-i18n-attr="data-acao" data-acao="Guia das colunas do CSV" data-i18n>Guia das colunas do CSV</button>
+                <button type="button" class="btn-link recursos-link" onclick="window.abrirDocumentacao('colunas-do-csv')" data-i18n>Guia das colunas do CSV</button>
             </section>
 
             <section class="recursos-secao">
@@ -1503,7 +1500,7 @@
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="2.5"></circle><circle cx="6" cy="18" r="2.5"></circle><circle cx="18" cy="8" r="2.5"></circle><path d="M6 8.5v7M18 10.5c0 4-6 3-10.5 6"></path></svg>
                         <span class="recursos-links-texto"><strong data-i18n>Repositório do projeto</strong><span data-i18n>Mantido pela área de Linguística do Museu Goeldi</span></span>
                     </button></li>
-                    <li><button type="button" data-i18n-attr="data-acao" data-acao="Abrir a documentação">
+                    <li><button type="button" onclick="window.abrirDocumentacao()">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"></path></svg>
                         <span class="recursos-links-texto"><strong data-i18n>Documentação</strong></span>
                     </button></li>
@@ -1513,7 +1510,7 @@
                     </button></li>
                     <li><button type="button" data-i18n-attr="data-acao" data-acao="Ver as novidades da versão">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"></path></svg>
-                        <span class="recursos-links-texto"><strong data-i18n>Novidades da versão</strong></span>
+                        <span class="recursos-links-texto"><strong data-i18n>Versão e novidades</strong><span id="recursosVersao"></span></span>
                     </button></li>
                 </ul>
             </section>
@@ -1588,6 +1585,25 @@
         </div>
     </div>
 </dialog>
+
+<!-- Documentação: páginas em Markdown de docs/<idioma>/, convertidas pelo marked.
+     Lista de páginas em DOCS_PAGINAS; aberto por abrirDocumentacao(pagina). -->
+<dialog id="dialogoDocumentacao" class="dialogo dialogo-largo dialogo-docs" aria-labelledby="docsTitulo">
+    <div class="dialogo-topo dialogo-topo-separado">
+        <div>
+            <h2 id="docsTitulo" data-i18n>Documentação</h2>
+            <p id="docsAvisoIdioma" hidden data-i18n>Por enquanto, a documentação está disponível só em português.</p>
+        </div>
+        <button type="button" class="btn-icone" aria-label="Fechar" onclick="document.getElementById('dialogoDocumentacao').close()" data-i18n-attr="aria-label"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+    </div>
+    <div class="docs-corpo">
+        <nav class="docs-indice" aria-label="Páginas da documentação" data-i18n-attr="aria-label">
+            <ul id="docsIndice"></ul>
+        </nav>
+        <article class="docs-conteudo" id="docsConteudo" tabindex="-1"></article>
+    </div>
+</dialog>
+
 
 <!-- Relatório de validação: conteúdo montado por window.validarTudo() a partir de validador.diagnosticar() -->
 <dialog id="dialogoRelatorio" class="dialogo dialogo-relatorio" aria-labelledby="relatorioTitulo">
@@ -4199,6 +4215,9 @@
             }
         };
 
+        // Também usado pelo "Abrir exemplo" (Recursos e etapa 1)
+        window.processarPastaProjeto = processarPastaProjeto;
+
         if (filePastaProj) {
             filePastaProj.addEventListener('change', async e => {
                 try {
@@ -6151,6 +6170,19 @@
         return { id: 'windows', nome: _t('não identificado') };
     }
 
+    // Versão, commit e data/hora do build (static/versao.js, gerado na publicação)
+    function descreverVersao() {
+        const info = window.CSV2DMLI_VERSAO || {};
+        if (!info.data) return _t('Versão de desenvolvimento');
+        const data = new Date(info.data);
+        const partes = [
+            _t('Versão {versao}', { versao: info.versao || '?' }),
+            data.toLocaleString(I18N.idioma, { dateStyle: 'short', timeStyle: 'short' })
+        ];
+        if (info.commit) partes.push(info.commit);
+        return partes.join(' · ');
+    }
+
     window.mostrarTelaRecursos = function(tela) {
         document.getElementById('recursosInicio').hidden = tela !== 'inicio';
         document.getElementById('recursosPreparacao').hidden = tela !== 'preparacao';
@@ -6159,6 +6191,7 @@
         document.getElementById('recursosDescricao').textContent = TELAS_RECURSOS[tela].descricao();
         document.getElementById('recursosAviso').hidden = true;
         document.querySelector('#dialogoRecursos .dialogo-corpo').scrollTop = 0;
+        if (tela === 'inicio') document.getElementById('recursosVersao').textContent = descreverVersao();
         if (tela === 'preparacao') {
             const sistema = detectarSistema();
             document.getElementById('recursosSistemaDetectado').textContent = sistema.nome;
@@ -6180,6 +6213,158 @@
         const dialogo = document.getElementById('dialogoRecursos');
         if (!dialogo.open) dialogo.showModal();
     };
+
+    // ===================================================================
+    // DOCUMENTAÇÃO (diálogo #dialogoDocumentacao)
+    // Páginas em docs/<idioma>/<id>.md. Idioma sem tradução usa o português e mostra um aviso.
+    // Links entre páginas são escritos como no GitHub ("colunas-do-csv.md") e abrem aqui mesmo.
+    // ===================================================================
+    const DOCS_IDIOMAS = ['pt-BR'];
+    const DOCS_PAGINAS = [
+        { id: 'primeiros-passos', titulo: () => _t('Primeiros passos') },
+        { id: 'pasta-do-projeto', titulo: () => _t('A pasta do projeto') },
+        { id: 'colunas-do-csv', titulo: () => _t('Colunas do CSV') },
+        { id: 'configuracao', titulo: () => _t('O arquivo configuracao.txt') },
+        { id: 'midias', titulo: () => _t('Mídias') },
+        { id: 'exportar', titulo: () => _t('Exportar') },
+        { id: 'problemas-comuns', titulo: () => _t('Problemas comuns') },
+    ];
+    const docsCache = new Map();
+    let docsPaginaAtual = DOCS_PAGINAS[0].id;
+
+    function docsIdioma() {
+        return DOCS_IDIOMAS.includes(I18N.idioma) ? I18N.idioma : I18N_IDIOMA_PADRAO;
+    }
+
+    function docsMontarIndice() {
+        const lista = document.getElementById('docsIndice');
+        lista.replaceChildren(...DOCS_PAGINAS.map(pagina => {
+            const item = document.createElement('li');
+            const botao = document.createElement('button');
+            botao.type = 'button';
+            botao.textContent = pagina.titulo();
+            botao.onclick = () => docsMostrar(pagina.id);
+            if (pagina.id === docsPaginaAtual) botao.setAttribute('aria-current', 'page');
+            item.appendChild(botao);
+            return item;
+        }));
+        // No celular o índice é uma fileira rolável: traz a página atual para a vista
+        lista.querySelector('[aria-current]')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }
+
+    async function docsMostrar(id) {
+        if (!DOCS_PAGINAS.some(p => p.id === id)) id = DOCS_PAGINAS[0].id;
+        docsPaginaAtual = id;
+        docsMontarIndice();
+        const conteudo = document.getElementById('docsConteudo');
+        const caminho = `docs/${docsIdioma()}/${id}.md`;
+        try {
+            if (!docsCache.has(caminho)) {
+                const resposta = await fetch(caminho);
+                if (!resposta.ok) throw new Error(`HTTP ${resposta.status}`);
+                docsCache.set(caminho, window.marked.parse(await resposta.text()));
+            }
+            if (docsPaginaAtual !== id) return; // outra página foi pedida enquanto esta carregava
+            conteudo.innerHTML = docsCache.get(caminho);
+            conteudo.querySelectorAll('a[href]').forEach(link => {
+                const destino = link.getAttribute('href');
+                const interna = destino.match(/^([\w-]+)\.md(#.*)?$/);
+                if (interna) {
+                    link.addEventListener('click', e => { e.preventDefault(); docsMostrar(interna[1]); });
+                } else if (/^https?:/.test(destino)) {
+                    link.target = '_blank';
+                    link.rel = 'noopener';
+                }
+            });
+        } catch (err) {
+            console.error('Erro ao carregar a documentação:', caminho, err);
+            conteudo.textContent = _t('Não foi possível carregar esta página da documentação. Detalhe técnico: {erro}', { erro: err.message || err });
+        }
+        conteudo.scrollTop = 0;
+    }
+
+    // `pagina`: id de DOCS_PAGINAS (padrão: a primeira)
+    window.abrirDocumentacao = function(pagina) {
+        const recursos = document.getElementById('dialogoRecursos');
+        if (recursos.open) recursos.close();
+        document.getElementById('docsAvisoIdioma').hidden = docsIdioma() === I18N.idioma;
+        const dialogo = document.getElementById('dialogoDocumentacao');
+        if (!dialogo.open) dialogo.showModal();
+        docsMostrar(pagina || docsPaginaAtual);
+    };
+
+    document.addEventListener('idioma-alterado', () => {
+        if (document.getElementById('dialogoDocumentacao').open) window.abrirDocumentacao(docsPaginaAtual);
+    });
+
+    // ===================================================================
+    // PROJETO MODELO (assets/projeto-modelo/)
+    // Os arquivos são publicados junto com o app (GitHub Pages e instalador do Tauri),
+    // então o download e o exemplo funcionam sem depender de outro servidor.
+    // O ZIP é montado na hora, com o LEIA-ME no idioma da interface.
+    // ===================================================================
+    const MODELO_PASTA = 'assets/projeto-modelo/';
+    const MODELO_NOME = 'projeto-modelo';
+    const MODELO_ARQUIVOS = ['dicionario.csv', 'configuracao.txt', 'audio/exemplo.mp3', 'imagens/exemplo.jpg', 'video/exemplo.mp4'];
+    const MODELO_LEIAME = { 'pt-BR': 'LEIA-ME.txt', en: 'README.txt', es: 'LEAME.txt' };
+
+    async function buscarArquivosModelo(caminhos) {
+        return Promise.all(caminhos.map(async caminho => {
+            const resposta = await fetch(MODELO_PASTA + caminho);
+            if (!resposta.ok) throw new Error(`${caminho}: HTTP ${resposta.status}`);
+            return { caminho, blob: await resposta.blob() };
+        }));
+    }
+
+    function avisarErroModelo(mensagem) {
+        const dialogo = document.getElementById('dialogoRecursos');
+        if (dialogo.open) {
+            const aviso = document.getElementById('recursosAviso');
+            aviso.textContent = mensagem;
+            aviso.hidden = false;
+            aviso.scrollIntoView({ block: 'nearest' });
+        } else {
+            alert(mensagem);
+        }
+    }
+
+    // Desativa o botão enquanto a ação roda, para evitar cliques repetidos
+    async function comBotaoOcupado(botao, acao) {
+        if (botao) botao.disabled = true;
+        try { await acao(); } finally { if (botao) botao.disabled = false; }
+    }
+
+    window.baixarProjetoModelo = (botao) => comBotaoOcupado(botao, async () => {
+        try {
+            const leiame = MODELO_LEIAME[I18N.idioma] || MODELO_LEIAME[I18N_IDIOMA_PADRAO];
+            const arquivos = await buscarArquivosModelo([...MODELO_ARQUIVOS, leiame]);
+            const zip = new JSZip();
+            const pasta = zip.folder(MODELO_NOME);
+            arquivos.forEach(({ caminho, blob }) => pasta.file(caminho, blob));
+            const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
+            await window.exportador.salvarArquivoBlob(blob, MODELO_NOME + '.zip');
+        } catch (err) {
+            console.error('Erro ao baixar o projeto modelo:', err);
+            avisarErroModelo(_t('Não foi possível baixar o projeto modelo. Detalhe técnico: {erro}', { erro: err.message || err }));
+        }
+    });
+
+    // Carrega o modelo direto na etapa Fonte de Dados, como se a pasta tivesse sido selecionada
+    window.abrirProjetoExemplo = (botao) => comBotaoOcupado(botao, async () => {
+        try {
+            const arquivos = (await buscarArquivosModelo(MODELO_ARQUIVOS)).map(({ caminho, blob }) => {
+                const arquivo = new File([blob], caminho.split('/').pop(), { type: blob.type });
+                arquivo.caminhoPersonalizado = `${MODELO_NOME}/${caminho}`;
+                return arquivo;
+            });
+            const dialogo = document.getElementById('dialogoRecursos');
+            if (dialogo.open) dialogo.close();
+            await window.processarPastaProjeto(arquivos);
+        } catch (err) {
+            console.error('Erro ao abrir o projeto de exemplo:', err);
+            avisarErroModelo(_t('Não foi possível abrir o projeto de exemplo. Detalhe técnico: {erro}', { erro: err.message || err }));
+        }
+    });
 
     document.getElementById('dialogoRecursos').addEventListener('click', e => {
         const botao = e.target.closest('[data-acao]');

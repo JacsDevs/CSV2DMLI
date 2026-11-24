@@ -1,0 +1,35 @@
+PROJETO MODELO — CSV2DMLI
+=========================
+
+Esta pasta é um projeto de dicionário pronto para usar como ponto de partida.
+Ela já funciona: importe a pasta no CSV2DMLI para ver o resultado.
+
+O QUE TEM AQUI
+--------------
+dicionario.csv     A planilha do dicionário. Cada linha é uma palavra (entrada).
+configuracao.txt   Título, autores, citação e outras opções (opcional).
+audio/             Os áudios citados na coluna ARQUIVO_ENTRADA (e ARQUIVO_SONORO_EXEMPLO).
+imagens/           As imagens citadas na coluna IMAGEM.
+video/             Os vídeos citados na coluna ARQUIVO_VIDEO.
+
+COMO USAR
+---------
+1. Abra o dicionario.csv numa planilha (LibreOffice Calc, Excel ou Google Planilhas).
+   Se tudo aparecer numa coluna só, importe o arquivo escolhendo "vírgula" como
+   separador e a codificação UTF-8.
+2. Troque a linha de exemplo pelos seus dados: uma linha por palavra.
+   Só ITEM_LEXICAL é obrigatória; as outras colunas podem ficar vazias.
+3. Coloque cada mídia na pasta certa e escreva o nome do arquivo, com a extensão,
+   na coluna correspondente (ex.: casa.mp3, casa.jpg).
+4. Salve a planilha como CSV (UTF-8), mantendo o nome dicionario.csv.
+5. Ajuste o configuracao.txt, se quiser. Ele tem explicações dentro.
+6. No CSV2DMLI, etapa "Fonte de Dados", selecione ou arraste esta pasta.
+
+DICAS
+-----
+- Mais de um valor na mesma célula: separe com "|" (ex.: foto1.jpg|foto2.jpg
+  na coluna IMAGEM e as legendas na mesma ordem em LEGENDA_IMAGEM).
+- Nomes de arquivo sem espaços nem acentos evitam problemas.
+- Muitas mídias ou arquivos grandes? O "Programa para Tratamento de
+  Mídias" (em Recursos, no app) reduz o tamanho de áudios, vídeos e imagens
+  antes da importação.

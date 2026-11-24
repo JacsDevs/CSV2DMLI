@@ -35,9 +35,12 @@ jobs:
           cp -r assets   dist/assets
           cp -r config   dist/config
           cp -r vendor   dist/vendor
+          cp -r docs     dist/docs
           mkdir -p dist/concepticon-cldf
           cp concepticon-cldf/concepticon.csv dist/concepticon-cldf/
           cp concepticon-cldf/glosses.csv     dist/concepticon-cldf/
+          # Versão, commit e data/hora do build (Recursos → Versão e novidades)
+          node scripts/gerar-versao.mjs dist
           # Desativa processamento Jekyll (necessário para arquivos com _ no nome)
           touch dist/.nojekyll
 
