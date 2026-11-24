@@ -1,0 +1,37 @@
+# configuracao.txt — opções do dicionário
+# Formato: Chave=valor (uma por linha). Linhas que começam com "#" são comentários.
+# Apague o "#" do início da linha para usar uma opção. Tudo aqui é opcional:
+# o que ficar de fora pode ser preenchido depois, na etapa de Metadados do app.
+
+# --- Identificação ---
+Titulo-HTML=Dicionário de exemplo
+Titulo-PDF=Dicionário de exemplo
+Autor(es)=Nome Sobrenome
+Ano=2026
+Versao=1.0
+# Subtitulo=Língua, região ou povo
+
+# --- Como citar ---
+# Usado na citação do dicionário. Sem Citacao-Autores, usa o campo Autor(es).
+# Citacao-Autores=SOBRENOME, Nome
+# Citacao-Local=Belém
+# Citacao-Editor=Museu Paraense Emílio Goeldi
+# Citacao-Link=https://exemplo.org/dicionario
+
+# --- Organização ---
+# Ordem das categorias (campos semânticos), separadas por vírgula. "padrao" = ordem alfabética.
+# Ordem das categorias=Natureza, Corpo, Casa
+# Categorias com as entradas em ordem alfabética. "todas" = todas.
+# Entradas em ordem alfabetica=todas
+# Alfabeto da língua, na ordem de classificação, separado por vírgulas.
+# Alfabeto=a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z
+
+# --- PDF ---
+# "tela" (padrão) ou "impressao" (margens espelhadas para imprimir frente e verso)
+# Layout do PDF=tela
+# Linha separando os verbetes: "sim" ou "nao"
+# Divisoria entre verbetes=nao
+
+# --- Site (HTML) ---
+# Embutir as mídias dentro do arquivo HTML: "sim" ou "nao"
+# Embutir midias no HTML=nao

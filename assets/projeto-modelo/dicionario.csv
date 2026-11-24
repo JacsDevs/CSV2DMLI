@@ -1,0 +1,2 @@
+﻿ID,ITEM_LEXICAL,CLASSE_GRAMATICAL,CAMPO_SEMANTICO,SUB_CAMPO_SEMANTICO,TRANSCRICAO_FONEMICA,TRANSCRICAO_FONETICA,TRADUCAO_SIGNIFICADO,DESCRICAO,ARQUIVO_ENTRADA,TRANSCRICAO_EXEMPLO,TRADUCAO_EXEMPLO,ARQUIVO_SONORO_EXEMPLO,IMAGEM,LEGENDA_IMAGEM,ARQUIVO_VIDEO,ITENS_RELACIONADOS
+1,exemplo,substantivo,Natureza,Plantas,/eˈzẽplu/,[eˈzẽplʊ],exemplo,"Entrada de exemplo. Troque esta linha pelos dados do seu dicionário e acrescente uma linha por palavra.",exemplo.mp3,Este é um exemplo de frase.,This is an example sentence.,,exemplo.jpg,Imagem de exemplo,exemplo.mp4,

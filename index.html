@@ -867,12 +867,11 @@
                                 <span class="importar-sem-projeto-icone" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6M12 12v6M9 15h6"></path></svg></span>
                                 <div class="importar-sem-projeto-texto">
                                     <strong data-i18n>Ainda não tem um projeto?</strong>
-                                    <span data-i18n>Baixe um modelo, preencha a planilha e coloque as mídias nas pastas. Depois é só importar aqui.</span>
+                                    <span data-i18n>Abra o exemplo para ver o resultado, ou baixe o projeto modelo, preencha a planilha e coloque as mídias nas pastas. Depois é só importar aqui.</span>
                                 </div>
                                 <div class="importar-sem-projeto-acoes">
-                                    <button type="button" class="btn-principal" onclick="window.abrirRecursos()" data-i18n>Modelo com exemplo</button>
-                                    <button type="button" class="btn-secundario" onclick="window.abrirRecursos()" data-i18n>Modelo vazio</button>
-                                    <button type="button" class="btn-link" onclick="window.abrirRecursos()" data-i18n>Mais recursos</button>
+                                    <button type="button" class="btn-principal" onclick="window.abrirProjetoExemplo(this)" data-i18n>Abrir exemplo</button>
+                                    <button type="button" class="btn-secundario" onclick="window.baixarProjetoModelo(this)" data-i18n>Baixar projeto modelo</button>
                                 </div>
                             </div>
                         </div>
@@ -1452,21 +1451,18 @@
                     <h3 data-i18n>Começar um projeto</h3>
                     <span class="campo-ajuda" data-i18n>Uma pasta pronta para preencher, na estrutura que a etapa Fonte de Dados reconhece.</span>
                 </div>
-                <div class="recursos-modelos">
-                    <div class="recursos-cartao">
-                        <strong data-i18n>Modelo vazio</strong>
-                        <span class="recursos-cartao-texto" data-i18n="html"><code>dicionario.csv</code> só com os cabeçalhos e as pastas de áudio, imagem e vídeo vazias.</span>
-                        <button type="button" class="btn-contorno btn-compacto-acao" data-i18n-attr="data-acao" data-acao="Baixar o modelo vazio" data-i18n>
+                <!-- Arquivos em assets/projeto-modelo/ (publicados junto com o app: funciona offline no Tauri) -->
+                <div class="recursos-cartao destaque">
+                    <strong data-i18n>Projeto modelo</strong>
+                    <span class="recursos-cartao-texto" data-i18n="html">Uma entrada de exemplo com áudio, imagem e vídeo, o <code>configuracao.txt</code> comentado e um LEIA-ME explicando cada arquivo.</span>
+                    <div class="recursos-cartao-acoes">
+                        <button type="button" class="btn-principal btn-compacto-acao" onclick="window.baixarProjetoModelo(this)" data-i18n>
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"></path><path d="M4 20h16"></path></svg>
                             Baixar ZIP
                         </button>
-                    </div>
-                    <div class="recursos-cartao destaque">
-                        <span class="recursos-cartao-titulo"><strong data-i18n>Modelo com exemplo</strong><span class="selo-recomendado" data-i18n>Recomendado</span></span>
-                        <span class="recursos-cartao-texto" data-i18n>Algumas entradas já preenchidas, com áudio e imagem, para ver como cada coluna funciona.</span>
-                        <button type="button" class="btn-principal btn-compacto-acao" data-i18n-attr="data-acao" data-acao="Baixar o modelo com exemplo" data-i18n>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5"></path><path d="M4 20h16"></path></svg>
-                            Baixar ZIP
+                        <button type="button" class="btn-contorno btn-compacto-acao" onclick="window.abrirProjetoExemplo(this)" data-i18n>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            Abrir exemplo no app
                         </button>
                     </div>
                 </div>
@@ -4200,6 +4196,9 @@
             }
         };
 
+        // Também usado pelo "Abrir exemplo" (Recursos e etapa 1)
+        window.processarPastaProjeto = processarPastaProjeto;
+
         if (filePastaProj) {
             filePastaProj.addEventListener('change', async e => {
                 try {
@@ -6195,6 +6194,75 @@
         const dialogo = document.getElementById('dialogoRecursos');
         if (!dialogo.open) dialogo.showModal();
     };
+
+    // ===================================================================
+    // PROJETO MODELO (assets/projeto-modelo/)
+    // Os arquivos são publicados junto com o app (GitHub Pages e instalador do Tauri),
+    // então o download e o exemplo funcionam sem depender de outro servidor.
+    // O ZIP é montado na hora, com o LEIA-ME no idioma da interface.
+    // ===================================================================
+    const MODELO_PASTA = 'assets/projeto-modelo/';
+    const MODELO_NOME = 'projeto-modelo';
+    const MODELO_ARQUIVOS = ['dicionario.csv', 'configuracao.txt', 'audio/exemplo.mp3', 'imagens/exemplo.jpg', 'video/exemplo.mp4'];
+    const MODELO_LEIAME = { 'pt-BR': 'LEIA-ME.txt', en: 'README.txt', es: 'LEAME.txt' };
+
+    async function buscarArquivosModelo(caminhos) {
+        return Promise.all(caminhos.map(async caminho => {
+            const resposta = await fetch(MODELO_PASTA + caminho);
+            if (!resposta.ok) throw new Error(`${caminho}: HTTP ${resposta.status}`);
+            return { caminho, blob: await resposta.blob() };
+        }));
+    }
+
+    function avisarErroModelo(mensagem) {
+        const dialogo = document.getElementById('dialogoRecursos');
+        if (dialogo.open) {
+            const aviso = document.getElementById('recursosAviso');
+            aviso.textContent = mensagem;
+            aviso.hidden = false;
+            aviso.scrollIntoView({ block: 'nearest' });
+        } else {
+            alert(mensagem);
+        }
+    }
+
+    // Desativa o botão enquanto a ação roda, para evitar cliques repetidos
+    async function comBotaoOcupado(botao, acao) {
+        if (botao) botao.disabled = true;
+        try { await acao(); } finally { if (botao) botao.disabled = false; }
+    }
+
+    window.baixarProjetoModelo = (botao) => comBotaoOcupado(botao, async () => {
+        try {
+            const leiame = MODELO_LEIAME[I18N.idioma] || MODELO_LEIAME[I18N_IDIOMA_PADRAO];
+            const arquivos = await buscarArquivosModelo([...MODELO_ARQUIVOS, leiame]);
+            const zip = new JSZip();
+            const pasta = zip.folder(MODELO_NOME);
+            arquivos.forEach(({ caminho, blob }) => pasta.file(caminho, blob));
+            const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
+            await window.exportador.salvarArquivoBlob(blob, MODELO_NOME + '.zip');
+        } catch (err) {
+            console.error('Erro ao baixar o projeto modelo:', err);
+            avisarErroModelo(_t('Não foi possível baixar o projeto modelo. Detalhe técnico: {erro}', { erro: err.message || err }));
+        }
+    });
+
+    // Carrega o modelo direto na etapa Fonte de Dados, como se a pasta tivesse sido selecionada
+    window.abrirProjetoExemplo = (botao) => comBotaoOcupado(botao, async () => {
+        try {
+            const arquivos = (await buscarArquivosModelo(MODELO_ARQUIVOS)).map(({ caminho, blob }) => {
+                const arquivo = new File([blob], caminho.split('/').pop(), { type: blob.type });
+                arquivo.caminhoPersonalizado = `${MODELO_NOME}/${caminho}`;
+                return arquivo;
+            });
+            const dialogo = document.getElementById('dialogoRecursos');
+            if (dialogo.open) dialogo.close();
+            await window.processarPastaProjeto(arquivos);
+        } catch (err) {
+            console.error('Erro ao abrir o projeto de exemplo:', err);
+            avisarErroModelo(_t('Não foi possível abrir o projeto de exemplo. Detalhe técnico: {erro}', { erro: err.message || err }));
+        }
+    });
 
     document.getElementById('dialogoRecursos').addEventListener('click', e => {
         const botao = e.target.closest('[data-acao]');

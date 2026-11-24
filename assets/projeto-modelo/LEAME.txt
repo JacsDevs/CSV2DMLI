@@ -1,0 +1,37 @@
+PROYECTO MODELO — CSV2DMLI
+==========================
+
+Esta carpeta es un proyecto de diccionario listo para usar como punto de partida.
+Ya funciona: importe la carpeta en CSV2DMLI para ver el resultado.
+
+QUÉ HAY AQUÍ
+------------
+dicionario.csv     La hoja de cálculo del diccionario. Cada fila es una palabra (entrada).
+configuracao.txt   Título, autores, cita y otras opciones (opcional).
+audio/             Los audios citados en la columna ARQUIVO_ENTRADA (y ARQUIVO_SONORO_EXEMPLO).
+imagens/           Las imágenes citadas en la columna IMAGEM.
+video/             Los videos citados en la columna ARQUIVO_VIDEO.
+
+Los nombres de archivos, carpetas y columnas están en portugués y deben mantenerse
+así: CSV2DMLI los busca por su nombre.
+
+CÓMO USAR
+---------
+1. Abra dicionario.csv en una hoja de cálculo (LibreOffice Calc, Excel o Google Sheets).
+   Si todo aparece en una sola columna, importe el archivo eligiendo "coma" como
+   separador y la codificación UTF-8.
+2. Reemplace la fila de ejemplo por sus datos: una fila por palabra.
+   Solo ITEM_LEXICAL es obligatoria; las demás columnas pueden quedar vacías.
+3. Coloque cada archivo multimedia en la carpeta correcta y escriba su nombre,
+   con la extensión, en la columna correspondiente (ej.: casa.mp3, casa.jpg).
+4. Guarde la hoja como CSV (UTF-8), manteniendo el nombre dicionario.csv.
+5. Ajuste configuracao.txt si lo desea. Tiene explicaciones dentro.
+6. En CSV2DMLI, etapa "Fuente de datos", seleccione o arrastre esta carpeta.
+
+CONSEJOS
+--------
+- Más de un valor en la misma celda: sepárelos con "|" (ej.: foto1.jpg|foto2.jpg
+  en IMAGEM y las leyendas en el mismo orden en LEGENDA_IMAGEM).
+- Nombres de archivo sin espacios ni acentos evitan problemas.
+- ¿Muchos archivos multimedia o archivos grandes? El "Programa para el tratamiento de medios"
+  (Recursos, en la app) reduce el tamaño de audios, videos e imágenes antes de importar.
