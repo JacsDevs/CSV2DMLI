@@ -86,6 +86,10 @@
 
 [hidden] { display: none !important; }
 
+/* Com viewport-fit=cover, a faixa atrás da ilha dinâmica e das barras do Safari
+   mostra este fundo; mesma cor do cabeçalho para não parecer um corte. */
+html { background-color: var(--bg-card); }
+
 body {
     font-family: 'Outfit', 'Inter', sans-serif;
     background-color: var(--bg-main);
@@ -95,6 +99,9 @@ body {
     font-size: 15px;
     width: calc(100vw / var(--zoom));
     height: calc(100vh / var(--zoom));
+    /* dvh = altura visível de fato. No Safari do iPhone, 100vh é maior que a tela
+       e deixa o documento rolar, levando o cabeçalho para trás da ilha dinâmica. */
+    height: calc(100dvh / var(--zoom));
     transform: scale(var(--zoom));
     transform-origin: top left;
 }
@@ -131,7 +138,8 @@ body {
     justify-content: space-between;
     align-items: center;
     min-height: 72px;
-    padding: 12px 40px;
+    /* env(safe-area-inset-*) afasta da ilha dinâmica e das bordas do iPhone deitado; 0 no computador */
+    padding: max(12px, env(safe-area-inset-top)) max(40px, env(safe-area-inset-right)) 12px max(40px, env(safe-area-inset-left));
     background: var(--bg-card);
     border-bottom: 1px solid var(--border-color);
     z-index: var(--z-cabecalho);
@@ -1504,6 +1512,7 @@ p.conferir-sem-projeto { margin: 0; padding: 0; }
 .dialogo {
     width: min(560px, calc(100vw - 32px));
     max-height: min(720px, calc(100vh - 32px));
+    max-height: min(720px, calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
     margin: auto;
     padding: 0;
     border: 1px solid var(--border-color);
@@ -1517,7 +1526,7 @@ p.conferir-sem-projeto { margin: 0; padding: 0; }
     overflow: hidden;
 }
 .dialogo[open] { display: flex; flex-direction: column; }
-.dialogo.dialogo-largo { width: min(880px, calc(100vw - 32px)); height: min(720px, calc(100vh - 32px)); }
+.dialogo.dialogo-largo { width: min(880px, calc(100vw - 32px)); height: min(720px, calc(100vh - 32px)); height: min(720px, calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom))); }
 .dialogo::backdrop { background: rgb(15 23 42 / 0.55); }
 
 .dialogo-topo {
@@ -1589,7 +1598,7 @@ p.conferir-sem-projeto { margin: 0; padding: 0; }
 .dialogo-topo.dialogo-topo-separado { border-bottom: 1px solid var(--border-color); }
 
 /* Relatório de validação */
-.dialogo.dialogo-relatorio { width: min(800px, calc(100vw - 32px)); height: min(820px, calc(100vh - 32px)); }
+.dialogo.dialogo-relatorio { width: min(800px, calc(100vw - 32px)); height: min(820px, calc(100vh - 32px)); height: min(820px, calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom))); }
 .relatorio-cabecalho { display: flex; flex-direction: column; gap: 8px; }
 .relatorio-resumo { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .relatorio-corpo { display: flex; flex-direction: column; gap: 24px; }
@@ -1630,7 +1639,7 @@ p.conferir-sem-projeto { margin: 0; padding: 0; }
 .relatorio-tabela td.falta { color: var(--warning-text); font-weight: 600; }
 
 /* Mídias do projeto (explorador) */
-.dialogo.dialogo-midias { width: min(900px, calc(100vw - 32px)); height: min(700px, calc(100vh - 32px)); }
+.dialogo.dialogo-midias { width: min(900px, calc(100vw - 32px)); height: min(700px, calc(100vh - 32px)); height: min(700px, calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom))); }
 .dialogo-topo.midias-topo { align-items: center; padding-bottom: 8px; }
 .midias-topo-acoes { display: flex; align-items: center; gap: 8px; }
 .dialogo-aba-selo.neutro { background: var(--bg-secondary); color: var(--text-strong); }
@@ -1796,7 +1805,7 @@ button.midia-arquivo-miniatura:hover { background: var(--primary-light); }
 }
 
 /* Importação CLDF: colunas extras */
-.dialogo.dialogo-cldf { width: min(640px, calc(100vw - 32px)); height: min(880px, calc(100vh - 32px)); }
+.dialogo.dialogo-cldf { width: min(640px, calc(100vw - 32px)); height: min(880px, calc(100vh - 32px)); height: min(880px, calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom))); }
 .dialogo-cldf .dialogo-topo h2 { margin: 2px 0 4px; }
 .cldf-extras-corpo { display: flex; flex-direction: column; gap: 16px; }
 .cldf-extras-lista { display: flex; flex-direction: column; gap: 16px; }
@@ -1886,7 +1895,7 @@ button.midia-arquivo-miniatura:hover { background: var(--primary-light); }
 .carregando-numeros { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 
 /* Recursos (modelos, programa de preparação e documentação) */
-.dialogo.dialogo-recursos { width: min(820px, calc(100vw - 32px)); height: min(900px, calc(100vh - 32px)); }
+.dialogo.dialogo-recursos { width: min(820px, calc(100vw - 32px)); height: min(900px, calc(100vh - 32px)); height: min(900px, calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom))); }
 .recursos-voltar { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0; font-size: 13px; }
 .recursos-corpo { display: flex; flex-direction: column; gap: 20px; }
 .recursos-tela { display: flex; flex-direction: column; gap: 28px; }
@@ -2531,7 +2540,11 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
        Seletores com "body" para vencer o <style> do index.html, que vem depois deste arquivo. */
 
     /* Cabeçalho: logo, título e subtítulo; ferramentas no menu ☰ */
-    .app-header { position: relative; min-height: 60px; padding: 8px 8px 8px 16px; }
+    .app-header {
+        position: relative;
+        min-height: 60px;
+        padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) 8px max(16px, env(safe-area-inset-left));
+    }
     .logo-header { flex-wrap: nowrap; }
     .app-header img { width: 52px; }
     .app-marca { gap: 10px; }
@@ -2603,7 +2616,8 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
         z-index: 5;
         flex-wrap: nowrap;
         gap: 8px;
-        padding: 12px 16px 16px;
+        /* folga da barra de início do iPhone */
+        padding: 12px max(16px, env(safe-area-inset-right)) calc(16px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
         background: var(--bg-card);
     }
     body .wizard-footer .btn-rodape { flex: 1; min-height: 48px; margin: 0; }
