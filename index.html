@@ -9,6 +9,7 @@
     <script src="packages/i18n/nucleo.js"></script>
     <script src="packages/i18n/locales/en.js"></script>
     <script src="packages/i18n/locales/es.js"></script>
+    <script src="static/versao.js"></script>
     <style>
         html.i18n-carregando body { visibility: hidden; }
         .idioma-interface {
@@ -1513,7 +1514,7 @@
                     </button></li>
                     <li><button type="button" data-i18n-attr="data-acao" data-acao="Ver as novidades da versão">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"></path></svg>
-                        <span class="recursos-links-texto"><strong data-i18n>Novidades da versão</strong></span>
+                        <span class="recursos-links-texto"><strong data-i18n>Versão e novidades</strong><span id="recursosVersao"></span></span>
                     </button></li>
                 </ul>
             </section>
@@ -6151,6 +6152,19 @@
         return { id: 'windows', nome: _t('não identificado') };
     }
 
+    // Versão, commit e data/hora do build (static/versao.js, gerado na publicação)
+    function descreverVersao() {
+        const info = window.CSV2DMLI_VERSAO || {};
+        if (!info.data) return _t('Versão de desenvolvimento');
+        const data = new Date(info.data);
+        const partes = [
+            _t('Versão {versao}', { versao: info.versao || '?' }),
+            data.toLocaleString(I18N.idioma, { dateStyle: 'short', timeStyle: 'short' })
+        ];
+        if (info.commit) partes.push(info.commit);
+        return partes.join(' · ');
+    }
+
     window.mostrarTelaRecursos = function(tela) {
         document.getElementById('recursosInicio').hidden = tela !== 'inicio';
         document.getElementById('recursosPreparacao').hidden = tela !== 'preparacao';
@@ -6159,6 +6173,7 @@
         document.getElementById('recursosDescricao').textContent = TELAS_RECURSOS[tela].descricao();
         document.getElementById('recursosAviso').hidden = true;
         document.querySelector('#dialogoRecursos .dialogo-corpo').scrollTop = 0;
+        if (tela === 'inicio') document.getElementById('recursosVersao').textContent = descreverVersao();
         if (tela === 'preparacao') {
             const sistema = detectarSistema();
             document.getElementById('recursosSistemaDetectado').textContent = sistema.nome;

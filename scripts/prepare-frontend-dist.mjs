@@ -7,6 +7,7 @@
 // arquivos.
 import { cp, mkdir, rm } from 'fs/promises';
 import { existsSync } from 'fs';
+import { execSync } from 'child_process';
 
 const DIST = 'dist-desktop';
 
@@ -20,6 +21,8 @@ for (const dir of ['packages', 'static', 'assets', 'config', 'vendor']) {
         await cp(dir, `${DIST}/${dir}`, { recursive: true });
     }
 }
+
+execSync(`node scripts/gerar-versao.mjs ${DIST}`, { stdio: 'inherit' });
 
 console.log(`Frontend dist preparado em ${DIST}/`);
 
