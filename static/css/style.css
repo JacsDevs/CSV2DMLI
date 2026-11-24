@@ -2054,7 +2054,8 @@ button.midia-arquivo-miniatura:hover { background: var(--primary-light); }
 .recursos-descricoes li.largo { grid-column: 1 / -1; }
 .recursos-descricoes strong { font-size: 15px; color: var(--text-main); }
 
-/* Documentação (#dialogoDocumentacao): índice à esquerda e página em Markdown à direita */
+/* Documentação (#dialogoDocumentacao): índice à esquerda e página em Markdown à direita.
+   No celular vira tela cheia, com um seletor de página no lugar do índice. */
 .docs-corpo { flex: 1; min-height: 0; display: flex; }
 .docs-indice { flex: 0 0 220px; overflow-y: auto; padding: 16px 12px; border-right: 1px solid var(--border-color); background: var(--bg-secondary); }
 .docs-indice ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 2px; }
@@ -2062,31 +2063,102 @@ button.midia-arquivo-miniatura:hover { background: var(--primary-light); }
 .docs-indice button:hover { background: var(--primary-soft); color: var(--text-main); }
 .docs-indice button[aria-current="page"] { background: var(--primary-light); color: var(--primary-hover); font-weight: 600; }
 .docs-indice button:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
-.docs-conteudo { flex: 1; min-width: 0; overflow-y: auto; padding: 24px 32px 32px; font-size: 15px; line-height: 1.65; }
+
+.docs-seletor { display: none; }
+.docs-seletor label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.docs-seletor select {
+    width: 100%;
+    min-height: 44px;
+    padding: 0 40px 0 14px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-control);
+    background: var(--bg-card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center;
+    color: var(--text-main);
+    font: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    appearance: none;
+    -webkit-appearance: none;
+}
+.docs-seletor select:focus-visible { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-ring); }
+
+.docs-rolagem { flex: 1; min-width: 0; overflow-y: auto; overscroll-behavior: contain; }
+.docs-conteudo { max-width: 72ch; padding: 24px 32px 8px; font-size: 15px; line-height: 1.65; overflow-wrap: break-word; }
 .docs-conteudo:focus { outline: none; }
 .docs-conteudo > :first-child { margin-top: 0; }
-.docs-conteudo h1 { margin: 0 0 16px; font-size: 24px; font-weight: 700; color: var(--text-main); }
-.docs-conteudo h2 { margin: 28px 0 10px; font-size: 18px; font-weight: 700; color: var(--text-main); }
+.docs-conteudo h1 { margin: 0 0 16px; font-size: 24px; font-weight: 700; line-height: 1.25; color: var(--text-main); }
+.docs-conteudo h2 { margin: 32px 0 10px; font-size: 18px; font-weight: 700; line-height: 1.3; color: var(--text-main); }
 .docs-conteudo h3 { margin: 20px 0 8px; font-size: 16px; font-weight: 700; color: var(--text-main); }
 .docs-conteudo p, .docs-conteudo ul, .docs-conteudo ol { margin: 0 0 12px; }
 .docs-conteudo ul, .docs-conteudo ol { padding-left: 22px; }
 .docs-conteudo li + li { margin-top: 4px; }
 .docs-conteudo a { color: var(--primary); }
-.docs-conteudo code { padding: 1px 5px; border-radius: var(--radius-sm); background: var(--bg-secondary); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.88em; }
-.docs-conteudo pre { margin: 0 0 16px; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: var(--bg-secondary); overflow-x: auto; }
-.docs-conteudo pre code { padding: 0; background: none; font-size: 13px; }
-.docs-conteudo table { display: block; max-width: 100%; margin: 0 0 16px; overflow-x: auto; border-collapse: collapse; font-size: 14px; }
+.docs-conteudo code { padding: 1px 5px; border-radius: var(--radius-sm); background: var(--bg-secondary); font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.88em; overflow-wrap: anywhere; }
+.docs-conteudo pre { margin: 0 0 16px; padding: 12px 16px; line-height: 1.4; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: var(--bg-secondary); overflow-x: auto; }
+.docs-conteudo pre code { padding: 0; background: none; font-size: 13px; overflow-wrap: normal; }
+.docs-conteudo table { width: 100%; margin: 0 0 16px; border-collapse: collapse; font-size: 14px; }
 .docs-conteudo th, .docs-conteudo td { padding: 8px 12px; border: 1px solid var(--border-color); text-align: left; vertical-align: top; }
 .docs-conteudo th { background: var(--bg-secondary); font-weight: 600; }
 .docs-conteudo blockquote { margin: 0 0 16px; padding: 10px 16px; border-left: 4px solid var(--warning); border-radius: var(--radius-sm); background: var(--warning-bg); color: var(--warning-text); }
 .docs-conteudo blockquote p:last-child { margin-bottom: 0; }
 
+.docs-paginacao { display: flex; gap: 12px; max-width: 72ch; padding: 16px 32px 32px; }
+.docs-paginacao:empty { display: none; }
+.docs-paginacao button {
+    flex: 0 1 50%;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 12px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-card);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.docs-paginacao button:hover { border-color: var(--primary); background: var(--primary-soft); }
+.docs-paginacao button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.docs-paginacao .docs-paginacao-proxima { margin-left: auto; text-align: right; }
+.docs-paginacao span { font-size: 13px; color: var(--text-muted); }
+.docs-paginacao strong { font-size: 15px; color: var(--primary); }
+
 @media (max-width: 700px) {
-    .docs-corpo { flex-direction: column; }
-    .docs-indice { flex: 0 0 auto; padding: 8px 16px; border-right: 0; border-bottom: 1px solid var(--border-color); overflow-x: auto; }
-    .docs-indice ul { flex-direction: row; gap: 4px; }
-    .docs-indice button { width: auto; white-space: nowrap; }
-    .docs-conteudo { padding: 20px 16px 24px; }
+    .dialogo.dialogo-largo.dialogo-docs {
+        width: 100vw;
+        max-width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+        max-height: 100dvh;
+        margin: 0;
+        border: 0;
+        border-radius: 0;
+        padding-top: env(safe-area-inset-top);
+    }
+    .dialogo-docs .dialogo-topo { align-items: center; padding: 12px 16px; border-bottom: 0; }
+    .dialogo-docs .dialogo-topo h2 { font-size: 19px; }
+    .docs-seletor { display: block; padding: 0 16px 12px; border-bottom: 1px solid var(--border-color); }
+    .docs-indice { display: none; }
+    .docs-conteudo { max-width: none; padding: 20px 16px 8px; font-size: 16px; }
+    .docs-conteudo h1 { font-size: 22px; }
+
+    /* Tabelas viram blocos: o primeiro valor da linha é o título, o resto vem embaixo */
+    .docs-conteudo table, .docs-conteudo tbody, .docs-conteudo tr, .docs-conteudo td { display: block; }
+    .docs-conteudo thead { display: none; }
+    .docs-conteudo table { border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden; font-size: 15px; }
+    .docs-conteudo tr { padding: 12px 14px; }
+    .docs-conteudo tr + tr { border-top: 1px solid var(--border-color); }
+    .docs-conteudo td { padding: 0; border: 0; }
+    .docs-conteudo td:first-child { margin-bottom: 4px; font-weight: 600; color: var(--text-main); }
+    .docs-conteudo td:first-child code { font-size: 0.85em; }
+    .docs-conteudo td:empty { display: none; }
+    .docs-tabela-larga td + td { display: flex; gap: 8px; margin-top: 2px; }
+    .docs-tabela-larga td + td::before { content: attr(data-coluna); flex: 0 0 40%; color: var(--text-muted); }
+
+    .docs-paginacao { flex-direction: column; padding: 16px 16px calc(24px + env(safe-area-inset-bottom)); }
+    .docs-paginacao button { flex: none; }
+    .docs-paginacao .docs-paginacao-proxima { order: -1; margin-left: 0; text-align: left; }
 }
 
 @media (max-width: 600px) {
