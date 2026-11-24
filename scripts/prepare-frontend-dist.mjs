@@ -16,7 +16,7 @@ await mkdir(DIST, { recursive: true });
 
 await cp('index.html', `${DIST}/index.html`);
 
-for (const dir of ['packages', 'static', 'assets', 'config', 'vendor']) {
+for (const dir of ['packages', 'static', 'assets', 'config', 'vendor', 'docs']) {
     if (existsSync(dir)) {
         await cp(dir, `${DIST}/${dir}`, { recursive: true });
     }

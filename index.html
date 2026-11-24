@@ -1466,7 +1466,7 @@
                         </button>
                     </div>
                 </div>
-                <button type="button" class="btn-link recursos-link" data-i18n-attr="data-acao" data-acao="Guia das colunas do CSV" data-i18n>Guia das colunas do CSV</button>
+                <button type="button" class="btn-link recursos-link" onclick="window.abrirDocumentacao('colunas-do-csv')" data-i18n>Guia das colunas do CSV</button>
             </section>
 
             <section class="recursos-secao">
@@ -1500,7 +1500,7 @@
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="2.5"></circle><circle cx="6" cy="18" r="2.5"></circle><circle cx="18" cy="8" r="2.5"></circle><path d="M6 8.5v7M18 10.5c0 4-6 3-10.5 6"></path></svg>
                         <span class="recursos-links-texto"><strong data-i18n>Repositório do projeto</strong><span data-i18n>Mantido pela área de Linguística do Museu Goeldi</span></span>
                     </button></li>
-                    <li><button type="button" data-i18n-attr="data-acao" data-acao="Abrir a documentação">
+                    <li><button type="button" onclick="window.abrirDocumentacao()">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"></path></svg>
                         <span class="recursos-links-texto"><strong data-i18n>Documentação</strong></span>
                     </button></li>
@@ -1585,6 +1585,25 @@
         </div>
     </div>
 </dialog>
+
+<!-- Documentação: páginas em Markdown de docs/<idioma>/, convertidas pelo marked.
+     Lista de páginas em DOCS_PAGINAS; aberto por abrirDocumentacao(pagina). -->
+<dialog id="dialogoDocumentacao" class="dialogo dialogo-largo dialogo-docs" aria-labelledby="docsTitulo">
+    <div class="dialogo-topo dialogo-topo-separado">
+        <div>
+            <h2 id="docsTitulo" data-i18n>Documentação</h2>
+            <p id="docsAvisoIdioma" hidden data-i18n>Por enquanto, a documentação está disponível só em português.</p>
+        </div>
+        <button type="button" class="btn-icone" aria-label="Fechar" onclick="document.getElementById('dialogoDocumentacao').close()" data-i18n-attr="aria-label"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+    </div>
+    <div class="docs-corpo">
+        <nav class="docs-indice" aria-label="Páginas da documentação" data-i18n-attr="aria-label">
+            <ul id="docsIndice"></ul>
+        </nav>
+        <article class="docs-conteudo" id="docsConteudo" tabindex="-1"></article>
+    </div>
+</dialog>
+
 
 <!-- Relatório de validação: conteúdo montado por window.validarTudo() a partir de validador.diagnosticar() -->
 <dialog id="dialogoRelatorio" class="dialogo dialogo-relatorio" aria-labelledby="relatorioTitulo">
@@ -6194,6 +6213,89 @@
         const dialogo = document.getElementById('dialogoRecursos');
         if (!dialogo.open) dialogo.showModal();
     };
+
+    // ===================================================================
+    // DOCUMENTAÇÃO (diálogo #dialogoDocumentacao)
+    // Páginas em docs/<idioma>/<id>.md. Idioma sem tradução usa o português e mostra um aviso.
+    // Links entre páginas são escritos como no GitHub ("colunas-do-csv.md") e abrem aqui mesmo.
+    // ===================================================================
+    const DOCS_IDIOMAS = ['pt-BR'];
+    const DOCS_PAGINAS = [
+        { id: 'primeiros-passos', titulo: () => _t('Primeiros passos') },
+        { id: 'pasta-do-projeto', titulo: () => _t('A pasta do projeto') },
+        { id: 'colunas-do-csv', titulo: () => _t('Colunas do CSV') },
+        { id: 'configuracao', titulo: () => _t('O arquivo configuracao.txt') },
+        { id: 'midias', titulo: () => _t('Mídias') },
+        { id: 'exportar', titulo: () => _t('Exportar') },
+        { id: 'problemas-comuns', titulo: () => _t('Problemas comuns') },
+    ];
+    const docsCache = new Map();
+    let docsPaginaAtual = DOCS_PAGINAS[0].id;
+
+    function docsIdioma() {
+        return DOCS_IDIOMAS.includes(I18N.idioma) ? I18N.idioma : I18N_IDIOMA_PADRAO;
+    }
+
+    function docsMontarIndice() {
+        const lista = document.getElementById('docsIndice');
+        lista.replaceChildren(...DOCS_PAGINAS.map(pagina => {
+            const item = document.createElement('li');
+            const botao = document.createElement('button');
+            botao.type = 'button';
+            botao.textContent = pagina.titulo();
+            botao.onclick = () => docsMostrar(pagina.id);
+            if (pagina.id === docsPaginaAtual) botao.setAttribute('aria-current', 'page');
+            item.appendChild(botao);
+            return item;
+        }));
+        // No celular o índice é uma fileira rolável: traz a página atual para a vista
+        lista.querySelector('[aria-current]')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }
+
+    async function docsMostrar(id) {
+        if (!DOCS_PAGINAS.some(p => p.id === id)) id = DOCS_PAGINAS[0].id;
+        docsPaginaAtual = id;
+        docsMontarIndice();
+        const conteudo = document.getElementById('docsConteudo');
+        const caminho = `docs/${docsIdioma()}/${id}.md`;
+        try {
+            if (!docsCache.has(caminho)) {
+                const resposta = await fetch(caminho);
+                if (!resposta.ok) throw new Error(`HTTP ${resposta.status}`);
+                docsCache.set(caminho, window.marked.parse(await resposta.text()));
+            }
+            if (docsPaginaAtual !== id) return; // outra página foi pedida enquanto esta carregava
+            conteudo.innerHTML = docsCache.get(caminho);
+            conteudo.querySelectorAll('a[href]').forEach(link => {
+                const destino = link.getAttribute('href');
+                const interna = destino.match(/^([\w-]+)\.md(#.*)?$/);
+                if (interna) {
+                    link.addEventListener('click', e => { e.preventDefault(); docsMostrar(interna[1]); });
+                } else if (/^https?:/.test(destino)) {
+                    link.target = '_blank';
+                    link.rel = 'noopener';
+                }
+            });
+        } catch (err) {
+            console.error('Erro ao carregar a documentação:', caminho, err);
+            conteudo.textContent = _t('Não foi possível carregar esta página da documentação. Detalhe técnico: {erro}', { erro: err.message || err });
+        }
+        conteudo.scrollTop = 0;
+    }
+
+    // `pagina`: id de DOCS_PAGINAS (padrão: a primeira)
+    window.abrirDocumentacao = function(pagina) {
+        const recursos = document.getElementById('dialogoRecursos');
+        if (recursos.open) recursos.close();
+        document.getElementById('docsAvisoIdioma').hidden = docsIdioma() === I18N.idioma;
+        const dialogo = document.getElementById('dialogoDocumentacao');
+        if (!dialogo.open) dialogo.showModal();
+        docsMostrar(pagina || docsPaginaAtual);
+    };
+
+    document.addEventListener('idioma-alterado', () => {
+        if (document.getElementById('dialogoDocumentacao').open) window.abrirDocumentacao(docsPaginaAtual);
+    });
 
     // ===================================================================
     // PROJETO MODELO (assets/projeto-modelo/)
