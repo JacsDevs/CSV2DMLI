@@ -92,34 +92,39 @@
   })
 }
 
-// Cabeçalho único do miolo: título corrente (palavras-guia no dicionário, nome da
-// seção nas demais páginas), número na borda externa e filete
+// Cabeçalho único do miolo: palavras-guia no dicionário (primeira palavra da
+// página na borda esquerda, última na direita) ou nome da seção nas demais
+// páginas, e filete. O número da página fica no rodapé
 #let cabecalho = context if not pagina-em-branco(here().page()) {
   let pagina = here().page()
-  let num = text(size: 9pt)[#counter(page).display()]
   set text(size: 8.5pt)
 
   let marcas = query(<dict-word>).filter(m => m.location().page() == pagina)
-  let corrente = if marcas.len() > 0 {
+  if marcas.len() > 0 {
     let first = marcas.first().value
     let last = marcas.last().value
-    if first == last { strong(first) } else [*#first* --- *#last*]
+    if first == last {
+      strong(first)
+    } else {
+      grid(columns: (1fr, 1fr), column-gutter: 1em, strong(first), align(right, strong(last)))
+    }
   } else {
     // Seção que abre nesta página ou, se nenhuma, a última aberta antes dela
     let titulos = query(heading.where(level: 1))
     let desta = titulos.filter(h => h.location().page() == pagina)
     let anteriores = titulos.filter(h => h.location().page() < pagina)
     let titulo = if desta.len() > 0 { desta.first() } else if anteriores.len() > 0 { anteriores.last() } else { none }
-    if titulo != none { smallcaps(lower(titulo.body)) }
-  }
-
-  if impressao and calc.even(pagina) {
-    grid(columns: (auto, 1fr), column-gutter: 1em, num, align(right, corrente))
-  } else {
-    grid(columns: (1fr, auto), column-gutter: 1em, corrente, num)
+    let corrente = if titulo != none { smallcaps(lower(titulo.body)) }
+    // No modo impressão, o nome da seção fica na borda externa
+    if impressao and calc.even(pagina) { align(right, corrente) } else { corrente }
   }
   v(-0.35em)
   line(length: 100%, stroke: 0.4pt + cor-regua)
+}
+
+// Rodapé do miolo: número da página centralizado (fora dos versos em branco)
+#let rodape = context if not pagina-em-branco(here().page()) {
+  align(center, text(size: 9pt)[#counter(page).display()])
 }
 
 // Réguas verticais finas no meio de cada espaço entre colunas
@@ -171,9 +176,18 @@
   #show "-": "\u{2011}" // Non-breaking hyphen
   #set par(justify: false, linebreaks: "simple", leading: 0.45em)
 
-  // Título e subtítulo assentados na base do bloco de cor
+  // Logo (opcional), título e subtítulo assentados na base do bloco de cor
   #block(width: 100%, height: altura-faixa - margens.top - 1.3cm)[
     #align(bottom + left)[
+      {{#LOGO_CAPA}}
+      // Altura fixa e largura proporcional, para a borda esquerda do logo
+      // coincidir com a do título; logos muito largos são limitados a 6cm
+      #context {
+        let logo = image("{{ LOGO_CAPA }}", height: 2.4cm)
+        if measure(logo).width > 6cm { image("{{ LOGO_CAPA }}", width: 6cm) } else { logo }
+      }
+      #v(0.8cm)
+      {{/LOGO_CAPA}}
       #text(size: 30pt, fill: cor-contraste)[{{ metadados.pdf }}]
       #v(0.45cm)
       #line(length: 2.5cm, stroke: 1.5pt + cor-acento)
@@ -187,10 +201,6 @@
   #v(1.3cm + 1.6cm)
   #text(size: 13pt, tracking: 0.08em, fill: luma(40))[#smallcaps(lower[{{ metadados.autor }}])]
   #v(1fr)
-  {{#LOGO_CAPA}}
-  #box(width: 6cm, height: 2.4cm, image("{{ LOGO_CAPA }}", width: 100%, height: 100%, fit: "contain"))
-  #v(1.2cm)
-  {{/LOGO_CAPA}}
   #line(length: 100%, stroke: 0.4pt + cor-regua)
   #v(-0.2em)
   #text(size: 9.5pt, fill: luma(100))[{{ metadados.ano }} #h(1fr) Versão {{ metadados.versao }}]
@@ -226,12 +236,12 @@
 // ============================================
 // 3. MIOLO: MESMO ESTILO DO PRÉ AO PÓS-TEXTUAL
 // ============================================
-// Daqui em diante todas as páginas usam o cabeçalho único (sem rodapé), o corpo e
+// Daqui em diante todas as páginas usam o cabeçalho único, o número no rodapé, o corpo e
 // a entrelinha dos verbetes e os mesmos títulos de seção
 #nova-secao()
 #counter(page).update(1)
 
-#set page(header: cabecalho, header-ascent: 35%, footer: none, background: none)
+#set page(header: cabecalho, header-ascent: 35%, footer: rodape, footer-descent: 35%, background: none)
 #set columns(gutter: 7mm)
 #set text(size: corpo-verbete, costs: (widow: 100%, orphan: 100%, hyphenation: 80%))
 #set par(leading: 0.7em, spacing: 0.7em, justify: true)
