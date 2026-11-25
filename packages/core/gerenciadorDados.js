@@ -3,6 +3,7 @@ import CarregadorCsv from './carregadorCsv.js';
 import ConstrutorBancoDados from './construtorBancoDados.js';
 import { buscaFuzzy } from './helpers.js';
 import { renderizarReferenciasAbnt } from './bibliografiaAbnt.js';
+import { identificarLicenca } from './licencas.js';
 
 /**
  * Gerencia o carregamento e o armazenamento de todos os dados da aplicação,
@@ -309,8 +310,9 @@ export default class GerenciadorDados {
             this.limparLicenca();
             return;
         }
-        // Se for um arquivo de texto de linha única contendo exclusivamente uma URL web, assume modo link
-        if (/^https?:\/\/\S+$/i.test(textoLimpo) && !textoLimpo.includes('\n')) {
+        // Se for um arquivo de texto de linha única contendo exclusivamente uma URL web
+        // ou uma tag de licença conhecida ("CC BY 4.0"), assume modo link
+        if (!textoLimpo.includes('\n') && (/^https?:\/\/\S+$/i.test(textoLimpo) || identificarLicenca(textoLimpo))) {
             this.setLicencaUrl(textoLimpo);
             return;
         }
@@ -325,8 +327,10 @@ export default class GerenciadorDados {
             this.limparLicenca();
             return;
         }
+        // Tag de licença conhecida ("CC BY-SA 4.0") vira a URL oficial
+        const conhecida = /^https?:\/\//i.test(urlLimpa) ? null : identificarLicenca(urlLimpa);
         this.licencaModo = 'link';
-        this.licencaUrl = urlLimpa;
+        this.licencaUrl = conhecida ? conhecida.url : urlLimpa;
         this.licencaTexto = '';
         this.nomeArquivoLicenca = 'licenca.txt';
     }

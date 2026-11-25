@@ -1,6 +1,7 @@
 import ExportadorBase from './exportadorBase.js';
 import { montarPartesCitacao } from './dadosApp.js';
 import { renderizarReferenciasAbnt } from '../core/bibliografiaAbnt.js';
+import { identificarLicenca } from '../core/licencas.js';
 
 class ExportadorHtmlCards extends ExportadorBase {
     constructor(gerenciadorDados) {
@@ -353,6 +354,7 @@ class ExportadorHtmlCards extends ExportadorBase {
         }
 
         let licencaHtml = '';
+        let licencaInfoHtml = '';
         const licModo = meta.licencaModo || (this.gerenciador && this.gerenciador.licencaModo) || '';
         const licTexto = meta.licencaTexto || (this.gerenciador && this.gerenciador.licencaTexto) || '';
         const licUrl = meta.licencaUrl || (this.gerenciador && this.gerenciador.licencaUrl) || '';
@@ -367,8 +369,17 @@ class ExportadorHtmlCards extends ExportadorBase {
         } else if (licModo === 'link' || (!licModo && licUrl)) {
             if (licUrl.trim()) {
                 const urlSegura = this.escaparHTML(licUrl.trim());
-                licencaHtml = `<p><a href="${urlSegura}" target="_blank" rel="noopener noreferrer">${urlSegura}</a></p>`;
+                const link = `<a href="${urlSegura}" target="_blank" rel="noopener noreferrer">${urlSegura}</a>`;
+                const conhecida = identificarLicenca(licUrl);
+                licencaHtml = conhecida
+                    ? `<p><span class="licenca-tag">${this.escaparHTML(conhecida.rotulo)}</span></p>\n<p>${this.escaparHTML(conhecida.nome)}</p>\n<p>${link}</p>`
+                    : `<p>${link}</p>`;
+                licencaInfoHtml = `<p><strong>Licença:</strong> <a href="${urlSegura}" target="_blank" rel="noopener noreferrer">${conhecida ? this.escaparHTML(conhecida.rotulo) : urlSegura}</a></p>`;
             }
+        }
+        // Texto integral: a tela de informações só aponta para o modal da licença
+        if (licencaHtml && !licencaInfoHtml) {
+            licencaInfoHtml = `<p><strong>Licença:</strong> <a href="#" onclick="fecharModalGlobal('modal-info'); abrirModalGlobal('modal-licenca'); return false;">ver os termos de uso</a></p>`;
         }
 
         const tema = meta.tema || null;
@@ -390,6 +401,7 @@ class ExportadorHtmlCards extends ExportadorBase {
             .replace(/\{\{\s*textos\.intro_html\s*(\|\s*safe)?\s*\}\}/gi, meta.introHtml || '')
             .replace(/\{\{\s*textos\.referencias_html\s*(\|\s*safe)?\s*\}\}/gi, referenciasHtml)
             .replace(/\{\{\s*textos\.licenca_html\s*(\|\s*safe)?\s*\}\}/gi, licencaHtml)
+            .replace(/\{\{\s*textos\.licenca_info_html\s*(\|\s*safe)?\s*\}\}/gi, licencaInfoHtml)
             .replace(/\{\{\s*estilos_globais\s*(\|\s*safe)?\s*\}\}/gi, this.estilosGlobais || '')
             .replace(/\{\{\s*tema\.override_claro\s*(\|\s*safe)?\s*\}\}/gi, temaOverrideClaro)
             .replace(/\{\{\s*tema\.override_escuro\s*(\|\s*safe)?\s*\}\}/gi, temaOverrideEscuro)

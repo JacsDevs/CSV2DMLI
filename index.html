@@ -564,6 +564,15 @@
         .segmentado-botoes button:hover { background: var(--bg-card); }
         .segmentado-botoes button[aria-pressed="true"] { background: var(--bg-card); color: var(--text-main); box-shadow: 0 1px 2px rgb(15 23 42 / 0.12); }
 
+        /* Tags de licenças comuns (painel Link da licença) */
+        .licenca-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+        .licenca-tags button {
+            min-height: 32px; padding: 0 12px; border: 1px solid var(--border-strong); border-radius: var(--radius-pill);
+            background: var(--bg-card); color: var(--text-strong); font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+        }
+        .licenca-tags button:hover { background: var(--bg-secondary); }
+        .licenca-tags button[aria-pressed="true"] { border-color: var(--primary); background: var(--primary); color: #ffffff; }
+
         .editor-icone-fundo { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
         .editor-icone-fundo .campo-rotulo { margin-right: 4px; }
         .cor-pronta { width: 36px; height: 36px; border: 1px solid var(--border-strong); border-radius: var(--radius-pill); cursor: pointer; }
@@ -1124,8 +1133,9 @@
                                 </div>
 
                                 <div id="painelLicencaLink" style="display:none;">
+                                    <div class="licenca-tags" id="metaLicencaTags" role="group" aria-label="Licenças comuns" data-i18n-attr="aria-label"></div>
                                     <div class="campo" style="margin-top: 6px;">
-                                        <input type="url" id="metaLicencaUrl" class="campo-entrada" placeholder="https://creativecommons.org/licenses/by/4.0/" oninput="metaLicencaUrlAlterar(this.value)">
+                                        <input type="url" id="metaLicencaUrl" class="campo-entrada" placeholder="https://creativecommons.org/licenses/by/4.0/" oninput="metaLicencaUrlAlterar(this.value)" onchange="window.atualizarUILicenca()">
                                     </div>
                                     <div class="info-cartao-acoes" style="margin-top: 6px;">
                                         <button type="button" class="btn-secundario" id="btnMetaLicencaUrlRemover" hidden onclick="metaLicencaRemover()" data-i18n>Remover</button>
@@ -2550,6 +2560,7 @@
     import { processarLogo, recortarLogoOriginal } from './packages/core/iconeUtil.js';
     import { abrirEditorLogo } from './packages/ui/editorLogo.js';
     import { montarPartesCitacao } from './packages/exporters/dadosApp.js';
+    import { LICENCAS_CONHECIDAS, identificarLicenca } from './packages/core/licencas.js';
 
     
     // 1. Criar instâncias do sistema modular
@@ -3027,7 +3038,32 @@
         }
         if (pnlArq) pnlArq.style.display = window._licencaModoUI === 'arquivo' ? '' : 'none';
         if (pnlLink) pnlLink.style.display = window._licencaModoUI === 'link' ? '' : 'none';
+        atualizarTagsLicenca((window.sistema && window.sistema.licencaUrl) || '');
     };
+
+    // Tags de licenças comuns: um clique preenche o link; a tag da licença atual fica marcada
+    function atualizarTagsLicenca(url) {
+        const grupo = document.getElementById('metaLicencaTags');
+        if (!grupo) return;
+        if (!grupo.childElementCount) {
+            for (const licenca of LICENCAS_CONHECIDAS) {
+                const botao = document.createElement('button');
+                botao.type = 'button';
+                botao.textContent = licenca.rotulo;
+                botao.title = licenca.nome;
+                botao.dataset.url = licenca.url;
+                botao.onclick = () => {
+                    window.sistema.setLicencaUrl(licenca.url);
+                    window.atualizarUILicenca();
+                };
+                grupo.appendChild(botao);
+            }
+        }
+        const atual = identificarLicenca(url);
+        grupo.querySelectorAll('button').forEach(botao => {
+            botao.setAttribute('aria-pressed', String(!!atual && atual.url === botao.dataset.url));
+        });
+    }
 
     window.atualizarUILicenca = function() {
         const modo = (window.sistema && window.sistema.licencaModo) || '';
@@ -3062,6 +3098,7 @@
         if (btnRemoverUrl) {
             btnRemoverUrl.hidden = !url.trim();
         }
+        atualizarTagsLicenca(url);
     };
 
     window.metaLicencaSelecionar = async function(arquivo) {
@@ -3078,6 +3115,7 @@
         window.sistema.setLicencaUrl(valor);
         const btnRemoverUrl = document.getElementById('btnMetaLicencaUrlRemover');
         if (btnRemoverUrl) btnRemoverUrl.hidden = !valor.trim();
+        atualizarTagsLicenca(window.sistema.licencaUrl);
     };
 
     window.metaLicencaRemover = function() {

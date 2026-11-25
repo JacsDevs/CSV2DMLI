@@ -1,5 +1,6 @@
 import ExportadorBase from './exportadorBase.js';
 import { renderizarReferenciasAbnt } from '../core/bibliografiaAbnt.js';
+import { identificarLicenca } from '../core/licencas.js';
 
 // Cores da capa quando não há tema (verde original do modelo)
 const CORES_CAPA_PADRAO = { primaria: '#1b4332', acento: '#74a383', contraste: '#ffffff' };
@@ -290,8 +291,11 @@ class ExportadorTypst extends ExportadorBase {
         // Folha de Rosto: link da licença (quando modo link ou url presente)
         if ((licModo === 'link' || (!licModo && licUrl)) && licUrl.trim()) {
             const urlSegura = licUrl.trim().replace(/["\\]/g, '\\$&');
+            const conhecida = identificarLicenca(licUrl);
+            const rotulo = conhecida ? `${conhecida.rotulo} — ` : '';
             codigo = codigo.replace(/\{\{#LICENCA_LINK_ROSTO\}\}([\s\S]*?)\{\{\/LICENCA_LINK_ROSTO\}\}/g, (_, inner) => {
-                return inner.replace(/\{\{\s*LICENCA_LINK_ROSTO\s*\}\}/g, urlSegura);
+                return inner.replace(/\{\{\s*LICENCA_ROTULO_ROSTO\s*\}\}/g, () => rotulo)
+                    .replace(/\{\{\s*LICENCA_LINK_ROSTO\s*\}\}/g, () => urlSegura);
             });
         } else {
             codigo = codigo.replace(/\{\{#LICENCA_LINK_ROSTO\}\}[\s\S]*?\{\{\/LICENCA_LINK_ROSTO\}\}/g, '');

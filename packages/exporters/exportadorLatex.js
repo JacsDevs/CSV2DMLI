@@ -1,5 +1,6 @@
 import ExportadorBase from './exportadorBase.js';
 import { converterMarkdownParaLatex } from './conversorMarkdownLatex.js';
+import { identificarLicenca } from '../core/licencas.js';
 
 class ExportadorLatex extends ExportadorBase {
     constructor(gerenciadorDados) {
@@ -175,8 +176,11 @@ class ExportadorLatex extends ExportadorBase {
 
         // Folha de rosto (link)
         if ((licModo === 'link' || (!licModo && licUrl)) && licUrl.trim()) {
+            const conhecida = identificarLicenca(licUrl);
+            const rotulo = conhecida ? `${this.escaparLatex(conhecida.rotulo)} -- ` : '';
             codigo = codigo.replace(/\{\{#LICENCA_LINK_ROSTO\}\}([\s\S]*?)\{\{\/LICENCA_LINK_ROSTO\}\}/g, (_, inner) => {
-                return inner.replace(/\{\{\s*LICENCA_LINK_ROSTO\s*\}\}/g, licUrl.trim());
+                return inner.replace(/\{\{\s*LICENCA_ROTULO_ROSTO\s*\}\}/g, () => rotulo)
+                    .replace(/\{\{\s*LICENCA_LINK_ROSTO\s*\}\}/g, () => licUrl.trim());
             });
         } else {
             codigo = codigo.replace(/\{\{#LICENCA_LINK_ROSTO\}\}[\s\S]*?\{\{\/LICENCA_LINK_ROSTO\}\}/g, '');

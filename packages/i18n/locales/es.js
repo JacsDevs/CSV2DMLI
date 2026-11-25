@@ -130,6 +130,7 @@ I18N.registrar('es', {
     "Tipo de licença": "Tipo de licencia",
     "Arquivo (.txt)": "Archivo (.txt)",
     "Link (URL)": "Enlace (URL)",
+    "Licenças comuns": "Licencias comunes",
     "Nenhuma licença importada": "Ninguna licencia importada",
     "Importar arquivo": "Importar archivo",
     "Introdução": "Introducción",

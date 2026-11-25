@@ -1143,6 +1143,7 @@
         .modal-body { padding: 20px; overflow-y: auto; flex: 1; min-height: 0; -webkit-overflow-scrolling: touch; }
         .modal-texto { font-size: 1.02rem; line-height: 1.65; }
         .modal-texto p { margin-bottom: 12px; }
+        .licenca-tag { display: inline-block; padding: 2px 12px; border: 1px solid var(--cor-borda-forte); border-radius: var(--raio-pilula); background: var(--cor-primaria-light); color: var(--cor-texto); font-size: 0.9rem; font-weight: 700; letter-spacing: 0.02em; }
         .modal-texto ul, .modal-texto ol { margin: 12px 0 12px 22px; }
         .referencia-item {
             margin: 0 0 16px 0;
@@ -1984,6 +1985,7 @@
                 <p><strong>{{ metadados.html }}</strong></p>
                 <p><strong>Autoria e colaboração:</strong> {{ metadados.autor }}<br>
                    <strong>Versão:</strong> {{ metadados.versao }} &bull; <strong>Ano:</strong> {{ metadados.ano }}</p>
+                {{ textos.licenca_info_html | safe }}
                 {{ textos.intro_html | safe }}
             </div>
         </div>

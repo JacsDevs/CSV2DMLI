@@ -218,7 +218,7 @@
   #text(size: corpo-texto)[{{ metadados.ano }}]
   {{#LICENCA_LINK_ROSTO}}
   #v(1.5em)
-  #text(size: 8.5pt)[Licença: #link("{{ LICENCA_LINK_ROSTO }}")]
+  #text(size: 8.5pt)[Licença: {{ LICENCA_ROTULO_ROSTO }}#link("{{ LICENCA_LINK_ROSTO }}")]
   {{/LICENCA_LINK_ROSTO}}
 ]
 
