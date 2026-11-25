@@ -39,7 +39,7 @@ class ConstrutorBancoDados {
         const arquivo = this.vfs.obterArquivo(tipo, nomeArquivo);
         
         if (arquivo) {
-            if (arquivo instanceof File) {
+            if ((typeof File !== 'undefined' && arquivo instanceof File) || (typeof Blob !== 'undefined' && arquivo instanceof Blob)) {
                 return URL.createObjectURL(arquivo);
             }
             return arquivo;
@@ -229,7 +229,7 @@ class ConstrutorBancoDados {
                     const textoMatch = fonteTextos && fonteTextos[tit];
 
                     if (!textoMatch || typeof textoMatch !== 'object' || !textoMatch.titulo_base) {
-                        console.warn(`⚠️ Texto estruturado "${tit}" referenciado na planilha mas não encontrado em textos.json`);
+                        console.warn(`⚠️ Texto estruturado "${tit}" referenciado na planilha mas não encontrado nos textos carregados (textos.json / examples.csv)`);
                         return;
                     }
 
@@ -238,7 +238,7 @@ class ConstrutorBancoDados {
                     const textoFormatado = {
                         ID_TEXTO: tit,
                         TITULO_BASE: textoMatch.titulo_base,
-                        TITULO_EXIBICAO: tituloPersonalizado || '',
+                        TITULO_EXIBICAO: tituloPersonalizado || textoMatch.titulo_exibicao || '',
                         TEXTO_NAO_LITERAL: textoMatch.texto_nao_literal || '',
                         VARIACOES: []
                     };

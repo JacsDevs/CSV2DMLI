@@ -79,16 +79,13 @@ export class LeitorCLDF {
     }
 
     async lerArquivoBase(arquivo) {
-        return new Promise((resolve, reject) => {
-            const leitor = new FileReader();
-            leitor.onload = (e) => {
-                const csvData = e.target.result;
-                const parseResult = window.Papa.parse(csvData, { header: true, skipEmptyLines: true });
-                resolve(parseResult.data);
-            };
-            leitor.onerror = reject;
-            leitor.readAsText(arquivo);
-        });
+        const csvData = await this.lerArquivoComoTexto(arquivo);
+        const papa = (typeof window !== 'undefined' && window.Papa) || globalThis.Papa;
+        if (!papa) {
+            throw new Error('PapaParse não está disponível para ler tabelas CLDF.');
+        }
+        const parseResult = papa.parse(csvData, { header: true, skipEmptyLines: true });
+        return parseResult.data;
     }
 
     async lerArquivoComoTexto(arquivo) {
@@ -194,8 +191,10 @@ export class LeitorCLDF {
             amostras[col.id] = { exemplo: preenchidas.length ? String(preenchidas[0][col.id]).trim() : '', preenchidas: preenchidas.length };
         });
 
+        const gerenciador = this.gerenciador || (typeof window !== 'undefined' ? window.sistema : null);
+
         let cfgMap = {};
-        if (window.pedirMapeamentoCldf && (extraCols.length > 0 || allCols.length > 0)) {
+        if (typeof window !== 'undefined' && window.pedirMapeamentoCldf && (extraCols.length > 0 || allCols.length > 0)) {
             cfgMap = await window.pedirMapeamentoCldf(extraCols, allCols, amostras);
         }
 
@@ -226,11 +225,104 @@ export class LeitorCLDF {
         });
 
         const examplesBySense = Object.create(null);
-        examplesData.forEach(ex => {
-            if (!ex.Sense_ID) return;
-            if (!examplesBySense[ex.Sense_ID]) examplesBySense[ex.Sense_ID] = [];
-            examplesBySense[ex.Sense_ID].push(ex);
+        const textIdsBySense = Object.create(null);
+        const textosAgrupados = new Map();
+
+        examplesData.forEach((ex, rowIdx) => {
+            const textId = String(ex.Structured_Text_ID || '').trim();
+            const senseIds = String(ex.Sense_ID || '')
+                .split(',')
+                .map(id => id.trim())
+                .filter(Boolean);
+
+            if (textId) {
+                if (!textosAgrupados.has(textId)) {
+                    textosAgrupados.set(textId, {
+                        titulo_base: textId,
+                        titulo_exibicao: '',
+                        texto_nao_literal: '',
+                        variacoesMap: new Map()
+                    });
+                }
+                const grupo = textosAgrupados.get(textId);
+                const tituloLinha = String(ex.Text_Title || '').trim();
+                const naoLiteralLinha = String(ex.Text_Non_Literal || '').trim();
+                if (!grupo.titulo_exibicao && tituloLinha) grupo.titulo_exibicao = tituloLinha;
+                if (!grupo.texto_nao_literal && naoLiteralLinha) grupo.texto_nao_literal = naoLiteralLinha;
+
+                let chaveVariacao = '0';
+                if (ex.Variation_ID !== undefined && String(ex.Variation_ID).trim() !== '') {
+                    chaveVariacao = String(ex.Variation_ID).trim();
+                } else {
+                    const matchId = /^EX_TXT_.*_(\d+)_\d+$/.exec(String(ex.ID || '').trim());
+                    if (matchId) chaveVariacao = matchId[1];
+                }
+
+                if (!grupo.variacoesMap.has(chaveVariacao)) {
+                    grupo.variacoesMap.set(chaveVariacao, []);
+                }
+
+                const midiaEx = primeiraMidiaDoTipo(ex, ['audio']);
+                const exAud = midiaEx ? midiaEx.nome : '';
+                const ordemBruta = String(ex.Phrase_Order ?? '').trim();
+                const ordemNum = Number(ordemBruta);
+                const ordem = (ordemBruta !== '' && Number.isFinite(ordemNum)) ? ordemNum : Number.MAX_SAFE_INTEGER;
+
+                grupo.variacoesMap.get(chaveVariacao).push({
+                    _ordem: ordem,
+                    _rowIdx: rowIdx,
+                    texto_original: ex.Primary_Text || '',
+                    traducao: ex.Translated_Text || '',
+                    ...(exAud ? { audio: { arquivo: exAud } } : {})
+                });
+
+                senseIds.forEach(sId => {
+                    if (!textIdsBySense[sId]) textIdsBySense[sId] = [];
+                    if (!textIdsBySense[sId].includes(textId)) {
+                        textIdsBySense[sId].push(textId);
+                    }
+                });
+                return;
+            }
+
+            senseIds.forEach(sId => {
+                if (!examplesBySense[sId]) examplesBySense[sId] = [];
+                examplesBySense[sId].push(ex);
+            });
         });
+
+        const textosReconstruidos = {};
+        for (const [textId, grupo] of textosAgrupados.entries()) {
+            const entradasVariacoes = Array.from(grupo.variacoesMap.entries()).sort(([a], [b]) => {
+                const na = Number(a), nb = Number(b);
+                if (Number.isFinite(na) && Number.isFinite(nb)) return na - nb;
+                return String(a).localeCompare(String(b));
+            });
+            const textos_variacoes = entradasVariacoes.map(([chaveVar, frasesBrutas]) => {
+                frasesBrutas.sort((a, b) => (a._ordem - b._ordem) || (a._rowIdx - b._rowIdx));
+                return {
+                    id_variacao: entradasVariacoes.length > 1 ? chaveVar : '',
+                    frases: frasesBrutas.map(({ _ordem, _rowIdx, ...frase }, idx) => ({
+                        id: String(idx).padStart(2, '0'),
+                        ...frase
+                    }))
+                };
+            });
+            textosReconstruidos[textId] = {
+                titulo_base: grupo.titulo_base,
+                titulo_exibicao: grupo.titulo_exibicao || grupo.titulo_base,
+                texto_nao_literal: grupo.texto_nao_literal,
+                textos_variacoes
+            };
+        }
+
+        if (Object.keys(textosReconstruidos).length > 0 && gerenciador && gerenciador.vfs) {
+            if (typeof gerenciador.vfs.adicionarTextosEstruturados === 'function') {
+                gerenciador.vfs.adicionarTextosEstruturados(textosReconstruidos);
+            } else {
+                gerenciador.vfs.textosExtra = { ...(gerenciador.vfs.textosExtra || {}), ...textosReconstruidos };
+            }
+        }
 
         entriesData.forEach(entry => {
             const entryId = entry.ID;
@@ -292,7 +384,7 @@ export class LeitorCLDF {
 
             let entrySenses = sensesByEntry[entryId] || [];
             if (entrySenses.length === 0) {
-                entrySenses = [{ ID: 'fake', Description: entry.Description || '' }];
+                entrySenses = [{ ID: 'fake', _sintetica: true, Description: entry.Description || '' }];
             }
 
             entrySenses.forEach(sense => {
@@ -352,8 +444,26 @@ export class LeitorCLDF {
                 }
                 row.IMAGEM = fotos.join(' | ');
 
+                const idsTextoSense = [];
                 if (sense.Structured_Texts_IDs) {
-                    row.TEXTO = sense.Structured_Texts_IDs.split(',').map(id => id.trim()).join(' | ');
+                    String(sense.Structured_Texts_IDs).split(',').map(id => id.trim()).filter(Boolean).forEach(id => {
+                        if (!idsTextoSense.includes(id)) idsTextoSense.push(id);
+                    });
+                }
+                if (!sense._sintetica && sense.ID && textIdsBySense[sense.ID]) {
+                    textIdsBySense[sense.ID].forEach(id => {
+                        if (!idsTextoSense.includes(id)) idsTextoSense.push(id);
+                    });
+                }
+                if (idsTextoSense.length > 0) {
+                    row.TEXTO = idsTextoSense.join(' | ');
+                    const titulosExibicao = idsTextoSense.map(id => {
+                        const txt = textosReconstruidos[id];
+                        return (txt && txt.titulo_exibicao && txt.titulo_exibicao !== txt.titulo_base) ? txt.titulo_exibicao : '';
+                    });
+                    if (titulosExibicao.some(Boolean)) {
+                        row.TITULO_TEXTO = titulosExibicao.join(' | ');
+                    }
                 }
 
                 let entryForms = formsByEntry[entryId] || [];
@@ -486,13 +596,17 @@ export class LeitorCLDF {
         });
 
         console.log("CLDF Convertido em Planilha Virtual. Total linhas: ", dmliData.length);
-        if (window.sistema) {
-            window.sistema.dadosPlanilha = dmliData;
-            window.sistema.colunasPlanilha = Object.keys(dmliData[0] && dmliData[0].camposBasicos || {});
-            window.sistema._reconstruirBanco();
-            return { dados: dmliData, colunas: window.sistema.colunasPlanilha };
+        const colunasGeradas = Object.keys(dmliData[0] && dmliData[0].camposBasicos || {});
+        if (gerenciador) {
+            gerenciador.dadosPlanilha = dmliData;
+            gerenciador.colunasPlanilha = colunasGeradas;
+            gerenciador._reconstruirBanco();
         }
-        
-        return { dados: dmliData, colunas: [] };
+        if (typeof window !== 'undefined' && window.sistema && window.sistema !== gerenciador) {
+            window.sistema.dadosPlanilha = dmliData;
+            window.sistema.colunasPlanilha = colunasGeradas;
+            window.sistema._reconstruirBanco();
+        }
+        return { dados: dmliData, colunas: gerenciador ? gerenciador.colunasPlanilha : colunasGeradas };
     }
 }

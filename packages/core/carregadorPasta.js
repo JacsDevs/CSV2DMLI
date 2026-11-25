@@ -132,6 +132,7 @@ class CarregadorPasta {
         } else if (organizados.cldf && organizados.cldf.metadata) {
             this.formatoDetectado = 'cldf';
             console.log("Iniciando conversao de pacote CLDF...");
+            await this._completarTabelasCldfPeloMetadata(organizados.cldf);
             const leitorCldf = new LeitorCLDF(this.gerenciador);
             await leitorCldf.carregarCldf(organizados.cldf);
             this.arquivosEncontrados.planilha = organizados.cldf.metadata;
@@ -256,7 +257,8 @@ class CarregadorPasta {
                 media: null,
                 sources: null,
                 pastaBase: '',
-                caminhosMidia: []
+                caminhosMidia: [],
+                arquivosPorCaminho: new Map()
             },
             textosExtra: {
                 introHtml: null,
@@ -362,8 +364,8 @@ class CarregadorPasta {
                 resultado.planilha = arquivo;
                 console.log(`📄 Planilha encontrada: ${nomeArquivo} (na raiz)`);
             }
-            // Verificar se é arquivo de textos (na raiz)
-            else if (estaNaRaiz && nomesTextos.includes(nomeArquivo.toLowerCase())) {
+            // Verificar se é arquivo de textos (na raiz) — ignorado em pacotes CLDF (textos vêm de examples.csv)
+            else if (!isPacoteCldf && estaNaRaiz && nomesTextos.includes(nomeArquivo.toLowerCase())) {
                 resultado.textos = arquivo;
                 console.log(`📄 Textos encontrados: ${nomeArquivo}`);
             }
@@ -428,6 +430,10 @@ class CarregadorPasta {
             // Se for pacote CLDF, a mídia pode estar em qualquer lugar! (Atendendo aos requisitos do CLDF e do usuário)
             // Nesse caso o VFS indexa a mídia pelo caminho relativo completo (ex.: "cldf/media/AUDIO/x.mp3"),
             // que é o mesmo caminho resolvido a partir do Download_URL do media.csv.
+            if (isPacoteCldf) {
+                resultado.cldf.arquivosPorCaminho.set(caminhoRelativo.replace(/\\/g, '/').toLowerCase(), arquivo);
+            }
+
             if (isPacoteCldf && this._ehMidiaValida(extensao)) {
                 arquivo.caminhoRelativo = caminhoRelativo;
                 resultado.cldf.caminhosMidia.push(caminhoRelativo);
@@ -512,7 +518,48 @@ class CarregadorPasta {
     // UTILITÁRIO
     // ==========================================
 
-    _lerArquivoComoTexto(arquivo) {
+    async _completarTabelasCldfPeloMetadata(cldf) {
+        if (!cldf || !cldf.metadata || !cldf.arquivosPorCaminho) return;
+        try {
+            const textoMeta = await this._lerArquivoComoTexto(cldf.metadata);
+            const meta = JSON.parse(textoMeta);
+            if (!meta || !Array.isArray(meta.tables)) return;
+
+            const mapaTipos = {
+                entrytable: 'entries',
+                sensetable: 'senses',
+                formtable: 'forms',
+                exampletable: 'examples',
+                mediatable: 'media'
+            };
+            const base = (cldf.pastaBase || '').replace(/\\/g, '/');
+
+            for (const tabela of meta.tables) {
+                const conforms = String(tabela['dc:conformsTo'] || '').toLowerCase();
+                const url = String(tabela.url || '').replace(/\\/g, '/').trim();
+                if (!url) continue;
+                const sufixo = conforms.split('#').pop();
+                const chaveSlot = mapaTipos[sufixo];
+                if (!chaveSlot || cldf[chaveSlot]) continue;
+
+                const candidatos = [base + url, url].map(c => c.toLowerCase());
+                for (const cand of candidatos) {
+                    const arq = cldf.arquivosPorCaminho.get(cand);
+                    if (arq) {
+                        cldf[chaveSlot] = arq;
+                        break;
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('⚠️ Não foi possível inspecionar tabelas do metadata CLDF:', e);
+        }
+    }
+
+    async _lerArquivoComoTexto(arquivo) {
+        if (arquivo && typeof arquivo.text === 'function') {
+            return await arquivo.text();
+        }
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = () => resolve(reader.result);

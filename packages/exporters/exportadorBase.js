@@ -206,6 +206,15 @@ class ExportadorBase {
                         }
                     });
                 }
+                ac.TEXTOS_ESTRUTURADOS?.forEach(txt => {
+                    txt.VARIACOES?.forEach(v => {
+                        v.FRASES?.forEach(f => {
+                            if (f && f.AUDIO_ARQUIVO && !String(f.AUDIO_ARQUIVO).startsWith('data:')) {
+                                referenciadas.audio.add(f.AUDIO_ARQUIVO);
+                            }
+                        });
+                    });
+                });
             });
         }
 

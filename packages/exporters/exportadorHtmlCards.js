@@ -117,6 +117,25 @@ class ExportadorHtmlCards extends ExportadorBase {
         dados.FONETICA = this.escaparHTML(dados.FONETICA);
         dados.ITENS_RELACIONADOS = this.escaparHTML(dados.ITENS_RELACIONADOS);
         
+        const escaparTextoEstruturado = (t) => ({
+            ...t,
+            ID_TEXTO: this.escaparHTML(t.ID_TEXTO),
+            TITULO_BASE: this.escaparHTML(t.TITULO_BASE),
+            TITULO_EXIBICAO: t.TITULO_EXIBICAO ? this.escaparHTML(t.TITULO_EXIBICAO) : '',
+            TITULO_EXIBICAO_FALLBACK: this.escaparHTML(t.TITULO_EXIBICAO || t.TITULO_BASE || 'Texto'),
+            TEXTO_NAO_LITERAL: this.escaparHTML(t.TEXTO_NAO_LITERAL),
+            VARIACOES: (t.VARIACOES || []).map(v => ({
+                ...v,
+                ID_VARIACAO: this.escaparHTML(v.ID_VARIACAO),
+                FRASES: (v.FRASES || []).map(f => ({
+                    ...f,
+                    ORIGINAL: this.escaparHTML(f.ORIGINAL),
+                    TRADUCAO: this.escaparHTML(f.TRADUCAO),
+                    AUDIO_ARQUIVO: this.escaparHTML(f.AUDIO_ARQUIVO)
+                }))
+            }))
+        });
+
         dados.SIGNIFICADOS = dados.SIGNIFICADOS.map(s => ({
             ...s,
             TRADUCAO: this.escaparHTML(s.TRADUCAO),
@@ -125,27 +144,12 @@ class ExportadorHtmlCards extends ExportadorBase {
             IMAGENS: s.IMAGENS.map(i => ({ ARQUIVO: this.escaparHTML(i.ARQUIVO), LEGENDA: this.escaparHTML(i.LEGENDA) })),
             VIDEOS: s.VIDEOS.map(v => ({ ARQUIVO: this.escaparHTML(v.ARQUIVO) })),
             EXTRAS: s.EXTRAS.map(e => ({ TEXTO: this.escaparHTML(e.TEXTO) })),
-            TEM_EXTRAS: s.EXTRAS && s.EXTRAS.length > 0
+            TEM_EXTRAS: s.EXTRAS && s.EXTRAS.length > 0,
+            TEXTOS_ESTRUTURADOS: (s.TEXTOS_ESTRUTURADOS || []).map(escaparTextoEstruturado)
         }));
         
         if (dados.TEXTOS_ESTRUTURADOS) {
-            dados.TEXTOS_ESTRUTURADOS = dados.TEXTOS_ESTRUTURADOS.map(t => ({
-                ...t,
-                ID_TEXTO: this.escaparHTML(t.ID_TEXTO),
-                TITULO_BASE: this.escaparHTML(t.TITULO_BASE),
-                TITULO_EXIBICAO: t.TITULO_EXIBICAO ? this.escaparHTML(t.TITULO_EXIBICAO) : '',
-                TEXTO_NAO_LITERAL: this.escaparHTML(t.TEXTO_NAO_LITERAL),
-                VARIACOES: (t.VARIACOES || []).map(v => ({
-                    ...v,
-                    ID_VARIACAO: this.escaparHTML(v.ID_VARIACAO),
-                    FRASES: (v.FRASES || []).map(f => ({
-                        ...f,
-                        ORIGINAL: this.escaparHTML(f.ORIGINAL),
-                        TRADUCAO: this.escaparHTML(f.TRADUCAO),
-                        AUDIO_ARQUIVO: this.escaparHTML(f.AUDIO_ARQUIVO)
-                    }))
-                }))
-            }));
+            dados.TEXTOS_ESTRUTURADOS = dados.TEXTOS_ESTRUTURADOS.map(escaparTextoEstruturado);
         }
         
         if (this.templateEntrada) {

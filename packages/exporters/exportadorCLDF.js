@@ -142,25 +142,26 @@ export class ExportadorCLDF extends ExportadorBase {
         let senseContador = 1;
         let exContador = 1;
         
-        const addMedia = (url, originalName = null) => {
+        const addMedia = (url, originalName = null, vfsRef = null) => {
             if (!url) return '';
             const mId = 'M' + String(mediaContador++).padStart(4, '0');
+            const urlStr = typeof url === 'string' ? url : '';
             
-            const nameToTest = originalName || url;
+            const nameToTest = originalName || urlStr;
             const isAudio = nameToTest.includes('AUDIO/') || nameToTest.match(/\.(mp3|wav|ogg)$/i) || nameToTest.startsWith('data:audio');
             const isVideo = nameToTest.includes('VIDEO/') || nameToTest.match(/\.(mp4|avi|mov|webm)$/i) || nameToTest.startsWith('data:video');
             
             let folder = isAudio ? 'AUDIO' : (isVideo ? 'VIDEO' : 'FOTO');
             let fileName = '';
             
-            if (url.startsWith('data:')) {
+            if (urlStr.startsWith('data:')) {
                 const ext = isAudio ? 'mp3' : (isVideo ? 'mp4' : 'jpg'); 
                 fileName = 'media_' + mId + '.' + ext;
             } else if (originalName) {
                 // Remove qualquer path (ex: FOTO/imagem.jpg -> imagem.jpg)
                 fileName = originalName.split(/[\/\\]/).pop();
             } else {
-                fileName = url.split('/').pop();
+                fileName = urlStr.split('/').pop();
                 if (fileName.length > 20 && !fileName.includes('.')) {
                     fileName = 'media_' + mId + (isAudio ? '.mp3' : '.jpg');
                 }
@@ -175,6 +176,7 @@ export class ExportadorCLDF extends ExportadorBase {
                 Media_Type: isAudio ? 'audio/mpeg' : (isVideo ? 'video/mp4' : 'image/jpeg'),
                 Download_URL: relPath,
                 _ORIGINAL_URL: url,
+                _VFS_REF: vfsRef || originalName || '',
                 _FOLDER: folder,
                 _FILENAME: fileName
             });
@@ -393,18 +395,23 @@ export class ExportadorCLDF extends ExportadorBase {
                                         const formato = f.audio.formato || 'mp3';
                                         urlOrPath = f.audio.dados.startsWith('data:') ? f.audio.dados : `data:audio/${formato};base64,${f.audio.dados}`;
                                     } else if (f.audio.URL || f.audio.arquivo) {
-                                        urlOrPath = f.audio.URL || f.audio.arquivo;
+                                        const arqRef = f.audio.arquivo || '';
+                                        const vfsUrl = (arqRef && this.db && this.db.vfs && typeof this.db.vfs.obterUrl === 'function')
+                                            ? this.db.vfs.obterUrl('audio', arqRef)
+                                            : null;
+                                        urlOrPath = f.audio.URL || vfsUrl || arqRef;
                                     }
                                 }
                                 if (urlOrPath) {
-                                    let fileName = f.audio && f.audio.arquivo ? f.audio.arquivo : null;
+                                    const arqVfsFrase = f.audio && f.audio.arquivo ? f.audio.arquivo : null;
+                                    let fileName = arqVfsFrase;
                                     if (!fileName && f.arquivo_origem) {
                                         const ext = (f.audio && f.audio.formato) ? f.audio.formato : 'mp3';
                                         const baseOrigem = f.arquivo_origem.replace(/\.[^/.]+$/, "");
                                         const fraseId = f.id ? f.id : String(idx).padStart(2, '0');
                                         fileName = `${baseOrigem}_${fraseId}.${ext}`;
                                     }
-                                    mId = addMedia(urlOrPath, fileName);
+                                    mId = addMedia(urlOrPath, fileName, arqVfsFrase);
                                 }
                                 const cleanId = texto.titulo_base ? texto.titulo_base.replace(/[^a-zA-Z0-9]/g, '_') : 'UNK';
                                 const newExId = "EX_TXT_" + cleanId + "_" + vIdx + "_" + idx;
@@ -628,10 +635,20 @@ export class ExportadorCLDF extends ExportadorBase {
             for (const m of media) {
                 try {
                     let blob = null;
-                    if (m._ORIGINAL_URL.startsWith('data:')) {
+                    const tipoVfs = m._FOLDER === 'AUDIO' ? 'audio' : (m._FOLDER === 'VIDEO' ? 'video' : 'imagem');
+                    const ehDataUri = typeof m._ORIGINAL_URL === 'string' && m._ORIGINAL_URL.startsWith('data:');
+                    const refVfs = !ehDataUri ? (m._VFS_REF || (typeof m._ORIGINAL_URL === 'string' && !m._ORIGINAL_URL.startsWith('blob:') && !/^https?:\/\//i.test(m._ORIGINAL_URL) ? m._ORIGINAL_URL : '')) : '';
+                    const arqVfs = (refVfs && this.db && this.db.vfs && typeof this.db.vfs.obterArquivo === 'function')
+                        ? this.db.vfs.obterArquivo(tipoVfs, refVfs)
+                        : null;
+                    if (m._ORIGINAL_URL instanceof Blob) {
+                        blob = m._ORIGINAL_URL;
+                    } else if (arqVfs instanceof Blob) {
+                        blob = arqVfs;
+                    } else if (ehDataUri) {
                         const res = await fetch(m._ORIGINAL_URL);
                         blob = await res.blob();
-                    } else {
+                    } else if (typeof m._ORIGINAL_URL === 'string') {
                         const res = await fetch(m._ORIGINAL_URL);
                         if (res.ok) blob = await res.blob();
                     }

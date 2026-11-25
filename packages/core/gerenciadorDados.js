@@ -472,7 +472,9 @@ export default class GerenciadorDados {
                     TRADUCAO_EXEMPLO: exs.map(e => e.trad || '').join(' | '),
                     IMAGEM: imgs.map(i => i.img || '').join(' | '),
                     LEGENDA_IMAGEM: imgs.map(i => i.leg || '').join(' | '),
-                    ARQUIVO_VIDEO: cb.ARQUIVO_VIDEO || ''
+                    ARQUIVO_VIDEO: cb.ARQUIVO_VIDEO || '',
+                    TEXTO: cb.TEXTO || '',
+                    TITULO_TEXTO: cb.TITULO_TEXTO || ''
                 };
                 return linhaPlana;
             });

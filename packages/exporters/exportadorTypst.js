@@ -124,32 +124,36 @@ class ExportadorTypst extends ExportadorBase {
         dados.SEPARADOR = this.separadorPdf !== false ? true : '';
         dados.SEM_SEPARADOR = dados.SEPARADOR ? '' : true;
 
+        const escaparTextoTypst = (t) => ({
+            ...t,
+            TITULO_BASE: this.escaparTypst(t.TITULO_BASE),
+            TITULO_EXIBICAO: t.TITULO_EXIBICAO ? this.escaparTypst(t.TITULO_EXIBICAO) : '',
+            TEXTO_NAO_LITERAL: this.escaparTypst(t.TEXTO_NAO_LITERAL),
+            VARIACOES: (t.VARIACOES || []).map(v => ({
+                ...v,
+                ID_VARIACAO: this.escaparTypst(v.ID_VARIACAO),
+                FRASES: (v.FRASES || []).map(f => ({
+                    ...f,
+                    ORIGINAL: this.escaparTypst(f.ORIGINAL),
+                    TRADUCAO: this.escaparTypst(f.TRADUCAO),
+                    AUDIO_ARQUIVO: this.escaparTypst(f.AUDIO_ARQUIVO)
+                }))
+            }))
+        });
+
         dados.SIGNIFICADOS = dados.SIGNIFICADOS.map(s => ({
             ...s,
             TRADUCAO: this.escaparTypst(s.TRADUCAO),
             DESCRICAO: this.escaparTypst(s.DESCRICAO),
             EXEMPLOS: s.EXEMPLOS.map(e => ({ TRANS: this.escaparTypst(e.TRANS), TRAD: this.escaparTypst(e.TRAD) })),
-            IMAGENS: this.filtrarImagensDisponiveis(s.IMAGENS, dados.TERMO_PARENT)
+            IMAGENS: this.filtrarImagensDisponiveis(s.IMAGENS, dados.TERMO_PARENT),
+            TEXTOS_ESTRUTURADOS: (s.TEXTOS_ESTRUTURADOS || []).map(escaparTextoTypst)
         }));
         
         // Garante a compatibilidade com a chave {{#TEXTOS}} usada no HTML e nos templates
         const textosArray = dados.TEXTOS || dados.TEXTOS_ESTRUTURADOS;
         if (textosArray) {
-            dados.TEXTOS = textosArray.map(t => ({
-                ...t,
-                TITULO_BASE: this.escaparTypst(t.TITULO_BASE),
-                TEXTO_NAO_LITERAL: this.escaparTypst(t.TEXTO_NAO_LITERAL),
-                VARIACOES: (t.VARIACOES || []).map(v => ({
-                    ...v,
-                    ID_VARIACAO: this.escaparTypst(v.ID_VARIACAO),
-                    FRASES: (v.FRASES || []).map(f => ({
-                        ...f,
-                        ORIGINAL: this.escaparTypst(f.ORIGINAL),
-                        TRADUCAO: this.escaparTypst(f.TRADUCAO),
-                        AUDIO_ARQUIVO: this.escaparTypst(f.AUDIO_ARQUIVO)
-                    }))
-                }))
-            }));
+            dados.TEXTOS = textosArray.map(escaparTextoTypst);
         }
         
         if (this.templateEntrada) {

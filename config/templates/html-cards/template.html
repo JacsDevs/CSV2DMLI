@@ -2638,6 +2638,28 @@
             dados.TEM_PRONUNCIA = !!(item.FONEMICA || item.FONETICA);
             dados.TEM_VARIACOES_TRAY = dados.TEM_INFO_GERAL || dados.TEM_AUDIOS_ADICIONAIS || dados.TEM_PRONUNCIA;
             
+            const prepararTextoEstruturado = (t) => {
+                let tex = { ...t };
+                tex.TITULO_EXIBICAO_FALLBACK = tex.TITULO_EXIBICAO || tex.TITULO_BASE || "Texto";
+                tex.ID_TEXTO = tex.ID_TEXTO ? tex.ID_TEXTO.replace(/\s+/g, '_') : 'tx';
+                if (tex.VARIACOES) {
+                    tex.VARIACOES = tex.VARIACOES.map(v => {
+                        let varItem = { ...v };
+                        if (varItem.FRASES) {
+                            varItem.FRASES = varItem.FRASES.map(f => {
+                                let fr = { ...f };
+                                if (fr.AUDIO_ARQUIVO) {
+                                    fr.AUDIO_ARQUIVO = resolverMidia(fr.AUDIO_ARQUIVO.trim(), 'audio');
+                                }
+                                return fr;
+                            });
+                        }
+                        return varItem;
+                    });
+                }
+                return tex;
+            };
+
             if (item.SIGNIFICADOS && item.SIGNIFICADOS.length > 0) {
                 dados.SIGNIFICADOS = item.SIGNIFICADOS.map((sig, index) => {
                     let s = { ...sig };
@@ -2671,33 +2693,16 @@
                             ARQUIVO: resolverMidia(vid.ARQUIVO, 'video')
                         }));
                     }
+                    if (s.TEXTOS_ESTRUTURADOS && s.TEXTOS_ESTRUTURADOS.length > 0) {
+                        s.TEXTOS_ESTRUTURADOS = s.TEXTOS_ESTRUTURADOS.map(prepararTextoEstruturado);
+                    }
                     if (s.EXTRAS && s.EXTRAS.length > 0) s.TEM_EXTRAS = true;
                     return s;
                 });
             }
 
             if (item.TEXTOS_ESTRUTURADOS && item.TEXTOS_ESTRUTURADOS.length > 0) {
-                dados.TEXTOS_ESTRUTURADOS = item.TEXTOS_ESTRUTURADOS.map(t => {
-                    let tex = { ...t };
-                    tex.TITULO_EXIBICAO_FALLBACK = tex.TITULO_EXIBICAO || tex.TITULO_BASE || "Texto";
-                    tex.ID_TEXTO = tex.ID_TEXTO ? tex.ID_TEXTO.replace(/\s+/g, '_') : 'tx';
-                    if (tex.VARIACOES) {
-                        tex.VARIACOES = tex.VARIACOES.map(v => {
-                            let varItem = { ...v };
-                            if (varItem.FRASES) {
-                                varItem.FRASES = varItem.FRASES.map(f => {
-                                    let fr = { ...f };
-                                    if (fr.AUDIO_ARQUIVO) {
-                                        fr.AUDIO_ARQUIVO = resolverMidia(fr.AUDIO_ARQUIVO.trim(), 'audio');
-                                    }
-                                    return fr;
-                                });
-                            }
-                            return varItem;
-                        });
-                    }
-                    return tex;
-                });
+                dados.TEXTOS_ESTRUTURADOS = item.TEXTOS_ESTRUTURADOS.map(prepararTextoEstruturado);
             }
             
             return dados;

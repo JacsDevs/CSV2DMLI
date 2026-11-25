@@ -88,7 +88,8 @@ class ValidadorDados {
                 TRADUCAO_EXEMPLO: exs.map(e => e.trad || '').join(' | '),
                 IMAGEM: imgs.map(i => i.img || '').join(' | '),
                 LEGENDA_IMAGEM: imgs.map(i => i.leg || '').join(' | '),
-                ARQUIVO_VIDEO: cb.ARQUIVO_VIDEO || ''
+                ARQUIVO_VIDEO: cb.ARQUIVO_VIDEO || '',
+                TEXTO: cb.TEXTO || ''
             };
         });
 
@@ -141,9 +142,30 @@ class ValidadorDados {
             addReferencia(arqVideoTabela, 'ARQUIVO_VIDEO');
             addReferencia(arqImagemTabela, 'IMAGEM');
 
+            let temAudioTexto = false;
+            if (vfs && typeof vfs.obterTextoEstruturado === 'function') {
+                limparListaPipe(dic.TEXTO).forEach(tit => {
+                    const txt = vfs.obterTextoEstruturado(tit);
+                    if (!txt || !Array.isArray(txt.textos_variacoes)) return;
+                    txt.textos_variacoes.forEach(v => {
+                        (v.frases || []).forEach(f => {
+                            const arqFrase = f.audio && f.audio.arquivo ? String(f.audio.arquivo).trim() : '';
+                            if (arqFrase && !arqFrase.startsWith('data:') && !(f.audio && f.audio.dados)) {
+                                if (!arqAudioTabela.has(arqFrase)) arqAudioTabela.set(arqFrase, new Set());
+                                arqAudioTabela.get(arqFrase).add(numeroLinha);
+                                temAudioTexto = true;
+                            } else if (f.audio && f.audio.dados) {
+                                temAudioTexto = true;
+                            }
+                        });
+                    });
+                });
+            }
+
             // Entradas Vazias de Mídia
             if ((!dic["ARQUIVO_ENTRADA"] || !dic["ARQUIVO_ENTRADA"].trim()) &&
-                (!dic["ARQUIVO_SONORO_EXEMPLO"] || !dic["ARQUIVO_SONORO_EXEMPLO"].trim())) entradasSemAudio++;
+                (!dic["ARQUIVO_SONORO_EXEMPLO"] || !dic["ARQUIVO_SONORO_EXEMPLO"].trim()) &&
+                !temAudioTexto) entradasSemAudio++;
             if (!dic["IMAGEM"] || !dic["IMAGEM"].trim()) entradasSemImagem++;
             if (!dic["ARQUIVO_VIDEO"] || !dic["ARQUIVO_VIDEO"].trim()) entradasSemVideo++;
         });
