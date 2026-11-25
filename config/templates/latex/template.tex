@@ -153,6 +153,10 @@ BoldItalicFont = *bi,
 	\large \thedate \par
 	\vspace{1em}  % Espaço entre data e o elemento adicional
 	{\large Versão {{ metadados.versao }} }
+	{{#LICENCA_LINK_ROSTO}}
+	\vspace{1.5em}
+	{\small Licença: \url{ {{ LICENCA_LINK_ROSTO }} } \par}
+	{{/LICENCA_LINK_ROSTO}}
   \end{center}
   \vspace*{\fill}  % Preenche o espaço abaixo do conteúdo e assegura que fique centralizado
 }
@@ -171,6 +175,9 @@ BoldItalicFont = *bi,
 \addcontentsline{toc}{chapter}{Introdução}
 
 {{ textos.intro_pdf }}
+
+% --- Licença ---
+{{ textos.licenca_latex }}
 
 \twocolumn
 {{ corpo_dicionario }}

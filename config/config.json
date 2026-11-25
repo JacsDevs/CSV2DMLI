@@ -77,6 +77,11 @@
       "nomes": ["bibliografia.bib", "referencias.bib", "referencia.bib", "sources.bib", "references.bib"],
       "extensoes": ["bib"],
       "obrigatorio": false
+    },
+    "licenca": {
+      "nomes": ["licenca.txt", "licença.txt", "license.txt", "license", "licenca", "licença"],
+      "extensoes": ["txt"],
+      "obrigatorio": false
     }
   }
 }

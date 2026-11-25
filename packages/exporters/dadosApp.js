@@ -181,6 +181,12 @@ export function montarConfigApp(meta = {}) {
         ano,
         introducao: texto(meta.introHtml),
         referencias,
+        licenca: {
+            modo: texto(meta.licencaModo),
+            texto: texto(meta.licencaTexto),
+            url: texto(meta.licencaUrl),
+            nomeArquivo: texto(meta.nomeArquivoLicenca) || 'licenca.txt',
+        },
         citacao: citacaoLivre || citacaoPadrao,
         ordemCategorias: lista(meta.ordemCategorias).map(texto).filter(Boolean),
         tema: {

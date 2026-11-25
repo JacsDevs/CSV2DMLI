@@ -17,6 +17,7 @@ Os arquivos ficam na raiz da pasta. Só a planilha é obrigatória.
 | `logo.png` | Logo mostrado no cabeçalho do dicionário (também aceita `.jpg`, `.jpeg` e `.webp`). |
 | `icone.png` | Ícone do aplicativo. Usado também como logo quando não há `logo.png`. |
 | `bibliografia.bib` | Referências bibliográficas em BibTeX, listadas no fim do dicionário no padrão ABNT. |
+| `licenca.txt` | Documento com os termos da licença de uso (ou arquivo de texto contendo a URL da licença). |
 | `intro.md` ou `intro.txt` | Texto de introdução, exibido na página inicial e no início do PDF. |
 | `alfabeto.txt` | Alfabeto da língua para a ordenação. A chave `Alfabeto` do `configuracao.txt` tem prioridade sobre ele. |
 
@@ -26,6 +27,7 @@ Os arquivos ficam na raiz da pasta. Só a planilha é obrigatória.
 - **Pasta de áudio:** `audio`, `audios`, `som` ou `midia/audio`.
 - **Pasta de imagem:** `imagens`, `imagem`, `fotos`, `foto`, `img` ou `pictures`.
 - **Pasta de vídeo:** `video`, `videos`, `vid` ou `midia/video`.
+- **Licença:** `licenca.txt`, `licença.txt`, `license.txt`, `license`, `licenca` ou `licença`.
 
 ## Projeto CLDF
 

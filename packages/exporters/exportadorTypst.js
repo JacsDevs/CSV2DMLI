@@ -283,6 +283,27 @@ class ExportadorTypst extends ExportadorBase {
             codigo = codigo.replace(/\/\/\s*\[INTRODUCAO-INICIO\][\s\S]*?\/\/\s*\[INTRODUCAO-FIM\]/g, '');
         }
 
+        const licModo = meta.licencaModo || (this.db && this.db.licencaModo) || '';
+        const licTexto = meta.licencaTexto || (this.db && this.db.licencaTexto) || '';
+        const licUrl = meta.licencaUrl || (this.db && this.db.licencaUrl) || '';
+
+        // Folha de Rosto: link da licença (quando modo link ou url presente)
+        if ((licModo === 'link' || (!licModo && licUrl)) && licUrl.trim()) {
+            const urlSegura = licUrl.trim().replace(/["\\]/g, '\\$&');
+            codigo = codigo.replace(/\{\{#LICENCA_LINK_ROSTO\}\}([\s\S]*?)\{\{\/LICENCA_LINK_ROSTO\}\}/g, (_, inner) => {
+                return inner.replace(/\{\{\s*LICENCA_LINK_ROSTO\s*\}\}/g, urlSegura);
+            });
+        } else {
+            codigo = codigo.replace(/\{\{#LICENCA_LINK_ROSTO\}\}[\s\S]*?\{\{\/LICENCA_LINK_ROSTO\}\}/g, '');
+        }
+
+        // Seção Licença (quando modo arquivo ou texto presente)
+        if ((licModo === 'arquivo' || (!licModo && licTexto)) && String(licTexto).trim()) {
+            codigo = codigo.replace(/\{\{\s*textos\.licenca_typst\s*(\|\s*safe)?\s*\}\}/gi, String(licTexto).trim());
+        } else {
+            codigo = codigo.replace(/\/\/\s*\[LICENCA-INICIO\][\s\S]*?\/\/\s*\[LICENCA-FIM\]/g, '');
+        }
+
         codigo = codigo.replace(/\{\{\s*metadados\.html\s*\}\}/gi, meta.tituloHtml || titulo)
                        .replace(/\{\{\s*metadados\.titulo\s*\}\}/gi, titulo)
                        .replace(/\{\{\s*metadados\.pdf\s*\}\}/gi, titulo)

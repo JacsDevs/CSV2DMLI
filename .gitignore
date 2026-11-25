@@ -51,3 +51,6 @@ android-template-nativo/gradle/wrapper/gradle-wrapper.jar
 
 # Playwright CLI (snapshots locais)
 .playwright-cli/
+
+# Scratch scripts
+scratch/

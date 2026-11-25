@@ -1717,6 +1717,7 @@
             <button class="app-bar-btn" onclick="abrirModalGlobal('modal-info')">Informações</button>
             <button class="app-bar-btn" onclick="abrirModalGlobal('modal-citar')">Como citar</button>
             <button class="app-bar-btn btn-referencias" onclick="abrirModalGlobal('modal-referencias')">Referências</button>
+            <button class="app-bar-btn btn-licenca" onclick="abrirModalGlobal('modal-licenca')">Licença</button>
             <button class="app-bar-btn" type="button" onclick="abrirPainelAcessibilidade()" aria-haspopup="dialog" style="display: inline-flex; align-items: center; gap: 8px;">
                 <svg class="icone icone-sm" aria-hidden="true"><use href="#ic-acessibilidade"></use></svg>Acessibilidade
             </button>
@@ -1962,6 +1963,7 @@
             <button type="button" class="linha-sheet" onclick="fecharBottomSheet(); abrirModalGlobal('modal-info')"><span>Informações e introdução</span><svg class="icone icone-sm" aria-hidden="true"><use href="#ic-seta-direita"></use></svg></button>
             <button type="button" class="linha-sheet" onclick="fecharBottomSheet(); abrirModalGlobal('modal-citar')"><span>Como citar</span><svg class="icone icone-sm" aria-hidden="true"><use href="#ic-seta-direita"></use></svg></button>
             <button type="button" class="linha-sheet btn-referencias" onclick="fecharBottomSheet(); abrirModalGlobal('modal-referencias')"><span>Referências</span><svg class="icone icone-sm" aria-hidden="true"><use href="#ic-seta-direita"></use></svg></button>
+            <button type="button" class="linha-sheet btn-licenca" onclick="fecharBottomSheet(); abrirModalGlobal('modal-licenca')"><span>Licença</span><svg class="icone icone-sm" aria-hidden="true"><use href="#ic-seta-direita"></use></svg></button>
         </div>
 
         <div class="creditos-csv2dmli">
@@ -2014,6 +2016,20 @@
             </div>
             <div class="modal-body modal-texto" id="modal-referencias-corpo">
                 {{ textos.referencias_html | safe }}
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal-licenca" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-licenca">
+        <div class="modal-conteudo">
+            <div class="modal-header">
+                <button class="modal-fechar" onclick="fecharModalGlobal('modal-licenca')" aria-label="Fechar">
+                    <svg class="icone"><use href="#ic-fechar"></use></svg>
+                </button>
+                <div class="modal-header-titulo"><h2 id="titulo-modal-licenca">Licença</h2></div>
+            </div>
+            <div class="modal-body modal-texto" id="modal-licenca-corpo">
+                {{ textos.licenca_html | safe }}
             </div>
         </div>
     </div>
@@ -4829,6 +4845,13 @@
             const corpoReferencias = document.getElementById('modal-referencias-corpo');
             if (!corpoReferencias || !corpoReferencias.textContent.trim()) {
                 document.querySelectorAll('.btn-referencias').forEach(btn => btn.style.display = 'none');
+            }
+
+            // Esconde o(s) botão(ões) de Licença quando o dicionário não tem
+            // licença cadastrada (corpo do modal fica vazio).
+            const corpoLicenca = document.getElementById('modal-licenca-corpo');
+            if (!corpoLicenca || !corpoLicenca.textContent.trim()) {
+                document.querySelectorAll('.btn-licenca').forEach(btn => btn.style.display = 'none');
             }
 
             inicializarPreferencias();

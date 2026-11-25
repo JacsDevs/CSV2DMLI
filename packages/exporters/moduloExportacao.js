@@ -66,6 +66,13 @@ export default class ModuloExportacao {
             }
         }
 
+        const licModoTypst = (opcoes.metadados && opcoes.metadados.licencaModo) || (this.gerenciador && this.gerenciador.licencaModo);
+        const licTextoTypst = (opcoes.metadados && opcoes.metadados.licencaTexto) || (this.gerenciador && this.gerenciador.licencaTexto);
+        if ((licModoTypst === 'arquivo' || (!licModoTypst && licTextoTypst)) && licTextoTypst) {
+            const nomeLic = (opcoes.metadados && opcoes.metadados.nomeArquivoLicenca) || (this.gerenciador && this.gerenciador.nomeArquivoLicenca) || 'licenca.txt';
+            zip.file(nomeLic, licTextoTypst);
+        }
+
         const dependencias = ['in-dexter.typ', 'cmarker.typ'];
         for (const dep of dependencias) {
             try {
@@ -120,6 +127,13 @@ export default class ModuloExportacao {
         if (conteudoBib) {
             const nomeBib = (opcoes.metadados && opcoes.metadados.nomeArquivoBib) || (this.gerenciador && this.gerenciador.nomeArquivoBib) || 'bibliografia.bib';
             zip.file(nomeBib, conteudoBib);
+        }
+
+        const licModoLatex = (opcoes.metadados && opcoes.metadados.licencaModo) || (this.gerenciador && this.gerenciador.licencaModo);
+        const licTextoLatex = (opcoes.metadados && opcoes.metadados.licencaTexto) || (this.gerenciador && this.gerenciador.licencaTexto);
+        if ((licModoLatex === 'arquivo' || (!licModoLatex && licTextoLatex)) && licTextoLatex) {
+            const nomeLic = (opcoes.metadados && opcoes.metadados.nomeArquivoLicenca) || (this.gerenciador && this.gerenciador.nomeArquivoLicenca) || 'licenca.txt';
+            zip.file(nomeLic, licTextoLatex);
         }
         
         if (resultado.imagens.length > 0) {

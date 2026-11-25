@@ -352,6 +352,25 @@ class ExportadorHtmlCards extends ExportadorBase {
             }
         }
 
+        let licencaHtml = '';
+        const licModo = meta.licencaModo || (this.gerenciador && this.gerenciador.licencaModo) || '';
+        const licTexto = meta.licencaTexto || (this.gerenciador && this.gerenciador.licencaTexto) || '';
+        const licUrl = meta.licencaUrl || (this.gerenciador && this.gerenciador.licencaUrl) || '';
+
+        if (licModo === 'arquivo' || (!licModo && licTexto)) {
+            if (licTexto.trim()) {
+                licencaHtml = licTexto
+                    .split(/\r?\n\r?\n/)
+                    .map(p => `<p>${this.escaparHTML(p.trim()).replace(/\r?\n/g, '<br>')}</p>`)
+                    .join('\n');
+            }
+        } else if (licModo === 'link' || (!licModo && licUrl)) {
+            if (licUrl.trim()) {
+                const urlSegura = this.escaparHTML(licUrl.trim());
+                licencaHtml = `<p><a href="${urlSegura}" target="_blank" rel="noopener noreferrer">${urlSegura}</a></p>`;
+            }
+        }
+
         const tema = meta.tema || null;
         const temaOverrideClaro = this.gerarBlocoTemaCSS(tema && tema.light, ':root');
         const temaOverrideEscuro = this.gerarBlocoTemaCSS(tema && tema.dark, 'html[data-tema="escuro"]');
@@ -370,6 +389,7 @@ class ExportadorHtmlCards extends ExportadorBase {
             .replace(/\{\{\s*metadados\.ano\s*\}\}/gi, ano)
             .replace(/\{\{\s*textos\.intro_html\s*(\|\s*safe)?\s*\}\}/gi, meta.introHtml || '')
             .replace(/\{\{\s*textos\.referencias_html\s*(\|\s*safe)?\s*\}\}/gi, referenciasHtml)
+            .replace(/\{\{\s*textos\.licenca_html\s*(\|\s*safe)?\s*\}\}/gi, licencaHtml)
             .replace(/\{\{\s*estilos_globais\s*(\|\s*safe)?\s*\}\}/gi, this.estilosGlobais || '')
             .replace(/\{\{\s*tema\.override_claro\s*(\|\s*safe)?\s*\}\}/gi, temaOverrideClaro)
             .replace(/\{\{\s*tema\.override_escuro\s*(\|\s*safe)?\s*\}\}/gi, temaOverrideEscuro)

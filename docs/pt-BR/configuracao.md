@@ -27,6 +27,7 @@ Versao=1.0
 | `Ano` | Ano de publicação. |
 | `Versao` | Versão do dicionário. Vazio, vale 1.0. |
 | `Subtitulo` | Subtítulo da capa do PDF. |
+| `Licenca` | Endereço web (URL) da licença de uso (ex.: `https://creativecommons.org/licenses/by/4.0/`). Também aceita `Licenca-Link`. Para incluir o texto integral da licença em vez de link, coloque o arquivo `licenca.txt` na pasta. |
 
 ## Como citar
 

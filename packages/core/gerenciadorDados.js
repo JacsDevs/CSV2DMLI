@@ -30,6 +30,10 @@ export default class GerenciadorDados {
         this.referencia = '';
         this.bibliografiaBib = '';
         this.nomeArquivoBib = 'bibliografia.bib';
+        this.licencaModo = '';
+        this.licencaTexto = '';
+        this.nomeArquivoLicenca = 'licenca.txt';
+        this.licencaUrl = '';
         this.alfabetoCustomizado = '';
         // Ícone do app (launcher Android e ficha da Play Store): quadrado, 512×512
         this.icone = { dataUrl: null, bytes: null, nome: null };
@@ -299,6 +303,39 @@ export default class GerenciadorDados {
         this.bibliografiaBib = conteudo || '';
         this.nomeArquivoBib = nomeArquivo || 'bibliografia.bib';
     }
+    setLicencaTexto(conteudo, nomeArquivo = 'licenca.txt') {
+        const textoLimpo = (conteudo || '').trim();
+        if (!textoLimpo) {
+            this.limparLicenca();
+            return;
+        }
+        // Se for um arquivo de texto de linha única contendo exclusivamente uma URL web, assume modo link
+        if (/^https?:\/\/\S+$/i.test(textoLimpo) && !textoLimpo.includes('\n')) {
+            this.setLicencaUrl(textoLimpo);
+            return;
+        }
+        this.licencaModo = 'arquivo';
+        this.licencaTexto = conteudo;
+        this.nomeArquivoLicenca = nomeArquivo || 'licenca.txt';
+        this.licencaUrl = '';
+    }
+    setLicencaUrl(url) {
+        const urlLimpa = (url || '').trim();
+        if (!urlLimpa) {
+            this.limparLicenca();
+            return;
+        }
+        this.licencaModo = 'link';
+        this.licencaUrl = urlLimpa;
+        this.licencaTexto = '';
+        this.nomeArquivoLicenca = 'licenca.txt';
+    }
+    limparLicenca() {
+        this.licencaModo = '';
+        this.licencaTexto = '';
+        this.licencaUrl = '';
+        this.nomeArquivoLicenca = 'licenca.txt';
+    }
     obterReferenciasAbnt(formato = 'html') {
         return renderizarReferenciasAbnt(this.bibliografiaBib, formato);
     }
@@ -406,6 +443,10 @@ export default class GerenciadorDados {
         if (projeto.referencia) this.referencia = projeto.referencia;
         if (projeto.bibliografiaBib) this.bibliografiaBib = projeto.bibliografiaBib;
         if (projeto.nomeArquivoBib) this.nomeArquivoBib = projeto.nomeArquivoBib;
+        if (projeto.licencaModo) this.licencaModo = projeto.licencaModo;
+        if (projeto.licencaTexto) this.licencaTexto = projeto.licencaTexto;
+        if (projeto.nomeArquivoLicenca) this.nomeArquivoLicenca = projeto.nomeArquivoLicenca;
+        if (projeto.licencaUrl) this.licencaUrl = projeto.licencaUrl;
         if (projeto.alfabetoCustomizado) this.alfabetoCustomizado = projeto.alfabetoCustomizado;
         if (projeto.citacao) this.configurador.mesclarConfigLocal({ metadados: { citacao: projeto.citacao } });
         this._reconstruirBanco();
@@ -434,6 +475,10 @@ export default class GerenciadorDados {
         this.referencia = '';
         this.bibliografiaBib = '';
         this.nomeArquivoBib = 'bibliografia.bib';
+        this.licencaModo = '';
+        this.licencaTexto = '';
+        this.nomeArquivoLicenca = 'licenca.txt';
+        this.licencaUrl = '';
         this.alfabetoCustomizado = '';
         this.vfs.limpar();
         console.log('🧹 Dados limpos com sucesso.');
@@ -490,6 +535,10 @@ export default class GerenciadorDados {
                 referencia: this.referencia,
                 bibliografiaBib: this.bibliografiaBib,
                 nomeArquivoBib: this.nomeArquivoBib,
+                licencaModo: this.licencaModo,
+                licencaTexto: this.licencaTexto,
+                nomeArquivoLicenca: this.nomeArquivoLicenca,
+                licencaUrl: this.licencaUrl,
                 alfabetoCustomizado: this.alfabetoCustomizado,
                 citacao: this.configurador.getConfig().metadados?.citacao,
                 geradoEm: new Date().toISOString()

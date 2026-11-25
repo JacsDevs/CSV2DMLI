@@ -113,6 +113,32 @@ export class LeitorCLDF {
             }
         }
         
+        if (arquivosCldf.license && this.gerenciador && !this.gerenciador.licencaModo) {
+            try {
+                const conteudoLicenca = await this.lerArquivoComoTexto(arquivosCldf.license);
+                this.gerenciador.setLicencaTexto(conteudoLicenca, arquivosCldf.license.name || 'LICENSE.txt');
+                console.log('📜 Licença CLDF carregada a partir de', arquivosCldf.license.name);
+            } catch (err) {
+                console.warn('⚠️ Falha ao carregar arquivo de licença do CLDF:', err);
+            }
+        } else if (metadata && this.gerenciador && !this.gerenciador.licencaModo) {
+            try {
+                const textoMeta = await this.lerArquivoComoTexto(metadata);
+                const parsedMeta = JSON.parse(textoMeta);
+                const dcLicense = parsedMeta['dc:license'];
+                if (dcLicense) {
+                    if (/^https?:\/\//i.test(dcLicense.trim())) {
+                        this.gerenciador.setLicencaUrl(dcLicense.trim());
+                    } else {
+                        this.gerenciador.setLicencaTexto(dcLicense.trim(), 'LICENSE.txt');
+                    }
+                    console.log('📜 Licença CLDF carregada a partir do dc:license do metadata:', dcLicense);
+                }
+            } catch (err) {
+                console.warn('⚠️ Falha ao inspecionar dc:license do metadata CLDF:', err);
+            }
+        }
+        
         let entriesData = [];
         let sensesData = [];
         let formsData = [];
