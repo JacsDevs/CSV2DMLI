@@ -27,6 +27,7 @@ Versao=1.0
 | `Ano` | Ano de publicação. |
 | `Versao` | Versão do dicionário. Vazio, vale 1.0. |
 | `Subtitulo` | Subtítulo da capa do PDF. |
+| `Licenca` | Endereço web (URL) da licença de uso (ex.: `https://creativecommons.org/licenses/by/4.0/`) ou a tag de uma licença Creative Commons: `CC BY 4.0`, `CC BY-SA 4.0`, `CC BY-NC 4.0`, `CC BY-NC-SA 4.0`, `CC BY-ND 4.0`, `CC BY-NC-ND 4.0` ou `CC0 1.0`. Com tag, o dicionário mostra o nome da licença junto ao link. Também aceita `Licenca-Link`. Para incluir o texto integral da licença em vez de link, coloque o arquivo `licenca.txt` na pasta. |
 
 ## Como citar
 

@@ -1,5 +1,6 @@
 import ExportadorBase from './exportadorBase.js';
 import { converterMarkdownParaLatex } from './conversorMarkdownLatex.js';
+import { identificarLicenca } from '../core/licencas.js';
 
 class ExportadorLatex extends ExportadorBase {
     constructor(gerenciadorDados) {
@@ -169,6 +170,28 @@ class ExportadorLatex extends ExportadorBase {
             ? `\\chapter*{Referências Bibliográficas}\n\\addcontentsline{toc}{chapter}{Referências Bibliográficas}\n\\nocite{*}\n\\bibliographystyle{plain}\n\\bibliography{${nomeBibBase}}`
             : '';
 
+        const licModo = meta.licencaModo || (this.db && this.db.licencaModo) || '';
+        const licTexto = meta.licencaTexto || (this.db && this.db.licencaTexto) || '';
+        const licUrl = meta.licencaUrl || (this.db && this.db.licencaUrl) || '';
+
+        // Folha de rosto (link)
+        if ((licModo === 'link' || (!licModo && licUrl)) && licUrl.trim()) {
+            const conhecida = identificarLicenca(licUrl);
+            const rotulo = conhecida ? `${this.escaparLatex(conhecida.rotulo)} -- ` : '';
+            codigo = codigo.replace(/\{\{#LICENCA_LINK_ROSTO\}\}([\s\S]*?)\{\{\/LICENCA_LINK_ROSTO\}\}/g, (_, inner) => {
+                return inner.replace(/\{\{\s*LICENCA_ROTULO_ROSTO\s*\}\}/g, () => rotulo)
+                    .replace(/\{\{\s*LICENCA_LINK_ROSTO\s*\}\}/g, () => licUrl.trim());
+            });
+        } else {
+            codigo = codigo.replace(/\{\{#LICENCA_LINK_ROSTO\}\}[\s\S]*?\{\{\/LICENCA_LINK_ROSTO\}\}/g, '');
+        }
+
+        // Seção Licença (texto .txt)
+        let blocoLicencaLatex = '';
+        if ((licModo === 'arquivo' || (!licModo && licTexto)) && String(licTexto).trim()) {
+            blocoLicencaLatex = `\\chapter*{Licença}\n\\addcontentsline{toc}{chapter}{Licença}\n\n${converterMarkdownParaLatex(String(licTexto).trim())}`;
+        }
+
         // Limpar metadados para latex (escapar os que são diretos)
         const tituloEscapado = this.escaparLatex(titulo);
         const autorEscapado = this.escaparLatex(autor);
@@ -181,6 +204,7 @@ class ExportadorLatex extends ExportadorBase {
                        .replace(/\{\{\s*metadados\.versao\s*\}\}/gi, this.escaparLatex(versao))
                        .replace(/\{\{\s*textos\.intro_pdf\s*\}\}/gi, introLatex)
                        .replace(/\{\{\s*textos\.referencias_latex\s*(\|\s*safe)?\s*\}\}/gi, blocoReferenciasLatex)
+                       .replace(/\{\{\s*textos\.licenca_latex\s*(\|\s*safe)?\s*\}\}/gi, blocoLicencaLatex)
                        .replace(/\{\{\s*corpo_dicionario\s*(\|\s*safe)?\s*\}\}/gi, corpo);
 
         // RegEx varredor: apaga quaisquer marcadores órfãos que não foram preenchidos

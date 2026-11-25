@@ -216,6 +216,10 @@
   #text(size: corpo-texto, style: "italic")[Versão {{ metadados.versao }}]
   #v(2fr)
   #text(size: corpo-texto)[{{ metadados.ano }}]
+  {{#LICENCA_LINK_ROSTO}}
+  #v(1.5em)
+  #text(size: 8.5pt)[Licença: {{ LICENCA_ROTULO_ROSTO }}#link("{{ LICENCA_LINK_ROSTO }}")]
+  {{/LICENCA_LINK_ROSTO}}
 ]
 
 
@@ -260,6 +264,20 @@
   #render(texto_markdown.text)
 ]
 // [INTRODUCAO-FIM]
+
+// [LICENCA-INICIO] Licença (uma coluna). O ExportadorTypst remove este
+// trecho quando não há licença em arquivo de texto importada
+#nova-secao()
+= Licença
+#let texto_licenca = ```
+{{ textos.licenca_typst }}
+```
+
+#[
+  #set par(first-line-indent: 1em)
+  #render(texto_licenca.text)
+]
+// [LICENCA-FIM]
 
 // ============================================
 // 4. DICIONÁRIO (DUAS COLUNAS, PALAVRAS-GUIA NO CABEÇALHO)

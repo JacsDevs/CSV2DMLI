@@ -631,6 +631,20 @@ export class ExportadorCLDF extends ExportadorBase {
             cldfFolder.file("cldf-metadata.json", JSON.stringify(metadata, null, 2));
         }
 
+        const licModo = (opcoes.metadados && opcoes.metadados.licencaModo) || (this.db && this.db.licencaModo);
+        const licTexto = (opcoes.metadados && opcoes.metadados.licencaTexto) || (this.db && this.db.licencaTexto);
+        const licUrl = (opcoes.metadados && opcoes.metadados.licencaUrl) || (this.db && this.db.licencaUrl);
+        const licNome = (opcoes.metadados && opcoes.metadados.nomeArquivoLicenca) || (this.db && this.db.nomeArquivoLicenca) || 'LICENSE.txt';
+
+        if ((licModo === 'arquivo' || (!licModo && licTexto)) && licTexto) {
+            metadata["dc:license"] = licNome;
+            cldfFolder.file(licNome, licTexto);
+            cldfFolder.file("cldf-metadata.json", JSON.stringify(metadata, null, 2));
+        } else if ((licModo === 'link' || (!licModo && licUrl)) && licUrl) {
+            metadata["dc:license"] = licUrl.trim();
+            cldfFolder.file("cldf-metadata.json", JSON.stringify(metadata, null, 2));
+        }
+
         if (media.length > 0) {
             for (const m of media) {
                 try {
@@ -670,17 +684,21 @@ export class ExportadorCLDF extends ExportadorBase {
 
         const zipContent = await zip.generateAsync({ type: "blob" });
         
-        const url = URL.createObjectURL(zipContent);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = nomeArquivoSaida;
-        document.body.appendChild(a);
-        a.click();
+        if (typeof document !== 'undefined' && typeof URL !== 'undefined' && URL.createObjectURL) {
+            const url = URL.createObjectURL(zipContent);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = nomeArquivoSaida;
+            document.body.appendChild(a);
+            a.click();
+            
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+        }
         
-        setTimeout(() => {
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }, 100);
+        return zipContent;
         
         return zipContent;
     }

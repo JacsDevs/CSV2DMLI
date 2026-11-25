@@ -30,6 +30,10 @@ class ExportadorZip {
         if (this.db.referencia) {
             zip.file('referencia.txt', this.db.referencia);
         }
+        if ((this.db.licencaModo === 'arquivo' || (!this.db.licencaModo && this.db.licencaTexto)) && this.db.licencaTexto) {
+            const nomeLic = this.db.nomeArquivoLicenca || 'licenca.txt';
+            zip.file(nomeLic, this.db.licencaTexto);
+        }
 
         // 3. Empacotar todas as mídias mantendo a estrutura de pastas
         if (this.db.vfs) {

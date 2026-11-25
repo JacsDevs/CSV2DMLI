@@ -39,6 +39,10 @@ export function interpretarConfiguracaoTxt(conteudo) {
         'citacao-local': v => { citacao.local = v; },
         'citacao-editor': v => { citacao.editor = v; },
         'citacao-link': v => { citacao.link = v; },
+        'licenca': v => { config.metadados.licencaUrl = v; },
+        'licenca-link': v => { config.metadados.licencaUrl = v; },
+        'link da licenca': v => { config.metadados.licencaUrl = v; },
+        'licenca (link)': v => { config.metadados.licencaUrl = v; },
         // Sem lista (vazio ou "padrao"), vale a ordem alfabética das categorias
         'ordem das categorias': v => {
             if (v && normalizarChave(v) !== 'padrao') config.organizacao.ordemCategorias = separarNomes(v);
@@ -85,6 +89,7 @@ class CarregadorPasta {
             icone: null,
             logo: null,
             bibliografia: null,
+            licenca: null,
             cldf: {
                 metadata: null,
                 entries: null,
@@ -92,7 +97,8 @@ class CarregadorPasta {
                 forms: null,
                 examples: null,
                 media: null,
-                sources: null
+                sources: null,
+                license: null
             },
             textosExtra: {
                 introHtml: null,
@@ -208,6 +214,22 @@ class CarregadorPasta {
                 window.atualizarUIReferencia();
             }
         }
+        if (organizados.licenca) {
+            await this._carregarTextoGenerico(organizados.licenca, conteudo => {
+                this.gerenciador.setLicencaTexto(conteudo, organizados.licenca.name);
+            });
+            this.arquivosEncontrados.licenca = organizados.licenca;
+            if (typeof window !== 'undefined' && window.atualizarUILicenca) {
+                window.atualizarUILicenca();
+            }
+        }
+        const licencaUrlMeta = this.configurador.getConfig().metadados?.licencaUrl || this.configurador.getConfig().metadados?.licenca;
+        if (!this.gerenciador.licencaModo && licencaUrlMeta) {
+            this.gerenciador.setLicencaUrl(licencaUrlMeta);
+            if (typeof window !== 'undefined' && window.atualizarUILicenca) {
+                window.atualizarUILicenca();
+            }
+        }
         if (organizados.textosExtra.alfabeto) {
             await this._carregarTextoGenerico(organizados.textosExtra.alfabeto, conteudo => this.gerenciador.setAlfabetoCustomizado(conteudo));
             this.arquivosEncontrados.textosExtra.alfabeto = organizados.textosExtra.alfabeto;
@@ -253,6 +275,7 @@ class CarregadorPasta {
             icone: null,
             logo: null,
             bibliografia: null,
+            licenca: null,
             cldf: {
                 metadata: null,
                 entries: null,
@@ -261,6 +284,7 @@ class CarregadorPasta {
                 examples: null,
                 media: null,
                 sources: null,
+                license: null,
                 pastaBase: '',
                 caminhosMidia: [],
                 arquivosPorCaminho: new Map()
@@ -315,6 +339,7 @@ class CarregadorPasta {
         const nomesMetadados = this.configurador.getNomesArquivo('metadados');
         const nomesIcone = this.configurador.getNomesArquivo('icone');
         const nomesLogo = this.configurador.getNomesArquivo('logo');
+        const nomesLicenca = (this.configurador && this.configurador.getNomesArquivo('licenca')) || ['licenca.txt', 'licença.txt', 'license.txt', 'license', 'licenca', 'licença'];
 
         for (const arquivo of arquivosLista) {
             const caminhoCompleto = arquivo.caminhoPersonalizado || arquivo.webkitRelativePath || arquivo.name;
@@ -360,6 +385,10 @@ class CarregadorPasta {
                 resultado.cldf.sources = arquivo;
                 if (!resultado.bibliografia) resultado.bibliografia = arquivo;
                 console.log(`📚 Bibliografia CLDF encontrada: ${nomeArquivo}`);
+            } else if (caminhoRelativo.toLowerCase().includes('license') || (isPacoteCldf && nomesLicenca.includes(nomeArquivo.toLowerCase()))) {
+                resultado.cldf.license = arquivo;
+                if (!resultado.licenca) resultado.licenca = arquivo;
+                console.log(`📜 Licença CLDF encontrada: ${nomeArquivo}`);
             } else if (estaNaRaiz && nomeArquivo.toLowerCase() === 'projeto.json') {
                 resultado.projeto = arquivo;
                 console.log(`📥 Projeto JSON de recuperação encontrado: ${nomeArquivo}`);
@@ -418,6 +447,10 @@ class CarregadorPasta {
                     resultado.bibliografia = arquivo;
                 }
                 console.log(`📚 Arquivo de bibliografia BibTeX encontrado: ${nomeArquivo}`);
+            }
+            else if (estaNaRaiz && nomesLicenca.includes(nomeArquivo.toLowerCase())) {
+                resultado.licenca = arquivo;
+                console.log(`📜 Arquivo de licença encontrado: ${nomeArquivo}`);
             }
             
             // O usuário solicitou que mídias em subpastas sejam ignoradas PARA ARQUIVOS PADRÃO (DMLI).
@@ -583,6 +616,7 @@ class CarregadorPasta {
         console.log(`   - Ícone do app: ${organizados.icone ? '✅' : '❌'}`);
         console.log(`   - Logo do projeto: ${organizados.logo ? '✅' : '❌'}`);
         console.log(`   - Bibliografia (.bib): ${organizados.bibliografia ? '✅ (' + organizados.bibliografia.name + ')' : '❌'}`);
+        console.log(`   - Licença: ${organizados.licenca ? '✅ (' + organizados.licenca.name + ')' : '❌'}`);
         console.log(`   - Áudios: ${organizados.audio.length} arquivos`);
         console.log(`   - Imagens: ${organizados.imagem.length} arquivos`);
         console.log(`   - Vídeos: ${organizados.video.length} arquivos`);

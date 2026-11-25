@@ -564,6 +564,15 @@
         .segmentado-botoes button:hover { background: var(--bg-card); }
         .segmentado-botoes button[aria-pressed="true"] { background: var(--bg-card); color: var(--text-main); box-shadow: 0 1px 2px rgb(15 23 42 / 0.12); }
 
+        /* Tags de licenças comuns (painel Link da licença) */
+        .licenca-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+        .licenca-tags button {
+            min-height: 32px; padding: 0 12px; border: 1px solid var(--border-strong); border-radius: var(--radius-pill);
+            background: var(--bg-card); color: var(--text-strong); font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+        }
+        .licenca-tags button:hover { background: var(--bg-secondary); }
+        .licenca-tags button[aria-pressed="true"] { border-color: var(--primary); background: var(--primary); color: #ffffff; }
+
         .editor-icone-fundo { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
         .editor-icone-fundo .campo-rotulo { margin-right: 4px; }
         .cor-pronta { width: 36px; height: 36px; border: 1px solid var(--border-strong); border-radius: var(--radius-pill); cursor: pointer; }
@@ -1100,6 +1109,38 @@
                                     <button type="button" class="btn-secundario" id="btnMetaReferenciaRemover" hidden onclick="metaReferenciaRemover()" data-i18n>Remover</button>
                                 </div>
                                 <input type="file" id="inputMetaReferencia" accept=".bib,text/plain" hidden onchange="metaReferenciaSelecionar(this.files[0])">
+                            </div>
+
+                            <!-- Licença de uso (.txt ou Link) -->
+                            <div class="info-cartao">
+                                <h3 data-i18n>Licença de uso <span class="campo-opcional" data-i18n>(opcional)</span></h3>
+                                <span class="campo-ajuda" data-i18n="html">Documento de termos de uso ou endereço web da licença. Detectado se houver <code>licenca.txt</code> na raiz ou <code>Licenca=...</code> em <code>configuracao.txt</code>.</span>
+                                <div class="segmentado-botoes" role="group" aria-label="Tipo de licença" data-i18n-attr="aria-label" style="margin: 8px 0;">
+                                    <button type="button" id="btnLicencaModoArquivo" class="ativo" data-modo="arquivo" aria-pressed="true" onclick="window.alternarModoUILicenca('arquivo')" data-i18n>Arquivo (.txt)</button>
+                                    <button type="button" id="btnLicencaModoLink" data-modo="link" aria-pressed="false" onclick="window.alternarModoUILicenca('link')" data-i18n>Link (URL)</button>
+                                </div>
+                                
+                                <div id="painelLicencaArquivo">
+                                    <span class="info-cartao-status" id="metaLicencaStatus" data-i18n>Nenhuma licença importada</span>
+                                    <div class="info-cartao-acoes">
+                                        <button type="button" class="btn-secundario" onclick="document.getElementById('inputMetaLicenca').click()" data-i18n>
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"></path><path d="M4 20h16"></path></svg>
+                                            Importar arquivo
+                                        </button>
+                                        <button type="button" class="btn-secundario" id="btnMetaLicencaRemover" hidden onclick="metaLicencaRemover()" data-i18n>Remover</button>
+                                    </div>
+                                    <input type="file" id="inputMetaLicenca" accept=".txt,text/plain" hidden onchange="metaLicencaSelecionar(this.files[0])">
+                                </div>
+
+                                <div id="painelLicencaLink" style="display:none;">
+                                    <div class="licenca-tags" id="metaLicencaTags" role="group" aria-label="Licenças comuns" data-i18n-attr="aria-label"></div>
+                                    <div class="campo" style="margin-top: 6px;">
+                                        <input type="url" id="metaLicencaUrl" class="campo-entrada" placeholder="https://creativecommons.org/licenses/by/4.0/" oninput="metaLicencaUrlAlterar(this.value)" onchange="window.atualizarUILicenca()">
+                                    </div>
+                                    <div class="info-cartao-acoes" style="margin-top: 6px;">
+                                        <button type="button" class="btn-secundario" id="btnMetaLicencaUrlRemover" hidden onclick="metaLicencaRemover()" data-i18n>Remover</button>
+                                    </div>
+                                </div>
                             </div>
                             </div>
                         </div>
@@ -2519,6 +2560,7 @@
     import { processarLogo, recortarLogoOriginal } from './packages/core/iconeUtil.js';
     import { abrirEditorLogo } from './packages/ui/editorLogo.js';
     import { montarPartesCitacao } from './packages/exporters/dadosApp.js';
+    import { LICENCAS_CONHECIDAS, identificarLicenca } from './packages/core/licencas.js';
 
     
     // 1. Criar instâncias do sistema modular
@@ -2978,6 +3020,114 @@
         window.atualizarUIReferencia();
     };
 
+    // Licença de uso (.txt ou Link)
+    window._licencaModoUI = 'arquivo';
+    window.alternarModoUILicenca = function(modo) {
+        window._licencaModoUI = modo === 'link' ? 'link' : 'arquivo';
+        const btnArq = document.getElementById('btnLicencaModoArquivo');
+        const btnLink = document.getElementById('btnLicencaModoLink');
+        const pnlArq = document.getElementById('painelLicencaArquivo');
+        const pnlLink = document.getElementById('painelLicencaLink');
+        if (btnArq) {
+            btnArq.classList.toggle('ativo', window._licencaModoUI === 'arquivo');
+            btnArq.setAttribute('aria-pressed', window._licencaModoUI === 'arquivo');
+        }
+        if (btnLink) {
+            btnLink.classList.toggle('ativo', window._licencaModoUI === 'link');
+            btnLink.setAttribute('aria-pressed', window._licencaModoUI === 'link');
+        }
+        if (pnlArq) pnlArq.style.display = window._licencaModoUI === 'arquivo' ? '' : 'none';
+        if (pnlLink) pnlLink.style.display = window._licencaModoUI === 'link' ? '' : 'none';
+        atualizarTagsLicenca((window.sistema && window.sistema.licencaUrl) || '');
+    };
+
+    // Tags de licenças comuns: um clique preenche o link; a tag da licença atual fica marcada
+    function atualizarTagsLicenca(url) {
+        const grupo = document.getElementById('metaLicencaTags');
+        if (!grupo) return;
+        if (!grupo.childElementCount) {
+            for (const licenca of LICENCAS_CONHECIDAS) {
+                const botao = document.createElement('button');
+                botao.type = 'button';
+                botao.textContent = licenca.rotulo;
+                botao.title = licenca.nome;
+                botao.dataset.url = licenca.url;
+                botao.onclick = () => {
+                    window.sistema.setLicencaUrl(licenca.url);
+                    window.atualizarUILicenca();
+                };
+                grupo.appendChild(botao);
+            }
+        }
+        const atual = identificarLicenca(url);
+        grupo.querySelectorAll('button').forEach(botao => {
+            botao.setAttribute('aria-pressed', String(!!atual && atual.url === botao.dataset.url));
+        });
+    }
+
+    window.atualizarUILicenca = function() {
+        const modo = (window.sistema && window.sistema.licencaModo) || '';
+        const txt = (window.sistema && window.sistema.licencaTexto) || '';
+        const url = (window.sistema && window.sistema.licencaUrl) || '';
+        const nomeArquivo = (window.sistema && window.sistema.nomeArquivoLicenca) || 'licenca.txt';
+
+        const status = document.getElementById('metaLicencaStatus');
+        const btnRemoverArq = document.getElementById('btnMetaLicencaRemover');
+        const inputUrl = document.getElementById('metaLicencaUrl');
+        const btnRemoverUrl = document.getElementById('btnMetaLicencaUrlRemover');
+
+        if (modo === 'link') {
+            window.alternarModoUILicenca('link');
+        } else if (modo === 'arquivo') {
+            window.alternarModoUILicenca('arquivo');
+        }
+
+        if (status) {
+            if (modo === 'arquivo' && txt.trim()) {
+                const linhas = txt.split('\n').filter(l => l.trim()).length;
+                status.textContent = `${nomeArquivo} · ${_tn('{n} linha', '{n} linhas', linhas)}`;
+                if (btnRemoverArq) btnRemoverArq.hidden = false;
+            } else {
+                status.textContent = _t('Nenhuma licença importada');
+                if (btnRemoverArq) btnRemoverArq.hidden = true;
+            }
+        }
+        if (inputUrl) {
+            inputUrl.value = url;
+        }
+        if (btnRemoverUrl) {
+            btnRemoverUrl.hidden = !url.trim();
+        }
+        atualizarTagsLicenca(url);
+    };
+
+    window.metaLicencaSelecionar = async function(arquivo) {
+        if (!arquivo || !window.sistema) return;
+        const conteudo = await arquivo.text();
+        window.sistema.setLicencaTexto(conteudo, arquivo.name);
+        const input = document.getElementById('inputMetaLicenca');
+        if (input) input.value = '';
+        window.atualizarUILicenca();
+    };
+
+    window.metaLicencaUrlAlterar = function(valor) {
+        if (!window.sistema) return;
+        window.sistema.setLicencaUrl(valor);
+        const btnRemoverUrl = document.getElementById('btnMetaLicencaUrlRemover');
+        if (btnRemoverUrl) btnRemoverUrl.hidden = !valor.trim();
+        atualizarTagsLicenca(window.sistema.licencaUrl);
+    };
+
+    window.metaLicencaRemover = function() {
+        if (!window.sistema) return;
+        window.sistema.limparLicenca();
+        const inputArq = document.getElementById('inputMetaLicenca');
+        if (inputArq) inputArq.value = '';
+        const inputUrl = document.getElementById('metaLicencaUrl');
+        if (inputUrl) inputUrl.value = '';
+        window.atualizarUILicenca();
+    };
+
     // Prévia de "Como citar": usa a mesma montagem das exportações (montarPartesCitacao) e os
     // mesmos valores de reserva de coletarMetadadosExportacao. O texto não é traduzido.
     function atualizarPreviaCitacao() {
@@ -3032,6 +3182,7 @@
         window.definirEstadoTituloPdf();
         window._referenciaArquivo = null;
         window.atualizarUIReferencia();
+        window.atualizarUILicenca();
         window.atualizarGrupoCldf();
         if (window.atualizarUIAlfabeto) window.atualizarUIAlfabeto();
 
@@ -3424,6 +3575,10 @@
             referencia: (window.sistema && window.sistema.referencia) ? String(window.sistema.referencia).trim() : '',
             bibliografiaBib: (window.sistema && window.sistema.bibliografiaBib) ? window.sistema.bibliografiaBib : '',
             nomeArquivoBib: (window.sistema && window.sistema.nomeArquivoBib) ? window.sistema.nomeArquivoBib : 'bibliografia.bib',
+            licencaModo: (window.sistema && window.sistema.licencaModo) || '',
+            licencaTexto: (window.sistema && window.sistema.licencaTexto) || '',
+            nomeArquivoLicenca: (window.sistema && window.sistema.nomeArquivoLicenca) || 'licenca.txt',
+            licencaUrl: (window.sistema && window.sistema.licencaUrl) || '',
             referenciasHtml: (window.sistema && window.sistema.obterReferenciasAbnt) ? window.sistema.obterReferenciasAbnt('html') : '',
             referenciasTexto: (window.sistema && window.sistema.obterReferenciasAbnt) ? window.sistema.obterReferenciasAbnt('texto') : [],
             // Imagem do cabeçalho: logo do projeto, ou o ícone do app quando não houver logo
@@ -3866,12 +4021,13 @@
                 const metadados = coletarMetadadosExportacao();
                 const codigoTypst = await window.exportador.exportarTypst({ metadados });
                 const temBib = !!(metadados.bibliografiaBib || (window.gerenciador && window.gerenciador.bibliografiaBib));
+                const temLicencaTxt = !!(metadados.licencaModo === 'arquivo' && metadados.licencaTexto);
                 const temImagens = !!(window.gerenciador && window.gerenciador.vfs && window.gerenciador.vfs.imagem && window.gerenciador.vfs.imagem.size > 0);
 
                 modalTitle = _t('Código Typst Gerado');
                 previewContentHtml = `<textarea style="width: 100%; height: 100%; padding: 15px; font-family: monospace; border: none; background: var(--bg-secondary); color: var(--text-color); resize: none;" readonly>${codigoTypst}</textarea>`;
 
-                if (temBib || temImagens) {
+                if (temBib || temLicencaTxt || temImagens) {
                     conteudoParaBaixar = await window.exportador.gerarTypstZipBlob({ metadados });
                     nomeArquivo = 'projeto_typst.zip';
                     mimeType = 'application/zip';
