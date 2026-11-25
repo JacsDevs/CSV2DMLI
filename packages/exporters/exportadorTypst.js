@@ -123,6 +123,8 @@ class ExportadorTypst extends ExportadorBase {
         // (processarTemplate só omite valores vazios, não `false`)
         dados.SEPARADOR = this.separadorPdf !== false ? true : '';
         dados.SEM_SEPARADOR = dados.SEPARADOR ? '' : true;
+        // Em ordem alfabética o capítulo não diz mais o campo semântico: ele vai no cabeçalho do verbete
+        dados.CATEGORIA_PDF = this.ordemAlfabeticaPdf ? this.escaparTypst(this.trilhaCategoria(entrada)) : '';
 
         const escaparTextoTypst = (t) => ({
             ...t,
@@ -168,6 +170,26 @@ class ExportadorTypst extends ExportadorBase {
         return typ + ']';
     }
 
+    /** Trilha "Campo › Subcampo › ..." da entrada, sem o nível 'Geral'. */
+    trilhaCategoria(entrada) {
+        return [entrada.CAMPO_SEMANTICO, ...(entrada.SUB_CAMPOS_SEMANTICOS || [])]
+            .map(v => String(v || '').trim())
+            .filter(v => v && v !== 'Geral')
+            .join(' › ');
+    }
+
+    /** Corpo em ordem alfabética: cada letra é um capítulo (nível 1), como os campos semânticos. */
+    gerarCorpoAlfabeticoTypst(gruposLetras) {
+        const partes = [];
+        gruposLetras.forEach(({ letra, entradas }) => {
+            // Mesmo absorvedor de fim de capítulo usado entre os campos semânticos
+            if (partes.length > 0) partes.push('\n#v(1000fr, weak: true)\n');
+            partes.push(`\n#heading(level: 1, outlined: true, bookmarked: true)[${this.escaparTypst(letra)}]\n`);
+            entradas.forEach(ent => partes.push(this.gerarEntradaTypst(ent)));
+        });
+        return partes.join('');
+    }
+
     gerarCorpoTypst(arvore, categoriasRaizes, manterSet) {
         const partes = [];
         const stripAccents = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -209,9 +231,16 @@ class ExportadorTypst extends ExportadorBase {
 
         this.separadorPdf = (opcoes.metadados || {}).separadorPdf !== false;
 
-        const { arvore, categoriasRaizes } = this.db.obterArvoreOrdenada();
-        const manterSet = new Set((opcoes.categoriasManterOriginal || []).map(c => c.toLowerCase()));
-        const corpo = this.gerarCorpoTypst(arvore, categoriasRaizes, manterSet);
+        this.ordemAlfabeticaPdf = Boolean((opcoes.metadados || {}).ordemAlfabeticaPdf);
+
+        let corpo;
+        if (this.ordemAlfabeticaPdf) {
+            corpo = this.gerarCorpoAlfabeticoTypst(this.db.obterEntradasAlfabeticas().gruposLetras);
+        } else {
+            const { arvore, categoriasRaizes } = this.db.obterArvoreOrdenada();
+            const manterSet = new Set((opcoes.categoriasManterOriginal || []).map(c => c.toLowerCase()));
+            corpo = this.gerarCorpoTypst(arvore, categoriasRaizes, manterSet);
+        }
         
         let codigo = this.templatePrincipal;
         const meta = opcoes.metadados || {};

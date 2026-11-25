@@ -7,6 +7,9 @@
     <div class="dict-entry lista-linear-view" >
         <header class="dict-header">
             <div class="dict-headword-container">
+                {{#MODO_PORTUGUES}}
+                <div class="dict-traducao-topo">{{ TRADUCAO_DESTAQUE }}</div>
+                {{/MODO_PORTUGUES}}
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                     {{#TEM_TERMOS_MISTOS}}
                     {{#TERMOS_MISTOS}}
@@ -46,6 +49,9 @@
 
                 {{#TEM_VARIACOES_TRAY}}
                 <div class="dict-variations-tray">
+                    {{#EXIBIR_CATEGORIA_VERBETE}}
+                    <span class="tag categoria-verbete">{{ TRILHA_CATEGORIA }}</span>
+                    {{/EXIBIR_CATEGORIA_VERBETE}}
                     {{#TEM_INFO_GERAL}}
                         {{#CLASSE}}<span class="tag classe-gramatical">{{ CLASSE }}</span>{{/CLASSE}}
                     {{/TEM_INFO_GERAL}}
@@ -77,22 +83,6 @@
             <div class="dict-sense-header">
                 <span class="dict-sense-number">{{ NUMERO_PONTO }}</span>
                 {{#TRADUCAO}}<span class="dict-sense-translation">{{ TRADUCAO }}</span>{{/TRADUCAO}}
-
-                {{#TEM_AUDIO_REVERSO}}
-                <button type="button" class="btn-audio btn-audio-sm" title="Ouvir pronúncia" aria-label="Ouvir pronúncia" onclick="event.stopPropagation(); window.tocarAudio('{{ AUDIO_REVERSO_URL }}', this)">
-                    <svg class="icone" aria-hidden="true"><use href="#ic-som"></use></svg>
-                </button>
-                {{/TEM_AUDIO_REVERSO}}
-                {{#TEM_VIDEO_REVERSO}}
-                <button type="button" class="btn-audio btn-video btn-audio-sm" title="Assistir pronúncia" aria-label="Assistir pronúncia" onclick="event.stopPropagation(); window.abrirModalVideoEntrada('{{ AUDIO_REVERSO_URL }}', this)">
-                    <svg class="icone" aria-hidden="true"><use href="#ic-play"></use></svg>
-                </button>
-                {{/TEM_VIDEO_REVERSO}}
-
-                {{#CLASSE_REVERSO}}<span class="tag classe-gramatical">{{ CLASSE_REVERSO }}</span>{{/CLASSE_REVERSO}}
-                {{#FONEMICA_REVERSO}}<span class="dict-audio-chip transcricao-fonetica"><span class="dict-chip-ipa">{{ FONEMICA_REVERSO }}</span></span>{{/FONEMICA_REVERSO}}
-                {{#FONETICA_REVERSO}}<span class="dict-audio-chip transcricao-fonetica"><span class="dict-chip-ipa">{{ FONETICA_REVERSO }}</span></span>{{/FONETICA_REVERSO}}
-
                 {{#DESCRICAO}}<span class="dict-sense-definition">{{ DESCRICAO }}</span>{{/DESCRICAO}}
             </div>
 

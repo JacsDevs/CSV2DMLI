@@ -353,10 +353,19 @@ class ExportadorBase {
         }
         this.midiasGeradas = midiasParaDados;
         const { categorias, posicoes } = this.db.obterOrdemDicionario();
+        const infoAlfa = typeof this.db.obterEntradasAlfabeticas === 'function'
+            ? this.db.obterEntradasAlfabeticas()
+            : { ordemGlobal: new Map(), letraPorEntrada: new Map(), ordemLetras: [] };
         const entradasConvertidas = [];
         for (const entrada of entradasConsideradas) {
             const dados = this.extrairDadosEntrada(entrada);
-            entradasConvertidas.push({ ...entrada, ...dados, _ORDEM: posicoes.get(entrada) });
+            entradasConvertidas.push({
+                ...entrada,
+                ...dados,
+                _ORDEM: posicoes.get(entrada),
+                _ORDEM_ALFA: infoAlfa.ordemGlobal.get(entrada),
+                _LETRA: infoAlfa.letraPorEntrada.get(entrada) || ''
+            });
         }
         entradasConvertidas.sort((a, b) => a._ORDEM - b._ORDEM);
         this.midiasGeradas = midias;
@@ -386,6 +395,7 @@ class ExportadorBase {
         partes.push('};\n');
         let cabecalho = `window.dadosDicionarioLexical = [];\n`;
         cabecalho += `window.ordemCategoriasDicionario = ${jsonSeguro(categorias)};\n`;
+        cabecalho += `window.ordemLetrasDicionario = ${jsonSeguro(infoAlfa.ordemLetras || [])};\n`;
         cabecalho += `window.templateEntradaAtivo = "${tipoAtivo}";\n`;
         if (this.templateEntrada) cabecalho += `window.templateEntrada = ${jsonSeguro(this.templateEntrada)};\n`;
         if (this.templateCard) cabecalho += `window.templateCard = ${jsonSeguro(this.templateCard)};\n`;

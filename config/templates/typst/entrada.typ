@@ -3,7 +3,7 @@
 #index("{{ INDEX }} ({{ TERMO_PARENT }})")
 {{/INDEX}}
 #metadata("{{ TERMO_PARENT }}") <dict-word>
-{{#TERMO}}*{{ TERMO }}*{{/TERMO}}{{#FONEMICA}} {{ FONEMICA }}{{/FONEMICA}}{{#FONETICA}} {{ FONETICA }}{{/FONETICA}}{{#CLASSE}} _{{ CLASSE }}_{{/CLASSE}}{{#DESCRICAO_ENTRADA}} #text(size: 8.5pt, fill: luma(60))[{{ DESCRICAO_ENTRADA }}]{{/DESCRICAO_ENTRADA}}
+{{#TERMO}}*{{ TERMO }}*{{/TERMO}}{{#FONEMICA}} {{ FONEMICA }}{{/FONEMICA}}{{#FONETICA}} {{ FONETICA }}{{/FONETICA}}{{#CLASSE}} _{{ CLASSE }}_{{/CLASSE}}{{#CATEGORIA_PDF}} #text(size: 8.5pt, fill: luma(75))[\[{{ CATEGORIA_PDF }}\]]{{/CATEGORIA_PDF}}{{#DESCRICAO_ENTRADA}} #text(size: 8.5pt, fill: luma(60))[{{ DESCRICAO_ENTRADA }}]{{/DESCRICAO_ENTRADA}}
 {{#SIGNIFICADOS}}{{#NUMERO}}*{{ NUMERO }}.* {{/NUMERO}}{{#TRADUCAO}}{{ TRADUCAO }}{{/TRADUCAO}}{{#DESCRICAO}}. {{ DESCRICAO }}{{/DESCRICAO}}{{#EXEMPLOS}}{{#TRANS}} _{{ TRANS }}_{{/TRANS}}{{#TRAD}} – {{ TRAD }}{{/TRAD}}{{/EXEMPLOS}}{{#IMAGENS}}{{#ARQUIVO}}
 
 // Imagem com altura dinâmica: encolhe só quando não cabe inteira no fim da coluna.

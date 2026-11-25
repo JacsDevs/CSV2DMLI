@@ -739,6 +739,8 @@
             word-break: break-word;
         }
         .card-traducao { font-size: 0.92rem; color: var(--cor-texto-secundario); word-break: break-word; }
+        .card-subtermo-linha { margin-top: 2px; }
+        .card-termo-secundario { font-weight: 600; color: var(--cor-texto); }
         .card-rodape { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 
         .btn-audio {
@@ -960,6 +962,9 @@
             color: var(--cor-primaria);
         }
         .dict-variations-tray { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+        .dict-traducao-topo { font-size: 1.5rem; font-weight: 800; line-height: 1.2; color: var(--cor-primaria); }
+        .dict-traducao-topo + div .dict-headword { font-size: 1.28rem; color: var(--cor-texto) !important; }
+        .categoria-verbete { background: var(--cor-primaria-light); color: var(--cor-primaria); border: 1px solid var(--cor-borda); font-weight: 600; }
         .dict-audio-chip {
             display: inline-flex;
             align-items: center;
@@ -1050,12 +1055,11 @@
             color: var(--cor-texto-secundario);
         }
         .frase-item:hover { background: var(--cor-superficie-2); }
-        .texto-frase.destaque {
-            font-weight: 700;
-            color: var(--cor-primaria);
+        /* Frase tocada (clique ou leitura do texto inteiro): destaca o bloco todo */
+        .dict-text-phrase.frase-ativa {
             background: var(--cor-primaria-light);
-            padding: 2px 6px;
-            border-radius: 6px;
+            border-color: var(--cor-primaria);
+            box-shadow: inset 4px 0 0 var(--cor-primaria);
         }
         .texto-frase { margin-bottom: 8px; }
 
@@ -1797,7 +1801,10 @@
             <button id="btn-modo-salvos" class="btn btn-contorno" style="width: 100%;" onclick="mudarModoVisualizacao('salvos')" aria-pressed="false">
                 Salvos&nbsp;(<span id="contagem-salvos">0</span>)</button>
             <label class="caixa-switch">
-                <input type="checkbox" id="ordenar-traducao"> Ordenar por tradução
+                <input type="checkbox" id="ordenar-alfabetico"> Organizar de A a Z
+            </label>
+            <label class="caixa-switch">
+                <input type="checkbox" id="ordenar-traducao"> Ordenar pelo português
             </label>
             <label class="caixa-switch">
                 <input type="checkbox" id="visao-completa" onchange="document.body.classList.toggle('modo-completo', this.checked)"> Visualização completa
@@ -1828,7 +1835,7 @@
     <!-- ===== TELA DE CATEGORIAS (MOBILE) ===== -->
     <div class="tela-categorias" id="tela-categorias" role="dialog" aria-modal="true" aria-label="Categorias">
         <div class="tela-categorias-header">
-            <h3>Categorias</h3>
+            <h3 id="tela-categorias-titulo">Categorias</h3>
             <button class="btn btn-icone" onclick="fecharTelaCategorias()" title="Fechar" aria-label="Fechar categorias">
                 <svg class="icone"><use href="#ic-fechar"></use></svg>
             </button>
@@ -1842,7 +1849,7 @@
             <h3 class="barra-titulo">
                 <button type="button" class="barra-cabecalho" id="barra-toggle" onclick="alternarPainelCategorias()" aria-expanded="false" aria-controls="barra-content">
                     <span id="barra-icone" aria-hidden="true">&#9660;</span>
-                    <span>Categorias<span class="barra-filtro-ativo" id="barra-filtro-ativo"></span></span>
+                    <span><span id="barra-rotulo-principal">Categorias</span><span class="barra-filtro-ativo" id="barra-filtro-ativo"></span></span>
                 </button>
             </h3>
             <div id="barra-content" class="barra-content-animado barra-escondida">
@@ -1928,7 +1935,11 @@
                 <span id="rotulo-densidade" style="color: var(--cor-texto-secundario); font-weight: 600;">1</span>
             </button>
             <label class="linha-sheet">
-                <span>Ordenar por tradução</span>
+                <span>Organizar de A a Z</span>
+                <input type="checkbox" id="ordenar-alfabetico-mobile" style="width: 22px; height: 22px; accent-color: var(--cor-primaria);">
+            </label>
+            <label class="linha-sheet">
+                <span>Ordenar pelo português</span>
                 <input type="checkbox" id="ordenar-traducao-mobile" style="width: 22px; height: 22px; accent-color: var(--cor-primaria);">
             </label>
             <label class="linha-sheet">
@@ -2181,6 +2192,7 @@
         const searchButton = document.getElementById('search-button');
         const filtroSemantico = document.getElementById('filtro-semantico');
         const filtroClasse = document.getElementById('filtro-classe');
+        const ordenarAlfabeticoCheck = document.getElementById('ordenar-alfabetico');
         const ordenarTraducaoCheck = document.getElementById('ordenar-traducao');
         const contadorSpan = document.getElementById('loading-count');
         const progressoDiv = document.getElementById('progresso-carga');
@@ -2196,8 +2208,10 @@
 
         // Estado da busca/filtro
         let termoBusca = '';
+        let organizarAlfabetico = false;
         let ordenarPorTraducao = false;
         let filtroSemanticoValor = '';
+        let filtroLetraValor = '';
         let filtroClasseValor = '';
 
         let itemAtualNoModal = null;
@@ -2315,6 +2329,61 @@
         window.contagemCaminhos = {};
         window.contagemDireta = {};
 
+        function montarTrilhaCategoria(item) {
+            if (!item) return '';
+            return CHAVES_SEMANTICAS
+                .map(k => String(item[k] || '').trim())
+                .filter(v => v && v !== 'Geral')
+                .join(' › ');
+        }
+
+        function extrairLetraPt(texto) {
+            const base = String(texto || '').replace(/[\u2070\u00B9\u00B2\u00B3\u2074-\u2079]+$/g, '').trim();
+            if (!base) return '#';
+            const semPontuacao = base.replace(/^[^\p{L}\p{N}]+/u, '');
+            const alvo = semPontuacao || base;
+            const semAcento = alvo.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            const ch = Array.from(semAcento)[0] || '';
+            return /\p{L}/u.test(ch) ? ch.toUpperCase() : '#';
+        }
+
+        function extrairLetraIndigena(item) {
+            if (item && item._LETRA) return item._LETRA;
+            return extrairLetraPt((item && (item.TERMO_PARENT || item.TERMO)) || '');
+        }
+
+        function compararLetrasPt(a, b) {
+            if (a === b) return 0;
+            if (a === '#') return 1;
+            if (b === '#') return -1;
+            return a.localeCompare(b, 'pt-BR');
+        }
+
+        function compararLetrasIndigenas(a, b) {
+            if (a === b) return 0;
+            if (a === '#') return 1;
+            if (b === '#') return -1;
+            const ordem = window.ordemLetrasDicionario || [];
+            if (ordem.length > 0) {
+                const ia = ordem.indexOf(a);
+                const ib = ordem.indexOf(b);
+                if (ia >= 0 && ib >= 0) return ia - ib;
+                if (ia >= 0) return -1;
+                if (ib >= 0) return 1;
+            }
+            return a.localeCompare(b, 'pt-BR');
+        }
+
+        function caminhosGrupoItem(item) {
+            if (organizarAlfabetico) {
+                const letra = ordenarPorTraducao
+                    ? (item._LETRA_PT || extrairLetraPt(item._TRADUCAO_DESTAQUE || item.INDEX || ''))
+                    : extrairLetraIndigena(item);
+                return [letra];
+            }
+            return CHAVES_SEMANTICAS.map((k, i) => item[k] || (i === 0 ? 'Outros' : ''));
+        }
+
         // Conta quantos termos (do resultado filtrado inteiro, não só do lote exibido) há em cada caminho.
         // contagemDireta: termos que pertencem ao próprio nível, sem subnível abaixo
         // ("Geral" no fim conta como direto do pai, pois esse título não é exibido).
@@ -2322,14 +2391,16 @@
             const mapa = {};
             const direta = {};
             (lista || []).forEach(item => {
-                const vals = CHAVES_SEMANTICAS.map((k, i) => item[k] || (i === 0 ? 'Outros' : ''));
+                const vals = caminhosGrupoItem(item);
                 for (let i = 0; i < vals.length; i++) {
                     if (!vals[i]) continue;
                     const caminho = vals.slice(0, i + 1).filter(Boolean).join('|');
                     mapa[caminho] = (mapa[caminho] || 0) + 1;
                 }
                 const proprios = vals.filter(Boolean);
-                while (proprios.length > 1 && proprios[proprios.length - 1] === 'Geral') proprios.pop();
+                if (!organizarAlfabetico) {
+                    while (proprios.length > 1 && proprios[proprios.length - 1] === 'Geral') proprios.pop();
+                }
                 const caminhoDireto = proprios.join('|');
                 direta[caminhoDireto] = (direta[caminhoDireto] || 0) + 1;
             });
@@ -2585,8 +2656,14 @@
 
         function adaptarDadosParaTemplate(item) {
             let dados = { ...item };
+            const trilhaCategoria = montarTrilhaCategoria(item) || item.CAMPO_SEMANTICO || '';
             
-            dados.CAMPO_SEMANTICO_EXIBIR = (modoVisualizacao === 'salvos' && item.CAMPO_SEMANTICO) ? true : false;
+            dados.TRILHA_CATEGORIA = trilhaCategoria;
+            dados.CAMPO_SEMANTICO_EXIBIR = (modoVisualizacao === 'salvos' && !!trilhaCategoria);
+            dados.EXIBIR_CATEGORIA_VERBETE = ((organizarAlfabetico || modoVisualizacao === 'salvos') && !!trilhaCategoria);
+            dados.MODO_PORTUGUES = !!item._MODO_PORTUGUES;
+            dados.NAO_MODO_PORTUGUES = !item._MODO_PORTUGUES;
+            dados.TRADUCAO_DESTAQUE = item._TRADUCAO_DESTAQUE || item.INDEX || '';
             
             // TIPOS alinhado por índice com AUDIO ('audio'|'video' por pronúncia); fallback 'audio' se ausente
             const audioTipos = item.AUDIO_TIPOS ? item.AUDIO_TIPOS.split('~').map(t => t.trim()) : [];
@@ -2636,7 +2713,14 @@
             
             dados.TEM_INFO_GERAL = !!(item.INDEX || item.CLASSE || item.CAMPO_SEMANTICO || item.SUB_CAMPO_SEMANTICO);
             dados.TEM_PRONUNCIA = !!(item.FONEMICA || item.FONETICA);
-            dados.TEM_VARIACOES_TRAY = dados.TEM_INFO_GERAL || dados.TEM_AUDIOS_ADICIONAIS || dados.TEM_PRONUNCIA;
+            dados.TEM_VARIACOES_TRAY = dados.EXIBIR_CATEGORIA_VERBETE || dados.TEM_INFO_GERAL || dados.TEM_AUDIOS_ADICIONAIS || dados.TEM_PRONUNCIA;
+
+            if (typeof item._INDICE_ACEPCAO === 'number' && item.SIGNIFICADOS && item.SIGNIFICADOS[item._INDICE_ACEPCAO]) {
+                const sigFoco = item.SIGNIFICADOS[item._INDICE_ACEPCAO];
+                if (sigFoco.IMAGENS && sigFoco.IMAGENS.length > 0 && sigFoco.IMAGENS[0].ARQUIVO) {
+                    dados.PRIMEIRA_IMAGEM = resolverMidia(sigFoco.IMAGENS[0].ARQUIVO, 'foto');
+                }
+            }
             
             const prepararTextoEstruturado = (t) => {
                 let tex = { ...t };
@@ -3042,7 +3126,7 @@
 
         // Espelha no painel de Ajustes (mobile) os controles que vivem na sidebar
         function sincronizarControlesMobile() {
-            [['ordenar-traducao-mobile', 'ordenar-traducao'], ['visao-completa-mobile', 'visao-completa']].forEach(([idMobile, idDesk]) => {
+            [['ordenar-alfabetico-mobile', 'ordenar-alfabetico'], ['ordenar-traducao-mobile', 'ordenar-traducao'], ['visao-completa-mobile', 'visao-completa']].forEach(([idMobile, idDesk]) => {
                 const m = document.getElementById(idMobile);
                 const d = document.getElementById(idDesk);
                 if (!m || !d) return;
@@ -3051,6 +3135,9 @@
                     d.checked = m.checked;
                     if (idDesk === 'visao-completa') { document.body.classList.toggle('modo-completo', m.checked); atualizarBotaoDetalhes(); }
                     d.dispatchEvent(new Event('change'));
+                });
+                d.addEventListener('change', () => {
+                    if (m.checked !== d.checked) m.checked = d.checked;
                 });
             });
         }
@@ -3512,10 +3599,13 @@
         function criarCard(item) {
             const card = document.createElement('div');
             card.className = 'card';
-            card.id = `card-${item.ID || item.TERMO}`;
+            const chaveId = item._CHAVE_INSTANCIA || item.ID || item.TERMO;
+            card.id = `card-${chaveId}`;
             card.setAttribute('role', 'button');
             card.setAttribute('tabindex', '0');
-            const nomeAcessivel = item.TERMO + (item.INDEX ? `, ${item.INDEX}` : '');
+            const nomeAcessivel = item._MODO_PORTUGUES
+                ? `${item._TRADUCAO_DESTAQUE || item.INDEX || ''}, ${item.TERMO}`
+                : item.TERMO + (item.INDEX ? `, ${item.INDEX}` : '');
             card.setAttribute('aria-label', `${nomeAcessivel}. Abrir detalhes`);
 
             if (window.templateCard) {
@@ -3538,7 +3628,8 @@
         function criarItemLinear(item) {
             const container = document.createElement('div');
             container.className = 'entrada_lexical section level2';
-            container.id = `item-${item.ID || item.TERMO}`;
+            const chaveId = item._CHAVE_INSTANCIA || item.ID || item.TERMO;
+            container.id = `item-${chaveId}`;
 
             if (window.templateLista) {
                 const dados = adaptarDadosParaTemplate(item);
@@ -3581,102 +3672,97 @@
             }
             const fragment = document.createDocumentFragment();
             itens.forEach(item => {
-                if (modoVisualizacao === 'cards' || modoVisualizacao === 'lista') {
-                    if (true) { // Sempre mostrar cabeçalhos, mesmo ao ordenar por tradução
-                        const chavesSemanticas = [
-                            'CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO_1', 
-                            'SUB_CAMPO_SEMANTICO_2', 'SUB_CAMPO_SEMANTICO_3', 'SUB_CAMPO_SEMANTICO_4', 
-                            'SUB_CAMPO_SEMANTICO_5', 'SUB_CAMPO_SEMANTICO_6'
-                        ];
-                        
-                        let mudouNivel = -1;
-                        
-                        for (let i = 0; i < chavesSemanticas.length; i++) {
-                            const val = item[chavesSemanticas[i]] || (i === 0 ? 'Outros' : '');
-                            if (val !== (ultimosCamposSemanticos[i] || '')) {
-                                if (mudouNivel === -1) mudouNivel = i;
-                            }
-                            ultimosCamposSemanticos[i] = val;
-                        }
-                        
-                        if (mudouNivel !== -1) {
-                            const ehTitulo = (i) => {
-                                const v = ultimosCamposSemanticos[i];
-                                return !!v && v !== 'Geral';
-                            };
-                            // Nível intermediário sem termos diretos não ganha linha própria:
-                            // o nome dele vai como trilha no título do nível seguinte ("Aves › Rapina")
-                            const agrupavel = (i) => {
-                                if (i === 0 || !ehTitulo(i)) return false;
-                                const temFilho = ultimosCamposSemanticos.slice(i + 1).some(v => v && v !== 'Geral');
-                                if (!temFilho) return false;
-                                const caminho = ultimosCamposSemanticos.slice(0, i + 1).filter(Boolean).join('|');
-                                return !window.contagemDireta[caminho];
-                            };
-                            // Níveis agrupados acima do ponto de mudança continuam na trilha do próximo título
-                            let agrupados = [];
-                            for (let i = 1; i < mudouNivel; i++) {
-                                if (!ehTitulo(i)) continue;
-                                if (agrupavel(i)) agrupados.push(ultimosCamposSemanticos[i]);
-                                else agrupados = [];
-                            }
-                            for (let i = mudouNivel; i < chavesSemanticas.length; i++) {
-                                const val = ultimosCamposSemanticos[i];
-                                if (ehTitulo(i)) {
-                                    if (agrupavel(i)) { agrupados.push(val); continue; }
-                                    const idCaminho = ultimosCamposSemanticos.slice(0, i + 1).filter(Boolean).join('|');
-                                    const header = criarTituloCategoria(i, val, idCaminho, ultimosCamposSemanticos.slice(0, i), agrupados);
-                                    agrupados = [];
+                const niveisAtuais = (modoVisualizacao === 'cards' || modoVisualizacao === 'lista')
+                    ? caminhosGrupoItem(item)
+                    : [];
 
-                                    const paiCaminho = ultimosCamposSemanticos.slice(0, i).filter(Boolean).join('|');
-                                    let hideHeader = false;
-                                    const parts = idCaminho.split('|');
-                                    for (let j = 1; j < parts.length; j++) {
-                                        const parentPath = parts.slice(0, j).join('|');
-                                        if (window.categoriasColapsadas.has(parentPath)) {
-                                            hideHeader = true;
+                if (modoVisualizacao === 'cards' || modoVisualizacao === 'lista') {
+                    let mudouNivel = -1;
+                    const totalNiveis = Math.max(niveisAtuais.length, ultimosCamposSemanticos.length);
+                    for (let i = 0; i < totalNiveis; i++) {
+                        const val = niveisAtuais[i] || '';
+                        if (val !== (ultimosCamposSemanticos[i] || '')) {
+                            if (mudouNivel === -1) mudouNivel = i;
+                        }
+                    }
+                    ultimosCamposSemanticos = niveisAtuais.slice();
+
+                    if (mudouNivel !== -1) {
+                        const ehTitulo = (i) => {
+                            const v = ultimosCamposSemanticos[i];
+                            return organizarAlfabetico ? !!v : (!!v && v !== 'Geral');
+                        };
+                        // Nível intermediário sem termos diretos não ganha linha própria:
+                        // o nome dele vai como trilha no título do nível seguinte ("Aves › Rapina")
+                        const agrupavel = (i) => {
+                            if (organizarAlfabetico || i === 0 || !ehTitulo(i)) return false;
+                            const temFilho = ultimosCamposSemanticos.slice(i + 1).some(v => v && v !== 'Geral');
+                            if (!temFilho) return false;
+                            const caminho = ultimosCamposSemanticos.slice(0, i + 1).filter(Boolean).join('|');
+                            return !window.contagemDireta[caminho];
+                        };
+                        // Níveis agrupados acima do ponto de mudança continuam na trilha do próximo título
+                        let agrupados = [];
+                        for (let i = 1; i < mudouNivel; i++) {
+                            if (!ehTitulo(i)) continue;
+                            if (agrupavel(i)) agrupados.push(ultimosCamposSemanticos[i]);
+                            else agrupados = [];
+                        }
+                        for (let i = mudouNivel; i < ultimosCamposSemanticos.length; i++) {
+                            const val = ultimosCamposSemanticos[i];
+                            if (ehTitulo(i)) {
+                                if (agrupavel(i)) { agrupados.push(val); continue; }
+                                const idCaminho = ultimosCamposSemanticos.slice(0, i + 1).filter(Boolean).join('|');
+                                const header = criarTituloCategoria(i, val, idCaminho, ultimosCamposSemanticos.slice(0, i), agrupados);
+                                agrupados = [];
+
+                                let hideHeader = false;
+                                const parts = idCaminho.split('|');
+                                for (let j = 1; j < parts.length; j++) {
+                                    const parentPath = parts.slice(0, j).join('|');
+                                    if (window.categoriasColapsadas.has(parentPath)) {
+                                        hideHeader = true;
+                                        break;
+                                    }
+                                }
+                                if (hideHeader) header.style.display = 'none';
+
+                                fragment.appendChild(header);
+
+                                // Atalhos para os subcampos: só abaixo do nível 0 no agrupamento semântico
+                                if (!organizarAlfabetico && i === 0 && window.arvoreSemantica) {
+                                    let node = window.arvoreSemantica;
+                                    const pathParts = idCaminho.split('|');
+                                    let foundNode = true;
+                                    for (const p of pathParts) {
+                                        if (node[p]) {
+                                            node = node[p];
+                                        } else {
+                                            foundNode = false;
                                             break;
                                         }
                                     }
-                                    if (hideHeader) header.style.display = 'none';
-
-                                    fragment.appendChild(header);
-
-                                    // Atalhos para os subcampos: só abaixo do nível 0
-                                    if (i === 0 && window.arvoreSemantica) {
-                                        let node = window.arvoreSemantica;
-                                        const pathParts = idCaminho.split('|');
-                                        let foundNode = true;
-                                        for (const p of pathParts) {
-                                            if (node[p]) {
-                                                node = node[p];
-                                            } else {
-                                                foundNode = false;
-                                                break;
-                                            }
-                                        }
-                                        if (foundNode && Object.keys(node).length > 0) {
-                                            const inlineFilhos = document.createElement('nav');
-                                            inlineFilhos.className = 'subcategorias-inline';
-                                            inlineFilhos.setAttribute('aria-label', 'Subcampos de ' + val);
-                                            
-                                            const chavesFilhos = Object.keys(node).sort((a, b) => a.localeCompare(b));
-                                            chavesFilhos.forEach(filho => {
-                                                const btn = document.createElement('a');
-                                                btn.href = '#' + filho;
-                                                btn.textContent = filho;
-                                                btn.className = 'btn-barra btn-subcategoria-inline';
-                                                const escapedC = filho.replace(/'/g, "\\'");
-                                                btn.onclick = (e) => window.clicarCategoria(e, escapedC);
-                                                inlineFilhos.appendChild(btn);
-                                            });
-                                            
-                                            if (hideHeader) inlineFilhos.style.display = 'none';
-                                            inlineFilhos.dataset.caminho = idCaminho;
-                                            inlineFilhos.dataset.tipo = 'subcategorias-container';
-                                            
-                                            fragment.appendChild(inlineFilhos);
-                                        }
+                                    if (foundNode && Object.keys(node).length > 0) {
+                                        const inlineFilhos = document.createElement('nav');
+                                        inlineFilhos.className = 'subcategorias-inline';
+                                        inlineFilhos.setAttribute('aria-label', 'Subcampos de ' + val);
+                                        
+                                        const chavesFilhos = Object.keys(node).sort((a, b) => a.localeCompare(b));
+                                        chavesFilhos.forEach(filho => {
+                                            const btn = document.createElement('a');
+                                            btn.href = '#' + filho;
+                                            btn.textContent = filho;
+                                            btn.className = 'btn-barra btn-subcategoria-inline';
+                                            const escapedC = filho.replace(/'/g, "\\'");
+                                            btn.onclick = (e) => window.clicarCategoria(e, escapedC);
+                                            inlineFilhos.appendChild(btn);
+                                        });
+                                        
+                                        if (hideHeader) inlineFilhos.style.display = 'none';
+                                        inlineFilhos.dataset.caminho = idCaminho;
+                                        inlineFilhos.dataset.tipo = 'subcategorias-container';
+                                        
+                                        fragment.appendChild(inlineFilhos);
                                     }
                                 }
                             }
@@ -3692,12 +3778,10 @@
                 }
                 
                 if (modoVisualizacao === 'cards' || modoVisualizacao === 'lista') {
-                    if (!ordenarPorTraducao) {
-                        const caminhoCard = ultimosCamposSemanticos.filter(Boolean).join('|');
-                        element.dataset.caminho = caminhoCard;
-                        const hideItem = Array.from(window.categoriasColapsadas).some(colap => caminhoCard === colap || caminhoCard.startsWith(colap + '|'));
-                        if (hideItem) element.style.display = 'none';
-                    }
+                    const caminhoCard = ultimosCamposSemanticos.filter(Boolean).join('|');
+                    element.dataset.caminho = caminhoCard;
+                    const hideItem = Array.from(window.categoriasColapsadas).some(colap => caminhoCard === colap || caminhoCard.startsWith(colap + '|'));
+                    if (hideItem) element.style.display = 'none';
                 }
                 
                 fragment.appendChild(element);
@@ -3777,7 +3861,6 @@
             const termo = normalizarTexto(termoBusca);
             const semantico = filtroSemanticoValor;
             const classe = filtroClasseValor;
-            atualizarRotuloBarraCategorias(semantico);
 
             const dicio = window.dadosDicionarioLexical || [];
             let resultados = dicio.filter(item => {
@@ -3825,102 +3908,104 @@
             });
 
             if (ordenarPorTraducao) {
-                // Criar Dicionário Reverso (Transfiguração de Dados) preservando mídias
-                let dictReversoMap = new Map();
+                // Mantém cada verbete completo com suas informações originais, destacando a tradução no topo
+                // e repetindo o card em cada posição quando o verbete tiver múltiplos significados distintos.
+                const expandidos = [];
                 resultados.forEach(item => {
-                    const significadosOriginais = item.SIGNIFICADOS && item.SIGNIFICADOS.length > 0 
-                        ? item.SIGNIFICADOS 
-                        : [{ TRADUCAO: item.INDEX || 'Sem Significado' }];
-
-                    significadosOriginais.forEach(sig => {
-                        let significadoPt = sig.TRADUCAO || item.INDEX || 'Sem Significado';
-                        const chaveAgrupamento = significadoPt.trim().toLowerCase();
-                        
-                        if (!dictReversoMap.has(chaveAgrupamento)) {
-                            dictReversoMap.set(chaveAgrupamento, {
-                                TERMO: significadoPt.trim(),
-                                CAMPO_SEMANTICO: item.CAMPO_SEMANTICO,
-                                SUB_CAMPO_SEMANTICO: item.SUB_CAMPO_SEMANTICO,
-                                SUB_CAMPO_SEMANTICO_1: item.SUB_CAMPO_SEMANTICO_1,
-                                SUB_CAMPO_SEMANTICO_2: item.SUB_CAMPO_SEMANTICO_2,
-                                SUB_CAMPO_SEMANTICO_3: item.SUB_CAMPO_SEMANTICO_3,
-                                SUB_CAMPO_SEMANTICO_4: item.SUB_CAMPO_SEMANTICO_4,
-                                SUB_CAMPO_SEMANTICO_5: item.SUB_CAMPO_SEMANTICO_5,
-                                SUB_CAMPO_SEMANTICO_6: item.SUB_CAMPO_SEMANTICO_6,
-                                SIGNIFICADOS: [],
-                                _ordem: chaveAgrupamento
+                    const sigs = (item.SIGNIFICADOS && item.SIGNIFICADOS.length > 0) ? item.SIGNIFICADOS : null;
+                    const vistas = new Set();
+                    let gerouAlguma = false;
+                    if (sigs) {
+                        sigs.forEach((sig, idxSig) => {
+                            const tradBruta = String(sig.TRADUCAO || '').trim();
+                            if (!tradBruta) return;
+                            const chaveUnica = normalizarTexto(tradBruta);
+                            if (vistas.has(chaveUnica)) return;
+                            vistas.add(chaveUnica);
+                            gerouAlguma = true;
+                            expandidos.push({
+                                ...item,
+                                _ITEM_ORIGINAL: item,
+                                _MODO_PORTUGUES: true,
+                                _TRADUCAO_DESTAQUE: tradBruta,
+                                _INDICE_ACEPCAO: idxSig,
+                                _LETRA_PT: extrairLetraPt(tradBruta),
+                                _CHAVE_INSTANCIA: `${idDoItem(item)}__pt_${idxSig}`
                             });
-                        }
-                        
-                        // Preservar todas as propriedades do significado original (Mídias, Exemplos, Textos)
-                        let sigReverso = { ...sig };
-                        
-                        // Injetar a palavra indígena no lugar da tradução para o card reverso
-                        sigReverso.TRADUCAO = item.TERMO;
-                        sigReverso._ORDEM = item._ORDEM;
+                        });
+                    }
+                    if (!gerouAlguma) {
+                        const fallbackTrad = String(item.INDEX || '').trim() || 'Sem tradução';
+                        expandidos.push({
+                            ...item,
+                            _ITEM_ORIGINAL: item,
+                            _MODO_PORTUGUES: true,
+                            _TRADUCAO_DESTAQUE: fallbackTrad,
+                            _INDICE_ACEPCAO: 0,
+                            _LETRA_PT: extrairLetraPt(fallbackTrad),
+                            _CHAVE_INSTANCIA: `${idDoItem(item)}__pt_0`
+                        });
+                    }
+                });
+                resultados = expandidos;
+            }
 
-                        // Passar a classe e a pronúncia como tags distintas
-                        sigReverso.CLASSE_REVERSO = item.CLASSE || '';
-                        sigReverso.FONEMICA_REVERSO = item.FONEMICA || '';
-                        sigReverso.FONETICA_REVERSO = item.FONETICA || '';
-                        
-                        // Extrair a primeira mídia de pronúncia original da palavra indígena, se houver
-                        if (item.AUDIO) {
-                            const audios = item.AUDIO.split('~').map(a => a.trim()).filter(Boolean);
-                            const tiposRev = item.AUDIO_TIPOS ? item.AUDIO_TIPOS.split('~').map(t => t.trim()) : [];
-                            if (audios.length > 0) {
-                                const tipoRev = tiposRev[0] === 'video' ? 'video' : 'audio';
-                                sigReverso.TEM_AUDIO_REVERSO = tipoRev === 'audio';
-                                sigReverso.TEM_VIDEO_REVERSO = tipoRev === 'video';
-                                sigReverso.AUDIO_REVERSO_URL = resolverMidia(audios[0], tipoRev);
-                            }
-                        }
+            const ordemAlfaDe = (it) => (typeof it._ORDEM_ALFA === 'number' ? it._ORDEM_ALFA : (typeof it._ORDEM === 'number' ? it._ORDEM : 0));
+            const compararEmPt = (a, b) => {
+                const cmp = String(a._TRADUCAO_DESTAQUE || '').localeCompare(String(b._TRADUCAO_DESTAQUE || ''), 'pt-BR', { sensitivity: 'base' });
+                if (cmp !== 0) return cmp;
+                const cmpExato = String(a._TRADUCAO_DESTAQUE || '').localeCompare(String(b._TRADUCAO_DESTAQUE || ''), 'pt-BR');
+                if (cmpExato !== 0) return cmpExato;
+                return ordemAlfaDe(a) - ordemAlfaDe(b);
+            };
 
-                        dictReversoMap.get(chaveAgrupamento).SIGNIFICADOS.push(sigReverso);
+            if (organizarAlfabetico) {
+                if (ordenarPorTraducao) {
+                    resultados.sort((a, b) => {
+                        const la = a._LETRA_PT || extrairLetraPt(a._TRADUCAO_DESTAQUE);
+                        const lb = b._LETRA_PT || extrairLetraPt(b._TRADUCAO_DESTAQUE);
+                        if (la !== lb) return compararLetrasPt(la, lb);
+                        return compararEmPt(a, b);
                     });
-                });
-                
-                resultados = Array.from(dictReversoMap.values());
-                
-                // Ordenar as palavras indígenas dentro de cada significado alfabeticamente
-                resultados.forEach(res => {
-                    if (res.SIGNIFICADOS) {
-                        res.SIGNIFICADOS.sort((a, b) => a._ORDEM - b._ORDEM);
-                    }
-                });
-                
-                // Ordenar por Hierarquia Semântica e depois Alfabeticamente
-                const chavesSemanticas = [
-                    'CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO_1', 
-                    'SUB_CAMPO_SEMANTICO_2', 'SUB_CAMPO_SEMANTICO_3', 'SUB_CAMPO_SEMANTICO_4', 
-                    'SUB_CAMPO_SEMANTICO_5', 'SUB_CAMPO_SEMANTICO_6'
-                ];
-                
-                resultados.sort((a, b) => {
-                    for (let i = 0; i < chavesSemanticas.length; i++) {
-                        const valA = a[chavesSemanticas[i]] || (i === 0 ? 'Outros' : '');
-                        const valB = b[chavesSemanticas[i]] || (i === 0 ? 'Outros' : '');
-                        if (valA !== valB) return i === 0 ? compararCampos(valA, valB) : valA.localeCompare(valB, 'pt-BR');
-                    }
-                    return a._ordem.localeCompare(b._ordem, 'pt-BR');
-                });
+                } else {
+                    resultados.sort((a, b) => {
+                        const la = extrairLetraIndigena(a);
+                        const lb = extrairLetraIndigena(b);
+                        if (la !== lb) return compararLetrasIndigenas(la, lb);
+                        const diff = ordemAlfaDe(a) - ordemAlfaDe(b);
+                        return diff !== 0 ? diff : String(a.TERMO || '').localeCompare(String(b.TERMO || ''), 'pt-BR');
+                    });
+                }
 
+                // Atualiza as letras rápidas disponíveis antes de aplicar eventual filtro por letra clicada
+                const letrasDisponiveis = [];
+                const setLetras = new Set();
+                resultados.forEach(r => {
+                    const l = caminhosGrupoItem(r)[0];
+                    if (l && !setLetras.has(l)) { setLetras.add(l); letrasDisponiveis.push(l); }
+                });
+                if (filtroLetraValor && !setLetras.has(filtroLetraValor)) {
+                    filtroLetraValor = '';
+                }
+                renderizarCategoriasLista(letrasDisponiveis);
+                if (filtroLetraValor) {
+                    resultados = resultados.filter(r => caminhosGrupoItem(r)[0] === filtroLetraValor);
+                }
             } else {
-                const chavesSemanticas = [
-                    'CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO', 'SUB_CAMPO_SEMANTICO_1', 
-                    'SUB_CAMPO_SEMANTICO_2', 'SUB_CAMPO_SEMANTICO_3', 'SUB_CAMPO_SEMANTICO_4', 
-                    'SUB_CAMPO_SEMANTICO_5', 'SUB_CAMPO_SEMANTICO_6'
-                ];
+                renderizarCategoriasLista();
                 resultados.sort((a, b) => {
-                    for (let i = 0; i < chavesSemanticas.length; i++) {
-                        const valA = a[chavesSemanticas[i]] || (i === 0 ? 'Outros' : '');
-                        const valB = b[chavesSemanticas[i]] || (i === 0 ? 'Outros' : '');
+                    for (let i = 0; i < CHAVES_SEMANTICAS.length; i++) {
+                        const valA = a[CHAVES_SEMANTICAS[i]] || (i === 0 ? 'Outros' : '');
+                        const valB = b[CHAVES_SEMANTICAS[i]] || (i === 0 ? 'Outros' : '');
                         if (valA !== valB) return i === 0 ? compararCampos(valA, valB) : valA.localeCompare(valB, 'pt-BR');
                     }
+                    if (ordenarPorTraducao) return compararEmPt(a, b);
                     // Posição definida ao gerar o dicionário (ordem das entradas e alfabeto da língua)
-                    return a._ORDEM - b._ORDEM;
+                    return (a._ORDEM ?? 0) - (b._ORDEM ?? 0);
                 });
             }
+
+            atualizarRotuloBarraCategorias(organizarAlfabetico ? filtroLetraValor : semantico);
 
             dadosFiltrados = resultados;
             calcularContagemCaminhos(resultados);
@@ -3935,9 +4020,16 @@
             carregarLoteFiltrado();
 
             if (modalOverlay.classList.contains('ativo') && itemAtualNoModal) {
-                const aindaPresente = resultados.includes(itemAtualNoModal);
-                if (!aindaPresente) fecharModal();
-                else atualizarEstadoNavegacao();
+                const idAtual = idDoItem(itemAtualNoModal);
+                const correspondente = resultados.includes(itemAtualNoModal)
+                    ? itemAtualNoModal
+                    : resultados.find(r => idDoItem(r) === idAtual);
+                if (!correspondente) fecharModal();
+                else {
+                    itemAtualNoModal = correspondente;
+                    preencherModal(itemAtualNoModal);
+                    atualizarEstadoNavegacao();
+                }
             }
         }
 
@@ -4012,8 +4104,18 @@
             filtroClasseValor = e.target.value;
             aplicarFiltrosEBusca();
         });
+        if (ordenarAlfabeticoCheck) {
+            ordenarAlfabeticoCheck.addEventListener('change', (e) => {
+                organizarAlfabetico = e.target.checked;
+                filtroLetraValor = '';
+                window.categoriasColapsadas.clear();
+                aplicarFiltrosEBusca();
+            });
+        }
         ordenarTraducaoCheck.addEventListener('change', (e) => {
             ordenarPorTraducao = e.target.checked;
+            filtroLetraValor = '';
+            window.categoriasColapsadas.clear();
             aplicarFiltrosEBusca();
         });
 
@@ -4028,9 +4130,10 @@
         }
 
         function preencherModal(item) {
-            if (item.CAMPO_SEMANTICO) {
-                const sub = item.SUB_CAMPO_SEMANTICO ? ` › ${item.SUB_CAMPO_SEMANTICO}` : '';
-                modalTitulo.innerHTML = `<span class="tag">${item.CAMPO_SEMANTICO}${sub}</span>`;
+            const trilhaCat = montarTrilhaCategoria(item) || item.CAMPO_SEMANTICO || '';
+            if (trilhaCat) {
+                const escapada = trilhaCat.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                modalTitulo.innerHTML = `<span class="tag categoria-verbete">${escapada}</span>`;
             } else {
                 modalTitulo.textContent = '';
             }
@@ -4370,8 +4473,42 @@
             }
         }
 
-        function renderizarCategoriasLista() {
+        function renderizarCategoriasLista(letrasDisponiveis) {
             const dicio = window.dadosDicionarioLexical || [];
+            const rotuloPrincipal = document.getElementById('barra-rotulo-principal');
+            const tituloMobile = document.getElementById('tela-categorias-titulo');
+            if (rotuloPrincipal) rotuloPrincipal.textContent = organizarAlfabetico ? 'Letras (A–Z)' : 'Categorias';
+            if (tituloMobile) tituloMobile.textContent = organizarAlfabetico ? 'Letras (A–Z)' : 'Categorias';
+
+            if (organizarAlfabetico) {
+                const letras = Array.isArray(letrasDisponiveis) ? letrasDisponiveis : [];
+                const atual = filtroLetraValor || '';
+                let listaHtml = `<button type="button" class="categoria-linha nivel-0${atual === '' ? ' ativo' : ''}" data-categoria="">Todas as letras</button>`;
+                let barraHtml = `<a class="btn-barra categoria_btn${atual === '' ? ' ativo' : ''}" href="#" onclick="clicarCategoria(event, '')" style="font-weight: bold;">Todos</a> `;
+                let menuHtml = `<a href="#app-bar-header" onclick="fecharMenu()" style="border-bottom: 1px solid rgba(255,255,255,0.2); font-weight: bold;">Início</a>`;
+
+                letras.forEach(letra => {
+                    const escapedAttr = letra.replace(/"/g, '&quot;');
+                    const escapedC = letra.replace(/'/g, "\\'");
+                    const isAtivo = atual === letra ? ' ativo' : '';
+                    listaHtml += `<button type="button" class="categoria-linha nivel-0${isAtivo}" data-categoria="${escapedAttr}" style="padding-left:20px;">${letra}</button>`;
+                    barraHtml += `<a class="btn-barra categoria_btn${isAtivo}" href="#${letra}" onclick="clicarCategoria(event, '${escapedC}')">${letra}</a> `;
+                    menuHtml += `<a class="link-categoria-menu" href="#${letra}" onclick="window.abrirCategoriaSeColapsada('${escapedC}'); fecharMenu(); setTimeout(() => { document.getElementById('${escapedC}')?.scrollIntoView(); }, 50);" style="padding-left: 24px; font-weight: 700; font-size: 0.95rem; border-bottom: 1px solid rgba(255,255,255,0.2);">${letra}</a>`;
+                });
+
+                const listaEl = document.getElementById('tela-categorias-lista');
+                if (listaEl) {
+                    listaEl.innerHTML = listaHtml;
+                    listaEl.querySelectorAll('.categoria-linha').forEach(btn => {
+                        btn.addEventListener('click', () => selecionarCategoria(btn.getAttribute('data-categoria')));
+                    });
+                }
+                const barra = document.getElementById('barra');
+                if (barra) barra.innerHTML = barraHtml;
+                const menu = document.getElementById('menu');
+                if (menu) menu.innerHTML = menuHtml;
+                return;
+            }
             
             const arvore = {};
             dicio.forEach(item => {
@@ -4387,9 +4524,10 @@
             });
 
             window.arvoreSemantica = arvore;
+            const catAtiva = filtroSemanticoValor || '';
 
-            let listaHtml = `<button type="button" class="categoria-linha nivel-0 ativo" data-categoria="">Todas as categorias</button>`;
-            let barraHtml = `<a class="btn-barra categoria_btn ativo" href="#" onclick="clicarCategoria(event, '')" style="font-weight: bold;">Todos</a> `;
+            let listaHtml = `<button type="button" class="categoria-linha nivel-0${catAtiva === '' ? ' ativo' : ''}" data-categoria="">Todas as categorias</button>`;
+            let barraHtml = `<a class="btn-barra categoria_btn${catAtiva === '' ? ' ativo' : ''}" href="#" onclick="clicarCategoria(event, '')" style="font-weight: bold;">Todos</a> `;
             let menuHtml = `<a href="#app-bar-header" onclick="fecharMenu()" style="border-bottom: 1px solid rgba(255,255,255,0.2); font-weight: bold;">Início</a>`;
 
             function percorrerArvore(nodo, depth, caminhoAnterior = '') {
@@ -4398,11 +4536,12 @@
                     const caminhoAtual = caminhoAnterior ? `${caminhoAnterior}|${c}` : c;
                     const escapedAttr = c.replace(/"/g, '&quot;');
                     const indent = 20 + (depth * 18);
-                    listaHtml += `<button type="button" class="categoria-linha nivel-${depth}" data-categoria="${escapedAttr}" style="padding-left:${indent}px;">${c}</button>`;
+                    const isAtiva = catAtiva === c ? ' ativo' : '';
+                    listaHtml += `<button type="button" class="categoria-linha nivel-${depth}${isAtiva}" data-categoria="${escapedAttr}" style="padding-left:${indent}px;">${c}</button>`;
 
                     if (depth === 0) {
                         const escapedC = c.replace(/'/g, "\\'");
-                        barraHtml += `<a class="btn-barra categoria_btn" href="#${c}" onclick="clicarCategoria(event, '${escapedC}')">${c}</a> `;
+                        barraHtml += `<a class="btn-barra categoria_btn${isAtiva}" href="#${c}" onclick="clicarCategoria(event, '${escapedC}')">${c}</a> `;
                     }
 
                     const padLeft = 24 + (depth * 20);
@@ -4433,6 +4572,17 @@
         }
 
         window.clicarCategoria = function(e, cat) {
+            if (organizarAlfabetico) {
+                if (modoVisualizacao === 'cards') {
+                    e.preventDefault();
+                    filtroLetraValor = cat || '';
+                    aplicarFiltrosEBusca();
+                } else if (cat === '') {
+                    e.preventDefault();
+                    window.scrollTo({top: 0, behavior: 'smooth'});
+                }
+                return;
+            }
             if (modoVisualizacao === 'cards') {
                 e.preventDefault();
                 filtroSemanticoValor = cat;
@@ -4469,6 +4619,12 @@
         }
 
         window.selecionarCategoria = function(cat) {
+            if (organizarAlfabetico) {
+                filtroLetraValor = cat || '';
+                aplicarFiltrosEBusca();
+                fecharTelaCategorias();
+                return;
+            }
             filtroSemanticoValor = cat || '';
 
             document.querySelectorAll('.categoria-linha').forEach(btn => {
@@ -4693,93 +4849,77 @@
     
     <!-- INÍCIO SCRIPT AUDIO TEXTOS -->
     <script>
-        let audioElementsTexto = [];
         let audioPlayingTexto = false;
-        let currentAudioIndexTexto = -1;
+        let audioAtualTexto = null;
+
+        // Uma frase destacada por vez em toda a página (modal e lista)
+        function destacarFrase(fraseEl) {
+            document.querySelectorAll('.frase-item.frase-ativa').forEach(el => {
+                if (el !== fraseEl) el.classList.remove('frase-ativa');
+            });
+            if (fraseEl) fraseEl.classList.add('frase-ativa');
+        }
+
+        function pararLeituraTexto() {
+            if (audioAtualTexto) {
+                audioAtualTexto.onended = null;
+                audioAtualTexto.pause();
+                audioAtualTexto.currentTime = 0;
+            }
+            audioAtualTexto = null;
+            audioPlayingTexto = false;
+            document.querySelectorAll('.toca-texto-btn').forEach(btn => setIconeBotaoAudio(btn, false));
+        }
 
         function tocaTexto(botao, idTexto) {
-            const divTexto = document.getElementById(idTexto);
+            if (audioPlayingTexto) {
+                pararLeituraTexto();
+                destacarFrase(null);
+                return;
+            }
+            const divTexto = botao.closest('.dict-text-card') || document.getElementById(idTexto);
             if (!divTexto) return;
-            
-            const divsFrases = divTexto.querySelectorAll(".frase-item");
-            audioElementsTexto = Array.from(divTexto.querySelectorAll("audio"));
-            
-            function destacaFrase(index) {
-                divsFrases.forEach((frase, i) => {
-                    const textoFrase = frase.querySelector(".texto-frase");
-                    if (!textoFrase) return;
-                    if (i === index) {
-                        textoFrase.classList.add("destaque");
-                    } else {
-                        textoFrase.classList.remove("destaque");
-                    }
-                });
-            }
 
-            function playAudio(index) {
-                if (index < audioElementsTexto.length) {
-                    const audio = audioElementsTexto[index];
-                    audio.play();
-                    currentAudioIndexTexto = index;
+            // Só as frases com áudio entram na leitura em sequência
+            const frasesComAudio = Array.from(divTexto.querySelectorAll('.frase-item')).filter(f => f.querySelector('audio'));
+            if (frasesComAudio.length === 0) return;
 
-                    audio.onended = function () {
-                        destacaFrase(-1);
-                        if (index + 1 < audioElementsTexto.length) {
-                            destacaFrase(index + 1);
-                            playAudio(index + 1);
-                        } else {
-                            audioPlayingTexto = false;
-                            currentAudioIndexTexto = -1;
-                            setIconeBotaoAudio(botao, false);
-                        }
-                    };
+            document.querySelectorAll('audio').forEach(a => { if (!a.paused) a.pause(); });
+
+            function tocarFrase(index) {
+                if (index >= frasesComAudio.length) {
+                    pararLeituraTexto();
+                    destacarFrase(null);
+                    return;
                 }
+                const frase = frasesComAudio[index];
+                const audio = frase.querySelector('audio');
+                audioAtualTexto = audio;
+                destacarFrase(frase);
+                frase.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                audio.currentTime = 0;
+                audio.onended = () => tocarFrase(index + 1);
+                audio.play().catch(() => tocarFrase(index + 1));
             }
 
-            if (!audioPlayingTexto) {
-                audioPlayingTexto = true;
-                playAudio(0);
-                destacaFrase(0);
-                setIconeBotaoAudio(botao, true);
-            } else {
-                if (currentAudioIndexTexto !== -1 && audioElementsTexto[currentAudioIndexTexto]) {
-                    audioElementsTexto[currentAudioIndexTexto].pause();
-                    audioElementsTexto[currentAudioIndexTexto].currentTime = 0;
-                }
-                audioElementsTexto = [];
-                audioPlayingTexto = false;
-                currentAudioIndexTexto = -1;
-                setIconeBotaoAudio(botao, false);
-                destacaFrase(-1);
-            }
+            audioPlayingTexto = true;
+            setIconeBotaoAudio(botao, true);
+            tocarFrase(0);
         }
 
         function playAudio_frase(clickedElement) {
-            const allAudios = document.querySelectorAll('audio');
-            allAudios.forEach(audio => {
-                if (!audio.paused) {
-                    audio.pause();
-                }
+            document.querySelectorAll('audio').forEach(audio => {
+                if (!audio.paused) audio.pause();
             });
+            if (audioPlayingTexto) pararLeituraTexto();
 
-            if (audioPlayingTexto) {
-                audioPlayingTexto = false;
-                document.querySelectorAll('.toca-texto-btn').forEach(btn => setIconeBotaoAudio(btn, false));
-                document.querySelectorAll('.texto-frase.destaque').forEach(el => el.classList.remove('destaque'));
-            }
+            // O destaque vale também para frases sem áudio e fica até outra frase ser tocada
+            destacarFrase(clickedElement);
 
-            const audio = clickedElement.querySelector("audio");
+            const audio = clickedElement.querySelector('audio');
             if (!audio) return;
-            
-            const frase = clickedElement.querySelector(".texto-frase");
-
-            audio.play();
-            if (frase) {
-                frase.classList.add("destaque");
-                audio.onended = function() {
-                    frase.classList.remove("destaque");
-                };
-            }
+            audio.currentTime = 0;
+            audio.play().catch(() => {});
         }
     </script>
     <!-- FIM SCRIPT AUDIO TEXTOS -->

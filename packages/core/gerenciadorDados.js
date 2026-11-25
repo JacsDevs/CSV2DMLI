@@ -574,65 +574,7 @@ export default class GerenciadorDados {
             // Fallback: usa ordem padrão se não houver DOM disponível
         }
         
-        const stripAccents = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-
-        let alfabetoMap = null;
-        let digraphs = [];
-        
-        if (this.alfabetoCustomizado && this.alfabetoCustomizado.trim()) {
-            const letras = this.alfabetoCustomizado.split(',').map(l => stripAccents(l.trim().toLowerCase())).filter(l => l);
-            if (letras.length > 0) {
-                alfabetoMap = new Map();
-                letras.forEach((letra, index) => {
-                    if (!alfabetoMap.has(letra)) {
-                        alfabetoMap.set(letra, index);
-                        if (letra.length > 1) digraphs.push(letra);
-                    }
-                });
-                digraphs.sort((a, b) => b.length - a.length); // match longest first
-            }
-        }
-        
-        const getCustomOrderArray = (palavra) => {
-            const limpa = stripAccents(palavra.toLowerCase());
-            let i = 0;
-            const arr = [];
-            while (i < limpa.length) {
-                let match = null;
-                for (const dig of digraphs) {
-                    if (limpa.startsWith(dig, i)) {
-                        match = dig;
-                        break;
-                    }
-                }
-                if (match) {
-                    arr.push(alfabetoMap.get(match));
-                    i += match.length;
-                } else {
-                    const char = limpa[i];
-                    // Letras fora da lista vêm depois das listadas, em ordem alfabética entre si
-                    arr.push(alfabetoMap.has(char) ? alfabetoMap.get(char) : alfabetoMap.size + char.codePointAt(0));
-                    i++;
-                }
-            }
-            return arr;
-        };
-        
-        const compararTermos = (a, b) => {
-                    const termoA = (a._TERMO_PRINCIPAL || a.TERMO_PARENT || '').trim();
-                    const termoB = (b._TERMO_PRINCIPAL || b.TERMO_PARENT || '').trim();
-
-                    if (alfabetoMap) {
-                        const arrA = getCustomOrderArray(termoA);
-                        const arrB = getCustomOrderArray(termoB);
-
-                        for (let i = 0; i < Math.min(arrA.length, arrB.length); i++) {
-                            if (arrA[i] !== arrB[i]) return arrA[i] - arrB[i];
-                        }
-                        return arrA.length - arrB.length;
-            }
-                        return termoA.toLowerCase().localeCompare(termoB.toLowerCase(), 'pt-BR');
-        };
+        const { compararTermos } = this._criarComparadorAlfabetico();
         // A escolha vale para a categoria inteira, inclusive as entradas dos subcampos
         const ordenarNo = (no) => {
             no._entradas.sort(compararTermos);
@@ -643,6 +585,172 @@ export default class GerenciadorDados {
         });
 
         return { arvore, categoriasRaizes: ordemCategorias };
+    }
+
+    /**
+     * Cria o comparador alfabético e o extrator de letra/dígrafo inicial da língua,
+     * respeitando `this.alfabetoCustomizado` (quando definido) ou ordem padrão A–Z.
+     */
+    _criarComparadorAlfabetico() {
+        const stripAccents = (str) => String(str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const limparSufixoHomonimo = (str) => String(str || '').replace(/[\u2070\u00B9\u00B2\u00B3\u2074-\u2079]+$/g, '').trim();
+
+        let alfabetoMap = null;
+        let rotuloPorToken = new Map();
+        let ordemRotulos = [];
+        let tokensOrdenados = [];
+        let usaAcentosExplicitos = false;
+
+        if (this.alfabetoCustomizado && this.alfabetoCustomizado.trim()) {
+            const brutas = this.alfabetoCustomizado.split(',').map(l => l.trim()).filter(Boolean);
+            usaAcentosExplicitos = brutas.some(l => stripAccents(l) !== l);
+            if (brutas.length > 0) {
+                alfabetoMap = new Map();
+                brutas.forEach((bruta) => {
+                    const chave = (usaAcentosExplicitos ? bruta.normalize('NFC') : stripAccents(bruta)).toLowerCase();
+                    if (!chave || alfabetoMap.has(chave)) return;
+                    const indice = alfabetoMap.size;
+                    const rotulo = bruta.normalize('NFC').toUpperCase();
+                    alfabetoMap.set(chave, indice);
+                    rotuloPorToken.set(chave, rotulo);
+                    ordemRotulos.push(rotulo);
+                    tokensOrdenados.push(chave);
+                });
+                tokensOrdenados.sort((a, b) => b.length - a.length); // casa dígrafos maiores primeiro
+            }
+        }
+
+        const normalizarParaToken = (s) => (usaAcentosExplicitos ? s.normalize('NFC') : stripAccents(s)).toLowerCase();
+
+        const getCustomOrderArray = (palavra) => {
+            const base = limparSufixoHomonimo(palavra);
+            const limpa = normalizarParaToken(base);
+            const semAcento = stripAccents(base).toLowerCase();
+            let i = 0;
+            const arr = [];
+            while (i < limpa.length) {
+                let match = null;
+                for (const tok of tokensOrdenados) {
+                    if (limpa.startsWith(tok, i)) {
+                        match = tok;
+                        break;
+                    }
+                }
+                // Se o alfabeto tem vogais nasais explícitas (ex.: ã), uma vogal com acento tônico (ex.: á)
+                // que não esteja na lista ainda casa com a vogal base sem acento ('a').
+                if (!match && usaAcentosExplicitos) {
+                    for (const tok of tokensOrdenados) {
+                        if (semAcento.startsWith(tok, i)) {
+                            match = tok;
+                            break;
+                        }
+                    }
+                }
+                if (match) {
+                    arr.push(alfabetoMap.get(match));
+                    i += match.length;
+                } else {
+                    const char = semAcento[i] || limpa[i];
+                    // Letras fora da lista vêm depois das listadas, em ordem alfabética entre si
+                    arr.push(alfabetoMap.has(char) ? alfabetoMap.get(char) : alfabetoMap.size + char.codePointAt(0));
+                    i++;
+                }
+            }
+            return arr;
+        };
+
+        const compararTermos = (a, b) => {
+            const termoA = (a._TERMO_PRINCIPAL || a.TERMO_PARENT || '').trim();
+            const termoB = (b._TERMO_PRINCIPAL || b.TERMO_PARENT || '').trim();
+
+            if (alfabetoMap) {
+                const arrA = getCustomOrderArray(termoA);
+                const arrB = getCustomOrderArray(termoB);
+
+                for (let i = 0; i < Math.min(arrA.length, arrB.length); i++) {
+                    if (arrA[i] !== arrB[i]) return arrA[i] - arrB[i];
+                }
+                if (arrA.length !== arrB.length) return arrA.length - arrB.length;
+            }
+            return termoA.toLowerCase().localeCompare(termoB.toLowerCase(), 'pt-BR');
+        };
+
+        const extrairLetraInicial = (palavra) => {
+            let base = limparSufixoHomonimo(palavra).trim();
+            if (!base) return '#';
+
+            if (alfabetoMap) {
+                const candidatos = [base, base.replace(/^[-*()[\]"'«»“”‘’]+/, '').trim()].filter(Boolean);
+                for (const cand of candidatos) {
+                    const limpa = normalizarParaToken(cand);
+                    const semAcento = stripAccents(cand).toLowerCase();
+                    for (const tok of tokensOrdenados) {
+                        if (limpa.startsWith(tok)) return rotuloPorToken.get(tok);
+                    }
+                    if (usaAcentosExplicitos) {
+                        for (const tok of tokensOrdenados) {
+                            if (semAcento.startsWith(tok)) return rotuloPorToken.get(tok);
+                        }
+                    }
+                }
+            }
+
+            const semPontuacao = base.replace(/^[^\p{L}\p{N}]+/u, '');
+            const alvo = semPontuacao || base;
+            const semAcento = stripAccents(alvo);
+            const ch = Array.from(semAcento)[0] || '';
+            if (/\p{L}/u.test(ch)) return ch.toUpperCase();
+            return '#';
+        };
+
+        const compararLetras = (la, lb) => {
+            if (la === lb) return 0;
+            if (la === '#') return 1;
+            if (lb === '#') return -1;
+            if (ordemRotulos.length > 0) {
+                const ia = ordemRotulos.indexOf(la);
+                const ib = ordemRotulos.indexOf(lb);
+                if (ia >= 0 && ib >= 0) return ia - ib;
+                if (ia >= 0) return -1;
+                if (ib >= 0) return 1;
+            }
+            return la.localeCompare(lb, 'pt-BR');
+        };
+
+        return { compararTermos, extrairLetraInicial, compararLetras };
+    }
+
+    /**
+     * Agrupa e ordena todas as entradas globalmente de A a Z (sem dividir por campo semântico),
+     * respeitando o alfabeto customizado e seus dígrafos quando configurado.
+     */
+    obterEntradasAlfabeticas() {
+        if (!this._bancoConstruido) {
+            return { gruposLetras: [], ordemGlobal: new Map(), letraPorEntrada: new Map(), ordemLetras: [] };
+        }
+        const { compararTermos, extrairLetraInicial, compararLetras } = this._criarComparadorAlfabetico();
+        const todas = Object.values(this._bancoConstruido.entradas).slice().sort(compararTermos);
+
+        const porLetra = new Map();
+        const letraPorEntrada = new Map();
+        todas.forEach(entrada => {
+            const termo = (entrada._TERMO_PRINCIPAL || entrada.TERMO_PARENT || '').trim();
+            const letra = extrairLetraInicial(termo);
+            letraPorEntrada.set(entrada, letra);
+            if (!porLetra.has(letra)) porLetra.set(letra, []);
+            porLetra.get(letra).push(entrada);
+        });
+
+        const ordemLetras = Array.from(porLetra.keys()).sort(compararLetras);
+        const gruposLetras = [];
+        const ordemGlobal = new Map();
+        ordemLetras.forEach(letra => {
+            const entradas = porLetra.get(letra);
+            gruposLetras.push({ letra, entradas });
+            entradas.forEach(ent => ordemGlobal.set(ent, ordemGlobal.size));
+        });
+
+        return { gruposLetras, ordemGlobal, letraPorEntrada, ordemLetras };
     }
 
     /**

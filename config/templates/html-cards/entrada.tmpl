@@ -3,6 +3,9 @@
     <header class="dict-header">
         
         <div class="dict-headword-container">
+            {{#MODO_PORTUGUES}}
+            <div class="dict-traducao-topo">{{ TRADUCAO_DESTAQUE }}</div>
+            {{/MODO_PORTUGUES}}
             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
                 {{#TEM_TERMOS_MISTOS}}
                 {{#TERMOS_MISTOS}}
@@ -64,22 +67,6 @@
         <div class="dict-sense-header">
             <span class="dict-sense-number">{{ NUMERO_PONTO }}</span>
             {{#TRADUCAO}}<span class="dict-sense-translation">{{ TRADUCAO }}</span>{{/TRADUCAO}}
-            
-            {{#TEM_AUDIO_REVERSO}}
-            <button type="button" class="btn-audio btn-audio-sm" style="margin-left: 8px;" title="Ouvir pronúncia" aria-label="Ouvir pronúncia" onclick="event.stopPropagation(); window.tocarAudio('{{ AUDIO_REVERSO_URL }}', this)">
-                <svg class="icone" aria-hidden="true"><use href="#ic-som"></use></svg>
-            </button>
-            {{/TEM_AUDIO_REVERSO}}
-            {{#TEM_VIDEO_REVERSO}}
-            <button type="button" class="btn-audio btn-video btn-audio-sm" style="margin-left: 8px;" title="Assistir pronúncia" aria-label="Assistir pronúncia" onclick="event.stopPropagation(); abrirModalVideoEntrada('{{ AUDIO_REVERSO_URL }}', this)">
-                <svg class="icone" aria-hidden="true"><use href="#ic-play"></use></svg>
-            </button>
-            {{/TEM_VIDEO_REVERSO}}
-
-            {{#CLASSE_REVERSO}}<span class="dict-audio-chip classe-gramatical" style="background:transparent; border:none; padding:0; margin-left: 8px;"><em>{{ CLASSE_REVERSO }}</em></span>{{/CLASSE_REVERSO}}
-            {{#FONEMICA_REVERSO}}<span class="dict-audio-chip transcricao-fonetica" style="pointer-events: none; background: transparent; border: none; margin-left: 8px;"><span class="dict-chip-ipa">{{ FONEMICA_REVERSO }}</span></span>{{/FONEMICA_REVERSO}}
-            {{#FONETICA_REVERSO}}<span class="dict-audio-chip transcricao-fonetica" style="pointer-events: none; background: transparent; border: none; margin-left: 8px;"><span class="dict-chip-ipa">{{ FONETICA_REVERSO }}</span></span>{{/FONETICA_REVERSO}}
-
             {{#DESCRICAO}}<span class="dict-sense-definition" style="margin-left: 8px;">{{ DESCRICAO }}</span>{{/DESCRICAO}}
         </div>
 
@@ -146,7 +133,7 @@
             {{#VARIACOES}}
             <div>
                 {{#FRASES}}
-                <div class="dict-text-phrase" onclick="playAudio_frase(this)" style="display: flex; flex-direction: column; gap: 4px;">
+                <div class="dict-text-phrase frase-item" onclick="playAudio_frase(this)" style="display: flex; flex-direction: column; gap: 4px;">
                     {{#AUDIO_ARQUIVO}}<audio src="{{ AUDIO_ARQUIVO }}" preload="none" style="display: none;"></audio>{{/AUDIO_ARQUIVO}}
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span style="color: #15803d; font-weight: bold;">{{ ORIGINAL }}</span>

@@ -1292,6 +1292,10 @@
                                         <span class="publicar-cartao-icone" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6M8 13h8M8 17h5"></path></svg></span>
                                         <strong data-i18n>Documento PDF</strong>
                                         <span class="publicar-cartao-texto" data-i18n>Para imprimir ou distribuir como livro.</span>
+                                        <label class="publicar-opcao">
+                                            <input type="checkbox" id="swPdfAlfabetico">
+                                            <span data-i18n="html"><strong>Ordem alfabética (A–Z)</strong>Organiza os verbetes por letra inicial em vez de campo semântico.</span>
+                                        </label>
                                         <button type="button" class="btn-contorno" onclick="gerarExportacao('pdf')" data-i18n>Gerar PDF</button>
                                     </div>
                                 </div>
@@ -3019,6 +3023,7 @@
         if (meta.modoPdf) document.getElementById('metaModoPdf').value = meta.modoPdf;
         if (meta.subtitulo) document.getElementById('metaSubtitulo').value = meta.subtitulo;
         if (typeof meta.separadorPdf === 'boolean') document.getElementById('metaSeparadorPdf').checked = meta.separadorPdf;
+        if (typeof meta.ordemAlfabeticaPdf === 'boolean') document.getElementById('swPdfAlfabetico').checked = meta.ordemAlfabeticaPdf;
         // Sempre reescritos: a citação não tem outra origem além da configuração
         document.querySelectorAll('#metaCitacaoGrupo [data-citacao]').forEach(campo => {
             campo.value = (meta.citacao && meta.citacao[campo.dataset.citacao]) || '';
@@ -3411,6 +3416,7 @@
             modoPdf:    document.getElementById('metaModoPdf')?.value || existente.modoPdf || 'tela',
             subtitulo:  document.getElementById('metaSubtitulo')?.value.trim() || existente.subtitulo || '',
             separadorPdf: document.getElementById('metaSeparadorPdf')?.checked ?? existente.separadorPdf ?? true,
+            ordemAlfabeticaPdf: document.getElementById('swPdfAlfabetico')?.checked ?? existente.ordemAlfabeticaPdf ?? false,
             citacao:    existente.citacao || null,
             introHtml: introHtml,
             introPdf: introPdf,

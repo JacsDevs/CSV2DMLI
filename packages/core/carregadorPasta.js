@@ -30,6 +30,11 @@ export function interpretarConfiguracaoTxt(conteudo) {
             if (opcao === 'sim' || opcao === 'nao') config.metadados.separadorPdf = opcao === 'sim';
             else if (opcao) console.warn(`⚠️ configuracao.txt: "Divisoria entre verbetes" deve ser "sim" ou "nao" (recebido: "${v}").`);
         },
+        'ordem alfabetica no pdf': v => {
+            const opcao = normalizarChave(v);
+            if (opcao === 'sim' || opcao === 'nao') config.metadados.ordemAlfabeticaPdf = opcao === 'sim';
+            else if (opcao) console.warn(`⚠️ configuracao.txt: "Ordem alfabetica no PDF" deve ser "sim" ou "nao" (recebido: "${v}").`);
+        },
         'citacao-autores': v => { citacao.autores = v; },
         'citacao-local': v => { citacao.local = v; },
         'citacao-editor': v => { citacao.editor = v; },

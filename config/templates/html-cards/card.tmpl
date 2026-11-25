@@ -1,7 +1,26 @@
 <div class="card-texto">
     {{#CAMPO_SEMANTICO_EXIBIR}}
-    <div class="card-categoria">{{ CAMPO_SEMANTICO }}</div>
+    <div class="card-categoria">{{ TRILHA_CATEGORIA }}</div>
     {{/CAMPO_SEMANTICO_EXIBIR}}
+    {{#MODO_PORTUGUES}}
+    <div class="card-termo-linha">
+        <span class="card-termo">{{ TRADUCAO_DESTAQUE }}</span>
+    </div>
+    <div class="card-termo-linha card-subtermo-linha">
+        <span class="card-traducao card-termo-secundario">{{ TERMO }}</span>
+        {{#TEM_AUDIO_PRIMEIRO}}
+        <button type="button" class="btn-audio btn-audio-sm" title="Ouvir pronúncia" aria-label="Ouvir pronúncia de {{ TERMO }}" onclick="event.stopPropagation(); window.tocarAudio('{{ AUDIO_PRIMEIRO }}', this)">
+            <svg class="icone" aria-hidden="true"><use href="#ic-som"></use></svg>
+        </button>
+        {{/TEM_AUDIO_PRIMEIRO}}
+        {{#TEM_VIDEO_PRIMEIRO}}
+        <button type="button" class="btn-audio btn-video btn-audio-sm" title="Assistir pronúncia" aria-label="Assistir pronúncia de {{ TERMO }}" onclick="event.stopPropagation(); window.abrirModalVideoEntrada('{{ AUDIO_PRIMEIRO }}', this)">
+            <svg class="icone" aria-hidden="true"><use href="#ic-play"></use></svg>
+        </button>
+        {{/TEM_VIDEO_PRIMEIRO}}
+    </div>
+    {{/MODO_PORTUGUES}}
+    {{#NAO_MODO_PORTUGUES}}
     <div class="card-termo-linha">
         <span class="card-termo">{{ TERMO }}</span>
         {{#TEM_AUDIO_PRIMEIRO}}
@@ -16,6 +35,7 @@
         {{/TEM_VIDEO_PRIMEIRO}}
     </div>
     <div class="card-traducao">{{ INDEX }}</div>
+    {{/NAO_MODO_PORTUGUES}}
     {{#CLASSE}}<div class="card-rodape"><span class="tag">{{ CLASSE }}</span></div>{{/CLASSE}}
 </div>
 {{#PRIMEIRA_IMAGEM}}

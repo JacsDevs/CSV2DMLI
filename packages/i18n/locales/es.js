@@ -171,6 +171,7 @@ I18N.registrar('es', {
     "Gerar aplicativo": "Generar aplicación",
     "Para abrir no navegador ou publicar na internet.": "Para abrir en el navegador o publicar en internet.",
     "<strong>Arquivo único</strong>Mídias embutidas no HTML: é só enviar um arquivo, mas ele fica maior.": "<strong>Archivo único</strong>Medios incrustados en el HTML: basta con enviar un archivo, pero queda más grande.",
+    "<strong>Ordem alfabética (A–Z)</strong>Organiza os verbetes por letra inicial em vez de campo semântico.": "<strong>Orden alfabético (A–Z)</strong>Organiza las entradas por letra inicial en lugar de campo semántico.",
     "Gerar página web": "Generar página web",
     "Página web (HTML)": "Página web (HTML)",
     "PDF": "PDF",
