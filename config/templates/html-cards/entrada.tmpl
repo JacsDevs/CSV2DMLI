@@ -153,10 +153,13 @@
     </article>
     {{/SIGNIFICADOS}}
 
-    {{#ITENS_RELACIONADOS}}
-    <footer style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 0.95rem;">
-        <span style="font-weight: 600; color: #64748b; margin-right: 8px;">Veja também:</span>
-        <span style="color: var(--cor-primaria); font-weight: 500;">{{ ITENS_RELACIONADOS }}</span>
+    {{#TEM_RELACOES}}
+    <footer class="dict-relacoes" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 0.95rem;">
+        {{#RELACOES}}
+        <div style="margin: 2px 0;">
+            <span style="font-weight: 600; color: #64748b; margin-right: 8px;">{{ ROTULO }}:</span>{{#ITENS}}{{#ALVO}}<a href="#" class="dict-rel-link" data-entrada="{{ ALVO }}" style="color: var(--cor-primaria); font-weight: 500;">{{ TERMO }}</a>{{/ALVO}}{{#SEM_ALVO}}<span style="color: var(--cor-primaria); font-weight: 500;">{{ TERMO }}</span>{{/SEM_ALVO}}{{ VIRGULA }}{{/ITENS}}
+        </div>
+        {{/RELACOES}}
     </footer>
-    {{/ITENS_RELACIONADOS}}
+    {{/TEM_RELACOES}}
 </div>

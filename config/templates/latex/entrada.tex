@@ -2,6 +2,7 @@
 \index{\markboth{{{ INDEX }}}{{{ INDEX }}}{{ INDEX }} ({{ TERMO_PARENT }})}
 {{/INDEX}}
 \markboth{{{ TERMO_PARENT }}}{{{ TERMO_PARENT }}}
+{{#ID_ENTRADA}}\phantomsection\label{ent:{{ ID_ENTRADA }}}{{/ID_ENTRADA}}
 
 \noindent\textbf{\large \textipa{{{ TERMO }}}}{{#FONEMICA}} \textipa{{{ FONEMICA }}}{{/FONEMICA}}{{#FONETICA}} \textipa{{{ FONETICA }}}{{/FONETICA}}{{#CLASSE}} \textit{{{ CLASSE }}}{{/CLASSE}} 
 {{#DESCRICAO_ENTRADA}} \\ {\footnotesize \color{gray} {{ DESCRICAO_ENTRADA }} } {{/DESCRICAO_ENTRADA}}
@@ -25,10 +26,10 @@
 {{/VARIACOES}}
 {{/TEXTOS_ESTRUTURADOS}}
 {{/SIGNIFICADOS}}
-{{#ITENS_RELACIONADOS}}
+{{#TEM_RELACOES}}
 \vspace{0.1cm}
-{\small \color{gray} Veja também: {{ ITENS_RELACIONADOS }}}
-{{/ITENS_RELACIONADOS}}
+{\small \color{gray} {{#RELACOES}}{{ SEP }}\textit{{{ ROTULO }}}: {{#ITENS}}{{#ALVO}}\hyperref[ent:{{ ALVO }}]{{{ TERMO }}} (p.~\pageref{ent:{{ ALVO }}}){{/ALVO}}{{#SEM_ALVO}}{{ TERMO }}{{/SEM_ALVO}}{{ VIRGULA }}{{/ITENS}}{{/RELACOES}}}
+{{/TEM_RELACOES}}
 
 \vspace{0.3cm}
 \begin{center}

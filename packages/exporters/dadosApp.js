@@ -65,6 +65,11 @@ function converterEntrada(e, indice) {
         fonetica: texto(e.FONETICA),
         pronuncias: audios.flatMap((arquivo, i) => pronuncias(arquivo, tipos[i] === 'video' ? 'video' : 'audio')).filter(p => p.arquivo),
         relacionados: texto(e.ITENS_RELACIONADOS),
+        // Mesmas relações, por tipo e com o id da entrada de destino (para links no app)
+        relacoes: lista(e.RELACOES).map(g => ({
+            rotulo: texto(g.ROTULO),
+            itens: lista(g.ITENS).map(i => ({ termo: texto(i.TERMO), id: texto(i.ALVO) })),
+        })),
         acepcoes: lista(e.SIGNIFICADOS).map(s => ({
             numero: texto(s.NUMERO),
             traducao: texto(s.TRADUCAO),

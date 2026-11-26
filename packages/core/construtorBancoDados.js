@@ -1,4 +1,5 @@
 import { limparListaPipe, detectarTipoMidia, ehUrlRemota } from './helpers.js';
+import { ehId, lerItens, ligarRelacoes } from './relacoes.js';
 
 // ============================================
 // CONSTRUTOR DO BANCO DE DADOS LEXICAL
@@ -133,7 +134,11 @@ class ConstrutorBancoDados {
                         camposBasicos.SUB_CAMPO_SEMANTICO_5,
                         camposBasicos.SUB_CAMPO_SEMANTICO_6
                     ].filter(Boolean).map(s => String(s).trim()),
-                    ITENS_RELACIONADOS: String(camposBasicos.ITENS_RELACIONADOS || '').trim(),
+                    // texto cru, de todas as linhas da entrada (o CLDF exporta assim); a exibição
+                    // vem de RELACOES_SAIDA/RELACOES_ENTRADA/RELACOES_TEXTO, montadas por ligarRelacoes
+                    ITENS_RELACIONADOS: '',
+                    _IDS_LINHAS: [],
+                    _ITENS_LINHAS: [],
                     DESCRICAO_ENTRADA: String(camposBasicos.DESCRICAO_ENTRADA || '').trim(),
                     DESCRICAO_ENTRADA_ORIGINAL: camposBasicos.DESCRICAO_ENTRADA_ORIGINAL !== undefined ? String(camposBasicos.DESCRICAO_ENTRADA_ORIGINAL).trim() : String(camposBasicos.DESCRICAO_ENTRADA || '').trim(),
                     METADADOS_EXTRAS: camposBasicos.METADADOS_EXTRAS || {},
@@ -144,7 +149,18 @@ class ConstrutorBancoDados {
                 };
             }
             const entrada = db.entradas[idEntrada];
-            
+
+            // ========== ID DA LINHA E RELAÇÕES (de todas as linhas agrupadas na entrada) ==========
+            const idLinha = String(camposBasicos.ID || '').trim();
+            if (ehId(idLinha)) entrada._IDS_LINHAS.push(idLinha);
+            const relacionadosLinha = String(camposBasicos.ITENS_RELACIONADOS || '').trim();
+            if (relacionadosLinha) {
+                entrada._ITENS_LINHAS.push(...lerItens(relacionadosLinha));
+                const ja = entrada.ITENS_RELACIONADOS.split('|').map(t => t.trim());
+                const novos = relacionadosLinha.split('|').map(t => t.trim()).filter(t => t && !ja.includes(t));
+                if (novos.length) entrada.ITENS_RELACIONADOS = [entrada.ITENS_RELACIONADOS, ...novos].filter(Boolean).join(' | ');
+            }
+
             // ========== VARIAÇÕES ==========
             variacoes.forEach((v, i) => {
                 const lex = v.item || '';
@@ -363,6 +379,10 @@ class ConstrutorBancoDados {
                 });
             }
         }
+
+        // Relações: liga os IDs das linhas às entradas (depois dos homônimos, que mudam os termos)
+        db.metadados.avisosRelacoes = ligarRelacoes(db.entradas);
+        if (!silenciarAvisos) db.metadados.avisosRelacoes.forEach(a => console.warn(`⚠️ ${a}`));
 
         db.metadados.totalEntradas = Object.keys(db.entradas).length;
         db.metadados.totalVariacoes = Object.keys(db.variacoes).length;

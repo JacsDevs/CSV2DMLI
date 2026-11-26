@@ -170,6 +170,16 @@ class CarregadorPasta {
             this.arquivosEncontrados.configuracao = organizados.configuracao;
         }
         
+        // 3.1 Tipos de relação (relacoes.txt), se existir
+        if (organizados.relacoes) {
+            try {
+                this.gerenciador.setRelacoesTxt(await this._lerArquivoComoTexto(organizados.relacoes));
+                this.arquivosEncontrados.relacoes = organizados.relacoes;
+            } catch (e) {
+                console.warn(`⚠️ Não foi possível ler ${organizados.relacoes.name}:`, e);
+            }
+        }
+
         // 4. Carregar metadados em JSON (se existir)
         if (organizados.metadados) {
             await this._carregarMetadados(organizados.metadados);
@@ -407,6 +417,11 @@ class CarregadorPasta {
             else if (estaNaRaiz && (nomesConfig.includes(nomeArquivo.toLowerCase()) || nomeArquivo.toLowerCase() === 'configuracao.txt')) {
                 resultado.configuracao = arquivo;
                 console.log(`⚙️ Configuração local encontrada: ${nomeArquivo}`);
+            }
+            // Tipos de relação entre entradas (na raiz), lidos junto com o TRATAR MÍDIAS
+            else if (estaNaRaiz && nomeArquivo.toLowerCase() === 'relacoes.txt') {
+                resultado.relacoes = arquivo;
+                console.log(`🔗 Tipos de relação encontrados: ${nomeArquivo}`);
             }
             // Verificar se é metadados (na raiz)
             else if (estaNaRaiz && nomesMetadados.includes(nomeArquivo.toLowerCase())) {

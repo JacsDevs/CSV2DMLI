@@ -73,6 +73,7 @@ class ValidadorDados {
             const imgs = item.imagens || [];
             
             return {
+                ID: cb.ID || '',
                 ITEM_LEXICAL: vars.map(v => v.item || '').join(' | '),
                 CLASSE_GRAMATICAL: cb.CLASSE_GRAMATICAL || '',
                 CAMPO_SEMANTICO: cb.CAMPO_SEMANTICO || '',
