@@ -1354,6 +1354,10 @@
                                         <button type="button" class="btn-secundario" onclick="document.getElementById('modalCldf').style.display='flex'" data-i18n>Gerar CLDF</button>
                                     </li>
                                     <li>
+                                        <div><strong data-i18n>LIFT</strong> <span class="campo-ajuda" data-i18n>· ZIP</span><span class="publicar-tecnico-texto" data-i18n>Lexicon Interchange Format (XML), para importação no FLEx com as mídias copiadas automaticamente para o projeto. Exporta o dicionário completo ou um subconjunto de entradas.</span></div>
+                                        <button type="button" class="btn-secundario" onclick="abrirExportacaoLift()" data-i18n>Gerar LIFT</button>
+                                    </li>
+                                    <li>
                                         <div><strong data-i18n>Typst</strong> <span class="campo-ajuda" data-i18n>· código-fonte do PDF</span><span class="publicar-tecnico-texto" data-i18n>Para ajustar a diagramação do PDF à mão.</span></div>
                                         <button type="button" class="btn-secundario" onclick="gerarExportacao('typst')" data-i18n>Gerar Typst</button>
                                     </li>
@@ -1473,6 +1477,41 @@
         </div>
     </div>
 </div>
+
+<!-- EXPORTAÇÃO LIFT (FLEx): seleção de entradas montada por montarSeletorEntradas (packages/ui/seletorEntradas.js) -->
+<dialog id="dialogoFlex" class="dialogo dialogo-largo" aria-labelledby="flexTitulo">
+    <div class="dialogo-topo dialogo-topo-separado">
+        <div>
+            <span class="etapa-contador" data-i18n>Exportação LIFT</span>
+            <h2 id="flexTitulo" data-i18n>Seleção de entradas</h2>
+            <p data-i18n>Selecione campos semânticos inteiros (com seus subcampos) ou entradas individuais. Relações com entradas não selecionadas são omitidas. A busca considera a forma ortográfica, as variantes e as traduções.</p>
+        </div>
+        <button type="button" class="btn-icone" onclick="document.getElementById('dialogoFlex').close()" aria-label="Fechar" data-i18n-attr="aria-label"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+    </div>
+    <div class="seletor-barra">
+        <label class="midias-busca">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path></svg>
+            <input type="search" id="flexBusca" placeholder="Buscar entrada" aria-label="Buscar entrada" data-i18n-attr="placeholder aria-label">
+        </label>
+        <button type="button" class="btn-link" id="flexMarcarTodas" data-i18n>Marcar todas</button>
+        <button type="button" class="btn-link" id="flexDesmarcarTodas" data-i18n>Desmarcar todas</button>
+    </div>
+    <div class="dialogo-corpo seletor-corpo" id="flexSeletor"></div>
+    <div class="dialogo-rodape">
+        <label class="campo-opcao">
+            <input type="checkbox" id="flexMidias" checked>
+            <span data-i18n>Incluir arquivos de mídia (audio/, pictures/)</span>
+        </label>
+        <!-- O código vira o sistema de escrita vernáculo no FLEx -->
+        <label class="seletor-lingua">
+            <span data-i18n>Código da língua (vernáculo)</span>
+            <input type="text" id="flexLingua" class="mono" maxlength="35" spellcheck="false" placeholder="Ex.: kui" data-i18n-attr="placeholder" aria-describedby="flexLinguaAjuda">
+            <span class="campo-ajuda" id="flexLinguaAjuda" data-i18n>ISO 639-3 ou o código do sistema de escrita no FLEx</span>
+        </label>
+        <span class="campo-ajuda" id="flexContagem" role="status"></span>
+        <button type="button" class="btn-principal btn-rodape" id="btnGerarFlex" data-i18n>Gerar LIFT</button>
+    </div>
+</dialog>
 
 <!-- Recursos (modelos, programa de preparação e documentação). Duas telas no mesmo diálogo:
      #recursosInicio e #recursosPreparacao. Botões com [data-acao] ainda não têm destino (ver mostrarAcaoEmBreve). -->
@@ -2563,6 +2602,7 @@
     import { LICENCAS_CONHECIDAS, identificarLicenca } from './packages/core/licencas.js';
     import { ehId, lerItens, gruposDeRelacoes, textoDasRelacoes } from './packages/core/relacoes.js';
     import { AUXILIAR_RELACOES_TYPST } from './packages/exporters/exportadorTypst.js';
+    import { montarSeletorEntradas } from './packages/ui/seletorEntradas.js';
 
     
     // 1. Criar instâncias do sistema modular
@@ -3863,6 +3903,62 @@
     window.iniciarExportacaoCldf = async function() {
         document.getElementById('modalCldf').style.display = 'none';
         await window.gerarExportacao('cldf');
+    };
+
+    // Exportação LIFT para o FLEx, com seleção de entradas por campo semântico ou avulsas
+    window.abrirExportacaoLift = function() {
+        if (!window.exportador) return alert(_t('Exportador não inicializado!'));
+        const banco = window.sistema && window.sistema.bancoDados;
+        if (!banco || !Object.keys(banco.entradas || {}).length) {
+            return alert(_t('Nenhuma entrada carregada. Selecione a pasta do projeto na etapa Fonte de Dados antes de exportar.'));
+        }
+        const dialogo = document.getElementById('dialogoFlex');
+        const busca = document.getElementById('flexBusca');
+        const contagem = document.getElementById('flexContagem');
+        const botao = document.getElementById('btnGerarFlex');
+        const campoLingua = document.getElementById('flexLingua');
+        // Língua das traduções: a mesma do CLDF (Concepticon), "pt" se não escolhida;
+        // vernáculo: o ISO 639-3 da etapa Metadados ("und" quando vazio, que aqui não serve)
+        const metadados = coletarMetadadosExportacao();
+        if (!campoLingua.value.trim() && metadados.cldfIso !== 'und') campoLingua.value = metadados.cldfIso;
+
+        const { arvore, categoriasRaizes } = window.sistema.obterArvoreOrdenada();
+        busca.value = '';
+        const atualizarBotao = () => {
+            const n = seletor ? seletor.selecionadas().length : 0;
+            contagem.textContent = _t('{n} de {total} entradas selecionadas', { n: String(n), total: String(seletor ? seletor.total : 0) });
+            botao.disabled = n === 0 || !campoLingua.value.trim();
+        };
+        // aoMudar já é chamado durante a montagem, antes de `seletor` receber o valor
+        let seletor = null;
+        seletor = montarSeletorEntradas(document.getElementById('flexSeletor'), {
+            arvore, categoriasRaizes, banco, aoMudar: atualizarBotao
+        });
+        seletor.marcarTodas(true); // atualiza a contagem, agora que `seletor` existe
+        busca.oninput = () => seletor.buscar(busca.value);
+        campoLingua.oninput = atualizarBotao;
+        document.getElementById('flexMarcarTodas').onclick = () => seletor.marcarTodas(true);
+        document.getElementById('flexDesmarcarTodas').onclick = () => seletor.marcarTodas(false);
+        botao.onclick = async () => {
+            const entradas = seletor.selecionadas();
+            dialogo.close();
+            window.mostrarLoader(_t('Gerando LIFT'), _t('Escrevendo os registros e compactando as mídias...'));
+            try {
+                const { avisos, total } = await window.exportador.exportarLiftZip(entradas, {
+                    incluirMidias: document.getElementById('flexMidias').checked,
+                    analise: metadados.cldfGlossLang,
+                    vernaculo: campoLingua.value.trim(),
+                }, 'dicionario_lift.zip');
+                avisos.forEach(a => console.warn(`⚠️ LIFT: ${a}`));
+                window.adicionarLogAoTerminal(_t('✅ LIFT gerado com {n} entradas.', { n: String(total) }), 'info');
+            } catch (e) {
+                console.error(e);
+                alert(_t('Erro ao gerar LIFT: {erro}', { erro: e.message }));
+            } finally {
+                window.ocultarLoader();
+            }
+        };
+        dialogo.showModal();
     };
 
     window.gerarExportacao = async function(tipo) {
