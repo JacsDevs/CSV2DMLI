@@ -3,6 +3,7 @@ import ExportadorTypst from './exportadorTypst.js';
 import ExportadorLatex from './exportadorLatex.js';
 import ExportadorZip from './exportadorZip.js';
 import { ExportadorCLDF } from './exportadorCLDF.js';
+import ExportadorLIFT from './exportadorLIFT.js';
 import CompiladorPdf from '../pdf/compiladorPdf.js';
 import { platform } from '../platform/index.js';
 
@@ -14,6 +15,7 @@ export default class ModuloExportacao {
         this.exportadorLatexModule = new ExportadorLatex(this.gerenciador);
         this.exportadorZipModule = new ExportadorZip(this.gerenciador);
         this.exportadorCLDFModule = new ExportadorCLDF(this.gerenciador);
+        this.exportadorLiftModule = new ExportadorLIFT(this.gerenciador);
         this.compiladorPdf = new CompiladorPdf(this.gerenciador);
         console.log('📤 Módulo de Exportação inicializado.');
     }
@@ -189,6 +191,13 @@ export default class ModuloExportacao {
 
     async exportarCldfZip(opcoes = {}, nomeArquivo = 'dicionario_cldf.zip') {
         return await this.exportadorCLDFModule.exportarCldfZip(opcoes, nomeArquivo);
+    }
+
+    // LIFT para importar no FLEx: só as `entradas` escolhidas no seletor
+    async exportarLiftZip(entradas, opcoes = {}, nomeArquivo = 'dicionario_lift.zip') {
+        const resultado = await this.exportadorLiftModule.gerarZip(entradas, opcoes);
+        await this.salvarArquivoBlob(resultado.blob, nomeArquivo);
+        return resultado;
     }
 
     salvarArquivo(conteudo, nomeArquivo, mimeType = 'text/html;charset=utf-8') {
