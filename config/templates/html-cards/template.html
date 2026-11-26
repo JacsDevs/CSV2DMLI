@@ -4420,6 +4420,22 @@
                 abrirLightbox(e.target.src);
             }
         });
+        // Relações (entrada.tmpl e lista.tmpl): o termo relacionado abre o verbete dele
+        document.addEventListener('click', (e) => {
+            const link = e.target.closest && e.target.closest('a.dict-rel-link[data-entrada]');
+            if (!link) return;
+            e.preventDefault();
+            const alvo = (window.dadosDicionarioLexical || []).find(it => it.ID === link.dataset.entrada);
+            if (!alvo) return;
+            if (modalOverlay.classList.contains('ativo')) {
+                itemAtualNoModal = alvo;
+                preencherModal(alvo);
+                atualizarEstadoNavegacao();
+                modalBody.scrollTop = 0;
+            } else {
+                abrirModal(alvo);
+            }
+        });
         modalBody.addEventListener('keydown', (e) => {
             if ((e.key === 'Enter' || e.key === ' ') && e.target.tagName === 'IMG' && e.target.closest('.midia-item')) {
                 e.preventDefault();

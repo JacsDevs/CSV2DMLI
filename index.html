@@ -2561,6 +2561,8 @@
     import { abrirEditorLogo } from './packages/ui/editorLogo.js';
     import { montarPartesCitacao } from './packages/exporters/dadosApp.js';
     import { LICENCAS_CONHECIDAS, identificarLicenca } from './packages/core/licencas.js';
+    import { ehId, lerItens, gruposDeRelacoes, textoDasRelacoes } from './packages/core/relacoes.js';
+    import { AUXILIAR_RELACOES_TYPST } from './packages/exporters/exportadorTypst.js';
 
     
     // 1. Criar instâncias do sistema modular
@@ -4291,6 +4293,16 @@
                 EXTRAS: []
             };
             
+            // Relações: as da entrada já montada no banco (com o outro lado e os termos);
+            // sem ela (linha sem ID ou ainda não reconstruída), só os textos livres da célula
+            const banco = window.sistema.bancoDados;
+            const entradaBanco = banco && ehId(campos.ID)
+                ? Object.values(banco.entradas).find(e => (e._IDS_LINHAS || []).includes(campos.ID))
+                : null;
+            const relacoes = gruposDeRelacoes(
+                entradaBanco || { RELACOES_TEXTO: lerItens(campos.ITENS_RELACIONADOS).filter(i => !i.id).map(i => i.texto) },
+                banco ? banco.entradas : {}, window.sistema.tiposRelacao);
+
             const itemProcessado = {
                 TERMO: termos.length > 0 ? termos.join(' ~ ') : (campos.ITEM_LEXICAL || '???'),
                 TERMO_PARENT: termos[0] || campos.ITEM_LEXICAL || '???',
@@ -4301,7 +4313,9 @@
                 FONETICA: foneticas.join(' ~ '),
                 AUDIO: audios.join(' ~ '),
                 SIGNIFICADOS: [significado],
-                ITENS_RELACIONADOS: campos.ITENS_RELACIONADOS || '',
+                ITENS_RELACIONADOS: textoDasRelacoes(relacoes),
+                RELACOES: relacoes,
+                TEM_RELACOES: relacoes.length > 0 ? true : '',
                 INDEX: campos.TRADUCAO_SIGNIFICADO || '',
                 TEXTOS_ESTRUTURADOS: []
             };
@@ -4347,7 +4361,7 @@
                 return resolverMidiasVFS(html);
             } else if (formato === 'preview-pdf') {
                 const strTypst = window.exportador.exportadorTypstModule.processarTemplate(window.exportador.exportadorTypstModule.templateEntrada, itemProcessado);
-                const docTypst = `#let index(..args) = {}\n#import "/in-dexter.typ": *\n#set page(width: 15cm, height: auto, margin: 10pt)\n#set text(font: ("Charis SIL", "Arial"), fallback: true)\n${strTypst}`;
+                const docTypst = `#let index(..args) = {}\n#import "/in-dexter.typ": *\n#set page(width: 15cm, height: auto, margin: 10pt)\n#set text(font: ("Charis SIL", "Arial"), fallback: true)\n${AUXILIAR_RELACOES_TYPST}${strTypst}`;
                 console.log("=== CÓDIGO TYPST GERADO PARA O PREVIEW ===");
                 console.log(docTypst);
                 try {

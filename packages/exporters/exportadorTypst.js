@@ -5,6 +5,20 @@ import { identificarLicenca } from '../core/licencas.js';
 // Cores da capa quando não há tema (verde original do modelo)
 const CORES_CAPA_PADRAO = { primaria: '#1b4332', acento: '#74a383', contraste: '#ffffff' };
 
+// Referência a outro verbete nas relações (entrada.typ): o termo e a página, com link.
+// Cada verbete tem o rótulo <ent-ID_ENTRADA>; se o verbete não está no PDF, fica só o termo.
+// Vai no começo do corpo, para valer também com um template.typ personalizado antigo.
+export const AUXILIAR_RELACOES_TYPST = `
+#let ver-verbete(id, termo) = context {
+  let achados = query(label("ent-" + id))
+  if achados.len() == 0 { termo } else {
+    let loc = achados.first().location()
+    let formato = loc.page-numbering()
+    link(loc)[#termo (p.~#numbering(if formato == none { "1" } else { formato }, ..counter(page).at(loc)))]
+  }
+}
+`;
+
 /**
  * Logo do projeto para a capa do PDF: só o logo definido pelo usuário (nunca o
  * ícone do app) e só em PNG/JPEG, formatos que o Typst lê pelo nome do arquivo.
@@ -120,6 +134,7 @@ class ExportadorTypst extends ExportadorBase {
         dados.FONETICA = this.escaparTypst(dados.FONETICA);
         dados.INDEX = this.escaparTypst(dados.INDEX);
         dados.ITENS_RELACIONADOS = this.escaparTypst(dados.ITENS_RELACIONADOS);
+        dados.RELACOES = this.escaparRelacoes(dados.RELACOES, (t) => this.escaparTypst(t));
         // Bloco {{#SEPARADOR}} do entrada.typ: linha divisória entre verbetes
         // (processarTemplate só omite valores vazios, não `false`)
         dados.SEPARADOR = this.separadorPdf !== false ? true : '';
@@ -242,6 +257,7 @@ class ExportadorTypst extends ExportadorBase {
             const manterSet = new Set((opcoes.categoriasManterOriginal || []).map(c => c.toLowerCase()));
             corpo = this.gerarCorpoTypst(arvore, categoriasRaizes, manterSet);
         }
+        corpo = AUXILIAR_RELACOES_TYPST + corpo;
         
         let codigo = this.templatePrincipal;
         const meta = opcoes.metadados || {};

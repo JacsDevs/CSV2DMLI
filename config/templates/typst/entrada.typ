@@ -3,6 +3,7 @@
 #index("{{ INDEX }} ({{ TERMO_PARENT }})")
 {{/INDEX}}
 #metadata("{{ TERMO_PARENT }}") <dict-word>
+{{#ID_ENTRADA}}#metadata("{{ ID_ENTRADA }}") <ent-{{ ID_ENTRADA }}>{{/ID_ENTRADA}}
 {{#TERMO}}*{{ TERMO }}*{{/TERMO}}{{#FONEMICA}} {{ FONEMICA }}{{/FONEMICA}}{{#FONETICA}} {{ FONETICA }}{{/FONETICA}}{{#CLASSE}} _{{ CLASSE }}_{{/CLASSE}}{{#CATEGORIA_PDF}} #text(size: 8.5pt, fill: luma(75))[\[{{ CATEGORIA_PDF }}\]]{{/CATEGORIA_PDF}}{{#DESCRICAO_ENTRADA}} #text(size: 8.5pt, fill: luma(60))[{{ DESCRICAO_ENTRADA }}]{{/DESCRICAO_ENTRADA}}
 {{#SIGNIFICADOS}}{{#NUMERO}}*{{ NUMERO }}.* {{/NUMERO}}{{#TRADUCAO}}{{ TRADUCAO }}{{/TRADUCAO}}{{#DESCRICAO}}. {{ DESCRICAO }}{{/DESCRICAO}}{{#EXEMPLOS}}{{#TRANS}} _{{ TRANS }}_{{/TRANS}}{{#TRAD}} – {{ TRAD }}{{/TRAD}}{{/EXEMPLOS}}{{#IMAGENS}}{{#ARQUIVO}}
 
@@ -55,7 +56,7 @@
   {{/VARIACOES}}
 ]
 {{/TEXTOS_ESTRUTURADOS}}
-{{/SIGNIFICADOS}}{{#ITENS_RELACIONADOS}} #text(size: 8.5pt)[→ _Veja também_ {{ ITENS_RELACIONADOS }}]{{/ITENS_RELACIONADOS}}
+{{/SIGNIFICADOS}}{{#TEM_RELACOES}} #text(size: 8.5pt)[→ {{#RELACOES}}{{ SEP }}_{{ ROTULO }}_ {{#ITENS}}{{#ALVO}}#ver-verbete("{{ ALVO }}")[{{ TERMO }}]{{/ALVO}}{{#SEM_ALVO}}{{ TERMO }}{{/SEM_ALVO}}{{ VIRGULA }}{{/ITENS}}{{/RELACOES}}]{{/TEM_RELACOES}}
 
 // Separador entre verbetes: marca onde um termina e o outro começa
 // (opção "Linha divisória entre os verbetes" em Aparência > PDF)

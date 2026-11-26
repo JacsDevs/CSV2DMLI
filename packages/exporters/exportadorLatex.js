@@ -59,6 +59,7 @@ class ExportadorLatex extends ExportadorBase {
         dados.FONETICA = this.escaparLatex(dados.FONETICA);
         dados.INDEX = this.escaparLatex(dados.INDEX);
         dados.ITENS_RELACIONADOS = this.escaparLatex(dados.ITENS_RELACIONADOS);
+        dados.RELACOES = this.escaparRelacoes(dados.RELACOES, (t) => this.escaparLatex(t));
         
         dados.SIGNIFICADOS = dados.SIGNIFICADOS.map(s => {
             const traducao = this.escaparLatex(this.testaFinal(s.TRADUCAO, true));

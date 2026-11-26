@@ -19,6 +19,7 @@ Os arquivos ficam na raiz da pasta. Só a planilha é obrigatória.
 | `bibliografia.bib` | Referências bibliográficas em BibTeX, listadas no fim do dicionário no padrão ABNT. |
 | `licenca.txt` | Documento com os termos da licença de uso (ou arquivo de texto contendo a URL da licença). |
 | `intro.md` ou `intro.txt` | Texto de introdução, exibido na página inicial e no início do PDF. |
+| `relacoes.txt` | Tipos de relação entre entradas e os nomes que aparecem no dicionário. Veja [Relações entre entradas](colunas-do-csv.md#relações-entre-entradas). |
 | `alfabeto.txt` | Alfabeto da língua para a ordenação. A chave `Alfabeto` do `configuracao.txt` tem prioridade sobre ele. |
 
 ### Outros nomes aceitos

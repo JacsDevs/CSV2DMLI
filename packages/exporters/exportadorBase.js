@@ -1,5 +1,6 @@
 import { ehUrlRemota } from '../core/helpers.js';
 import { RUNTIME_MIDIAS_EMBUTIDAS } from './runtimeMidiasEmbutidas.js';
+import { gruposDeRelacoes, textoDasRelacoes } from '../core/relacoes.js';
 
 class ExportadorBase {
     constructor(gerenciadorDados) {
@@ -58,6 +59,15 @@ class ExportadorBase {
             .replace(/^\s*\.\s*\.\s*$/gm, '')
             .replace(/\n\s*\n\s*\n+/g, '\n\n')
             .trim();
+    }
+
+    /** Grupos de relações com os textos tratados para o formato de saída (`escapar`). */
+    escaparRelacoes(grupos, escapar) {
+        return (grupos || []).map(g => ({
+            ...g,
+            ROTULO: escapar(g.ROTULO),
+            ITENS: g.ITENS.map(i => ({ ...i, TERMO: escapar(i.TERMO) })),
+        }));
     }
 
     extrairDadosEntrada(entrada) {
@@ -160,9 +170,16 @@ class ExportadorBase {
             AUDIO: audiosUnicosResolved.join(' ~ '),
             AUDIO_TIPOS: audiosTiposResolved.join(' ~ '),
             SIGNIFICADOS: significados,
-            ITENS_RELACIONADOS: entrada.ITENS_RELACIONADOS || '',
             INDEX: significados.length > 0 ? significados[0].TRADUCAO : ''
         };
+        // Relações (ITENS_RELACIONADOS): grupos por tipo, com o outro lado, para {{#RELACOES}};
+        // ID_ENTRADA é o alvo dos links (HTML) e das referências de página (PDF).
+        // ITENS_RELACIONADOS vira o mesmo conteúdo em texto, para templates antigos e o app nativo.
+        const relacoes = gruposDeRelacoes(entrada, banco.entradas, this.db.tiposRelacao);
+        result.ID_ENTRADA = entrada.ID || '';
+        result.RELACOES = relacoes;
+        result.TEM_RELACOES = relacoes.length > 0 ? true : '';
+        result.ITENS_RELACIONADOS = textoDasRelacoes(relacoes);
         return result;
     }
 

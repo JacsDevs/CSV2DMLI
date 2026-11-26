@@ -11,7 +11,7 @@
     "build:android-template": "node scripts/generate-mipmap-icons.mjs && cd android-template && ./gradlew :app:bundleDebug :app:assembleDebug && cp app/build/outputs/bundle/debug/app-debug.aab ../vendor/android/template.aab && cp app/build/outputs/apk/debug/app-debug.apk ../vendor/android/template.apk",
     "i18n:verificar": "node scripts/verificar-i18n.mjs",
     "tauri": "tauri",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test \"tests/*.test.mjs\""
   },
   "keywords": [],
   "author": "",

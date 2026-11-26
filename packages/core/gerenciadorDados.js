@@ -4,6 +4,7 @@ import ConstrutorBancoDados from './construtorBancoDados.js';
 import { buscaFuzzy } from './helpers.js';
 import { renderizarReferenciasAbnt } from './bibliografiaAbnt.js';
 import { identificarLicenca } from './licencas.js';
+import { interpretarRelacoesTxt, TIPOS_SUGERIDOS } from './relacoes.js';
 
 /**
  * Gerencia o carregamento e o armazenamento de todos os dados da aplicação,
@@ -36,6 +37,10 @@ export default class GerenciadorDados {
         this.nomeArquivoLicenca = 'licenca.txt';
         this.licencaUrl = '';
         this.alfabetoCustomizado = '';
+        // Tipos de relação entre entradas: os sugeridos + os do relacoes.txt da pasta (ver relacoes.js)
+        this.relacoesTxt = '';
+        this.tiposRelacao = TIPOS_SUGERIDOS.map(t => ({ ...t }));
+        this.avisosRelacoes = [];
         // Ícone do app (launcher Android e ficha da Play Store): quadrado, 512×512
         this.icone = { dataUrl: null, bytes: null, nome: null };
         // Logo do projeto (cabeçalho do HTML e dos apps): proporção livre
@@ -157,6 +162,8 @@ export default class GerenciadorDados {
             const linhaNormalizada = {
                 indice: index,
                 camposBasicos: {
+                    // ID fixo da linha (coluna ID), usado pelas relações em ITENS_RELACIONADOS
+                    ID: String(linhaMesclada.ID || '').trim(),
                     CLASSE_GRAMATICAL: linhaMesclada.CLASSE_GRAMATICAL || '',
                     CAMPO_SEMANTICO: linhaMesclada.CAMPO_SEMANTICO || '',
                     SUB_CAMPO_SEMANTICO: linhaMesclada.SUB_CAMPO_SEMANTICO || '',
@@ -344,6 +351,14 @@ export default class GerenciadorDados {
         return renderizarReferenciasAbnt(this.bibliografiaBib, formato);
     }
     setAlfabetoCustomizado(conteudo) { this.alfabetoCustomizado = conteudo; }
+    /** relacoes.txt: tipos de relação da pasta, somados aos sugeridos. Devolve os avisos de linhas inválidas. */
+    setRelacoesTxt(conteudo) {
+        this.relacoesTxt = conteudo || '';
+        const { tipos, avisos } = interpretarRelacoesTxt(this.relacoesTxt);
+        this.tiposRelacao = tipos;
+        avisos.forEach(a => console.warn(`⚠️ ${a}`));
+        return avisos;
+    }
     setMetadados(metadados) {
         if(this.configurador && this.configurador.mesclarConfigLocal) {
             this.configurador.mesclarConfigLocal({ metadados });
@@ -411,6 +426,7 @@ export default class GerenciadorDados {
     _reconstruirBanco() {
         if (this.dadosPlanilha && this.dadosPlanilha.length > 0) {
             this._bancoConstruido = this.construtorDB.normalizarDados(this.dadosPlanilha, this.silenciarAvisosMidia);
+            this.avisosRelacoes = this._bancoConstruido.metadados.avisosRelacoes || [];
         }
     }
 
@@ -452,6 +468,7 @@ export default class GerenciadorDados {
         if (projeto.nomeArquivoLicenca) this.nomeArquivoLicenca = projeto.nomeArquivoLicenca;
         if (projeto.licencaUrl) this.licencaUrl = projeto.licencaUrl;
         if (projeto.alfabetoCustomizado) this.alfabetoCustomizado = projeto.alfabetoCustomizado;
+        if (projeto.relacoesTxt) this.setRelacoesTxt(projeto.relacoesTxt);
         if (projeto.citacao) this.configurador.mesclarConfigLocal({ metadados: { citacao: projeto.citacao } });
         this._reconstruirBanco();
         console.log('📦 Projeto restaurado de projeto.json');
@@ -484,6 +501,7 @@ export default class GerenciadorDados {
         this.nomeArquivoLicenca = 'licenca.txt';
         this.licencaUrl = '';
         this.alfabetoCustomizado = '';
+        this.setRelacoesTxt('');
         this.vfs.limpar();
         console.log('🧹 Dados limpos com sucesso.');
     }
@@ -500,6 +518,7 @@ export default class GerenciadorDados {
                 const imgs = item.imagens || [];
                 
                 const linhaPlana = {
+                    ID: cb.ID || '',
                     ITEM_LEXICAL: vars.map(v => v.item || '').join(' | '),
                     CLASSE_GRAMATICAL: cb.CLASSE_GRAMATICAL || '',
                     CAMPO_SEMANTICO: cb.CAMPO_SEMANTICO || '',
@@ -544,6 +563,7 @@ export default class GerenciadorDados {
                 nomeArquivoLicenca: this.nomeArquivoLicenca,
                 licencaUrl: this.licencaUrl,
                 alfabetoCustomizado: this.alfabetoCustomizado,
+                relacoesTxt: this.relacoesTxt,
                 citacao: this.configurador.getConfig().metadados?.citacao,
                 geradoEm: new Date().toISOString()
             };

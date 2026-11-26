@@ -117,6 +117,7 @@ class ExportadorHtmlCards extends ExportadorBase {
         dados.FONEMICA = this.escaparHTML(dados.FONEMICA);
         dados.FONETICA = this.escaparHTML(dados.FONETICA);
         dados.ITENS_RELACIONADOS = this.escaparHTML(dados.ITENS_RELACIONADOS);
+        dados.RELACOES = this.escaparRelacoes(dados.RELACOES, (t) => this.escaparHTML(t));
         
         const escaparTextoEstruturado = (t) => ({
             ...t,
